@@ -15,7 +15,6 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand('codagotchi.addTodo', () => {
 			const {activeTextEditor } = vscode.window;
