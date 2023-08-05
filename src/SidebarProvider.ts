@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 
-
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _doc?: vscode.TextDocument;
@@ -36,6 +35,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           vscode.window.showErrorMessage(data.value);
           break;
         }
+        case "resize": {
+          const width = data.width;
+          const height = data.height;
+
+          // Now you have the dimensions of the WebView
+          console.log(`WebView dimensions: ${width}x${height}`);
+          break;
+        }
       }
     });
   }
@@ -63,27 +70,37 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const nonce = getNonce();
 
     return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-				<!--
-					Use a content security policy to only allow loading images from https or from our extension directory,
-					and only allow scripts that have a specific nonce.
-        -->
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
         <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${
           webview.cspSource
         }; script-src 'nonce-${nonce}';">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<link href="${styleResetUri}" rel="stylesheet">
-				<link href="${styleVSCodeUri}" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="${styleResetUri}" rel="stylesheet">
+        <link href="${styleVSCodeUri}" rel="stylesheet">
         <link href="${styleMainUri}" rel="stylesheet">
         <script nonce="${nonce}">
           const tsvscode = acquireVsCodeApi();
+          window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            // Send a message to the extension
+            tsvscode.postMessage({
+              type: 'resize',
+              width: width,
+              height: height
+            });
+          });
+
+          // Trigger the resize event manually to get initial dimensions
+          window.dispatchEvent(new Event('resize'));
         </script>
-			</head>
+      </head>
       <body>
-		<script nonce="${nonce}" src="${scriptUri}"></script>
-	    </body>
-	 </html>`;
+        <script nonce="${nonce}" src="${scriptUri}"></script>
+      </body>
+    </html>`;
   }
 }
