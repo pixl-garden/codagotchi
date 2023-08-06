@@ -1,0 +1,124 @@
+:root {
+    --container-padding: 12px;
+    --input-padding-vertical: 6px;
+    --input-padding-horizontal: 4px;
+    --input-margin-vertical: 4px;
+    --input-margin-horizontal: 0;
+    --button-size: 33px; /* Size of the square buttons */
+  }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    padding: 0 var(--container-padding);
+    color: var(--vscode-foreground);
+    font-size: var(--vscode-font-size);
+    font-weight: var(--vscode-font-weight);
+    font-family: var(--vscode-font-family);
+    background-color: var(--vscode-editor-background);
+  }
+  
+  ol,
+  ul {
+    padding-left: var(--container-padding);
+  }
+  
+  body > *,
+  form > * {
+    margin-block-start: var(--input-margin-vertical);
+    margin-block-end: var(--input-margin-vertical);
+  }
+  
+  *:focus {
+    outline-color: var(--vscode-focusBorder) !important;
+  }
+  
+  a {
+    color: var(--vscode-textLink-foreground);
+  }
+  
+  a:hover,
+  a:active {
+    color: var(--vscode-textLink-activeForeground);
+  }
+  
+  code {
+    font-size: var(--vscode-editor-font-size);
+    font-family: var(--vscode-editor-font-family);
+  }
+  
+  .button-row {
+    display: flex;
+    justify-content: space-between;
+    min-width: 146px; /* Adjust this value to fit your needs */
+    overflow-x: auto; /* Add a scrollbar when the content overflows */
+  }
+  
+  .bottom-row {
+    bottom: 0;
+  }
+  
+  .button-row button {
+    width: var(--button-size);
+    height: var(--button-size);
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    border: 1px solid var(--vscode-button-foreground); /* Add border */
+    outline: 1px solid transparent;
+    outline-offset: 2px !important;
+    color: var(--vscode-button-foreground);
+    background: transparent; /* Make background transparent */
+  }
+  
+  .button-row button:hover {
+    cursor: pointer;
+    background: var(--vscode-button-hoverBackground);
+  }
+  
+  .button-row button:focus {
+    outline-color: var(--vscode-focusBorder);
+  }
+  
+  .button-row button.secondary {
+    color: var(--vscode-button-secondaryForeground);
+    background: transparent; /* Make background transparent */
+  }
+  
+  .button-row button.secondary:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+  }
+
+  .grid-container {
+    width: 146px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+  }
+  
+  .pixel {
+    flex: 1 0 calc((100% - (--container-padding * 2)) / 32); /* Adjust based on your desired square size and number of columns */
+    width: 3px;
+    height: 3px;
+    background-color: #ccc
+  }
+  
+  input:not([type="checkbox"]),
+  textarea {
+    display: block;
+    width: 100%;
+    border: none;
+    font-family: var(--vscode-font-family);
+    padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+    color: var(--vscode-input-foreground);
+    outline-color: var(--vscode-input-border);
+    background-color: var(--vscode-input-background);
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--vscode-input-placeholderForeground);
+  }

@@ -25,12 +25,27 @@ var app = (function () {
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
     }
+
+    const globals = (typeof window !== 'undefined'
+        ? window
+        : typeof globalThis !== 'undefined'
+            ? globalThis
+            : global);
+    function append(target, node) {
+        target.appendChild(node);
+    }
     function insert(target, node, anchor) {
         target.insertBefore(node, anchor || null);
     }
     function detach(node) {
         if (node.parentNode) {
             node.parentNode.removeChild(node);
+        }
+    }
+    function destroy_each(iterations, detaching) {
+        for (let i = 0; i < iterations.length; i += 1) {
+            if (iterations[i])
+                iterations[i].d(detaching);
         }
     }
     function element(name) {
@@ -41,6 +56,19 @@ var app = (function () {
     }
     function space() {
         return text(' ');
+    }
+    function empty() {
+        return text('');
+    }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
+    function attr(node, attribute, value) {
+        if (value == null)
+            node.removeAttribute(attribute);
+        else if (node.getAttribute(attribute) !== value)
+            node.setAttribute(attribute, value);
     }
     function children(element) {
         return Array.from(element.childNodes);
@@ -54,6 +82,31 @@ var app = (function () {
     let current_component;
     function set_current_component(component) {
         current_component = component;
+    }
+    function get_current_component() {
+        if (!current_component)
+            throw new Error('Function called outside component initialization');
+        return current_component;
+    }
+    /**
+     * The `onMount` function schedules a callback to run as soon as the component has been mounted to the DOM.
+     * It must be called during the component's initialisation (but doesn't need to live *inside* the component;
+     * it can be called from an external module).
+     *
+     * `onMount` does not run inside a [server-side component](/docs#run-time-server-side-component-api).
+     *
+     * https://svelte.dev/docs#run-time-svelte-onmount
+     */
+    function onMount(fn) {
+        get_current_component().$$.on_mount.push(fn);
+    }
+    /**
+     * Schedules a callback to run immediately after the component has been updated.
+     *
+     * The first time the callback runs will be after the initial `onMount`
+     */
+    function afterUpdate(fn) {
+        get_current_component().$$.after_update.push(fn);
     }
 
     const dirty_components = [];
@@ -304,6 +357,10 @@ var app = (function () {
     function dispatch_dev(type, detail) {
         document.dispatchEvent(custom_event(type, Object.assign({ version: '3.59.2' }, detail), { bubbles: true }));
     }
+    function append_dev(target, node) {
+        dispatch_dev('SvelteDOMInsert', { target, node });
+        append(target, node);
+    }
     function insert_dev(target, node, anchor) {
         dispatch_dev('SvelteDOMInsert', { target, node, anchor });
         insert(target, node, anchor);
@@ -311,6 +368,37 @@ var app = (function () {
     function detach_dev(node) {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
+    }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation, has_stop_immediate_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        if (has_stop_immediate_propagation)
+            modifiers.push('stopImmediatePropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
+    }
+    function attr_dev(node, attribute, value) {
+        attr(node, attribute, value);
+        if (value == null)
+            dispatch_dev('SvelteDOMRemoveAttribute', { node, attribute });
+        else
+            dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
+    }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
     }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
@@ -341,38 +429,300 @@ var app = (function () {
 
     /* webviews\components\Sidebar.svelte generated by Svelte v3.59.2 */
 
+    const { console: console_1 } = globals;
     const file = "webviews\\components\\Sidebar.svelte";
+
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[16] = list[i];
+    	child_ctx[18] = i;
+    	return child_ctx;
+    }
+
+    function get_each_context_1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[19] = list[i];
+    	child_ctx[20] = list;
+    	child_ctx[21] = i;
+    	return child_ctx;
+    }
+
+    // (45:6) {#each row as cell, colIndex}
+    function create_each_block_1(ctx) {
+    	let div;
+    	let each_value_1 = /*each_value_1*/ ctx[20];
+    	let colIndex = /*colIndex*/ ctx[21];
+    	const assign_div = () => /*div_binding*/ ctx[5](div, each_value_1, colIndex);
+    	const unassign_div = () => /*div_binding*/ ctx[5](null, each_value_1, colIndex);
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			attr_dev(div, "class", "pixel");
+    			add_location(div, file, 45, 8, 1491);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			assign_div();
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (each_value_1 !== /*each_value_1*/ ctx[20] || colIndex !== /*colIndex*/ ctx[21]) {
+    				unassign_div();
+    				each_value_1 = /*each_value_1*/ ctx[20];
+    				colIndex = /*colIndex*/ ctx[21];
+    				assign_div();
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			unassign_div();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_1.name,
+    		type: "each",
+    		source: "(45:6) {#each row as cell, colIndex}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (44:4) {#each grid as row, rowIndex}
+    function create_each_block(ctx) {
+    	let each_1_anchor;
+    	let each_value_1 = /*row*/ ctx[16];
+    	validate_each_argument(each_value_1);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty();
+    		},
+    		m: function mount(target, anchor) {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(target, anchor);
+    				}
+    			}
+
+    			insert_dev(target, each_1_anchor, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*grid*/ 1) {
+    				each_value_1 = /*row*/ ctx[16];
+    				validate_each_argument(each_value_1);
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block_1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value_1.length;
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(each_1_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(44:4) {#each grid as row, rowIndex}",
+    		ctx
+    	});
+
+    	return block;
+    }
 
     function create_fragment(ctx) {
     	let div0;
+    	let button0;
     	let t1;
+    	let button1;
+    	let t3;
+    	let button2;
+    	let t5;
+    	let button3;
+    	let t7;
     	let div1;
+    	let t8;
+    	let div2;
+    	let button4;
+    	let t10;
+    	let button5;
+    	let t12;
+    	let button6;
+    	let t14;
+    	let button7;
+    	let mounted;
+    	let dispose;
+    	let each_value = /*grid*/ ctx[0];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
 
     	const block = {
     		c: function create() {
     			div0 = element("div");
-    			div0.textContent = "hello";
+    			button0 = element("button");
+    			button0.textContent = "1";
     			t1 = space();
+    			button1 = element("button");
+    			button1.textContent = "2";
+    			t3 = space();
+    			button2 = element("button");
+    			button2.textContent = "3";
+    			t5 = space();
+    			button3 = element("button");
+    			button3.textContent = "4";
+    			t7 = space();
     			div1 = element("div");
-    			div1.textContent = "bruh";
-    			add_location(div0, file, 0, 0, 0);
-    			add_location(div1, file, 1, 0, 18);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t8 = space();
+    			div2 = element("div");
+    			button4 = element("button");
+    			button4.textContent = "5";
+    			t10 = space();
+    			button5 = element("button");
+    			button5.textContent = "6";
+    			t12 = space();
+    			button6 = element("button");
+    			button6.textContent = "7";
+    			t14 = space();
+    			button7 = element("button");
+    			button7.textContent = "8";
+    			add_location(button0, file, 36, 4, 1121);
+    			add_location(button1, file, 37, 4, 1183);
+    			add_location(button2, file, 38, 4, 1245);
+    			add_location(button3, file, 39, 4, 1307);
+    			attr_dev(div0, "class", "button-row");
+    			add_location(div0, file, 35, 2, 1091);
+    			attr_dev(div1, "class", "grid-container");
+    			add_location(div1, file, 42, 2, 1381);
+    			add_location(button4, file, 51, 4, 1626);
+    			add_location(button5, file, 52, 4, 1688);
+    			add_location(button6, file, 53, 4, 1750);
+    			add_location(button7, file, 54, 4, 1812);
+    			attr_dev(div2, "class", "button-row bottom-row");
+    			add_location(div2, file, 50, 2, 1585);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
-    			insert_dev(target, t1, anchor);
+    			append_dev(div0, button0);
+    			append_dev(div0, t1);
+    			append_dev(div0, button1);
+    			append_dev(div0, t3);
+    			append_dev(div0, button2);
+    			append_dev(div0, t5);
+    			append_dev(div0, button3);
+    			insert_dev(target, t7, anchor);
     			insert_dev(target, div1, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div1, null);
+    				}
+    			}
+
+    			insert_dev(target, t8, anchor);
+    			insert_dev(target, div2, anchor);
+    			append_dev(div2, button4);
+    			append_dev(div2, t10);
+    			append_dev(div2, button5);
+    			append_dev(div2, t12);
+    			append_dev(div2, button6);
+    			append_dev(div2, t14);
+    			append_dev(div2, button7);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button0, "click", /*click_handler*/ ctx[1], false, false, false, false),
+    					listen_dev(button1, "click", /*click_handler_1*/ ctx[2], false, false, false, false),
+    					listen_dev(button2, "click", /*click_handler_2*/ ctx[3], false, false, false, false),
+    					listen_dev(button3, "click", /*click_handler_3*/ ctx[4], false, false, false, false),
+    					listen_dev(button4, "click", /*click_handler_4*/ ctx[6], false, false, false, false),
+    					listen_dev(button5, "click", /*click_handler_5*/ ctx[7], false, false, false, false),
+    					listen_dev(button6, "click", /*click_handler_6*/ ctx[8], false, false, false, false),
+    					listen_dev(button7, "click", /*click_handler_7*/ ctx[9], false, false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
-    		p: noop,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*grid*/ 1) {
+    				each_value = /*grid*/ ctx[0];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div1, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+    		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div0);
-    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(t7);
     			if (detaching) detach_dev(div1);
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(t8);
+    			if (detaching) detach_dev(div2);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -387,16 +737,101 @@ var app = (function () {
     	return block;
     }
 
-    function instance($$self, $$props) {
+    function handleButtonClick(buttonId) {
+    	console.log(`Button ${buttonId} clicked`);
+    }
+
+    function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Sidebar', slots, []);
+    	let width = window.innerWidth;
+    	let height = window.innerHeight;
+    	let padding = (width - 146) / 2;
+
+    	onMount(() => {
+    		window.addEventListener('resize', handleResize);
+
+    		return () => {
+    			window.removeEventListener('resize', handleResize);
+    		};
+    	});
+
+    	function handleResize() {
+    		width = window.innerWidth;
+    		height = window.innerHeight;
+    		padding = (width - 146) / 2;
+    		document.documentElement.style.setProperty('--container-padding', `${padding}px`);
+    		console.log('SVELTE: Height: ' + height + ' Width: ' + width);
+    	}
+
+    	afterUpdate(() => {
+    		document.documentElement.style.setProperty('--container-padding', `${padding}px`);
+    	});
+
+    	let rows = 26;
+    	let cols = 36;
+    	let grid = Array(rows).fill().map(() => Array(cols).fill().map(() => ({ pixel: null })));
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Sidebar> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<Sidebar> was created with unknown prop '${key}'`);
     	});
 
-    	return [];
+    	const click_handler = () => handleButtonClick(1);
+    	const click_handler_1 = () => handleButtonClick(2);
+    	const click_handler_2 = () => handleButtonClick(3);
+    	const click_handler_3 = () => handleButtonClick(4);
+
+    	function div_binding($$value, each_value_1, colIndex) {
+    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+    			each_value_1[colIndex].pixel = $$value;
+    			$$invalidate(0, grid);
+    		});
+    	}
+
+    	const click_handler_4 = () => handleButtonClick(5);
+    	const click_handler_5 = () => handleButtonClick(6);
+    	const click_handler_6 = () => handleButtonClick(7);
+    	const click_handler_7 = () => handleButtonClick(8);
+
+    	$$self.$capture_state = () => ({
+    		onMount,
+    		afterUpdate,
+    		width,
+    		height,
+    		padding,
+    		handleResize,
+    		rows,
+    		cols,
+    		grid,
+    		handleButtonClick
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('width' in $$props) width = $$props.width;
+    		if ('height' in $$props) height = $$props.height;
+    		if ('padding' in $$props) padding = $$props.padding;
+    		if ('rows' in $$props) rows = $$props.rows;
+    		if ('cols' in $$props) cols = $$props.cols;
+    		if ('grid' in $$props) $$invalidate(0, grid = $$props.grid);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [
+    		grid,
+    		click_handler,
+    		click_handler_1,
+    		click_handler_2,
+    		click_handler_3,
+    		div_binding,
+    		click_handler_4,
+    		click_handler_5,
+    		click_handler_6,
+    		click_handler_7
+    	];
     }
 
     class Sidebar extends SvelteComponentDev {

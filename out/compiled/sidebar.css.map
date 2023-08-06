@@ -1,8 +1,12 @@
 {
   "version": 3,
   "file": "sidebar.css",
-  "sources": [],
-  "sourcesContent": [],
+  "sources": [
+    "Sidebar.svelte"
+  ],
+  "sourcesContent": [
+    "<script>\r\n    //RESIZE HANDLING\r\n    import { onMount } from 'svelte';\r\n    let width = window.innerWidth;\r\n    let height = window.innerHeight;\r\n    onMount(() => {\r\n        window.addEventListener('resize', handleResize);\r\n        return () => {\r\n            window.removeEventListener('resize', handleResize);\r\n        };\r\n    });\r\n    function handleResize() {\r\n        width = window.innerWidth;\r\n        height = window.innerHeight;\r\n        console.log('SVELTE: Height: ' + height + ' Width: ' + width);\r\n    }\r\n\r\n    let rows = 26;\r\n    let cols = 36;\r\n    let grid = Array(rows).fill().map(() => Array(cols).fill().map(() => ({pixel: null})));\r\n  \r\n    function handleButtonClick(buttonId) {\r\n      console.log(`Button ${buttonId} clicked`);\r\n    }\r\n  </script>\r\n\r\n  <style>\r\n    :root{\r\n        --container-padding: 12px;\r\n    }\r\n  </style>\r\n    \r\n  <div class=\"button-row\">\r\n    <button on:click={() => handleButtonClick(1)}>1</button>\r\n    <button on:click={() => handleButtonClick(2)}>2</button>\r\n    <button on:click={() => handleButtonClick(3)}>3</button>\r\n    <button on:click={() => handleButtonClick(4)}>4</button>\r\n  </div>\r\n  \r\n  <div class=\"grid-container\">\r\n    {#each grid as row, rowIndex}\r\n      {#each row as cell, colIndex}\r\n        <div class=\"pixel\" bind:this={cell.pixel}></div>\r\n      {/each}\r\n    {/each}\r\n  </div>\r\n  \r\n  <div class=\"button-row bottom-row\">\r\n    <button on:click={() => handleButtonClick(5)}>5</button>\r\n    <button on:click={() => handleButtonClick(6)}>6</button>\r\n    <button on:click={() => handleButtonClick(7)}>7</button>\r\n    <button on:click={() => handleButtonClick(8)}>8</button>\r\n  </div>"
+  ],
   "names": [],
-  "mappings": ""
+  "mappings": "AA2BI,KAAK,CACD,mBAAmB,CAAE,IACzB"
 }
