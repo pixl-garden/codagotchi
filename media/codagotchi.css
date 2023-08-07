@@ -103,7 +103,7 @@
     flex: 1 0 calc((100% - (--container-padding * 2)) / 32); /* Adjust based on your desired square size and number of columns */
     width: 3px;
     height: 3px;
-    background-color: #ccc
+    /* background-color: #ccc */
   }
   
   input:not([type="checkbox"]),
