@@ -524,7 +524,7 @@ var app = (function () {
     	return Array(rows).fill().map((_, rowIndex) => Array(cols).fill().map((_, colIndex) => ({
     		pixel: null,
     		color: (rowIndex + colIndex + frame) % 2 === 0
-    		? 'red'
+    		? 'blue'
     		: 'white'
     	})));
     }
