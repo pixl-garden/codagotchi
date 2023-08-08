@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage("No active text editor");
 				return;
 			}
-
+			
 			const text = activeTextEditor.document.getText(activeTextEditor.selection);
 			sidebarProvider._view?.webview.postMessage({
 				type: "new-todo",
