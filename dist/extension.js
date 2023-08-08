@@ -243,18 +243,50 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SidebarProvider = void 0;
 const vscode = __webpack_require__(1);
 const getNonce_1 = __webpack_require__(3);
+const fs = __webpack_require__(6);
+const path = __webpack_require__(5);
 class SidebarProvider {
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
+        this._onDidViewReady = new vscode.EventEmitter();
+        this.onDidViewReady = this._onDidViewReady.event;
+    }
+    getImageUris() {
+        const imageDir = path.join(this._extensionUri.fsPath, 'images');
+        const imageNames = fs.readdirSync(imageDir);
+        const uris = {};
+        for (const imageName of imageNames) {
+            const uri = vscode.Uri.file(path.join(imageDir, imageName));
+            uris[imageName] = uri;
+            console.log(`Image URI for ${imageName}: ${uri.toString()}`); // Log the URI
+        }
+        return uris;
     }
     resolveWebviewView(webviewView) {
         this._view = webviewView;
         webviewView.webview.options = {
             // Allow scripts in the webview
             enableScripts: true,
-            localResourceRoots: [this._extensionUri],
+            // Include the folder containing the images in localResourceRoots
+            localResourceRoots: [
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))
+            ],
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        // Convert the URIs using webview.asWebviewUri
+        const imageUris = this.getImageUris();
+        const webviewImageUris = {};
+        for (const key in imageUris) {
+            webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
+        }
+        // Send the converted URIs to the webview
+        webviewView.webview.postMessage({
+            type: 'image-uris',
+            uris: webviewImageUris,
+        });
+        this._onDidViewReady.fire();
         webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
             switch (data.type) {
                 case "onInfo": {
@@ -295,7 +327,7 @@ class SidebarProvider {
       <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+        <meta http-equiv="Content-Security-Policy" content="img-src vscode-webview-resource: https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${styleResetUri}" rel="stylesheet">
         <link href="${styleVSCodeUri}" rel="stylesheet">
@@ -326,6 +358,18 @@ class SidebarProvider {
 }
 exports.SidebarProvider = SidebarProvider;
 
+
+/***/ }),
+/* 5 */
+/***/ ((module) => {
+
+module.exports = require("path");
+
+/***/ }),
+/* 6 */
+/***/ ((module) => {
+
+module.exports = require("fs");
 
 /***/ })
 /******/ 	]);

@@ -1,24 +1,62 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _doc?: vscode.TextDocument;
 
+  private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+  public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
+
   constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  private getImageUris(): { [key: string]: vscode.Uri } {
+    const imageDir = path.join(this._extensionUri.fsPath, 'images');
+    const imageNames = fs.readdirSync(imageDir);
+    const uris: { [key: string]: vscode.Uri } = {};
+  
+    for (const imageName of imageNames) {
+      const uri = vscode.Uri.file(path.join(imageDir, imageName));
+      uris[imageName] = uri;
+      console.log(`Image URI for ${imageName}: ${uri.toString()}`); // Log the URI
+    }
+    return uris;
+  }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
-
+  
     webviewView.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,
-
-      localResourceRoots: [this._extensionUri],
+  
+      // Include the folder containing the images in localResourceRoots
+      localResourceRoots: [
+      vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
+      vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
+      vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))
+      ],
     };
-
+  
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-
+  
+    // Convert the URIs using webview.asWebviewUri
+    const imageUris = this.getImageUris();
+    const webviewImageUris: { [key: string]: string } = {};
+    for (const key in imageUris) {
+      webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
+    }
+  
+    // Send the converted URIs to the webview
+    webviewView.webview.postMessage({
+      type: 'image-uris',
+      uris: webviewImageUris,
+    });
+  
+    this._onDidViewReady.fire();
+  
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case "onInfo": {
@@ -38,7 +76,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "resize": {
           const width = data.width;
           const height = data.height;
-
+  
           // Now you have the dimensions of the WebView
           console.log(`WebView dimensions: ${width}x${height}`);
           break;
@@ -73,7 +111,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${
+        <meta http-equiv="Content-Security-Policy" content="img-src vscode-webview-resource: https: data:; style-src 'unsafe-inline' ${
           webview.cspSource
         }; script-src 'nonce-${nonce}';">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -7,7 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider("codagotchiView", sidebarProvider)
-	  );
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('codagotchi.helloWorld', () => {
@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage("No active text editor");
 				return;
 			}
-			
+
 			const text = activeTextEditor.document.getText(activeTextEditor.selection);
 			sidebarProvider._view?.webview.postMessage({
 				type: "new-todo",
