@@ -10,18 +10,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
 
+  private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
+
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
   private getImageUris(): { [key: string]: vscode.Uri } {
     const imageDir = path.join(this._extensionUri.fsPath, 'images');
     const imageNames = fs.readdirSync(imageDir);
     const uris: { [key: string]: vscode.Uri } = {};
-  
+
     for (const imageName of imageNames) {
       const uri = vscode.Uri.file(path.join(imageDir, imageName));
       uris[imageName] = uri;
-      console.log(`Image URI for ${imageName}: ${uri.toString()}`); // Log the URI
     }
+
+    // Convert the URIs using webview.asWebviewUri
+    for (const key in uris) {
+      this.webviewImageUris[key] = this._view?.webview.asWebviewUri(uris[key]).toString() || "";
+    }
+
     return uris;
   }
 
@@ -42,23 +49,26 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
   
-    // Convert the URIs using webview.asWebviewUri
-    const imageUris = this.getImageUris();
-    const webviewImageUris: { [key: string]: string } = {};
-    for (const key in imageUris) {
-      webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
-    }
-  
-    // Send the converted URIs to the webview
-    webviewView.webview.postMessage({
-      type: 'image-uris',
-      uris: webviewImageUris,
-    });
-  
     this._onDidViewReady.fire();
+
   
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
+        case "webview-ready": {
+          // Convert the URIs using webview.asWebviewUri
+          const imageUris = this.getImageUris();
+          const webviewImageUris: { [key: string]: string } = {};
+          for (const key in imageUris) {
+              webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
+          }
+
+          // Send the converted URIs to the webview
+          webviewView.webview.postMessage({
+              type: 'image-uris',
+              uris: webviewImageUris,
+          });
+          break;
+      }
         case "onInfo": {
           if (!data.value) {
             return;

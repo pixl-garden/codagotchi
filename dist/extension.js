@@ -243,22 +243,27 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SidebarProvider = void 0;
 const vscode = __webpack_require__(1);
 const getNonce_1 = __webpack_require__(3);
-const fs = __webpack_require__(6);
-const path = __webpack_require__(5);
+const fs = __webpack_require__(5);
+const path = __webpack_require__(6);
 class SidebarProvider {
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
         this._onDidViewReady = new vscode.EventEmitter();
         this.onDidViewReady = this._onDidViewReady.event;
+        this.webviewImageUris = {}; // Store the image URIs
     }
     getImageUris() {
+        var _a;
         const imageDir = path.join(this._extensionUri.fsPath, 'images');
         const imageNames = fs.readdirSync(imageDir);
         const uris = {};
         for (const imageName of imageNames) {
             const uri = vscode.Uri.file(path.join(imageDir, imageName));
             uris[imageName] = uri;
-            console.log(`Image URI for ${imageName}: ${uri.toString()}`); // Log the URI
+        }
+        // Convert the URIs using webview.asWebviewUri
+        for (const key in uris) {
+            this.webviewImageUris[key] = ((_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.asWebviewUri(uris[key]).toString()) || "";
         }
         return uris;
     }
@@ -275,20 +280,23 @@ class SidebarProvider {
             ],
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-        // Convert the URIs using webview.asWebviewUri
-        const imageUris = this.getImageUris();
-        const webviewImageUris = {};
-        for (const key in imageUris) {
-            webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
-        }
-        // Send the converted URIs to the webview
-        webviewView.webview.postMessage({
-            type: 'image-uris',
-            uris: webviewImageUris,
-        });
         this._onDidViewReady.fire();
         webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
             switch (data.type) {
+                case "webview-ready": {
+                    // Convert the URIs using webview.asWebviewUri
+                    const imageUris = this.getImageUris();
+                    const webviewImageUris = {};
+                    for (const key in imageUris) {
+                        webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
+                    }
+                    // Send the converted URIs to the webview
+                    webviewView.webview.postMessage({
+                        type: 'image-uris',
+                        uris: webviewImageUris,
+                    });
+                    break;
+                }
                 case "onInfo": {
                     if (!data.value) {
                         return;
@@ -363,13 +371,13 @@ exports.SidebarProvider = SidebarProvider;
 /* 5 */
 /***/ ((module) => {
 
-module.exports = require("path");
+module.exports = require("fs");
 
 /***/ }),
 /* 6 */
 /***/ ((module) => {
 
-module.exports = require("fs");
+module.exports = require("path");
 
 /***/ })
 /******/ 	]);

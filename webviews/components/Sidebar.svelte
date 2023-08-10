@@ -1,15 +1,15 @@
 <script>
     import { getGrid as getGrid1 } from './Screen1.svelte';
     import { getGrid as getGrid2 } from './Screen2.svelte';
-    // import { getGrid as getGrid3 } from './Screen3.svelte';
+    import { getGrid as getGrid3 } from './Screen3.svelte';
     import { onMount, afterUpdate } from 'svelte';
     import { writable } from 'svelte/store';
 
     let gridStore = writable([]);
     let screens = {
         Screen1: getGrid1,
-        Screen2: getGrid2
-        // Screen3: getGrid3
+        Screen2: getGrid2,
+        Screen3: getGrid3
     };
     let currentScreen = 'Screen1';
 
@@ -27,31 +27,36 @@
     onMount(async () => {
         window.addEventListener('message', (event) => {
             const message = event.data;
-            console.log('Received message:', message); // Log the received message
+            console.log('Received message:', message);
             if (message.type === 'image-uris') {
-            images.set(message.uris); // Update the images store
+                images.set(message.uris);
             }
         });
+        tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);
         try {
             // Initialize the grid
-            gridStore.set(await screens[currentScreen]());
+            if (currentScreen === 'Screen3') {
+        gridStore.set(await screens[currentScreen]($images['pet.png']));
+    } else {
+        gridStore.set(await screens[currentScreen]());
+    }
         } catch (error) {
             console.error('Failed to load grid:', error);
         }
 
         // Update the grid every 250ms
         setInterval(async () => {
-            try {
+        try {
+            if (currentScreen === 'Screen3') {
+                gridStore.set(await screens[currentScreen]($images['pet.png']));
+            } else {
                 gridStore.set(await screens[currentScreen]());
-            } catch (error) {
-                console.error('Failed to update grid:', error);
             }
-        }, 250);
-
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
+        } catch (error) {
+            console.error('Failed to update grid:', error);
+        }
+    }, 250);
     });
 
     function handleResize() {
