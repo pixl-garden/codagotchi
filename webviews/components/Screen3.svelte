@@ -21,7 +21,7 @@
                         let i = (y * img.width + x) * 4;
                         let a = data[i + 3];
 
-                        let color = a === 0 ? 'clear' : 'black';
+                        let color = a === 0 ? 'clear' : 'red';
 
                         row.push({ pixel: null, color: color });
                     }
