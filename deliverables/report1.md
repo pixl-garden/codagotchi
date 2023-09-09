@@ -23,11 +23,11 @@
 
 **Availability:**
 
-Ben:
-Noah: any weekday after 3:35 or friday/saturday anytime
-Payton:
+Ben: Any weekday after 4
+Noah: Any weekday after 3:35 or friday/saturday anytime
+Payton: Everyday between 4-6:30
 Kyle: Mon/Thurs - after 4 Friday after 12
-Monique:
+Monique: Friday 5-6:30
 
 **Timeslot for meetings:**
 5pm Fridays on discord to 6~6:30
