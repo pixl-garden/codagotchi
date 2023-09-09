@@ -43,6 +43,7 @@ Presenter: Payton
 Every Friday at 5:00 on discord (can reschedule with week notice)
 
 **Decision-making process:**
+
 2/3 Majority decides decisions
 
 **Handling non-performing team members:**
