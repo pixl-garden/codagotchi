@@ -6,29 +6,27 @@ Report for Week 2 Meeting
 **Date and location:** 9/8/2023, DISCORD 
 
 
-**Present participants: ** Ben, Forrest, Kyle, Monique, Noah, Payton **Missing participants: **Nobody 
+**Present participants:** Ben, Forrest, Kyle, Monique, Noah, Payton **Missing participants: **Nobody 
 
 
- **Project repo: **
+ **Project repo:**
 
-** Minutes **
-
-
- **Introductions: **
+**Minutes**
 
 
- Ben - junior, cs major, big js experience, 2 extensions made Forrest - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java 
+**Introductions:**
+
+Ben - junior, cs major, big js experience, 2 extensions made Forrest - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java 
+
+Monique - senior, computer engineering major, done gpu programming �� Noah - maybe a junior, c guy, interned web stuff �� 
 
 
- Monique - senior, computer engineering major, done gpu programming �� Noah - maybe a junior, c guy, interned web stuff �� 
+Payton - junior senior halfbreed, veteran programmer, c, python, a little web 
+
+**Availability:**
 
 
- Payton - junior senior halfbreed, veteran programmer, c, python, a little web 
-
-**Availability: **
-
-
-    Ben: 
+Ben: 
 
 
     
