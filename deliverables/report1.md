@@ -15,27 +15,43 @@
 **Introductions:**
 
 **Ben** - junior, cs major, big js experience, 2 extensions made 
+
 **Forrest** - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java
+
 **Monique** - senior, computer engineering major, done gpu programming 
+
 **Noah** - maybe a junior, c guy, interned web stuff
+
 **Payton** - junior senior halfbreed, veteran programmer, c, python, a little web
 
 **Availability:**
 
 Ben: Any weekday after 4
+
 Noah: Any weekday after 3:35 or friday/saturday anytime
+
 Payton: Everyday between 4-6:30
+
 Kyle: Mon/Thurs - after 4 Friday after 12
+
 Monique: Friday 5-6:30
+
 Forrest: Any day after 5
 
 **Timeslot for meetings:**
+
 5pm Fridays on discord to 6~6:30
+
 **Roles for each week: **
+
 Scrum Master: Noah
+
 Product Owner: Ben
+
 Archivist: Kyle
+
 Quality Assurance:Monique
+
 Presenter: Payton
 
 **Planned meeting schedule:**
@@ -57,10 +73,12 @@ Tamagotchi Style Virtual Pet VSCode Extension: Keep a virtual pet alive within y
 **Technologies:**
 
 **How do we plan to learn and internally disseminate knowledge about our technologies?** TypeScript / JS
+
 - Google Firebase (realtime database)
 - C++ (to link with Firebase)
 - Pixel art editor (TBD); Aseprite
 Will hold a meeting (Date TBD) to ensure all team members are familiar with technologies being used (namely Typescript).
+
 **Collaboration tools: **
 - Trello
 
@@ -74,9 +92,13 @@ Will hold a meeting (Date TBD) to ensure all team members are familiar with tech
 **Github Usernames:**
 
 Noah - goobyn
+
 Payton- psw35
+
 Forrest - 4444est 
+
 Monique - map759
+
 Kyle - khb48
 
 **Activity Planner address:**
