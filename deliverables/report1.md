@@ -1,8 +1,8 @@
 # Report for Week 2 Meeting
 
-**Group 7** CODAGOTCHI
+**Group 7:** Codagotchi
 
-**Date and location:** 9/8/2023, DISCORD
+**Date and location:** 9/8/2023, Discord
 
 **Present participants:** Ben, Forrest, Kyle, Monique, Noah, Payton 
 
@@ -12,96 +12,106 @@
 
 ## Minutes
 
-**Introductions:**
+### Introductions:
 
-**Ben** - junior, cs major, big js experience, 2 extensions made 
+- **Ben** - Junior at NAU, first year here after transferring. He is a CS major with extensive experience in Javascript/Typescript, and has made 2 extensions for VSCode.
 
-**Forrest** - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java
+- **Forrest** - Sophomore at NAU, CS major. Most experience comes from the C language (curriculum at NAU).
 
-**Monique** - senior, computer engineering major, done gpu programming 
+- **Monique** - Senior at NAU, Computer Engineering major. Her biggest experience is with GPU programming.
 
-**Noah** - maybe a junior, c guy, interned web stuff
+- **Kyle** - Sophomore at NAU. Has experience with C and Java.
 
-**Payton** - junior senior halfbreed, veteran programmer, c, python, a little web
+- **Noah** - Senior at NAU, CS major. Interned at small company doing frontend / backend web development. Has experience with C and some experience with JS.
 
-**Availability:**
+- **Payton** - 4th year (junior/senior) student at NAU. Has been programming for a long time and has experience with C, Python and some web development.
 
-Ben: Any weekday after 4
+### Availability:
 
-Noah: Any weekday after 3:35 or friday/saturday anytime
+Ben: Any weekday after 4.
 
-Payton: Everyday between 4-6:30
+- Noah: Any weekday after 3:35 or Friday/Saturday anytime.
 
-Kyle: Mon/Thurs - after 4 Friday after 12
+- Payton: Everyday between 4-6:30.
 
-Monique: Friday 5-6:30
+- Kyle: Mon/Thurs - after 4, Friday after 12.
 
-Forrest: Any day after 5
+- Monique: Friday 5-6:30.
 
-**Timeslot for meetings:**
+- Forrest: Any day after 5.
 
-5pm Fridays on discord to 6~6:30
+### Timeslot for meetings:
 
-**Roles for each week:**
+Fridays, 5:00 - 6:00 (hard cutoff at 6:30).
 
-Scrum Master: Noah
+### Roles for each week:
 
-Product Owner: Ben
+- Scrum Master: Noah
 
-Archivist: Kyle
+- Product Owner: Ben
 
-Quality Assurance:Monique
+- Archivist: Kyle
 
-Presenter: Payton
+- Quality Assurance: Monique
 
-**Planned meeting schedule:**
+- Presenter: Payton
 
-Every Friday at 5:00 on discord (can reschedule with week notice)
+We plan to rotate down the list until each team member has occupied each role at least once.
 
-**Decision-making process:**
+### Planned meeting schedule:
 
-2/3 Majority decides decisions
+Every Friday at 5:00 on discord (can reschedule with week notice).
 
-**Handling non-performing team members:**
+### Decision-making process:
 
-If poor performance / communication / non-participation becomes an issue on more than 2 occasions, the prof will be informed. If anyone has an issue with workload / communication / anything at all, make it known in a meeting or message ASAP
+2/3 Majority decides decisions.
 
-**Project idea:**
+### Handling non-performing team members:
+
+If poor performance / communication / non-participation becomes an issue on more than 2 occasions, the prof will be informed. If anyone has an issue with workload / communication / anything at all, make it known in a meeting or message ASAP.
+
+### Project idea:
 
 Tamagotchi Style Virtual Pet VSCode Extension: Keep a virtual pet alive within your code editor by consistently coding, if neglected for too long the pet will pass away. Likely will have a backend server allowing users to login with github to save their progress and will be developed primarily in Javascript or Typescript
 
-**Technologies:**
+### Technologies:
 
-**How do we plan to learn and internally disseminate knowledge about our technologies?** TypeScript / JS
+- TypeScript / JS
 
 - Google Firebase (realtime database)
-- C++ (to link with Firebase)
-- Pixel art editor (TBD); Aseprite
-Will hold a meeting (Date TBD) to ensure all team members are familiar with technologies being used (namely Typescript).
 
-**Collaboration tools:**
+- C++ (to link with Firebase)
+
+- Pixel art editor (TBD); Aseprite
+
+We will hold a meeting (Date TBD) to ensure all team members are familiar with technologies being used (namely Typescript).
+
+### Collaboration tools:
+
 - Trello
 
-**Communication tools:**
+### Communication tools:
+
 - Discord
 
-**GitHub Repo address (and any other tools):**
+### GitHub Repo address (and any other tools):
 
 <span style="text-decoration:underline;">https://github.com/kitgore/codagotchi</span>
 
-**Github Usernames:**
+### Github Usernames:
 
-Noah - goobyn
+- Ben - kitgore
 
-Payton- psw35
+- Noah - goobyn
 
-Forrest - 4444est 
+- Payton- psw35
 
-Monique - map759
+- Forrest - 4444est 
 
-Kyle - khb48
+- Monique - map759
 
-**Activity Planner address:**
+- Kyle - khb48
+
+### Activity Planner address:
 
 <span style="text-decoration:underline;">https://docs.google.com/spreadsheets/d/1uKDmXju9YDCM9Z30whlacMsJpOrY46bpomFiR16JRBQ/edit#gid=877942987</span>
-
