@@ -1,58 +1,31 @@
-<!-----
 
-You have some errors, warnings, or alerts. If you are using reckless mode, turn it off to see inline alerts.
-* ERRORs: 0
-* WARNINGs: 0
-* ALERTS: 3
-
-Conversion time: 0.737 seconds.
+ Report for Week 2 Meeting 
 
 
-Using this Markdown file:
-
-1. Paste this output into your source file.
-2. See the notes and action items below regarding this conversion run.
-3. Check the rendered output (headings, lists, code blocks, tables) for proper
-   formatting and use a linkchecker before you publish this page.
-
-Conversion notes:
-
-* Docs to Markdown version 1.0β34
-* Fri Sep 08 2023 18:16:10 GMT-0700 (PDT)
-* Source doc: Report for Week 2 Meeting-1
-* This document has images: check for >>>>>  gd2md-html alert:  inline image link in generated source and store images to your server. NOTE: Images in exported zip file from Google Docs may not appear in  the same order as they do in your doc. Please check the images!
-
------>
+ **Group 7: **CODAGOTCHI 
 
 
-
-    Report for Week 2 Meeting 
-
-
-    **Group 7: **CODAGOTCHI 
+ **Date and location: **9/8/2023, DISCORD 
 
 
-    **Date and location: **9/8/2023, DISCORD 
+ **Present participants: **Ben, Forrest, Kyle, Monique, Noah, Payton **Missing participants: **Nobody 
 
 
-    **Present participants: **Ben, Forrest, Kyle, Monique, Noah, Payton **Missing participants: **Nobody 
+ **Project repo: **
+
+** Minutes **
 
 
-    **Project repo: **
-
-**Minutes **
+ **Introductions: **
 
 
-    **Introductions: **
+ Ben - junior, cs major, big js experience, 2 extensions made Forrest - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java 
 
 
-    Ben - junior, cs major, big js experience, 2 extensions made Forrest - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java 
+ Monique - senior, computer engineering major, done gpu programming �� Noah - maybe a junior, c guy, interned web stuff �� 
 
 
-    Monique - senior, computer engineering major, done gpu programming �� Noah - maybe a junior, c guy, interned web stuff �� 
-
-
-    Payton - junior senior halfbreed, veteran programmer, c, python, a little web 
+ Payton - junior senior halfbreed, veteran programmer, c, python, a little web 
 
 **Availability: **
 
