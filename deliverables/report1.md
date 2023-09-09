@@ -79,7 +79,7 @@ Tamagotchi Style Virtual Pet VSCode Extension: Keep a virtual pet alive within y
 - Pixel art editor (TBD); Aseprite
 Will hold a meeting (Date TBD) to ensure all team members are familiar with technologies being used (namely Typescript).
 
-**Collaboration tools: **
+**Collaboration tools:**
 - Trello
 
 **Communication tools:**
