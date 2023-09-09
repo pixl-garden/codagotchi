@@ -66,7 +66,7 @@ Will hold a meeting (Date TBD) to ensure all team members are familiar with tech
 **Communication tools:**
 - Discord
 
-**GitHub Repo address (and any other tools): **
+**GitHub Repo address (and any other tools):**
 <span style="text-decoration:underline;">https://github.com/kitgore/codagotchi</span>
 **Github Usernames:**
 Noah - goobyn
@@ -74,6 +74,6 @@ Payton- psw35
 Forrest - 4444est 
 Monique - map759
 Kyle - khb48
-**Activity Planner address: **
+**Activity Planner address:**
 <span style="text-decoration:underline;">https://docs.google.com/spreadsheets/d/1uKDmXju9YDCM9Z30whlacMsJpOrY46</span> <span style="text-decoration:underline;">bpomFiR16JRBQ/edit?usp=sharing</span>
 
