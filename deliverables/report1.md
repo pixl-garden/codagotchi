@@ -71,6 +71,7 @@ Will hold a meeting (Date TBD) to ensure all team members are familiar with tech
 <span style="text-decoration:underline;">https://github.com/kitgore/codagotchi</span>
 
 **Github Usernames:**
+
 Noah - goobyn
 Payton- psw35
 Forrest - 4444est 
