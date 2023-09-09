@@ -81,5 +81,5 @@ Kyle - khb48
 
 **Activity Planner address:**
 
-<span style="text-decoration:underline;">https://docs.google.com/spreadsheets/d/1uKDmXju9YDCM9Z30whlacMsJpOrY46</span> <span style="text-decoration:underline;">bpomFiR16JRBQ/edit?usp=sharing</span>
+<span style="text-decoration:underline;">https://docs.google.com/spreadsheets/d/1uKDmXju9YDCM9Z30whlacMsJpOrY46bpomFiR16JRBQ/edit#gid=877942987</span>
 
