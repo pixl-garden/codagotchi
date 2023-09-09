@@ -42,7 +42,7 @@ Forrest: Any day after 5
 
 5pm Fridays on discord to 6~6:30
 
-**Roles for each week: **
+**Roles for each week:**
 
 Scrum Master: Noah
 
