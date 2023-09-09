@@ -2,10 +2,10 @@
  Report for Week 2 Meeting 
 
 
- **Group 7: **CODAGOTCHI 
+ ** Group 7: **CODAGOTCHI 
 
 
- **Date and location: **9/8/2023, DISCORD 
+ ** Date and location: **9/8/2023, DISCORD 
 
 
  **Present participants: **Ben, Forrest, Kyle, Monique, Noah, Payton **Missing participants: **Nobody 
