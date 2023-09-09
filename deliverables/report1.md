@@ -28,6 +28,7 @@ Noah: Any weekday after 3:35 or friday/saturday anytime
 Payton: Everyday between 4-6:30
 Kyle: Mon/Thurs - after 4 Friday after 12
 Monique: Friday 5-6:30
+Forrest: Any day after 5
 
 **Timeslot for meetings:**
 5pm Fridays on discord to 6~6:30
@@ -42,7 +43,7 @@ Presenter: Payton
 
 Every Friday at 5:00 on discord (can reschedule with week notice)
 
-**Decision-making process: **
+**Decision-making process:**
 2/3 Majority decides decisions
 
 **Handling non-performing team members:**
