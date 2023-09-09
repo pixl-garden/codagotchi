@@ -24,12 +24,10 @@
 **Availability:**
 
 Ben:
-
 Noah: any weekday after 3:35 or friday/saturday anytime
 Payton:
 Kyle: Mon/Thurs - after 4 Friday after 12
 Monique:
-
 
 **Timeslot for meetings:**
 5pm Fridays on discord to 6~6:30
@@ -40,22 +38,22 @@ Archivist: Kyle
 Quality Assurance:Monique
 Presenter: Payton
 
-**Planned meeting schedule: **
+**Planned meeting schedule:**
 
 Every Friday at 5:00 on discord (can reschedule with week notice)
 
 **Decision-making process: **
 2/3 Majority decides decisions
 
-**Handling non-performing team members: **
+**Handling non-performing team members:**
 
 If poor performance / communication / non-participation becomes an issue on more than 2 occasions, the prof will be informed. If anyone has an issue with workload / communication / anything at all, make it known in a meeting or message ASAP
 
-**Project idea: **
+**Project idea:**
 
 Tamagotchi Style Virtual Pet VSCode Extension: Keep a virtual pet alive within your code editor by consistently coding, if neglected for too long the pet will pass away. Likely will have a backend server allowing users to login with github to save their progress and will be developed primarily in Javascript or Typescript
 
-**Technologies: **
+**Technologies:**
 
 **How do we plan to learn and internally disseminate knowledge about our technologies?** TypeScript / JS
 - Google Firebase (realtime database)
@@ -65,7 +63,7 @@ Will hold a meeting (Date TBD) to ensure all team members are familiar with tech
 **Collaboration tools: **
 - Trello
 
-**Communication tools: **
+**Communication tools:**
 - Discord
 
 **GitHub Repo address (and any other tools): **
