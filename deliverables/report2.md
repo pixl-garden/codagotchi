@@ -4,9 +4,9 @@
 
 **Date and location:** September 15th, 2023
 
-**Present participants:** Noah (Scrum Master), Ben (Product Owner), Kyle (Archivist), Payton (Presenter), Forrest (Quality Assurance)
+**Present participants:** Noah (Scrum Master), Ben (Product Owner), Kyle (Archivist), Payton (Presenter), Forrest (Quality Assurance), Monique
 
-**Missing participants:** Monique
+**Missing participants:**
 
 **Project Repo:** [https://github.com/kitgore/codagotchi](https://github.com/kitgore/codagotchi) 
 
