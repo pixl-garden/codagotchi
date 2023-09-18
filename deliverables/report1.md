@@ -1,183 +1,117 @@
-<!-----
+# Report for Week 2 Meeting
 
-You have some errors, warnings, or alerts. If you are using reckless mode, turn it off to see inline alerts.
-* ERRORs: 0
-* WARNINGs: 0
-* ALERTS: 3
+**Group 7:** Codagotchi
 
-Conversion time: 0.737 seconds.
+**Date and location:** 9/8/2023, Discord
 
+**Present participants:** Ben, Forrest, Kyle, Monique, Noah, Payton 
 
-Using this Markdown file:
+**Missing participants:** Nobody
 
-1. Paste this output into your source file.
-2. See the notes and action items below regarding this conversion run.
-3. Check the rendered output (headings, lists, code blocks, tables) for proper
-   formatting and use a linkchecker before you publish this page.
+**Project repo:** <span style="text-decoration:underline;">https://github.com/kitgore/codagotchi</span>
 
-Conversion notes:
+## Minutes
 
-* Docs to Markdown version 1.0β34
-* Fri Sep 08 2023 18:16:10 GMT-0700 (PDT)
-* Source doc: Report for Week 2 Meeting-1
-* This document has images: check for >>>>>  gd2md-html alert:  inline image link in generated source and store images to your server. NOTE: Images in exported zip file from Google Docs may not appear in  the same order as they do in your doc. Please check the images!
+### Introductions:
 
------>
+- **Ben** - Junior at NAU, first year here after transferring. He is a CS major with extensive experience in Javascript/Typescript, and has made 2 extensions for VSCode.
 
+- **Forrest** - Sophomore at NAU, CS major. Most experience comes from the C language (curriculum at NAU).
 
+- **Monique** - Senior at NAU, Computer Engineering major. Her biggest experience is with GPU programming.
 
-    Report for Week 2 Meeting 
+- **Kyle** - Sophomore at NAU. Has experience with C and Java.
 
+- **Noah** - Senior at NAU, CS major. Interned at small company doing frontend / backend web development. Has experience with C and some experience with JS.
 
-    **Group 7: **CODAGOTCHI 
+- **Payton** - 4th year (junior/senior) student at NAU. Has been programming for a long time and has experience with C, Python and some web development.
 
+### Availability:
 
-    **Date and location: **9/8/2023, DISCORD 
+Ben: Any weekday after 4.
 
+- Noah: Any weekday after 3:35 or Friday/Saturday anytime.
 
-    **Present participants: **Ben, Forrest, Kyle, Monique, Noah, Payton **Missing participants: **Nobody 
+- Payton: Everyday between 4-6:30.
 
+- Kyle: Mon/Thurs - after 4, Friday after 12.
 
-    **Project repo: **
+- Monique: Friday 5-6:30.
 
-**Minutes **
+- Forrest: Any day after 5.
 
+### Timeslot for meetings:
 
-    **Introductions: **
+Fridays, 5:00 - 6:00 (hard cutoff at 6:30).
 
+### Roles for each week:
 
-    Ben - junior, cs major, big js experience, 2 extensions made Forrest - sophomore, cs major and a half, big c experience Kyle - sophomore, cs major, c and java 
+- Scrum Master: Noah
 
+- Product Owner: Ben
 
-    Monique - senior, computer engineering major, done gpu programming �� Noah - maybe a junior, c guy, interned web stuff �� 
+- Archivist: Kyle
 
+- Quality Assurance: Monique
 
-    Payton - junior senior halfbreed, veteran programmer, c, python, a little web 
+- Presenter: Payton
 
-**Availability: **
+We plan to rotate down the list until each team member has occupied each role at least once.
 
+### Planned meeting schedule:
 
-    Ben: 
+Every Friday at 5:00 on discord (can reschedule with week notice).
 
+### Decision-making process:
 
-    
-![alt_text](images/image1.png "image_tooltip")
-Noah: any weekday after 3:35 or friday/saturday anytime
+2/3 Majority decides decisions.
 
+### Handling non-performing team members:
 
-    Payton: 
+If poor performance / communication / non-participation becomes an issue on more than 2 occasions, the prof will be informed. If anyone has an issue with workload / communication / anything at all, make it known in a meeting or message ASAP.
 
+### Project idea:
 
-    
-![alt_text](images/image2.png "image_tooltip")
-Kyle: Mon/Thurs - after 4 Friday after 12
+Tamagotchi Style Virtual Pet VSCode Extension: Keep a virtual pet alive within your code editor by consistently coding, if neglected for too long the pet will pass away. Likely will have a backend server allowing users to login with github to save their progress and will be developed primarily in Javascript or Typescript
 
+### Technologies:
 
-    Monique: 
+- TypeScript / JS
 
+- Google Firebase (realtime database)
 
-![alt_text](images/image3.png "image_tooltip")
+- C++ (to link with Firebase)
 
+- Pixel art editor (TBD); Aseprite
 
+We will hold a meeting (Date TBD) to ensure all team members are familiar with technologies being used (namely Typescript).
 
-    **Timeslot for meetings: **
+### Collaboration tools:
 
+- Trello
 
-    5pm Fridays on discord to 6~6:30 
+### Communication tools:
 
+- Discord
 
-    **Roles for each week: **
+### GitHub Repo address (and any other tools):
 
+<span style="text-decoration:underline;">https://github.com/kitgore/codagotchi</span>
 
-    Scrum Master: Noah 
+### Github Usernames:
 
+- Ben - kitgore
 
-    Product Owner: Ben 
+- Noah - goobyn
 
-Archivist: Kyle 
+- Payton- psw35
 
+- Forrest - 4444est 
 
-    Quality Assurance:Monique 
+- Monique - map759
 
+- Kyle - khb48
 
-    Presenter: Payton 
+### Activity Planner address:
 
-
-    **Planned meeting schedule: **
-
-
-    Every Friday at 5:00 on discord (can reschedule with week notice) 
-
-
-    **Decision-making process: **
-
-
-    2/3 Majority decides decisions
-
-
-    **Handling non-performing team members: **
-
-
-    If poor performance / communication / non-participation becomes an issue on more than 2 occasions, the prof will be informed. If anyone has an issue with workload / communication / anything at all, make it known in a meeting or message ASAP 
-
-
-    **Project idea: **
-
-
-    Tamagotchi Style Virtual Pet VSCode Extension: Keep a virtual pet alive within your code editor by consistently coding, if neglected for too long the pet will pass away. Likely will have a backend server allowing users to login with github to save their progress and will be developed primarily in Javascript or Typescript 
-
-
-    **Technologies: **
-
-
-    _How do we plan to learn and internally disseminate knowledge about our technologies? _- TypeScript / JS 
-
-
-    - Google Firebase (realtime database) 
-
-
-    - C++ (to link with Firebase) 
-
-
-    - Pixel art editor (TBD); Aseprite 
-
-
-    Will hold a meeting (Date TBD) to ensure all team members are familiar with technologies being used (namely Typescript). 
-
-
-    **Collaboration tools: **
-
-
-    - Trello 
-
-
-    **Communication tools: **
-
-
-    - Discord 
-
-
-    **GitHub Repo address (and any other tools): **
-
-
-    <span style="text-decoration:underline;">https://github.com/kitgore/codagotchi</span> 
-
-
-    **Noah - goobyn **
-
-
-    **Payton- psw35 **
-
-
-    **Forrest - 4444est **
-
-
-    **Monique - map759 **
-
-
-    **Kyle - khb48**
-
-**Activity Planner address: **
-
-
-    **<span style="text-decoration:underline;">https://docs.google.com/spreadsheets/d/1uKDmXju9YDCM9Z30whlacMsJpOrY46</span> <span style="text-decoration:underline;">bpomFiR16JRBQ/edit?usp=sharing</span>**
+<span style="text-decoration:underline;">https://docs.google.com/spreadsheets/d/1uKDmXju9YDCM9Z30whlacMsJpOrY46bpomFiR16JRBQ/edit#gid=877942987</span>
