@@ -1,7 +1,7 @@
 {
   "name": "codagotchi",
   "displayName": "Codagotchi",
-  "description": "",
+  "description": "test",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.79.0"
@@ -21,7 +21,7 @@
             "type": "webview",
             "id": "codagotchiView",
             "name": "codagotchi",
-            "icon": ""
+            "icon": "checklist.svg"
         }
     ]
     },

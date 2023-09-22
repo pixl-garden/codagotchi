@@ -8,26 +8,7 @@
 module.exports = require("vscode");
 
 /***/ }),
-/* 2 */,
-/* 3 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getNonce = void 0;
-function getNonce() {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-}
-exports.getNonce = getNonce;
-
-
-/***/ }),
-/* 4 */
+/* 2 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -44,8 +25,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SidebarProvider = void 0;
 const vscode = __webpack_require__(1);
 const getNonce_1 = __webpack_require__(3);
-const fs = __webpack_require__(5);
-const path = __webpack_require__(6);
+const fs = __webpack_require__(4);
+const path = __webpack_require__(5);
 class SidebarProvider {
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
@@ -169,13 +150,31 @@ exports.SidebarProvider = SidebarProvider;
 
 
 /***/ }),
-/* 5 */
+/* 3 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getNonce = void 0;
+function getNonce() {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+exports.getNonce = getNonce;
+
+
+/***/ }),
+/* 4 */
 /***/ ((module) => {
 
 module.exports = require("fs");
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ ((module) => {
 
 module.exports = require("path");
@@ -216,7 +215,7 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deactivate = exports.activate = void 0;
 const vscode = __webpack_require__(1);
-const SidebarProvider_1 = __webpack_require__(4);
+const SidebarProvider_1 = __webpack_require__(2);
 function activate(context) {
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider("codagotchiView", sidebarProvider));
