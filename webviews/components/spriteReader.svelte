@@ -42,7 +42,7 @@
 
     async function spriteSheetToBinary(spriteSheet) {
         const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
         return new Promise((resolve, reject) => {
             const img = new Image();

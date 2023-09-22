@@ -1,7 +1,7 @@
 <script context="module">
     import { writable, get } from 'svelte/store';
     import { Sprite } from './SpriteComponent.svelte';
-    import { spriteReader } from './spriteReader.svelte';
+    import { spriteReader } from './SpriteReader.svelte';
 
     // Create a writable store
     export const spriteStore = writable([]);

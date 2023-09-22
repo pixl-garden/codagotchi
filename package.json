@@ -1,7 +1,7 @@
 {
   "name": "codagotchi",
-  "displayName": "TodoExtension",
-  "description": "practice extension",
+  "displayName": "Codagotchi",
+  "description": "",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.79.0"
@@ -21,23 +21,12 @@
             "type": "webview",
             "id": "codagotchiView",
             "name": "codagotchi",
-            "icon": "media/checklist.svg"
+            "icon": ""
         }
     ]
     },
     "commands": [
-      {
-        "command": "codagotchi.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "codagotchi.askQuestion",
-        "title": "Ask a Question"
-      },
-      {
-        "command": "codagotchi.addTodo",
-        "title": "Add Todo"
-      }
+
     ]
   },
   "scripts": {

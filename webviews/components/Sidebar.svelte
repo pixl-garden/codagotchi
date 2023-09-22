@@ -1,7 +1,7 @@
 <script>
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen } from './ScreenComponent.svelte';
-    import { spriteReader, preloadAllSpriteSheets } from './spriteReader.svelte';
+    import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { images } from './store.js';
     import { spriteStore } from './Main.svelte';
 
