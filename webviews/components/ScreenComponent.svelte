@@ -1,6 +1,4 @@
-<script context="module">
-    import { Sprite } from './SpriteComponent.svelte';
-  
+<script context="module">  
     export function generateScreen(sprites, xSize, ySize) {
       // Initialize an empty screen with the given size
       let screen = Array(ySize).fill().map(() => Array(xSize).fill(0));
@@ -11,7 +9,7 @@
           for (let x = 0; x < spriteMatrix[y].length; x++) {
             // Ensure we're within the bounds of the screen
             if (sprite.y + y < ySize && sprite.x + x < xSize) {
-              screen[sprite.y + y][sprite.x + x] |= spriteMatrix[y][x];
+              screen[sprite.x + x][sprite.y + y] |= spriteMatrix[y][x];
             }
           }
         }
