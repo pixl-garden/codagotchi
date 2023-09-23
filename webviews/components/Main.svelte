@@ -1,8 +1,6 @@
 <script context="module">
     import { writable, get } from 'svelte/store';
-    import { Sprite } from './SpriteComponent.svelte';
-    import { spriteReader } from './SpriteReader.svelte';
-    import { renderBasicText, createTextRenderer } from './TextRenderer.svelte';
+    import { Sprite, spriteReader, renderBasicText} from './Codagotchi.svelte';
 
     // Create a writable store
     export const spriteStore = writable([]);

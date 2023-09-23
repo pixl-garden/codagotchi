@@ -1,9 +1,7 @@
 <script>
     import { onMount, afterUpdate } from 'svelte';
-    import { generateScreen } from './ScreenComponent.svelte';
-    import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { images } from './store.js';
-    import { spriteStore } from './Main.svelte';
+    import { generateScreen, spriteReader, preloadAllSpriteSheets } from './Codagotchi.svelte';
+    import { images, spriteStore } from './store.js';
 
     //RESIZE HANDLING
     const SCREENWIDTH = 146;
