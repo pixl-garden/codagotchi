@@ -18,6 +18,8 @@
         spriteStore.set([sprite1]);
     }
 
+    // testing commit
+    
     // When Main.svelte is instantiated, start the game loop
     setInterval(main, 100); // Execute `main` 10 times a second (every 100ms)
 </script>
