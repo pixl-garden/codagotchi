@@ -14,6 +14,7 @@
         // let sprites = renderBasicText("ABC", 0, 0);
 
         // Update the store with new data
+        // random comment
         // console.log(sprites)
         spriteStore.set([sprite1]);
     }
