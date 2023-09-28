@@ -96,11 +96,10 @@
     width: 146px;
     display: flex;
     flex-wrap: wrap;
-    gap: 1px;
   }
   
   .pixel {
-    flex: 1 0 calc((100% - (--container-padding * 2)) / 32); /* Adjust based on your desired square size and number of columns */
+    /* flex: 1 0 calc((100% - (--container-padding * 2)) / 32); Adjust based on your desired square size and number of columns */
     width: 3px;
     height: 3px;
   }
