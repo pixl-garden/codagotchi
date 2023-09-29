@@ -4,12 +4,15 @@
     import { images } from './store.js';
 
     // Variables and Constants
-    const SCREENWIDTH = 162;
+    const gridWidth = 48;
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let padding = (width - SCREENWIDTH) / 2;
+    let pixelSize = Math.floor(width / gridWidth);
+    let screenWidth = gridWidth * pixelSize;
+    let padding = (width - screenWidth) / 2;
     let screen = [];
     let renderBasicText;
+    let offset = -50;
 
     onMount(async () => {
         window.addEventListener('message', async (event) => {
@@ -19,43 +22,36 @@
 
                 //wait until all sprites are loaded
                 await preloadAllSpriteSheets().then( () => {
-
-                    // //subscribe screen to spriteStore (when spriteStore updates every tick, screen updates)
-                    // const unsubscribe = spriteStore.subscribe(sprites => {
-                    //     screen = generateScreen(sprites, 26, 36);
-                    // });
-
-                    //start main loop
+                    handleResize();
                     renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
-                    setInterval(main, 100);
+                    setInterval(main, 40);
                 })
             }
         });
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);
     });
-
+    
     function handleResize() {
         width = window.innerWidth;
         height = window.innerHeight;
-        padding = (width - SCREENWIDTH) / 2;
+        pixelSize = Math.floor(width / gridWidth); // update pixelSize here
+        screenWidth = gridWidth * pixelSize; // update screenWidth here
+        padding = (width - screenWidth) / 2;
         document.documentElement.style.setProperty('--container-padding', `${padding}px`);
+        document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
+        document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
     }
-
-    afterUpdate(() => {
-        document.documentElement.style.setProperty('--container-padding', `${padding}px`);
-    });
 
     //main loop
     function main() {
+        let sprites = renderBasicText("bruh", offset, 0);
+        offset++;
+        if(offset >= 7*7){
+            offset = -50;
+        }
 
-        // let sprites = spriteReader(7, 9, 'charmap1.png');
-        // const sprite1 = new Sprite(sprites[4], 0, 0);  // Example
-        let sprites = renderBasicText("ABCDEFG", 0, 0);
-
-        // Update the store with new data
-        // console.log(sprites)
-        screen = generateScreen(sprites, 54, 54);
+        screen = generateScreen(sprites, 48, 48);
     }
 </script>
 
@@ -68,3 +64,15 @@
         </div>
     {/each}
 </div>
+
+<style>
+    .pixel {
+      width: var(--pixel-size, 3px);
+      height: var(--pixel-size, 3px);
+    }
+    .grid-container {
+        width: var(--screen-width, 48px);
+        display: flex;
+        flex-wrap: wrap;
+    }
+  </style>

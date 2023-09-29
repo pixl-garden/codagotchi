@@ -2,8 +2,7 @@
     import { Sprite, spriteReader } from './Codagotchi.svelte';
     import { spritesLoaded } from './store.js'
 
-    
-
+    //export a function that renders text
     export function createTextRenderer(charmap, spriteWidth, spriteHeight, charMappingString) {
         let charSprites = spriteReader(spriteWidth, spriteHeight, charmap);
         let sprites = [];
@@ -14,6 +13,8 @@
             charToSpriteIndex[charMappingString[i]] = i;
         }
 
+        //takes in a string, coords, and returns an array of sprites
+        //TODO implement screen size to limit positive bounds and reduce iterations
         return function renderText(text, startX, startY) {
             let x = startX;
             let y = startY;
@@ -27,8 +28,11 @@
                 }
                 if (charToSpriteIndex[char] !== undefined) {
                     const spriteIndex = charToSpriteIndex[char];
-                    const sprite = new Sprite(charSprites[spriteIndex], x, y);
-                    newSprites.push(sprite);
+                    // Only skip sprites that are fully off-screen
+                    if (x >= -spriteWidth && y >= 0) {
+                        const sprite = new Sprite(charSprites[spriteIndex], x, y);
+                        newSprites.push(sprite);
+                    }
                     x += spriteWidth;
                 }
             }
@@ -37,5 +41,5 @@
     }
 
     // Example instantiation
-    export const renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
+    // export const renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
 </script>
