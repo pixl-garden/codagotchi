@@ -92,11 +92,7 @@
     background: var(--vscode-button-secondaryHoverBackground);
   }
 
-  .grid-container {
-    width: 146px;
-    display: flex;
-    flex-wrap: wrap;
-  }
+
   
   .pixel {
     /* flex: 1 0 calc((100% - (--container-padding * 2)) / 32); Adjust based on your desired square size and number of columns */

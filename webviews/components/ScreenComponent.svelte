@@ -1,20 +1,25 @@
 <script context="module">  
-    export function generateScreen(sprites, xSize, ySize) {
+  export function generateScreen(sprites, xSize, ySize) {
       // Initialize an empty screen with the given size
       let screen = Array(ySize).fill().map(() => Array(xSize).fill(0));
-  
+
       sprites.forEach(sprite => {
-        let spriteMatrix = sprite.getMatrix();
-        for (let y = 0; y < spriteMatrix.length; y++) {
-          for (let x = 0; x < spriteMatrix[y].length; x++) {
-            // Ensure we're within the bounds of the screen
-            if (sprite.y + y < ySize && sprite.x + x < xSize) {
-              screen[sprite.x + x][sprite.y + y] |= spriteMatrix[y][x];
-            }
+          let spriteMatrix = sprite.getMatrix();
+          // Calculate the bounds for y and x within the screen and sprite matrix
+          let startY = Math.max(0, sprite.y);
+          let endY = Math.min(ySize, sprite.y + spriteMatrix.length);
+          let startX = Math.max(0, sprite.x);
+          let endX = Math.min(xSize, sprite.x + spriteMatrix[0].length);
+
+          for (let y = startY; y < endY; y++) {
+              let matrixY = y - sprite.y;
+              for (let x = startX; x < endX; x++) {
+                  let matrixX = x - sprite.x;
+                  screen[x][y] |= spriteMatrix[matrixY][matrixX];
+              }
           }
-        }
       });
-  
+
       return screen;
-    }
-  </script>
+  }
+</script>
