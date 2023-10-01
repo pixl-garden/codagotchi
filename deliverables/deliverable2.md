@@ -219,17 +219,41 @@ The Minimal Viable Product (MVP) for Codagotchi will focus on delivering core fe
 
 
 1. As a user of the Codagotchi extension, I would like the ability to collect multiple creatures, so that I can do even more with Codagotchi as I code.
+   Priority Level: Medium
+   Est. Hours: 5
 2. As a beginner programmer, I want the point system to be fair to less experienced programmers so that I can enjoy the game too.
+   Priority Level: High
+   Est. Hours: 2
 3. As someone who wants to make sure I keep coding regularly, I would like features like competing with friends and multiple pet choices to keep me motivated to keep coding.
+   Priority Level: Medium
+   Est. Hours: 8
 4. As a more experienced programmer, I’d appreciate a leaderboard and some challenges to choose from such that I can compete with friends and other players.
+   Priority Level: Low
+   Est. Hours: 8
 5. As a user of Codagotchi, I would like to be able to buy items for my creature, but also not have the game be too distracting either, so that I can enjoy the game fully.
+   Priority Level: Medium
+   Est. Hours: 5
 6. As a senior CS student, I’d like the game to be competitive, but also having break reminders during long coding sessions so that the game is very supportive of coders.
+   Priority Level: Low
+   Est. Hours: 1
 7. As a graduated CS major, difficulty levels to choose from and giving users suggestions would be good additions to have so that the game stays fresh as you play longer.
+   Priority Level: Medium
+   Est. Hours: 5
 8. As a current CS major, I don’t want the game to have voice lines and intrusive features, so that I can stay focused while I code.
+   Priority Level: Medium
+   Est. Hours: 1
 9. As a new and self-taught programmer, I’d like there to be not just instructions, but a tutorial too, so that I can be sure to know how to play the game.
+   Priority Level: High
+   Est. Hours: 3
 10. As a professional programmer, I would like the game to solely read character count and such, not specific code that it would be saving and analyzing, so that my company’s code stays private.
+   Priority Level: High
+   Est. Hours: 2
 11. As a K-12 coding teacher, I’d like the game to be easy to play, but still fun, so that students of all ages can use it while learning to code.
+   Priority Level: High
+   Est. Hours: 2
 12. As a CS professor tasking my students to practice with the Codagotchi to learn more about a language, I’d like it so that syntactical characters aren’t counted like the rest of code is, so that students are being rewarded for only the actual code.
+   Priority Level: High
+   Est. Hours: 3
 
 ## 8. Issue tracker
 
