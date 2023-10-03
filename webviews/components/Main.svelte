@@ -64,15 +64,3 @@
         </div>
     {/each}
 </div>
-
-<style>
-    .pixel {
-      width: var(--pixel-size, 3px);
-      height: var(--pixel-size, 3px);
-    }
-    .grid-container {
-        width: var(--screen-width, 48px);
-        display: flex;
-        flex-wrap: wrap;
-    }
-  </style>
