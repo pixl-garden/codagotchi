@@ -92,12 +92,17 @@
     background: var(--vscode-button-secondaryHoverBackground);
   }
 
-
+  .grid-container {
+    width: var(--screen-width, 144px);
+    height: var(--screen-width, 144px);
+    display: flex;
+    flex-wrap: wrap;
+  }
   
   .pixel {
     /* flex: 1 0 calc((100% - (--container-padding * 2)) / 32); Adjust based on your desired square size and number of columns */
-    width: 3px;
-    height: 3px;
+    width: var(--pixel-size, 3px);
+    height: var(--pixel-size, 3px);
   }
   
   input:not([type="checkbox"]),
