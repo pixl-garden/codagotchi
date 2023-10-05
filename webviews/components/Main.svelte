@@ -2,7 +2,8 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
-
+    import objectConfig from './objectConfig.json';
+    
     // Variables and Constants
     const gridWidth = 48;
     let width = window.innerWidth;
