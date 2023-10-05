@@ -100,6 +100,13 @@ class SidebarProvider {
                     console.log(`WebView dimensions: ${width}x${height}`);
                     break;
                 }
+                case "click": {
+                    const x = data.x;
+                    const y = data.y;
+                    // Now you have the click coordinates
+                    console.log(`WebView click coordinates: ${x},${y}`);
+                    break;
+                }
             }
         }));
     }
@@ -133,6 +140,18 @@ class SidebarProvider {
               type: 'resize',
               width: width,
               height: height
+            });
+          });
+
+          window.addEventListener('click', (event) => {
+            const x = event.clientX;
+            const y = event.clientY;
+
+            // Send a message to the extension with the click coordinates
+            tsvscode.postMessage({
+              type: 'click',
+              x: x,
+              y: y
             });
           });
 
