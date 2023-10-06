@@ -69,6 +69,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           });
           break;
       }
+      
         case "onInfo": {
           if (!data.value) {
             return;
@@ -89,14 +90,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   
           // Now you have the dimensions of the WebView
           console.log(`WebView dimensions: ${width}x${height}`);
-          break;
-        }
-        case "click": {
-          const x = data.x;
-          const y = data.y;
-
-          // Now you have the click coordinates
-          console.log(`WebView click coordinates: ${x},${y}`);
           break;
         }
       }
