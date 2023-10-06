@@ -2,7 +2,6 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import objectConfig from './objectConfig.json';
     
     // Variables and Constants
     const gridWidth = 48;
@@ -33,6 +32,17 @@
         window.addEventListener('resize', handleResize);
     });
     
+    function handleClick(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const gridX = Math.floor(x / pixelSize);
+        const gridY = Math.floor(y / pixelSize);
+
+        console.log("grid x:", gridX, "grid y:", gridY);
+    }
+
     function handleResize() {
         width = window.innerWidth;
         height = window.innerHeight;
@@ -56,7 +66,7 @@
     }
 </script>
 
-<div class="grid-container">
+<div class="grid-container" on:click={handleClick} on:keypress={null}>
     {#each screen as row}
         <div class="row">
             {#each row as cell}
