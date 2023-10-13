@@ -1,7 +1,8 @@
 <script context="module">
   import { Sprite, spriteReader } from './Codagotchi.svelte';
+  import objectConfig from './objectConfig.json';
   export class Object {
-    constructor(objectName, spriteSheet) {
+    constructor(objectName) {
       const config = objectConfig[objectName];
       if (!config) {
         throw new Error(`No configuration found for object type: ${objectType}`);
@@ -10,7 +11,7 @@
       this.state = "hidden"; 
       this.objectType = objectName;
       this.config = config;
-      this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, spriteSheet);
+      this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
       this.currentSpriteIndex = 0;
     }
 
@@ -38,7 +39,8 @@
 
     getSprite() {
       const stateSprites = this.config.states[this.state];
-      return Sprite(stateSprites[this.currentSpriteIndex], this.x, this.y);
+      // return Sprite(stateSprites[this.currentSpriteIndex], this.x, this.y);
+      return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
     }
   }
 </script>

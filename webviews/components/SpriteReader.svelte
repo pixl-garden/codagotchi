@@ -3,7 +3,7 @@
     import { images, preloadedSpriteSheets } from './store.js';
 
     // Update spriteReader to extract individual sprites from the preloaded sprite sheets
-    export function spriteReader(spriteWidth, spriteHeight, spriteSheet, startIndex = 0, endIndex = Infinity) {
+    export function spriteReader(spriteWidth, spriteHeight, spriteSheet) {
         const binarySheet = get(preloadedSpriteSheets)[spriteSheet];
         if (!binarySheet) {
             console.error("Sprite sheet not preloaded:", spriteSheet);
@@ -11,20 +11,21 @@
         }
 
         let sprites = [];
-        let spriteCount = 0; // Counter to keep track of the number of sprites processed
+        let spriteCount = 0;
 
-        for (let y = 0; y <= binarySheet.length - spriteHeight; y += spriteHeight) {
-            for (let x = 0; x <= (binarySheet[y] ? binarySheet[y].length : 0) - spriteWidth; x += spriteWidth) {
-                // If the current sprite count is outside the specified range, skip processing
-                if (spriteCount < startIndex || spriteCount > endIndex) {
-                    spriteCount++;
-                    continue;
-                }
+        //iterate by sprite size
+        const spriteCountWidth = binarySheet[0].length / spriteWidth;
+        const spriteCountHeight = binarySheet.length / spriteHeight;
 
+        //loop over each sprite
+        for (let y = 0; y < spriteCountHeight; y++){
+            for (let x = 0; x < spriteCountWidth; x++){
                 let sprite = [];
-                for (let sy = 0; sy < spriteHeight; sy++) {
-                    if (binarySheet[y + sy]) {
-                        sprite.push(binarySheet[y + sy].slice(x, x + spriteWidth));
+                //each y level of sprite
+                for (let sy = 0; sy < spriteHeight; sy++){
+                    if (binarySheet[(y * spriteHeight) + sy]) {
+                        //add the x level of sprite as an array
+                        sprite.push(binarySheet[(y * spriteHeight) + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
                     } else {
                         console.warn(`Invalid index y:${y + sy} for spriteSheet:${spriteSheet}`);
                         break;
@@ -33,10 +34,10 @@
                 if (sprite.length === spriteHeight) {
                     sprites.push(sprite);
                 }
-
-                spriteCount++; // Increment the sprite count after processing each sprite
+                spriteCount++;
             }
         }
+        
         return sprites;
     }
 
