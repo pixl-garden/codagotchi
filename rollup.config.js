@@ -4,6 +4,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
 import sveltePreprocess from "svelte-preprocess";
 import typescript from "@rollup/plugin-typescript";
+import json from '@rollup/plugin-json';
 import path from "path";
 import fs from "fs";
 
@@ -22,6 +23,7 @@ export default fs
         file: "out/compiled/" + name + ".js",
       },
       plugins: [
+        json(),
         svelte({
           // enable run-time checks when not in production
           dev: !production,

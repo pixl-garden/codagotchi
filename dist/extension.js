@@ -100,13 +100,6 @@ class SidebarProvider {
                     console.log(`WebView dimensions: ${width}x${height}`);
                     break;
                 }
-                case "click": {
-                    const x = data.x;
-                    const y = data.y;
-                    // Now you have the click coordinates
-                    console.log(`WebView click coordinates: ${x},${y}`);
-                    break;
-                }
             }
         }));
     }

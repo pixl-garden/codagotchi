@@ -2,16 +2,18 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
+    import { Object } from './Object.svelte';
     
-    // Variables and Constants
-    const gridWidth = 48;
+    const GRIDWIDTH = 48;
+    const FPS = 15; //second / frames per second
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let pixelSize = Math.floor(width / gridWidth);
-    let screenWidth = gridWidth * pixelSize;
-    let padding = (width - screenWidth) / 2;
+    let pixelSize = Math.floor(width / GRIDWIDTH);
+    let screenWidth = GRIDWIDTH * pixelSize;
     let screen = [];
+    let padding;
     let renderBasicText;
+    let myObject;
     let offset = -50;
 
     onMount(async () => {
@@ -19,12 +21,11 @@
             const message = event.data;
             if (message.type === 'image-uris') {
                 images.set(message.uris);
-
                 //wait until all sprites are loaded
                 await preloadAllSpriteSheets().then( () => {
-                    handleResize();
-                    renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
-                    setInterval(main, 40);
+                    //call pre() once and start main loop
+                    pre();
+                    setInterval(main, Math.floor(1000/FPS));
                 })
             }
         });
@@ -46,23 +47,34 @@
     function handleResize() {
         width = window.innerWidth;
         height = window.innerHeight;
-        pixelSize = Math.floor(width / gridWidth); // update pixelSize here
-        screenWidth = gridWidth * pixelSize; // update screenWidth here
+        pixelSize = Math.floor(width / GRIDWIDTH); // update pixelSize here
+        screenWidth = GRIDWIDTH * pixelSize; // update screenWidth here
         padding = (width - screenWidth) / 2;
         document.documentElement.style.setProperty('--container-padding', `${padding}px`);
         document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
         document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
     }
 
+    //run once before main loop
+    function pre() {
+        handleResize();
+        renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
+        myObject = new Object('objectType2');
+        myObject.setCoordinate(10, 10);
+    }
+
     //main loop
     function main() {
         let sprites = renderBasicText("bruh", offset, 0);
+        myObject.setCoordinate(10, 10);
+        myObject.nextFrame();
         offset++;
         if(offset >= 7*7){
             offset = -50;
         }
+        let sprites1 = [myObject.getSprite()];
 
-        screen = generateScreen(sprites, 48, 48);
+        screen = generateScreen(sprites1, 48, 48);
     }
 </script>
 
