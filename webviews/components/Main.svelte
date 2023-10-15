@@ -59,7 +59,7 @@
     function pre() {
         handleResize();
         renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
-        myObject = new Object('objectType2');
+        myObject = new Object('objectType3');
         myObject.setCoordinate(10, 10);
     }
 
@@ -82,7 +82,7 @@
     {#each screen as row}
         <div class="row">
             {#each row as cell}
-                <div class="pixel" style="background-color: {cell ? 'white' : 'transparent'};"></div>
+                <div class="pixel" style="background-color: {cell};"></div>
             {/each}
         </div>
     {/each}
