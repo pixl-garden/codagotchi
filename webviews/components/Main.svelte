@@ -5,7 +5,7 @@
     import { Object } from './Object.svelte';
     
     const GRIDWIDTH = 48;
-    const FPS = 15; //second / frames per second
+    const FPS = 10; //second / frames per second
     let width = window.innerWidth;
     let height = window.innerHeight;
     let pixelSize = Math.floor(width / GRIDWIDTH);
@@ -60,13 +60,12 @@
         handleResize();
         renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
         myObject = new Object('objectType3');
-        myObject.setCoordinate(10, 10);
+        myObject.setCoordinate(0, 0);
     }
 
     //main loop
     function main() {
         let sprites = renderBasicText("bruh", offset, 0);
-        myObject.setCoordinate(10, 10);
         myObject.nextFrame();
         offset++;
         if(offset >= 7*7){
