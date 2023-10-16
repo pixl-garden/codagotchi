@@ -2,7 +2,7 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object } from './Object.svelte';
+    import { Object, Button } from './Object.svelte';
     
     const GRIDWIDTH = 48;
     const FPS = 10; //second / frames per second
@@ -15,6 +15,8 @@
     let renderBasicText;
     let myObject;
     let offset = -50;
+    let objectsOnScreen = [];
+    let lastHoveredObject = null;
 
     onMount(async () => {
         window.addEventListener('message', async (event) => {
@@ -42,6 +44,57 @@
         const gridY = Math.floor(y / pixelSize);
 
         console.log("grid x:", gridX, "grid y:", gridY);
+
+        // Assuming you have a way to get the object at the clicked coordinates
+        const clickedObject = getObjectAt(gridX, gridY);
+
+        if (clickedObject instanceof Button) {
+            clickedObject.clickAction();
+        }
+    }
+
+    //handles mouse movement on screen (hovering)
+    function handleMouseMove(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const gridX = Math.floor(x / pixelSize);
+        const gridY = Math.floor(y / pixelSize);
+
+        const hoveredObject = getObjectAt(gridX, gridY);
+
+        if (hoveredObject !== lastHoveredObject) {
+            if (lastHoveredObject && lastHoveredObject.onStopHover) {
+                lastHoveredObject.onStopHover();
+            }
+
+            if (hoveredObject) {
+                if (hoveredObject instanceof Button) {
+                    event.currentTarget.style.cursor = 'pointer'; // Change cursor to pointer
+                } else {
+                    event.currentTarget.style.cursor = 'default'; // Reset cursor
+                }
+
+                if (hoveredObject.onHover) {
+                    hoveredObject.onHover();
+                }
+            } else {
+                event.currentTarget.style.cursor = 'default'; // Reset cursor if no object is hovered
+            }
+
+            lastHoveredObject = hoveredObject;
+        }
+    }
+
+    function getObjectAt(x, y) {
+        for (let obj of objectsOnScreen) {
+            if (x >= obj.x && x <= obj.x + obj.config.spriteWidth &&
+                y >= obj.y && y <= obj.y + obj.config.spriteHeight) {
+                return obj;
+            }
+        }
+        return null; // No object found at the clicked coordinates
     }
 
     function handleResize() {
@@ -59,14 +112,15 @@
     function pre() {
         handleResize();
         renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
-        myObject = new Object('objectType3');
-        myObject.setCoordinate(0, 0);
+        // myObject = new Button('objectType3', 10, 10, () => {console.log("clicked")});
+        myObject = new Button('buttonObject', 10, 10, () => {console.log("clicked")} );
+        objectsOnScreen.push(myObject);
     }
 
     //main loop
     function main() {
         let sprites = renderBasicText("bruh", offset, 0);
-        myObject.nextFrame();
+        // myObject.nextFrame();
         offset++;
         if(offset >= 7*7){
             offset = -50;
@@ -77,7 +131,10 @@
     }
 </script>
 
-<div class="grid-container" on:click={handleClick} on:keypress={null}>
+<div class="grid-container" 
+     on:click={handleClick} 
+     on:mousemove={handleMouseMove} 
+     on:keypress={null}>
     {#each screen as row}
         <div class="row">
             {#each row as cell}

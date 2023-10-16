@@ -2,17 +2,17 @@
   import { Sprite, spriteReader } from './Codagotchi.svelte';
   import objectConfig from './objectConfig.json';
   export class Object {
-    constructor(objectName) {
+    constructor(objectName, x, y) {
       const config = objectConfig[objectName];
       if (!config) {
         throw new Error(`No configuration found for object type: ${objectType}`);
       }
 
-      this.state = "hidden"; 
       this.objectType = objectName;
       this.config = config;
       this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
       this.currentSpriteIndex = 0;
+      this.setCoordinate(x, y);
     }
 
     updateState(newState) {
@@ -38,9 +38,40 @@
     }
 
     getSprite() {
-      const stateSprites = this.config.states[this.state];
-      // return Sprite(stateSprites[this.currentSpriteIndex], this.x, this.y);
       return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
+    }
+
+    onHover() {
+        console.log(`Hovered over object of type: ${this.objectType}`);
+        // Add any hover effects or logic here
+    }
+
+    onStopHover() {
+        console.log(`Stopped hovering over object of type: ${this.objectType}`);
+        // Add any logic to reset hover effects here
+    }
+  }
+
+  export class Button extends Object {
+    constructor(objectName, x, y, action) {
+      super(objectName, x, y);
+      this.action = action || (() => {});
+    }
+
+    clickAction() {
+      this.action();
+    }
+
+    onHover() {
+        console.log("Button is hovered!");
+        this.updateState("hovered")
+        // Add any button-specific hover effects or logic here
+    }
+
+    onStopHover() {
+        console.log("Button hover stopped!");
+        this.updateState("default")
+        // Reset any button-specific hover effects here
     }
   }
 </script>
