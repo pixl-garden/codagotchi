@@ -30,7 +30,7 @@
     "spriteHeight": 12,
     "spriteSheet": "buttontest.png",
     "states": {
-      "default": [0],
+      "default": [0], 
       "hovered": [1]
     }
   }
