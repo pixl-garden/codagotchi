@@ -2,9 +2,10 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object, Button } from './Object.svelte';
+    import { Object, Button, NavigationButton } from './Object.svelte';
+    import { Room, game } from './Game.svelte';
     
-    const GRIDWIDTH = 48;
+    const GRIDWIDTH = 64;
     const FPS = 10; //second / frames per second
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -12,11 +13,49 @@
     let screenWidth = GRIDWIDTH * pixelSize;
     let screen = [];
     let padding;
-    let renderBasicText;
-    let myObject;
-    let offset = -50;
-    let objectsOnScreen = [];
     let lastHoveredObject = null;
+    let renderBasicText;
+    let petObject;
+
+    //run once before main loop
+    function pre() {
+        handleResize();
+        renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
+        // myObject = new Button('objectType3', 10, 10, () => {console.log("clicked")});
+        // myObject = new Button('buttonObject', 10, 10, () => {console.log("clicked")} );
+        // objectsOnScreen.push(myObject);
+
+        let room1 = new Room("room1");
+        let room2 = new Room("room2");
+
+        petObject = new Object('objectType3', 14, 14)
+        let toRoom1 = new NavigationButton('buttonObject', 0, 0, "room1");
+        let toRoom2 = new NavigationButton('buttonObject', 18, 0, "room2");
+
+        // Add objects to rooms as needed
+        room1.addObject(toRoom2);
+        room1.addObject(petObject);
+        room2.addObject(toRoom1);
+
+        // Set the initial room in the game
+        $game.setCurrentRoom("room1");
+    }
+
+    //main loop
+    function main() {
+        let sprites = []; // Clear previous sprites
+        petObject.nextFrame();
+
+        // Get the current room from the game object
+        let currentRoom = $game.getCurrentRoom();
+
+        // Render objects in the current room
+        for (let obj of currentRoom.getObjects()) {
+            sprites.push(obj.getSprite());
+        }
+
+        screen = generateScreen(sprites, 48, 48);
+    }
 
     onMount(async () => {
         window.addEventListener('message', async (event) => {
@@ -88,7 +127,7 @@
     }
 
     function getObjectAt(x, y) {
-        for (let obj of objectsOnScreen) {
+        for (let obj of $game.getObjectsOfCurrentRoom() ) {
             if (x >= obj.x && x <= obj.x + obj.config.spriteWidth &&
                 y >= obj.y && y <= obj.y + obj.config.spriteHeight) {
                 return obj;
@@ -106,28 +145,6 @@
         document.documentElement.style.setProperty('--container-padding', `${padding}px`);
         document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
         document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
-    }
-
-    //run once before main loop
-    function pre() {
-        handleResize();
-        renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
-        // myObject = new Button('objectType3', 10, 10, () => {console.log("clicked")});
-        myObject = new Button('buttonObject', 10, 10, () => {console.log("clicked")} );
-        objectsOnScreen.push(myObject);
-    }
-
-    //main loop
-    function main() {
-        let sprites = renderBasicText("bruh", offset, 0);
-        // myObject.nextFrame();
-        offset++;
-        if(offset >= 7*7){
-            offset = -50;
-        }
-        let sprites1 = [myObject.getSprite()];
-
-        screen = generateScreen(sprites1, 48, 48);
     }
 </script>
 

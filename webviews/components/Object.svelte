@@ -1,19 +1,36 @@
 <script context="module">
   import { Sprite, spriteReader } from './Codagotchi.svelte';
   import objectConfig from './objectConfig.json';
+  import { game } from './Game.svelte';
+  import { get } from 'svelte/store';
   export class Object {
     constructor(objectName, x, y) {
-      const config = objectConfig[objectName];
-      if (!config) {
+    const config = objectConfig[objectName];
+    if (!config) {
         throw new Error(`No configuration found for object type: ${objectType}`);
-      }
-
-      this.objectType = objectName;
-      this.config = config;
-      this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
-      this.currentSpriteIndex = 0;
-      this.setCoordinate(x, y);
     }
+
+    // Process states
+    for (const state in config.states) {
+        config.states[state] = processStateFrames(config.states[state]);
+    }
+
+    function processStateFrames(frames) {
+        if (frames.length === 3 && frames[1] === "...") {
+            const start = frames[0];
+            const end = frames[2];
+            return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
+        return frames;
+    }
+
+    this.state = "default";
+    this.objectType = objectName;
+    this.config = config;
+    this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
+    this.currentSpriteIndex = 0;
+    this.setCoordinate(x, y);
+  }
 
     updateState(newState) {
       if (this.config.states[newState]) {
@@ -43,12 +60,10 @@
 
     onHover() {
         console.log(`Hovered over object of type: ${this.objectType}`);
-        // Add any hover effects or logic here
     }
 
     onStopHover() {
-        console.log(`Stopped hovering over object of type: ${this.objectType}`);
-        // Add any logic to reset hover effects here
+        console.log(`Stopped hovering over object of type: ${this.objectType}`); 
     }
   }
 
@@ -72,6 +87,14 @@
         console.log("Button hover stopped!");
         this.updateState("default")
         // Reset any button-specific hover effects here
+    }
+  }
+  export class NavigationButton extends Button {
+    constructor(objectName, x, y, targetRoom) {
+        super(objectName, x, y, () => {
+            // Set the current room in the game object to the target room
+            get(game).setCurrentRoom(targetRoom);
+        });
     }
   }
 </script>
