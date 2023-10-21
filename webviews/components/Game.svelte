@@ -1,5 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
+    import { Object, Button, NavigationButton } from './Object.svelte';
     class Game {
         constructor() {
             if (Game.instance) {
@@ -39,15 +40,15 @@
 export class Room {
     constructor(roomName, enterLogic=false, exitLogic=false, updateLogic=false) {
         this.name = roomName;
-        this.adjacentRooms = {};
+        this.adjacentRooms = new Set(); // Set ensures no duplicate rooms in list
         this.objects = [];
         this.enter = enterLogic || this.enter;
         this.exit = exitLogic || this.exit;
         this.update = updateLogic || this.update;
-        get(game).updateRooms(roomName, this);
+        get(game).updateRooms(roomName, this); // Add room to game object
     }
     addAdjacentRoom(room) {
-        this.adjacentRooms = room;
+        this.adjacentRooms.add(room);
     }
     getName() {
         return this.name;
@@ -55,6 +56,12 @@ export class Room {
 
     addObject(object) {
         this.objects.push(object);
+        
+        // Check if the object is a NavigationButton
+        if (object instanceof NavigationButton) {
+            // If so, add the target room to the list of adjacent rooms
+            this.adjacentRooms.add(object.targetRoom);
+        }
     }
 
     getObjects() {
