@@ -36,23 +36,42 @@
 
     export const game = writable(new Game());
 
-    export class Room {
-        constructor(roomName) {
-            this.name = roomName;
-            this.objects = [];
-            get(game).updateRooms(roomName, this); // Automatically add the room to the game
-        }
-
-        getName() {
-            return this.name;
-        }
-
-        addObject(object) {
-            this.objects.push(object);
-        }
-
-        getObjects() {
-            return this.objects;
-        }
+export class Room {
+    constructor(roomName, enterLogic=false, exitLogic=false, updateLogic=false) {
+        this.name = roomName;
+        this.adjacentRooms = {};
+        this.objects = [];
+        this.enter = enterLogic || this.enter;
+        this.exit = exitLogic || this.exit;
+        this.update = updateLogic || this.update;
+        get(game).updateRooms(roomName, this);
     }
+    addAdjacentRoom(room) {
+        this.adjacentRooms = room;
+    }
+    getName() {
+        return this.name;
+    }
+
+    addObject(object) {
+        this.objects.push(object);
+    }
+
+    getObjects() {
+        return this.objects;
+    }
+
+    enter() {
+        // Default logic when entering the room
+    }
+
+    exit() {
+        // Default logic when exiting the room
+    }
+
+    update() {
+        // Default room-specific logic and updates
+    }
+    
+}
 </script>
