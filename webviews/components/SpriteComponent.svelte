@@ -1,9 +1,14 @@
 <script context="module">
     export class Sprite {
-      constructor(matrix, x, y) {
+      constructor(matrix, x, y, z = 0) {
         this.matrix = matrix;
         this.x = x;
         this.y = y;
+        this.z = z;
+      }
+
+      getZ() {
+        return this.z;
       }
   
       getPixelValueAt(x, y) {
@@ -14,9 +19,10 @@
         return this.matrix;
       }
   
-      setCoordinate(newX, newY) {
+      setCoordinate(newX, newY, newZ) {
         this.x = newX;
         this.y = newY;
+        this.z = newZ;
       }
     }
 </script>

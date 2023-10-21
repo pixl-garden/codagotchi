@@ -3,6 +3,8 @@
         // Initialize an empty screen with the given size
         let screen = Array(ySize).fill().map(() => Array(xSize).fill("transparent"));
 
+        sprites.sort((a, b) => a.getZ() - b.getZ());
+
         sprites.forEach(sprite => {
             let spriteMatrix = sprite.getMatrix();
             // Calculate the bounds for y and x within the screen and sprite matrix
