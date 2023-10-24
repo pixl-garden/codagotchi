@@ -5,7 +5,7 @@
   import { get } from 'svelte/store';
     import { EnvironmentVariableMutatorType, TreeItemCheckboxState } from 'vscode';
   export class Object {
-    constructor(objectName, x, y) {
+    constructor(objectName, x, y, z = 0) {
     const config = objectConfig[objectName];
     if (!config) {
         throw new Error(`No configuration found for object type: ${objectType}`);
@@ -30,7 +30,7 @@
     this.config = config;
     this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
     this.currentSpriteIndex = 0;
-    this.setCoordinate(x, y);
+    this.setCoordinate(x, y, z);
   }
 
     updateState(newState) {
@@ -50,9 +50,10 @@
       }
     }
 
-    setCoordinate(newX, newY) {
+    setCoordinate(newX, newY, newZ) {
       this.x = newX;
       this.y = newY;
+      this.z = newZ;
     }
 
     getSprite() {
@@ -69,8 +70,8 @@
   }
 
   export class Button extends Object {
-    constructor(objectName, x, y, action) {
-      super(objectName, x, y);
+    constructor(objectName, x, y, action, z = 0) {
+      super(objectName, x, y, z);
       this.action = action || (() => {});
     }
 
@@ -91,8 +92,8 @@
     }
   }
   export class NavigationButton extends Button {
-    constructor(objectName, x, y, targetRoom) {
-        super(objectName, x, y, () => {
+    constructor(objectName, x, y, targetRoom, z = 0) {
+        super(objectName, x, y, z, () => {
             // Set the current room in the game object to the target room
             get(game).setCurrentRoom(targetRoom);
         });
