@@ -4,8 +4,8 @@
 
     // Update spriteReader to extract individual sprites from the preloaded sprite sheets
     export function spriteReader(spriteWidth, spriteHeight, spriteSheet) {
-        const binarySheet = get(preloadedSpriteSheets)[spriteSheet];
-        if (!binarySheet) {
+        const pixelSheet = get(preloadedSpriteSheets)[spriteSheet];
+        if (!pixelSheet) {
             console.error("Sprite sheet not preloaded:", spriteSheet);
             return [];
         }
@@ -14,8 +14,8 @@
         let spriteCount = 0;
 
         //iterate by sprite size
-        const spriteCountWidth = binarySheet[0].length / spriteWidth;
-        const spriteCountHeight = binarySheet.length / spriteHeight;
+        const spriteCountWidth = pixelSheet[0].length / spriteWidth;
+        const spriteCountHeight = pixelSheet.length / spriteHeight;
 
         //loop over each sprite
         for (let y = 0; y < spriteCountHeight; y++){
@@ -23,9 +23,9 @@
                 let sprite = [];
                 //each y level of sprite
                 for (let sy = 0; sy < spriteHeight; sy++){
-                    if (binarySheet[(y * spriteHeight) + sy]) {
+                    if (pixelSheet[(y * spriteHeight) + sy]) {
                         //add the x level of sprite as an array
-                        sprite.push(binarySheet[(y * spriteHeight) + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
+                        sprite.push(pixelSheet[(y * spriteHeight) + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
                     } else {
                         console.warn(`Invalid index y:${y + sy} for spriteSheet:${spriteSheet}`);
                         break;
@@ -43,15 +43,15 @@
 
     export async function preloadAllSpriteSheets() {
         for (let spriteSheet in get(images)) {
-            const binarySheet = await spriteSheetToBinary(spriteSheet);
+            const pixelSheet = await spriteSheetToPixels(spriteSheet);
             preloadedSpriteSheets.update(sheets => {
-                sheets[spriteSheet] = binarySheet;
+                sheets[spriteSheet] = pixelSheet;
                 return sheets;
             });
         }
     }
 
-    async function spriteSheetToBinary(spriteSheet) {
+    async function spriteSheetToPixels(spriteSheet) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
@@ -63,20 +63,21 @@
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
 
-                let binaryData = [];
+                let colorData = [];
                 for (let y = 0; y < img.height; y++) {
                     let row = [];
                     for (let x = 0; x < img.width; x++) {
                         const pixel = ctx.getImageData(x, y, 1, 1).data;
-                        if (pixel[3] === 0 || (pixel[0] > 250 && pixel[1] > 250 && pixel[2] > 250)) {
-                            row.push(0);
+                        if (pixel[3] === 0) {
+                            row.push("transparent");
                         } else {
-                            row.push(1);
+                            const hexColor = "#" + ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1).toUpperCase();
+                            row.push(hexColor);
                         }
                     }
-                    binaryData.push(row);
+                    colorData.push(row);
                 }
-                resolve(binaryData);
+                resolve(colorData);
             };
             img.onerror = () => reject("Failed to load image");
         });

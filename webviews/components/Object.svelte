@@ -1,19 +1,36 @@
 <script context="module">
   import { Sprite, spriteReader } from './Codagotchi.svelte';
   import objectConfig from './objectConfig.json';
+  import { game } from './Game.svelte';
+  import { get } from 'svelte/store';
   export class Object {
-    constructor(objectName) {
-      const config = objectConfig[objectName];
-      if (!config) {
+    constructor(objectName, x, y, z = 0) {
+    const config = objectConfig[objectName];
+    if (!config) {
         throw new Error(`No configuration found for object type: ${objectType}`);
-      }
-
-      this.state = "hidden"; 
-      this.objectType = objectName;
-      this.config = config;
-      this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
-      this.currentSpriteIndex = 0;
     }
+
+    // Process states
+    for (const state in config.states) {
+        config.states[state] = processStateFrames(config.states[state]);
+    }
+
+    function processStateFrames(frames) {
+        if (frames.length === 3 && frames[1] === "...") {
+            const start = frames[0];
+            const end = frames[2];
+            return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
+        return frames;
+    }
+
+    this.state = "default";
+    this.objectType = objectName;
+    this.config = config;
+    this.sprites = spriteReader(config.spriteWidth, config.spriteHeight, config.spriteSheet);
+    this.currentSpriteIndex = 0;
+    this.setCoordinate(x, y, z);
+  }
 
     updateState(newState) {
       if (this.config.states[newState]) {
@@ -32,15 +49,53 @@
       }
     }
 
-    setCoordinate(newX, newY) {
+    setCoordinate(newX, newY, newZ) {
       this.x = newX;
       this.y = newY;
+      this.z = newZ;
     }
 
     getSprite() {
-      const stateSprites = this.config.states[this.state];
-      // return Sprite(stateSprites[this.currentSpriteIndex], this.x, this.y);
       return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
+    }
+
+    onHover() {
+        console.log(`Hovered over object of type: ${this.objectType}`);
+    }
+
+    onStopHover() {
+        console.log(`Stopped hovering over object of type: ${this.objectType}`); 
+    }
+  }
+
+  export class Button extends Object {
+    constructor(objectName, x, y, action, z = 0) {
+      super(objectName, x, y, z);
+      this.action = action || (() => {});
+    }
+
+    clickAction() {
+      this.action();
+    }
+
+    onHover() {
+        console.log("Button is hovered!");
+        this.updateState("hovered")
+        // Add any button-specific hover effects or logic here
+    }
+
+    onStopHover() {
+        console.log("Button hover stopped!");
+        this.updateState("default")
+        // Reset any button-specific hover effects here
+    }
+  }
+  export class NavigationButton extends Button {
+    constructor(objectName, x, y, targetRoom, z = 0) {
+        super(objectName, x, y, z, () => {
+            // Set the current room in the game object to the target room
+            get(game).setCurrentRoom(targetRoom);
+        });
     }
   }
 </script>
