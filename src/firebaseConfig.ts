@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, push } from "firebase/database";
 
 // Firebase configuration
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyDFc92UaOqBvW8x0jgPLyYMThFajvsHx08",
   authDomain: "codagotchi.firebaseapp.com",
   databaseURL: "https://codagotchi-default-rtdb.firebaseio.com",
@@ -14,7 +14,15 @@ const firebaseConfig = {
   measurementId: "G-VFZ7XW9BGH"
 };
 export { initializeApp, getDatabase, ref, push };
-export const app = initializeApp(firebaseConfig);
-export const dbRef = ref(getDatabase(app), 'your_data_nodes');
 
-/* import { initializeApp, getDatabase, ref, push, app, dbRef} from "./firebaseConfig.ts"; */
+
+
+/* import { initializeApp, getDatabase, ref, push, firebaseConfig } from "./firebaseConfig"; */
+
+// const app = initializeApp(firebaseConfig);
+// const dbRef = ref(getDatabase(app), 'your_data_nodes');
+// const newData = {
+//   name: 'me',
+//   age: 12
+// };
+// push(dbRef, newData);

@@ -2,6 +2,14 @@ import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 import * as fs from 'fs';
 import * as path from 'path';
+import { initializeApp, getDatabase, ref, push, firebaseConfig } from "./firebaseConfig";
+    
+const app = initializeApp(firebaseConfig);
+const CLIENT_ID = "a253a1599d7b631b091a";
+const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
+const REQUESTED_SCOPES = "user,read:user";
+
+const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}`;
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -34,7 +42,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
-  
+    
+    // vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(OAuth_URL));
+
     webviewView.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,
@@ -51,7 +61,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   
     this._onDidViewReady.fire();
 
-  
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case "webview-ready": {
@@ -69,7 +78,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           });
           break;
       }
-      
+
+        case "openOAuthURL": {
+          vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
+          console.log("openOAuthUrl");
+          break;
+        }
+
         case "onInfo": {
           if (!data.value) {
             return;
@@ -107,14 +122,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const styleVSCodeUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "codagotchi.css")
     );
-
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "out/compiled", "sidebar.js")
     );
     const styleMainUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "out/compiled", "sidebar.css")
     );
-
+        
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
 
@@ -129,39 +143,55 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <link href="${styleResetUri}" rel="stylesheet">
         <link href="${styleVSCodeUri}" rel="stylesheet">
         <link href="${styleMainUri}" rel="stylesheet">
+        
         <script nonce="${nonce}">
-          const tsvscode = acquireVsCodeApi();
-          window.addEventListener('resize', () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-
+        
+        const tsvscode = acquireVsCodeApi();
+      
+        <!-- github login buton -->
+        document.addEventListener("DOMContentLoaded", function() {
+          document.getElementById('github-login').addEventListener('click', () => {
+            
             // Send a message to the extension
             tsvscode.postMessage({
-              type: 'resize',
-              width: width,
-              height: height
+              type: 'openOAuthURL',
+              value: '${O_AUTH_URL}'
             });
+          });         
+        });
+      
+        window.addEventListener('resize', () => {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          
+          // Send a message to the extension
+          tsvscode.postMessage({
+            type: 'resize',
+            width: width,
+            height: height
           });
-
-          window.addEventListener('click', (event) => {
-            const x = event.clientX;
-            const y = event.clientY;
-
-            // Send a message to the extension with the click coordinates
-            tsvscode.postMessage({
-              type: 'click',
-              x: x,
-              y: y
-            });
+        });
+        
+        window.addEventListener('click', (event) => {
+          const x = event.clientX;
+          const y = event.clientY;
+          
+          // Send a message to the extension with the click coordinates
+          tsvscode.postMessage({
+            type: 'click',
+            x: x,
+            y: y
           });
-
-          // Trigger the resize event manually to get initial dimensions
-          window.dispatchEvent(new Event('resize'));
+        });
+        
+        // Trigger the resize event manually to get initial dimensions
+        window.dispatchEvent(new Event('resize'));
         </script>
-      </head>
-      <body>
+        </head>
+        <body>
+        <button id="github-login">Login with GitHub</button>
         <script nonce="${nonce}" src="${scriptUri}"></script>
-      </body>
-    </html>`;
-  }
-}
+        </body>
+        </html>`;
+      }
+    }
