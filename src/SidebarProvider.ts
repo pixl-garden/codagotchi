@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 import * as fs from 'fs';
 import * as path from 'path';
+import OAuth_URL from "./OAuth";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -34,7 +35,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
-  
+    
+    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(OAuth_URL));
+
     webviewView.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,

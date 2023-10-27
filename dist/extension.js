@@ -27,6 +27,7 @@ const vscode = __webpack_require__(1);
 const getNonce_1 = __webpack_require__(3);
 const fs = __webpack_require__(4);
 const path = __webpack_require__(5);
+const OAuth_1 = __webpack_require__(6);
 class SidebarProvider {
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
@@ -51,6 +52,7 @@ class SidebarProvider {
     }
     resolveWebviewView(webviewView) {
         this._view = webviewView;
+        vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(OAuth_1.default));
         webviewView.webview.options = {
             // Allow scripts in the webview
             enableScripts: true,
@@ -190,6 +192,19 @@ module.exports = require("fs");
 /***/ ((module) => {
 
 module.exports = require("path");
+
+/***/ }),
+/* 6 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CLIENT_ID = "a253a1599d7b631b091a";
+const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
+const REQUESTED_SCOPES = "user,read:user";
+const OAuth_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}`;
+exports["default"] = OAuth_URL;
+
 
 /***/ })
 /******/ 	]);
