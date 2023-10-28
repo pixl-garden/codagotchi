@@ -119,6 +119,13 @@ class SidebarProvider {
     revive(panel) {
         this._view = panel;
     }
+    setCurrentRoom(roomName) {
+        var _a;
+        (_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
+            type: 'currentRoom',
+            value: roomName
+        });
+    }
     _getHtmlForWebview(webview) {
         const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
         const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "codagotchi.css"));
@@ -181,7 +188,19 @@ class SidebarProvider {
         </script>
         </head>
         <body>
-        <button id="github-login">Login with GitHub</button>
+        <!--
+        <button 
+            id="github-login" 
+            style="padding: 3px; border-radius: 3px; background-color: #4f4f4f; transition: background-color 0.2s; cursor: pointer; color: #c9c9c9;"
+            onmouseover="this.style.backgroundColor='#999797';"
+            onmousedown="this.style.backgroundColor='#333';" 
+            onmouseup="this.style.backgroundColor='#4f4f4f';" 
+            onmouseout="this.style.backgroundColor='#4f4f4f';"
+        >
+            Login with GitHub
+        </button>
+        -->
+
         <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
