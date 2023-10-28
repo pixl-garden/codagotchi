@@ -1,5 +1,11 @@
-import { writable } from 'svelte/store';
+const { writable } = require( 'svelte/store' );
 
-export const preloadedSpriteSheets = writable({});
-export const images = writable({});
-export const spritesLoaded = writable(false);
+const preloadedSpriteSheets = writable({});
+const images = writable({});
+const spritesLoaded = writable(false);
+
+module.exports = {
+   preloadedSpriteSheets: preloadedSpriteSheets,
+   images: images,
+   spritesLoaded: spritesLoaded
+};
