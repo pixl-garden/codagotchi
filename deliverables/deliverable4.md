@@ -10,7 +10,7 @@ _Group Members: Ben Griepp, Noah Gooby, Monique Parrish, Payton Watts, Forrest H
 
 The problem of irregular coding practice and lack of motivation to write code impacts a wide range of programmers, from brand-new learners to experienced developers, resulting in skill stagnation and reduced productivity. This lack of consistency hinders skill development, wastes time, and can impact software quality, incurring additional costs and missed opportunities for career growth.
 
-For VSCode users seeking consistent coding practice and skill improvement, Codagotchi is a free VSCode extension that gamifies learning and development, incentivizing regular coding to keep a virtual pet alive and happy. Unlike traditional learning methods, our product transforms coding into an engaging and interactive experience, fostering skill growth through motivation and rewards. Codagotchi empowers programmers to maintain consistent engagement in learning and skill development by offering fun experiences like pet customization and interaction, and even the ability to interact with your friends on Github. 
+For VSCode users seeking consistent coding practice and skill improvement, Codagotchi is a free VSCode extension that gamifies learning and development, incentivizing regular coding to keep a virtual pet alive and happy. Unlike traditional learning methods, our product transforms coding into an engaging and interactive experience, fostering skill growth through motivation and rewards. Codagotchi empowers programmers to maintain consistent engagement in learning and skill development by offering fun experiences like pet customization and interaction, and even the ability to interact with your friends on GitHub. 
 
 By transforming coding into an enjoyable experience where a virtual pet thrives through regular code-writing, Codagotchi offers a compelling incentive for programmers to stay motivated and active.
 
@@ -24,14 +24,19 @@ Github Repo: [https://github.com/kitgore/codagotchi](https://github.com/kitgore/
 
 Issue: [https://github.com/kitgore/codagotchi/issues/60](https://github.com/kitgore/codagotchi/issues/60) 
 
-Pull request:
+Pull request: [https://github.com/kitgore/codagotchi/pull/71](https://github.com/kitgore/codagotchi/pull/71)
 
-Implemented by: Forrest Hartley
+Implemented by: Forrest Hartley, Ben Griepp
 
-Approved by:
+Approved by: Noah Gooby
 
 Print screen:
 
+![image](https://github.com/kitgore/codagotchi/assets/116697167/6237d0f8-5921-43d7-a15c-ae49acf8b54a)
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/9ceafc31-c5da-4c50-ad44-a1792b22c0e9)
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/294623c4-a2a7-4ffb-a7b5-dab29e5aabfb)
 
 <br>
 
@@ -39,13 +44,15 @@ Print screen:
 
 Issue: [https://github.com/kitgore/codagotchi/issues/61](https://github.com/kitgore/codagotchi/issues/61) 
 
-Pull request:
+Pull request: [https://github.com/kitgore/codagotchi/pull/65](https://github.com/kitgore/codagotchi/pull/65)
 
 Implemented by: Noah Gooby
 
-Approved by:
+Approved by: Ben Griepp
 
 Print screen:
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/b6487860-ddb0-49d3-9a35-c68b7b5343ce)
 
 
 <br>
@@ -62,6 +69,9 @@ Approved by: Ben Griepp & Forrest Hartley
 
 Print screen:
 
+![image](https://github.com/kitgore/codagotchi/assets/116697167/e6b83bb5-baba-49f0-88b2-751a8753dc04)
+
+
 <br>
 
 ## 3. Tests
@@ -70,7 +80,7 @@ Print screen:
 
 We chose to use Jest as our testing framework because of it’s balance between feature diversity and simplicity. Jest automatically supports modern JS features and requires little to no configuration / setup; combined with it’s simple syntax, it is very user-friendly. It can also be ran as a node package, and as we are using Node.js as our runtime environment, it seemed like an easy choice to choose Jest.
 
-#### GitHub Test folder:
+#### GitHub Test folder: [https://github.com/kitgore/codagotchi/tree/main/tests](https://github.com/kitgore/codagotchi/tree/main/tests) 
 
 #### Test case examples:
 
@@ -79,17 +89,22 @@ We chose to use Jest as our testing framework because of it’s balance between 
     * Should return an empty screen if no sprites are given
     * Should not show a sprite if it is out-of-bounds of the screen
     * Should only show part of the sprite if that part is within bounds
-* Class: [https://github.com/kitgore/codagotchi/blob/main/webviews/components/SpriteComponent.svelte](https://github.com/kitgore/codagotchi/blob/main/webviews/components/SpriteComponent.svelte) 
-* Test:
-* Print screen: 
+* Class: [https://github.com/kitgore/codagotchi/blob/main/webviews/components/ScreenComponent.svelte](https://github.com/kitgore/codagotchi/blob/main/webviews/components/ScreenComponent.svelte) 
+* Test: [https://github.com/kitgore/codagotchi/blob/main/tests/ScreenComponent.test.js](https://github.com/kitgore/codagotchi/blob/main/tests/ScreenComponent.test.js)
+* Print screen:
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/579b3e3b-41b0-46a3-af40-5e93bd635f2b)
 
 * Description: SpriteReader tests
     * Should return empty array and log error if sprite sheet is not preloaded
     * Should return empty array if sprite rows don’t fully fit sprite height
     * Should return empty array if sprite columns don’t fully fit sprite width
 * Class: [https://github.com/kitgore/codagotchi/blob/main/webviews/components/SpriteReader.svelte](https://github.com/kitgore/codagotchi/blob/main/webviews/components/SpriteReader.svelte) 
-* Test:
-* Print screen: 
+* Test: [https://github.com/kitgore/codagotchi/blob/main/tests/SpriteReader.test.js](https://github.com/kitgore/codagotchi/blob/main/tests/SpriteReader.test.js)
+* Print screen:
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/be9eec26-7ce7-47e7-8636-8c4e8de4e96d)
+
 
 * Description: getNonce tests
     * Should return a string
@@ -97,8 +112,11 @@ We chose to use Jest as our testing framework because of it’s balance between 
     * Should return a string that only has valid characters
     * SHOULD return different values on subsequent calls (this is not guaranteed, but an issue is present if subsequent calls regularly return the same value)
 * Class: [https://github.com/kitgore/codagotchi/blob/main/src/getNonce.ts](https://github.com/kitgore/codagotchi/blob/main/src/getNonce.ts) 
-* Test:
+* Test: [https://github.com/kitgore/codagotchi/blob/main/tests/getNonce.test.js](https://github.com/kitgore/codagotchi/blob/main/tests/getNonce.test.js)
 * Print Screen: 
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/33a6ae94-a870-4b1c-8dc1-e4f055f1e969)
+
 
 <br>
 
@@ -162,13 +180,13 @@ We chose the MIT license for this project because it is one of the most permissi
 
 ## 8. Readme, Contributing, Code of Conduct, and License Files
 
-Readme:
+Readme: [https://github.com/kitgore/codagotchi/blob/main/README.md](https://github.com/kitgore/codagotchi/blob/main/README.md)
 
-Contributing:
+Contributing: [https://github.com/kitgore/codagotchi/blob/main/CONTRIBUTING.md](https://github.com/kitgore/codagotchi/blob/main/CONTRIBUTING.md)
 
-Code of Conduct:
+Code of Conduct: [https://github.com/kitgore/codagotchi/blob/main/CODE_OF_CONDUCT.md](https://github.com/kitgore/codagotchi/blob/main/CODE_OF_CONDUCT.md)
 
-License:
+License: [https://github.com/kitgore/codagotchi/blob/main/LICENSE.md](https://github.com/kitgore/codagotchi/blob/main/LICENSE.md)
 
 <br>
 
@@ -182,6 +200,13 @@ Please note: The buttons included in the following screenshots are placeholders 
 
 Screenshots:
 
+![image](https://github.com/kitgore/codagotchi/assets/116697167/66f23395-afb2-4578-b897-22a118314c4f)
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/04f9acc6-cef9-436d-bff5-2fc6f650e1c8)
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/092f1dae-f92b-4468-8183-0861e02dd5ba)
+
+![image](https://github.com/kitgore/codagotchi/assets/116697167/6237d0f8-5921-43d7-a15c-ae49acf8b54a)
 
 <br>
 
@@ -202,3 +227,5 @@ Lastly, we have gained respect for the development process for projects of this 
 * **Narrow our focus.** We have narrowed down our highest-priority requirements as of Report 8 (Week 9). These will be our focus moving forwards.
 
 ## 11. Demo
+
+[https://www.youtube.com/watch?v=YgisLCUObSw](https://www.youtube.com/watch?v=YgisLCUObSw)
