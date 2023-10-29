@@ -19,10 +19,10 @@
     let hasMainLoopStarted = false;
     let currentRoom;
     const CLIENT_ID = "a253a1599d7b631b091a";
-const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
-const REQUESTED_SCOPES = "user,read:user";
+    const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
+    const REQUESTED_SCOPES = "user,read:user";
 
-const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}`;
+    const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}`;
 
     //run once before main loop
     function pre() {
@@ -41,11 +41,10 @@ const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_
         petObject = new Object('objectType3', 14, 14)
         let toRoom1 = new NavigationButton('buttonObject', 0, 0, "room1");
         let toRoom2 = new NavigationButton('buttonObject', 18, 0, "room2");
-
-        // Add objects to rooms as needed
-        room1.addObject(toRoom2);
+        
         room1.addObject(petObject);
         room2.addObject(toRoom1);
+
 
         // Set the initial room in the game
         $game.setCurrentRoom("room1");
