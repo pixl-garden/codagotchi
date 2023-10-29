@@ -114,7 +114,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   public revive(panel: vscode.WebviewView) {
     this._view = panel;
   }
-
+  
+  public setCurrentRoom(roomName: string) {
+    this._view?.webview.postMessage({
+      type: 'currentRoom',
+      value: roomName
+    });
+  }
+  
   private _getHtmlForWebview(webview: vscode.Webview) {
     const styleResetUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")
@@ -131,6 +138,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
+    
 
     return `<!DOCTYPE html>
       <html lang="en">
@@ -189,7 +197,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         </script>
         </head>
         <body>
-        <button id="github-login">Login with GitHub</button>
+        <!--
+        <button 
+            id="github-login" 
+            style="padding: 3px; border-radius: 3px; background-color: #4f4f4f; transition: background-color 0.2s; cursor: pointer; color: #c9c9c9;"
+            onmouseover="this.style.backgroundColor='#999797';"
+            onmousedown="this.style.backgroundColor='#333';" 
+            onmouseup="this.style.backgroundColor='#4f4f4f';" 
+            onmouseout="this.style.backgroundColor='#4f4f4f';"
+        >
+            Login with GitHub
+        </button>
+        -->
+
         <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;

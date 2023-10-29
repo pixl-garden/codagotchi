@@ -28,7 +28,7 @@ const vscode = __webpack_require__(1);
 const getNonce_1 = __webpack_require__(3);
 const fs = __webpack_require__(4);
 const path = __webpack_require__(5);
-const firebaseConfig_1 = __webpack_require__(7);
+const firebaseConfig_1 = __webpack_require__(6);
 const app = (0, firebaseConfig_1.initializeApp)(firebaseConfig_1.firebaseConfig);
 const CLIENT_ID = "a253a1599d7b631b091a";
 const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
@@ -119,6 +119,13 @@ class SidebarProvider {
     revive(panel) {
         this._view = panel;
     }
+    setCurrentRoom(roomName) {
+        var _a;
+        (_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
+            type: 'currentRoom',
+            value: roomName
+        });
+    }
     _getHtmlForWebview(webview) {
         const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
         const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "codagotchi.css"));
@@ -181,7 +188,19 @@ class SidebarProvider {
         </script>
         </head>
         <body>
-        <button id="github-login">Login with GitHub</button>
+        <!--
+        <button 
+            id="github-login" 
+            style="padding: 3px; border-radius: 3px; background-color: #4f4f4f; transition: background-color 0.2s; cursor: pointer; color: #c9c9c9;"
+            onmouseover="this.style.backgroundColor='#999797';"
+            onmousedown="this.style.backgroundColor='#333';" 
+            onmouseup="this.style.backgroundColor='#4f4f4f';" 
+            onmouseout="this.style.backgroundColor='#4f4f4f';"
+        >
+            Login with GitHub
+        </button>
+        -->
+
         <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
@@ -224,17 +243,16 @@ module.exports = require("fs");
 module.exports = require("path");
 
 /***/ }),
-/* 6 */,
-/* 7 */
+/* 6 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.push = exports.ref = exports.getDatabase = exports.initializeApp = exports.firebaseConfig = void 0;
-const app_1 = __webpack_require__(8);
+const app_1 = __webpack_require__(7);
 Object.defineProperty(exports, "initializeApp", ({ enumerable: true, get: function () { return app_1.initializeApp; } }));
-const database_1 = __webpack_require__(19);
+const database_1 = __webpack_require__(18);
 Object.defineProperty(exports, "getDatabase", ({ enumerable: true, get: function () { return database_1.getDatabase; } }));
 Object.defineProperty(exports, "ref", ({ enumerable: true, get: function () { return database_1.ref; } }));
 Object.defineProperty(exports, "push", ({ enumerable: true, get: function () { return database_1.push; } }));
@@ -260,7 +278,7 @@ exports.firebaseConfig = {
 
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -268,7 +286,7 @@ exports.firebaseConfig = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var app = __webpack_require__(9);
+var app = __webpack_require__(8);
 
 var name = "firebase";
 var version = "10.4.0";
@@ -301,7 +319,7 @@ Object.keys(app).forEach(function (k) {
 
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -309,11 +327,11 @@ Object.keys(app).forEach(function (k) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var component = __webpack_require__(10);
-var tslib = __webpack_require__(14);
-var logger$1 = __webpack_require__(15);
-var util = __webpack_require__(12);
-var idb = __webpack_require__(17);
+var component = __webpack_require__(9);
+var tslib = __webpack_require__(13);
+var logger$1 = __webpack_require__(14);
+var util = __webpack_require__(11);
+var idb = __webpack_require__(16);
 
 /**
  * @license
@@ -1430,7 +1448,7 @@ exports.setLogLevel = setLogLevel;
 
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1438,8 +1456,8 @@ exports.setLogLevel = setLogLevel;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var tslib = __webpack_require__(11);
-var util = __webpack_require__(12);
+var tslib = __webpack_require__(10);
+var util = __webpack_require__(11);
 
 /**
  * Component for service name T, e.g. `auth`, `auth-internal`
@@ -1903,7 +1921,7 @@ exports.Provider = Provider;
 
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2315,7 +2333,7 @@ function __disposeResources(env) {
 
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2323,7 +2341,7 @@ function __disposeResources(env) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var tslib = __webpack_require__(13);
+var tslib = __webpack_require__(12);
 
 /**
  * @license
@@ -4520,6 +4538,418 @@ exports.validateNamespace = validateNamespace;
 
 
 /***/ }),
+/* 12 */
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __addDisposableResource: () => (/* binding */ __addDisposableResource),
+/* harmony export */   __assign: () => (/* binding */ __assign),
+/* harmony export */   __asyncDelegator: () => (/* binding */ __asyncDelegator),
+/* harmony export */   __asyncGenerator: () => (/* binding */ __asyncGenerator),
+/* harmony export */   __asyncValues: () => (/* binding */ __asyncValues),
+/* harmony export */   __await: () => (/* binding */ __await),
+/* harmony export */   __awaiter: () => (/* binding */ __awaiter),
+/* harmony export */   __classPrivateFieldGet: () => (/* binding */ __classPrivateFieldGet),
+/* harmony export */   __classPrivateFieldIn: () => (/* binding */ __classPrivateFieldIn),
+/* harmony export */   __classPrivateFieldSet: () => (/* binding */ __classPrivateFieldSet),
+/* harmony export */   __createBinding: () => (/* binding */ __createBinding),
+/* harmony export */   __decorate: () => (/* binding */ __decorate),
+/* harmony export */   __disposeResources: () => (/* binding */ __disposeResources),
+/* harmony export */   __esDecorate: () => (/* binding */ __esDecorate),
+/* harmony export */   __exportStar: () => (/* binding */ __exportStar),
+/* harmony export */   __extends: () => (/* binding */ __extends),
+/* harmony export */   __generator: () => (/* binding */ __generator),
+/* harmony export */   __importDefault: () => (/* binding */ __importDefault),
+/* harmony export */   __importStar: () => (/* binding */ __importStar),
+/* harmony export */   __makeTemplateObject: () => (/* binding */ __makeTemplateObject),
+/* harmony export */   __metadata: () => (/* binding */ __metadata),
+/* harmony export */   __param: () => (/* binding */ __param),
+/* harmony export */   __propKey: () => (/* binding */ __propKey),
+/* harmony export */   __read: () => (/* binding */ __read),
+/* harmony export */   __rest: () => (/* binding */ __rest),
+/* harmony export */   __runInitializers: () => (/* binding */ __runInitializers),
+/* harmony export */   __setFunctionName: () => (/* binding */ __setFunctionName),
+/* harmony export */   __spread: () => (/* binding */ __spread),
+/* harmony export */   __spreadArray: () => (/* binding */ __spreadArray),
+/* harmony export */   __spreadArrays: () => (/* binding */ __spreadArrays),
+/* harmony export */   __values: () => (/* binding */ __values),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol */
+
+var extendStatics = function(d, b) {
+  extendStatics = Object.setPrototypeOf ||
+      ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+      function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+  return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+  if (typeof b !== "function" && b !== null)
+      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+  extendStatics(d, b);
+  function __() { this.constructor = d; }
+  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var __assign = function() {
+  __assign = Object.assign || function __assign(t) {
+      for (var s, i = 1, n = arguments.length; i < n; i++) {
+          s = arguments[i];
+          for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+      }
+      return t;
+  }
+  return __assign.apply(this, arguments);
+}
+
+function __rest(s, e) {
+  var t = {};
+  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+  if (s != null && typeof Object.getOwnPropertySymbols === "function")
+      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+          if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+              t[p[i]] = s[p[i]];
+      }
+  return t;
+}
+
+function __decorate(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __param(paramIndex, decorator) {
+  return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+  function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+  var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+  var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+  var _, done = false;
+  for (var i = decorators.length - 1; i >= 0; i--) {
+      var context = {};
+      for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+      for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+      context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+      var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+      if (kind === "accessor") {
+          if (result === void 0) continue;
+          if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+          if (_ = accept(result.get)) descriptor.get = _;
+          if (_ = accept(result.set)) descriptor.set = _;
+          if (_ = accept(result.init)) initializers.unshift(_);
+      }
+      else if (_ = accept(result)) {
+          if (kind === "field") initializers.unshift(_);
+          else descriptor[key] = _;
+      }
+  }
+  if (target) Object.defineProperty(target, contextIn.name, descriptor);
+  done = true;
+};
+
+function __runInitializers(thisArg, initializers, value) {
+  var useValue = arguments.length > 2;
+  for (var i = 0; i < initializers.length; i++) {
+      value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+  }
+  return useValue ? value : void 0;
+};
+
+function __propKey(x) {
+  return typeof x === "symbol" ? x : "".concat(x);
+};
+
+function __setFunctionName(f, name, prefix) {
+  if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+  return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+};
+
+function __metadata(metadataKey, metadataValue) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+  return new (P || (P = Promise))(function (resolve, reject) {
+      function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+      function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
+
+function __generator(thisArg, body) {
+  var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+  function verb(n) { return function (v) { return step([n, v]); }; }
+  function step(op) {
+      if (f) throw new TypeError("Generator is already executing.");
+      while (g && (g = 0, op[0] && (_ = 0)), _) try {
+          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+          if (y = 0, t) op = [op[0] & 2, t.value];
+          switch (op[0]) {
+              case 0: case 1: t = op; break;
+              case 4: _.label++; return { value: op[1], done: false };
+              case 5: _.label++; y = op[1]; op = [0]; continue;
+              case 7: op = _.ops.pop(); _.trys.pop(); continue;
+              default:
+                  if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                  if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                  if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                  if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                  if (t[2]) _.ops.pop();
+                  _.trys.pop(); continue;
+          }
+          op = body.call(thisArg, _);
+      } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+      if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+  }
+}
+
+var __createBinding = Object.create ? (function(o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  var desc = Object.getOwnPropertyDescriptor(m, k);
+  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+  }
+  Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+
+function __exportStar(m, o) {
+  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
+}
+
+function __values(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+  if (m) return m.call(o);
+  if (o && typeof o.length === "number") return {
+      next: function () {
+          if (o && i >= o.length) o = void 0;
+          return { value: o && o[i++], done: !o };
+      }
+  };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+}
+
+function __read(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o), r, ar = [], e;
+  try {
+      while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  }
+  catch (error) { e = { error: error }; }
+  finally {
+      try {
+          if (r && !r.done && (m = i["return"])) m.call(i);
+      }
+      finally { if (e) throw e.error; }
+  }
+  return ar;
+}
+
+/** @deprecated */
+function __spread() {
+  for (var ar = [], i = 0; i < arguments.length; i++)
+      ar = ar.concat(__read(arguments[i]));
+  return ar;
+}
+
+/** @deprecated */
+function __spreadArrays() {
+  for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+  for (var r = Array(s), k = 0, i = 0; i < il; i++)
+      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+          r[k] = a[j];
+  return r;
+}
+
+function __spreadArray(to, from, pack) {
+  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+          if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+          ar[i] = from[i];
+      }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from));
+}
+
+function __await(v) {
+  return this instanceof __await ? (this.v = v, this) : new __await(v);
+}
+
+function __asyncGenerator(thisArg, _arguments, generator) {
+  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+  var g = generator.apply(thisArg, _arguments || []), i, q = [];
+  return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
+  function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+  function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+  function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+  function fulfill(value) { resume("next", value); }
+  function reject(value) { resume("throw", value); }
+  function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+}
+
+function __asyncDelegator(o) {
+  var i, p;
+  return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+  function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
+}
+
+function __asyncValues(o) {
+  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+  var m = o[Symbol.asyncIterator], i;
+  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+  function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+  function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+}
+
+function __makeTemplateObject(cooked, raw) {
+  if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+  return cooked;
+};
+
+var __setModuleDefault = Object.create ? (function(o, v) {
+  Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+  o["default"] = v;
+};
+
+function __importStar(mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+  __setModuleDefault(result, mod);
+  return result;
+}
+
+function __importDefault(mod) {
+  return (mod && mod.__esModule) ? mod : { default: mod };
+}
+
+function __classPrivateFieldGet(receiver, state, kind, f) {
+  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+}
+
+function __classPrivateFieldSet(receiver, state, value, kind, f) {
+  if (kind === "m") throw new TypeError("Private method is not writable");
+  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+}
+
+function __classPrivateFieldIn(state, receiver) {
+  if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
+  return typeof state === "function" ? receiver === state : state.has(receiver);
+}
+
+function __addDisposableResource(env, value, async) {
+  if (value !== null && value !== void 0) {
+    if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+    var dispose;
+    if (async) {
+        if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+        dispose = value[Symbol.asyncDispose];
+    }
+    if (dispose === void 0) {
+        if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+        dispose = value[Symbol.dispose];
+    }
+    if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+    env.stack.push({ value: value, dispose: dispose, async: async });
+  }
+  else if (async) {
+    env.stack.push({ async: true });
+  }
+  return value;
+}
+
+var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+  var e = new Error(message);
+  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+function __disposeResources(env) {
+  function fail(e) {
+    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+    env.hasError = true;
+  }
+  function next() {
+    while (env.stack.length) {
+      var rec = env.stack.pop();
+      try {
+        var result = rec.dispose && rec.dispose.call(rec.value);
+        if (rec.async) return Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
+      }
+      catch (e) {
+          fail(e);
+      }
+    }
+    if (env.hasError) throw env.error;
+  }
+  return next();
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  __extends,
+  __assign,
+  __rest,
+  __decorate,
+  __param,
+  __metadata,
+  __awaiter,
+  __generator,
+  __createBinding,
+  __exportStar,
+  __values,
+  __read,
+  __spread,
+  __spreadArrays,
+  __spreadArray,
+  __await,
+  __asyncGenerator,
+  __asyncDelegator,
+  __asyncValues,
+  __makeTemplateObject,
+  __importStar,
+  __importDefault,
+  __classPrivateFieldGet,
+  __classPrivateFieldSet,
+  __classPrivateFieldIn,
+  __addDisposableResource,
+  __disposeResources,
+});
+
+
+/***/ }),
 /* 13 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -4933,418 +5363,6 @@ function __disposeResources(env) {
 
 /***/ }),
 /* 14 */
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   __addDisposableResource: () => (/* binding */ __addDisposableResource),
-/* harmony export */   __assign: () => (/* binding */ __assign),
-/* harmony export */   __asyncDelegator: () => (/* binding */ __asyncDelegator),
-/* harmony export */   __asyncGenerator: () => (/* binding */ __asyncGenerator),
-/* harmony export */   __asyncValues: () => (/* binding */ __asyncValues),
-/* harmony export */   __await: () => (/* binding */ __await),
-/* harmony export */   __awaiter: () => (/* binding */ __awaiter),
-/* harmony export */   __classPrivateFieldGet: () => (/* binding */ __classPrivateFieldGet),
-/* harmony export */   __classPrivateFieldIn: () => (/* binding */ __classPrivateFieldIn),
-/* harmony export */   __classPrivateFieldSet: () => (/* binding */ __classPrivateFieldSet),
-/* harmony export */   __createBinding: () => (/* binding */ __createBinding),
-/* harmony export */   __decorate: () => (/* binding */ __decorate),
-/* harmony export */   __disposeResources: () => (/* binding */ __disposeResources),
-/* harmony export */   __esDecorate: () => (/* binding */ __esDecorate),
-/* harmony export */   __exportStar: () => (/* binding */ __exportStar),
-/* harmony export */   __extends: () => (/* binding */ __extends),
-/* harmony export */   __generator: () => (/* binding */ __generator),
-/* harmony export */   __importDefault: () => (/* binding */ __importDefault),
-/* harmony export */   __importStar: () => (/* binding */ __importStar),
-/* harmony export */   __makeTemplateObject: () => (/* binding */ __makeTemplateObject),
-/* harmony export */   __metadata: () => (/* binding */ __metadata),
-/* harmony export */   __param: () => (/* binding */ __param),
-/* harmony export */   __propKey: () => (/* binding */ __propKey),
-/* harmony export */   __read: () => (/* binding */ __read),
-/* harmony export */   __rest: () => (/* binding */ __rest),
-/* harmony export */   __runInitializers: () => (/* binding */ __runInitializers),
-/* harmony export */   __setFunctionName: () => (/* binding */ __setFunctionName),
-/* harmony export */   __spread: () => (/* binding */ __spread),
-/* harmony export */   __spreadArray: () => (/* binding */ __spreadArray),
-/* harmony export */   __spreadArrays: () => (/* binding */ __spreadArrays),
-/* harmony export */   __values: () => (/* binding */ __values),
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
-
-var extendStatics = function(d, b) {
-  extendStatics = Object.setPrototypeOf ||
-      ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-      function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-  return extendStatics(d, b);
-};
-
-function __extends(d, b) {
-  if (typeof b !== "function" && b !== null)
-      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-  extendStatics(d, b);
-  function __() { this.constructor = d; }
-  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-var __assign = function() {
-  __assign = Object.assign || function __assign(t) {
-      for (var s, i = 1, n = arguments.length; i < n; i++) {
-          s = arguments[i];
-          for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-      }
-      return t;
-  }
-  return __assign.apply(this, arguments);
-}
-
-function __rest(s, e) {
-  var t = {};
-  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-      t[p] = s[p];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-          if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-              t[p[i]] = s[p[i]];
-      }
-  return t;
-}
-
-function __decorate(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __param(paramIndex, decorator) {
-  return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-  function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-  var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-  var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-  var _, done = false;
-  for (var i = decorators.length - 1; i >= 0; i--) {
-      var context = {};
-      for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-      for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-      context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-      var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-      if (kind === "accessor") {
-          if (result === void 0) continue;
-          if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-          if (_ = accept(result.get)) descriptor.get = _;
-          if (_ = accept(result.set)) descriptor.set = _;
-          if (_ = accept(result.init)) initializers.unshift(_);
-      }
-      else if (_ = accept(result)) {
-          if (kind === "field") initializers.unshift(_);
-          else descriptor[key] = _;
-      }
-  }
-  if (target) Object.defineProperty(target, contextIn.name, descriptor);
-  done = true;
-};
-
-function __runInitializers(thisArg, initializers, value) {
-  var useValue = arguments.length > 2;
-  for (var i = 0; i < initializers.length; i++) {
-      value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-  }
-  return useValue ? value : void 0;
-};
-
-function __propKey(x) {
-  return typeof x === "symbol" ? x : "".concat(x);
-};
-
-function __setFunctionName(f, name, prefix) {
-  if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-  return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
-};
-
-function __metadata(metadataKey, metadataValue) {
-  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-  return new (P || (P = Promise))(function (resolve, reject) {
-      function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-      function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-      step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-}
-
-function __generator(thisArg, body) {
-  var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-  function verb(n) { return function (v) { return step([n, v]); }; }
-  function step(op) {
-      if (f) throw new TypeError("Generator is already executing.");
-      while (g && (g = 0, op[0] && (_ = 0)), _) try {
-          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-          if (y = 0, t) op = [op[0] & 2, t.value];
-          switch (op[0]) {
-              case 0: case 1: t = op; break;
-              case 4: _.label++; return { value: op[1], done: false };
-              case 5: _.label++; y = op[1]; op = [0]; continue;
-              case 7: op = _.ops.pop(); _.trys.pop(); continue;
-              default:
-                  if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                  if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                  if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                  if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                  if (t[2]) _.ops.pop();
-                  _.trys.pop(); continue;
-          }
-          op = body.call(thisArg, _);
-      } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-      if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-  }
-}
-
-var __createBinding = Object.create ? (function(o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  var desc = Object.getOwnPropertyDescriptor(m, k);
-  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-  }
-  Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-function __exportStar(m, o) {
-  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
-}
-
-function __values(o) {
-  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-  if (m) return m.call(o);
-  if (o && typeof o.length === "number") return {
-      next: function () {
-          if (o && i >= o.length) o = void 0;
-          return { value: o && o[i++], done: !o };
-      }
-  };
-  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-}
-
-function __read(o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o), r, ar = [], e;
-  try {
-      while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  }
-  catch (error) { e = { error: error }; }
-  finally {
-      try {
-          if (r && !r.done && (m = i["return"])) m.call(i);
-      }
-      finally { if (e) throw e.error; }
-  }
-  return ar;
-}
-
-/** @deprecated */
-function __spread() {
-  for (var ar = [], i = 0; i < arguments.length; i++)
-      ar = ar.concat(__read(arguments[i]));
-  return ar;
-}
-
-/** @deprecated */
-function __spreadArrays() {
-  for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-  for (var r = Array(s), k = 0, i = 0; i < il; i++)
-      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-          r[k] = a[j];
-  return r;
-}
-
-function __spreadArray(to, from, pack) {
-  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-      if (ar || !(i in from)) {
-          if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-          ar[i] = from[i];
-      }
-  }
-  return to.concat(ar || Array.prototype.slice.call(from));
-}
-
-function __await(v) {
-  return this instanceof __await ? (this.v = v, this) : new __await(v);
-}
-
-function __asyncGenerator(thisArg, _arguments, generator) {
-  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
-  return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
-  function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
-  function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-  function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
-  function fulfill(value) { resume("next", value); }
-  function reject(value) { resume("throw", value); }
-  function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-}
-
-function __asyncDelegator(o) {
-  var i, p;
-  return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-  function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
-}
-
-function __asyncValues(o) {
-  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var m = o[Symbol.asyncIterator], i;
-  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-  function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-  function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-}
-
-function __makeTemplateObject(cooked, raw) {
-  if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-  return cooked;
-};
-
-var __setModuleDefault = Object.create ? (function(o, v) {
-  Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-  o["default"] = v;
-};
-
-function __importStar(mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-  __setModuleDefault(result, mod);
-  return result;
-}
-
-function __importDefault(mod) {
-  return (mod && mod.__esModule) ? mod : { default: mod };
-}
-
-function __classPrivateFieldGet(receiver, state, kind, f) {
-  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-}
-
-function __classPrivateFieldSet(receiver, state, value, kind, f) {
-  if (kind === "m") throw new TypeError("Private method is not writable");
-  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-  return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-}
-
-function __classPrivateFieldIn(state, receiver) {
-  if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
-  return typeof state === "function" ? receiver === state : state.has(receiver);
-}
-
-function __addDisposableResource(env, value, async) {
-  if (value !== null && value !== void 0) {
-    if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
-    var dispose;
-    if (async) {
-        if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
-        dispose = value[Symbol.asyncDispose];
-    }
-    if (dispose === void 0) {
-        if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
-        dispose = value[Symbol.dispose];
-    }
-    if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
-    env.stack.push({ value: value, dispose: dispose, async: async });
-  }
-  else if (async) {
-    env.stack.push({ async: true });
-  }
-  return value;
-}
-
-var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-  var e = new Error(message);
-  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-function __disposeResources(env) {
-  function fail(e) {
-    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-    env.hasError = true;
-  }
-  function next() {
-    while (env.stack.length) {
-      var rec = env.stack.pop();
-      try {
-        var result = rec.dispose && rec.dispose.call(rec.value);
-        if (rec.async) return Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
-      }
-      catch (e) {
-          fail(e);
-      }
-    }
-    if (env.hasError) throw env.error;
-  }
-  return next();
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  __extends,
-  __assign,
-  __rest,
-  __decorate,
-  __param,
-  __metadata,
-  __awaiter,
-  __generator,
-  __createBinding,
-  __exportStar,
-  __values,
-  __read,
-  __spread,
-  __spreadArrays,
-  __spreadArray,
-  __await,
-  __asyncGenerator,
-  __asyncDelegator,
-  __asyncValues,
-  __makeTemplateObject,
-  __importStar,
-  __importDefault,
-  __classPrivateFieldGet,
-  __classPrivateFieldSet,
-  __classPrivateFieldIn,
-  __addDisposableResource,
-  __disposeResources,
-});
-
-
-/***/ }),
-/* 15 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5352,7 +5370,7 @@ function __disposeResources(env) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var tslib = __webpack_require__(16);
+var tslib = __webpack_require__(15);
 
 /**
  * @license
@@ -5623,7 +5641,7 @@ exports.setUserLogHandler = setUserLogHandler;
 
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -6035,7 +6053,7 @@ function __disposeResources(env) {
 
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -6046,7 +6064,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   unwrap: () => (/* reexport safe */ _wrap_idb_value_js__WEBPACK_IMPORTED_MODULE_0__.u),
 /* harmony export */   wrap: () => (/* reexport safe */ _wrap_idb_value_js__WEBPACK_IMPORTED_MODULE_0__.w)
 /* harmony export */ });
-/* harmony import */ var _wrap_idb_value_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _wrap_idb_value_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(17);
 
 
 
@@ -6145,7 +6163,7 @@ function getMethod(target, prop) {
 
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -6345,7 +6363,7 @@ const unwrap = (value) => reverseTransformCache.get(value);
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6353,7 +6371,7 @@ const unwrap = (value) => reverseTransformCache.get(value);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var database = __webpack_require__(20);
+var database = __webpack_require__(19);
 
 
 
@@ -6367,7 +6385,7 @@ Object.keys(database).forEach(function (k) {
 
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6375,12 +6393,12 @@ Object.keys(database).forEach(function (k) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var Websocket = __webpack_require__(21);
-var util = __webpack_require__(12);
-var tslib = __webpack_require__(59);
-var logger$1 = __webpack_require__(15);
-var app = __webpack_require__(9);
-var component = __webpack_require__(10);
+var Websocket = __webpack_require__(20);
+var util = __webpack_require__(11);
+var tslib = __webpack_require__(58);
+var logger$1 = __webpack_require__(14);
+var app = __webpack_require__(8);
+var component = __webpack_require__(9);
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -20911,7 +20929,7 @@ exports.update = update;
 
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -20923,9 +20941,9 @@ exports.update = update;
 
 
 
-var util   = __webpack_require__(22),
-    driver = __webpack_require__(23),
-    API    = __webpack_require__(52);
+var util   = __webpack_require__(21),
+    driver = __webpack_require__(22),
+    API    = __webpack_require__(51);
 
 var WebSocket = function(request, socket, body, protocols, options) {
   options = options || {};
@@ -20958,21 +20976,21 @@ WebSocket.validateOptions = function(options, validKeys) {
 };
 
 WebSocket.WebSocket   = WebSocket;
-WebSocket.Client      = __webpack_require__(55);
-WebSocket.EventSource = __webpack_require__(58);
+WebSocket.Client      = __webpack_require__(54);
+WebSocket.EventSource = __webpack_require__(57);
 
 module.exports        = WebSocket;
 
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -20984,9 +21002,9 @@ module.exports = require("util");
 // * http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76
 // * http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-17
 
-var Base   = __webpack_require__(24),
-    Client = __webpack_require__(32),
-    Server = __webpack_require__(49);
+var Base   = __webpack_require__(23),
+    Client = __webpack_require__(31),
+    Server = __webpack_require__(48);
 
 var Driver = {
   client: function(url, options) {
@@ -21022,18 +21040,18 @@ module.exports = Driver;
 
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer  = (__webpack_require__(25).Buffer),
-    Emitter = (__webpack_require__(27).EventEmitter),
-    util    = __webpack_require__(22),
-    streams = __webpack_require__(28),
-    Headers = __webpack_require__(30),
-    Reader  = __webpack_require__(31);
+var Buffer  = (__webpack_require__(24).Buffer),
+    Emitter = (__webpack_require__(26).EventEmitter),
+    util    = __webpack_require__(21),
+    streams = __webpack_require__(27),
+    Headers = __webpack_require__(29),
+    Reader  = __webpack_require__(30);
 
 var Base = function(request, url, options) {
   Emitter.call(this);
@@ -21222,11 +21240,11 @@ module.exports = Base;
 
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-disable node/no-deprecated-api */
-var buffer = __webpack_require__(26)
+var buffer = __webpack_require__(25)
 var Buffer = buffer.Buffer
 
 // alternative to using Object.keys for old browsers
@@ -21290,21 +21308,21 @@ SafeBuffer.allocUnsafeSlow = function (size) {
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("buffer");
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("events");
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -21353,8 +21371,8 @@ driver having these two methods.
 **/
 
 
-var Stream = (__webpack_require__(29).Stream),
-    util   = __webpack_require__(22);
+var Stream = (__webpack_require__(28).Stream),
+    util   = __webpack_require__(21);
 
 
 var IO = function(driver) {
@@ -21457,14 +21475,14 @@ exports.Messages = Messages;
 
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ ((module) => {
 
 "use strict";
@@ -21506,13 +21524,13 @@ module.exports = Headers;
 
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer = (__webpack_require__(25).Buffer);
+var Buffer = (__webpack_require__(24).Buffer);
 
 var StreamReader = function() {
   this._queue     = [];
@@ -21582,20 +21600,20 @@ module.exports = StreamReader;
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer     = (__webpack_require__(25).Buffer),
-    crypto     = __webpack_require__(33),
-    url        = __webpack_require__(34),
-    util       = __webpack_require__(22),
-    HttpParser = __webpack_require__(35),
-    Base       = __webpack_require__(24),
-    Hybi       = __webpack_require__(38),
-    Proxy      = __webpack_require__(48);
+var Buffer     = (__webpack_require__(24).Buffer),
+    crypto     = __webpack_require__(32),
+    url        = __webpack_require__(33),
+    util       = __webpack_require__(21),
+    HttpParser = __webpack_require__(34),
+    Base       = __webpack_require__(23),
+    Hybi       = __webpack_require__(37),
+    Proxy      = __webpack_require__(47);
 
 var Client = function(_url, options) {
   this.version = 'hybi-' + Hybi.VERSION;
@@ -21731,28 +21749,28 @@ module.exports = Client;
 
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("crypto");
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var NodeHTTPParser = (__webpack_require__(36).HTTPParser),
-    Buffer         = (__webpack_require__(25).Buffer);
+var NodeHTTPParser = (__webpack_require__(35).HTTPParser),
+    Buffer         = (__webpack_require__(24).Buffer);
 
 var TYPES = {
   request:  NodeHTTPParser.REQUEST  || 'request',
@@ -21887,12 +21905,12 @@ module.exports = HttpParser;
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /*jshint node:true */
 
-var assert = __webpack_require__(37);
+var assert = __webpack_require__(36);
 
 exports.HTTPParser = HTTPParser;
 function HTTPParser(type) {
@@ -22356,26 +22374,26 @@ function parseErrorCode(code) {
 
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("assert");
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer     = (__webpack_require__(25).Buffer),
-    crypto     = __webpack_require__(33),
-    util       = __webpack_require__(22),
-    Extensions = __webpack_require__(39),
-    Base       = __webpack_require__(24),
-    Frame      = __webpack_require__(46),
-    Message    = __webpack_require__(47);
+var Buffer     = (__webpack_require__(24).Buffer),
+    crypto     = __webpack_require__(32),
+    util       = __webpack_require__(21),
+    Extensions = __webpack_require__(38),
+    Base       = __webpack_require__(23),
+    Frame      = __webpack_require__(45),
+    Message    = __webpack_require__(46);
 
 var Hybi = function(request, url, options) {
   Base.apply(this, arguments);
@@ -22853,14 +22871,14 @@ module.exports = Hybi;
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Parser   = __webpack_require__(40),
-    Pipeline = __webpack_require__(41);
+var Parser   = __webpack_require__(39),
+    Pipeline = __webpack_require__(40);
 
 var Extensions = function() {
   this._rsv1 = this._rsv2 = this._rsv3 = null;
@@ -23022,7 +23040,7 @@ module.exports = Extensions;
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ ((module) => {
 
 "use strict";
@@ -23132,14 +23150,14 @@ module.exports = Parser;
 
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Cell   = __webpack_require__(42),
-    Pledge = __webpack_require__(45);
+var Cell   = __webpack_require__(41),
+    Pledge = __webpack_require__(44);
 
 var Pipeline = function(sessions) {
   this._cells   = sessions.map(function(session) { return new Cell(session) });
@@ -23186,14 +23204,14 @@ module.exports = Pipeline;
 
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Functor = __webpack_require__(43),
-    Pledge  = __webpack_require__(45);
+var Functor = __webpack_require__(42),
+    Pledge  = __webpack_require__(44);
 
 var Cell = function(tuple) {
   this._ext     = tuple[0];
@@ -23246,13 +23264,13 @@ module.exports = Cell;
 
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var RingBuffer = __webpack_require__(44);
+var RingBuffer = __webpack_require__(43);
 
 var Functor = function(session, method) {
   this._session = session;
@@ -23325,7 +23343,7 @@ module.exports = Functor;
 
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ ((module) => {
 
 "use strict";
@@ -23398,13 +23416,13 @@ module.exports = RingBuffer;
 
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var RingBuffer = __webpack_require__(44);
+var RingBuffer = __webpack_require__(43);
 
 var Pledge = function() {
   this._complete  = false;
@@ -23442,7 +23460,7 @@ module.exports = Pledge;
 
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ ((module) => {
 
 "use strict";
@@ -23470,13 +23488,13 @@ module.exports = Frame;
 
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer = (__webpack_require__(25).Buffer);
+var Buffer = (__webpack_require__(24).Buffer);
 
 var Message = function() {
   this.rsv1    = false;
@@ -23511,19 +23529,19 @@ module.exports = Message;
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer     = (__webpack_require__(25).Buffer),
-    Stream     = (__webpack_require__(29).Stream),
-    url        = __webpack_require__(34),
-    util       = __webpack_require__(22),
-    Base       = __webpack_require__(24),
-    Headers    = __webpack_require__(30),
-    HttpParser = __webpack_require__(35);
+var Buffer     = (__webpack_require__(24).Buffer),
+    Stream     = (__webpack_require__(28).Stream),
+    url        = __webpack_require__(33),
+    util       = __webpack_require__(21),
+    Base       = __webpack_require__(23),
+    Headers    = __webpack_require__(29),
+    HttpParser = __webpack_require__(34);
 
 var PORTS = { 'ws:': 80, 'wss:': 443 };
 
@@ -23617,18 +23635,18 @@ module.exports = Proxy;
 
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var util       = __webpack_require__(22),
-    HttpParser = __webpack_require__(35),
-    Base       = __webpack_require__(24),
-    Draft75    = __webpack_require__(50),
-    Draft76    = __webpack_require__(51),
-    Hybi       = __webpack_require__(38);
+var util       = __webpack_require__(21),
+    HttpParser = __webpack_require__(34),
+    Base       = __webpack_require__(23),
+    Draft75    = __webpack_require__(49),
+    Draft76    = __webpack_require__(50),
+    Hybi       = __webpack_require__(37);
 
 var Server = function(options) {
   Base.call(this, null, null, options);
@@ -23736,15 +23754,15 @@ module.exports = Server;
 
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer = (__webpack_require__(25).Buffer),
-    Base   = __webpack_require__(24),
-    util   = __webpack_require__(22);
+var Buffer = (__webpack_require__(24).Buffer),
+    Base   = __webpack_require__(23),
+    util   = __webpack_require__(21);
 
 var Draft75 = function(request, url, options) {
   Base.apply(this, arguments);
@@ -23866,17 +23884,17 @@ module.exports = Draft75;
 
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Buffer  = (__webpack_require__(25).Buffer),
-    Base    = __webpack_require__(24),
-    Draft75 = __webpack_require__(50),
-    crypto  = __webpack_require__(33),
-    util    = __webpack_require__(22);
+var Buffer  = (__webpack_require__(24).Buffer),
+    Base    = __webpack_require__(23),
+    Draft75 = __webpack_require__(49),
+    crypto  = __webpack_require__(32),
+    util    = __webpack_require__(21);
 
 
 var numberFromKey = function(key) {
@@ -23990,17 +24008,17 @@ module.exports = Draft76;
 
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Stream      = (__webpack_require__(29).Stream),
-    util        = __webpack_require__(22),
-    driver      = __webpack_require__(23),
-    EventTarget = __webpack_require__(53),
-    Event       = __webpack_require__(54);
+var Stream      = (__webpack_require__(28).Stream),
+    util        = __webpack_require__(21),
+    driver      = __webpack_require__(22),
+    EventTarget = __webpack_require__(52),
+    Event       = __webpack_require__(53);
 
 var API = function(options) {
   options = options || {};
@@ -24196,13 +24214,13 @@ module.exports = API;
 
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Event = __webpack_require__(54);
+var Event = __webpack_require__(53);
 
 var EventTarget = {
   onopen:     null,
@@ -24233,7 +24251,7 @@ module.exports = EventTarget;
 
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ ((module) => {
 
 "use strict";
@@ -24262,19 +24280,19 @@ module.exports = Event;
 
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var util   = __webpack_require__(22),
-    net    = __webpack_require__(56),
-    tls    = __webpack_require__(57),
-    url    = __webpack_require__(34),
-    driver = __webpack_require__(23),
-    API    = __webpack_require__(52),
-    Event  = __webpack_require__(54);
+var util   = __webpack_require__(21),
+    net    = __webpack_require__(55),
+    tls    = __webpack_require__(56),
+    url    = __webpack_require__(33),
+    driver = __webpack_require__(22),
+    API    = __webpack_require__(51),
+    Event  = __webpack_require__(53);
 
 var DEFAULT_PORTS    = { 'http:': 80, 'https:': 443, 'ws:':80, 'wss:': 443 },
     SECURE_PROTOCOLS = ['https:', 'wss:'];
@@ -24359,33 +24377,33 @@ module.exports = Client;
 
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("net");
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tls");
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Stream      = (__webpack_require__(29).Stream),
-    util        = __webpack_require__(22),
-    driver      = __webpack_require__(23),
-    Headers     = __webpack_require__(30),
-    API         = __webpack_require__(52),
-    EventTarget = __webpack_require__(53),
-    Event       = __webpack_require__(54);
+var Stream      = (__webpack_require__(28).Stream),
+    util        = __webpack_require__(21),
+    driver      = __webpack_require__(22),
+    Headers     = __webpack_require__(29),
+    API         = __webpack_require__(51),
+    EventTarget = __webpack_require__(52),
+    Event       = __webpack_require__(53);
 
 var EventSource = function(request, response, options) {
   this.writable = true;
@@ -24513,7 +24531,7 @@ module.exports = EventSource;
 
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";

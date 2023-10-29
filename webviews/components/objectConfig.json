@@ -33,5 +33,14 @@
       "default": [0], 
       "hovered": [1]
     }
+  },
+  "shopButton": {
+    "spriteWidth": 32,
+    "spriteHeight": 16,
+    "spriteSheet": "shop.png",
+    "states": {
+      "default": [0], 
+      "hovered": [1]
   }
+}
 }
