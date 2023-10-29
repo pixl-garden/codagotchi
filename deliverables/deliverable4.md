@@ -34,8 +34,6 @@ Print screen:
 
 ![image](https://github.com/kitgore/codagotchi/assets/116697167/6237d0f8-5921-43d7-a15c-ae49acf8b54a)
 
-![image](https://github.com/kitgore/codagotchi/assets/116697167/9ceafc31-c5da-4c50-ad44-a1792b22c0e9)
-
 ![image](https://github.com/kitgore/codagotchi/assets/116697167/294623c4-a2a7-4ffb-a7b5-dab29e5aabfb)
 
 <br>
