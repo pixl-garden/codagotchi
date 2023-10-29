@@ -5,6 +5,7 @@ import * as path from 'path';
 import { initializeApp, getDatabase, ref, push, firebaseConfig } from "./firebaseConfig";
     
 const app = initializeApp(firebaseConfig);
+const dbRef = ref(getDatabase(app), 'your_data_nodes');
 const CLIENT_ID = "a253a1599d7b631b091a";
 const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
 const REQUESTED_SCOPES = "user,read:user";
@@ -82,6 +83,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "openOAuthURL": {
           vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
           console.log("openOAuthUrl");
+          break;
+        }
+
+        case "pushData": {
+          const newData = {
+            name: 'Dr Palmer',
+            age: 'Immortal',
+            class: 'Mage (or CS386 Prof)'
+          };
+          push(dbRef, newData);
           break;
         }
 
@@ -167,7 +178,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             });
           });         
         });
-      
+        
+        document.addEventListener("DOMContentLoaded", function() {
+          document.getElementById('pushData').addEventListener('click', () => {
+            
+            // Send a message to the extension
+            tsvscode.postMessage({
+              type: 'pushData'
+            });
+          });         
+        });
+
         window.addEventListener('resize', () => {
           const width = window.innerWidth;
           const height = window.innerHeight;

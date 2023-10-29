@@ -168,6 +168,10 @@
         tsvscode.postMessage({ type: 'openOAuthURL',
               value: '${O_AUTH_URL}' });
     }
+
+    function firebaseExample() {
+        tsvscode.postMessage({ type: 'pushData' });
+    }
     
 
 </script>
@@ -209,6 +213,9 @@
      </button>
      <button class="settingsButton" id="changeDifficulty">
         Change Difficulty
+     </button>
+     <button on:click={firebaseExample} class="settingsButton" id="pushData">
+        Push Data to Firebase!
      </button>
      </div>
     {/if}
