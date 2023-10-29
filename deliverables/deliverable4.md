@@ -160,7 +160,7 @@ through the CLI (inside of the repository folder), followed by
 
 ```npm run watch```. 
 
-The extension can then be launched through the VSCode GUI or by pressing “F5”. To run our **jest** tests, users can run
+The extension can then be launched in a developement session through the VSCode GUI or by pressing “F5”. To run our **jest** tests, users can run
 
 ```npm test```
 
