@@ -186,16 +186,16 @@
     {/each}
     <div class="roomButtonContainer">
     {#if currentRoom.name === 'room1'}
-      <button on:click={() => $game.setCurrentRoom("settingsRoom")}>Settings</button>
-      <button on:click={switchRoom}>Shop</button>
+      <button class="navButton" on:click={() => $game.setCurrentRoom("settingsRoom")}>Settings</button>
+      <button class="navButton" on:click={switchRoom}>Shop</button>
     {/if}
 
     {#if currentRoom.name === 'shopRoom'}
-      <button on:click={() => $game.setCurrentRoom("room1")}>Back</button>
+      <button class="navButton" on:click={() => $game.setCurrentRoom("room1")}>Back</button>
     {/if}
 
     {#if currentRoom.name === 'settingsRoom'}
-      <button on:click={() => $game.setCurrentRoom("room1")}>Back</button>
+      <button class="navButton" on:click={() => $game.setCurrentRoom("room1")}>Back</button>
     {/if}
       
     </div>

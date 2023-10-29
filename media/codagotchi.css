@@ -139,8 +139,21 @@
     top: 0;
     left: 0;
     width: 100%;
-
   }
+
+  .navButton {
+    background-color: #555; /* Dark grey, adjust as needed */
+    color: white;           /* White text color */
+    width: 75px;            /* 40px wide */
+    height: 20px;           /* 20px tall */
+    border-radius: 10px;    /* Half of the height to make it ovular horizontally */
+    text-align: center;     /* Center the text */
+    line-height: 20px;      /* Vertically center the text */
+    border: none;           /* Remove any default border */
+    cursor: pointer;        /* Change cursor to pointer on hover */
+    font-size: 12px;        /* Adjust if the text size is not fitting as desired */
+  }
+
   .settingsButton {
     padding: 10px; 
     width: 100%;
