@@ -3,7 +3,6 @@
   import objectConfig from './objectConfig.json';
   import { game } from './Game.svelte';
   import { get } from 'svelte/store';
-    import { EnvironmentVariableMutatorType, TreeItemCheckboxState } from 'vscode';
   export class Object {
     constructor(objectName, x, y, z = 0) {
     const config = objectConfig[objectName];
@@ -98,55 +97,5 @@
             get(game).setCurrentRoom(targetRoom);
         });
     }
-  }
-
-  export class Pet extends Object {
-    constructor( petName, x, y ) {
-      super( petName, x, y ) { 
-        this.evolution;
-        this.age;
-        this.currentRoom;
-        this.status;
-        this.width;
-        this.height;
-        this.hat = null;
-        this.happiness = 100;
-        this.energy = 100;
-        this.isAlive = true;
-        get(game).setCurrentRoom(targetRoom);
-      }
-      feedPet() {
-        // 
-      }
-
-      playWithPet() {
-
-      }
-
-      isAlive() {
-        return this.isAlive;
-      }
-
-      performDance() {
-
-      }
-
-      equipItem() {
-
-      }
-
-      performEmote() {
-
-      }
-
-      update() {
-        // Default room-specific logic and updates
-
-      }
-
-
-
-    }
-
   }
 </script>
