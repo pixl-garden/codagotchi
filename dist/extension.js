@@ -30,6 +30,7 @@ const fs = __webpack_require__(4);
 const path = __webpack_require__(5);
 const firebaseConfig_1 = __webpack_require__(6);
 const app = (0, firebaseConfig_1.initializeApp)(firebaseConfig_1.firebaseConfig);
+const dbRef = (0, firebaseConfig_1.ref)((0, firebaseConfig_1.getDatabase)(app), 'your_data_nodes');
 const CLIENT_ID = "a253a1599d7b631b091a";
 const REDIRECT_URI = encodeURIComponent("https://codagotchi.firebaseapp.com/__/auth/handler");
 const REQUESTED_SCOPES = "user,read:user";
@@ -90,6 +91,15 @@ class SidebarProvider {
                 case "openOAuthURL": {
                     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
                     console.log("openOAuthUrl");
+                    break;
+                }
+                case "pushData": {
+                    const newData = {
+                        name: 'Dr Palmer',
+                        age: 'Immortal',
+                        class: 'Mage (or CS386 Prof)'
+                    };
+                    (0, firebaseConfig_1.push)(dbRef, newData);
                     break;
                 }
                 case "onInfo": {
@@ -158,7 +168,17 @@ class SidebarProvider {
             });
           });         
         });
-      
+        
+        document.addEventListener("DOMContentLoaded", function() {
+          document.getElementById('pushData').addEventListener('click', () => {
+            
+            // Send a message to the extension
+            tsvscode.postMessage({
+              type: 'pushData'
+            });
+          });         
+        });
+
         window.addEventListener('resize', () => {
           const width = window.innerWidth;
           const height = window.innerHeight;
