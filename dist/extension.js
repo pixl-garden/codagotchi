@@ -25031,9 +25031,15 @@ const vscode = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(2);
 function activate(context) {
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
+    listenForDocumentSave(context);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider("codagotchiView", sidebarProvider));
 }
 exports.activate = activate;
+function listenForDocumentSave(context) {
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(() => {
+        console.log("Test!!!");
+    }));
+}
 // This method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
