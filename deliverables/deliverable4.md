@@ -72,6 +72,23 @@ Print screen:
 
 <br>
 
+#### Requirements: As a beginner programmer, I want the point system to be fair to less experienced programmers so that I can enjoy the game too.
+
+Issue: [https://github.com/kitgore/codagotchi/issues/16](https://github.com/kitgore/codagotchi/issues/16)
+
+Pull request: [https://github.com/kitgore/codagotchi/pull/76](https://github.com/kitgore/codagotchi/pull/76)
+
+Implemented by: Payton Watts, Ben Griepp
+
+Approved by: Ben Griepp
+
+Print screen:
+
+![image](https://github.com/kitgore/codagotchi/assets/72285390/7e96a389-6294-4963-851f-1574dc4cb8e7)
+![image](https://github.com/kitgore/codagotchi/assets/72285390/08c07db0-c58c-4dca-8078-f8d781b52869)
+
+<br>
+
 ## 3. Tests
 
 #### Test framework: **Jest** ([https://jestjs.io/](https://jestjs.io/)) 
