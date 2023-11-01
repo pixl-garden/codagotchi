@@ -5,7 +5,7 @@
 		"outDir": "out",
 		"ignoreDeprecations": "5.0",
 		"lib": [
-			"es6"
+			"es6", "dom"
 		],
 		"sourceMap": true,
 		"rootDir": "src",
