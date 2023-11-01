@@ -2,12 +2,9 @@ import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 import * as fs from 'fs';
 import * as path from 'path';
-import { initializeApp, getDatabase, ref, push, firebaseConfig } from "./firebaseConfig";
 import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package installed.
 import { set, get } from "firebase/database";
 
-const app = initializeApp(firebaseConfig);
-const dbRef = ref(getDatabase(app), 'your_data_nodes');
 const CLIENT_ID = "a253a1599d7b631b091a";
 const REDIRECT_URI = encodeURIComponent("https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect");
 const REQUESTED_SCOPES = "user,read:user";
@@ -48,10 +45,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
-
-    // Store the state value in Firebase
-    const stateRef = ref(getDatabase(app), 'oauthState');
-    set(stateRef, { value: state });
     
     // Store the state value temporarily in globalState
     vscode.commands.executeCommand('setContext', 'oauthState', state);
@@ -88,39 +81,26 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
               uris: webviewImageUris,
           });
           break;
-      }
+        }
 
-      case "openOAuthURL": {
-        vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
-        console.log("openOAuthUrl");
+        case "openOAuthURL": {
+          vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
+          console.log("openOAuthUrl");
 
-        // Wait for a few seconds to give the OAuth process time to complete
-        setTimeout(() => {
-            // Fetch the token from the Cloud Function
-            fetch('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect')
-            .then(response => response.json())
-            .then(data => {
-                const token = data.token;
-                // Use the token or handle the data as needed
-                console.log("Received token:", token);
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
-        }, 5000); // 5 seconds delay, adjust as needed
-        break;
-    }
-
-        case "pushData": {
-          const stateRef = ref(getDatabase(app), 'oauthState');
-          get(stateRef).then((snapshot) => {
-              if (snapshot.exists()) {
-                  const storedState = snapshot.val().value;
-                  console.log("Stored state:", storedState);
-              } else {
-                  console.log("No state value stored in Firebase.");
-              }
-          });
+          // Wait for a few seconds to give the OAuth process time to complete
+          setTimeout(() => {
+              // Fetch the token from the Cloud Function
+              fetch('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect')
+              .then(response => response.json())
+              .then(data => {
+                  const token = data.token;
+                  // Use the token or handle the data as needed
+                  console.log("Received token:", token);
+              })
+              .catch(error => {
+                  console.error('Error fetching data:', error);
+              });
+          }, 5000); // 5 seconds delay, adjust as needed
           break;
         }
 
@@ -141,7 +121,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "resize": {
           const width = data.width;
           const height = data.height;
-  
+
           // Now you have the dimensions of the WebView
           console.log(`WebView dimensions: ${width}x${height}`);
           break;
