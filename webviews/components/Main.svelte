@@ -214,9 +214,6 @@
      <button class="settingsButton" id="changeDifficulty">
         Change Difficulty
      </button>
-     <button on:click={firebaseExample} class="settingsButton" id="pushData">
-        Push Data to Firebase!
-     </button>
      </div>
     {/if}
     {/if}
