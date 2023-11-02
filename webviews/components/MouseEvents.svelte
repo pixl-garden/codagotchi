@@ -5,18 +5,17 @@
     let lastHoveredObject = null;
 
     export function handleClick(event) {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+        const boundingBox = event.currentTarget.getBoundingClientRect();
 
-        const gridX = Math.floor(x / pixelSize);
-        const gridY = Math.floor(y / pixelSize);
+        const mouseX = event.clientX - boundingBox.left;
+        const mouseY = event.clientY - boundingBox.top;
 
-        console.log("grid x:", gridX, "grid y:", gridY);
+        const gridX = Math.floor(mouseX / pixelSize);
+        const gridY = Math.floor(mouseY / pixelSize);
 
-        // Assuming you have a way to get the object at the clicked coordinates
         const clickedObject = getObjectAt(gridX, gridY);
 
+        // TODO - add a general check system for interactive objects
         if (clickedObject instanceof Button) {
             clickedObject.clickAction();
         }

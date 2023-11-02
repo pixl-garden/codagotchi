@@ -6,10 +6,7 @@
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick } from './MouseEvents.svelte';
     
-    const GRIDWIDTH = 64;
     const FPS = 10; //second / frames per second
-    let width = window.innerWidth;
-    let height = window.innerHeight;
     let screen = [];
     let renderBasicText;
     let petObject;
