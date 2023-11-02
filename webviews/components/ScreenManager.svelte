@@ -1,4 +1,11 @@
 <script context="module">  
+    const GRIDWIDTH = 64;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let pixelSize = Math.floor(width / GRIDWIDTH);
+    let screenWidth = GRIDWIDTH * pixelSize;
+    let padding;
+
     export function generateScreen(sprites, xSize, ySize) {
         // Initialize an empty screen with the given size
         let screen = Array(ySize).fill().map(() => Array(xSize).fill("transparent"));
@@ -26,4 +33,31 @@
 
         return screen;
     }
+
+    export function handleResize() {
+        updateDimensions();
+        updateButtonContainer();
+        updateStyles();
+    }
+
+    function updateDimensions() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        pixelSize = Math.floor(width / GRIDWIDTH);
+        screenWidth = GRIDWIDTH * pixelSize;
+        padding = (width - screenWidth) / 2;
+    }
+
+    function updateButtonContainer() {
+        let buttonContainerHeight = 50;
+        let buttonContainerTop = height - buttonContainerHeight;
+        document.documentElement.style.setProperty('--button-container-top', `${buttonContainerTop}px`);
+    }
+
+    function updateStyles() {
+        document.documentElement.style.setProperty('--container-padding', `${padding}px`);
+        document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
+        document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
+    }
+
 </script>
