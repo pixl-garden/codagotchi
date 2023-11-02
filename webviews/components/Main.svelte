@@ -1,6 +1,6 @@
 <script>
     import { onMount, afterUpdate } from 'svelte';
-    import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
+    import { generateScreen, handleResize, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
     import { Object, Button, NavigationButton } from './Object.svelte';
     import { Room, game } from './Game.svelte';
@@ -10,9 +10,7 @@
     let width = window.innerWidth;
     let height = window.innerHeight;
     let pixelSize = Math.floor(width / GRIDWIDTH);
-    let screenWidth = GRIDWIDTH * pixelSize;
     let screen = [];
-    let padding;
     let lastHoveredObject = null;
     let renderBasicText;
     let petObject;
@@ -104,27 +102,32 @@
 
     //handles mouse movement on screen (hovering)
     function handleMouseMove(event) {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+        const boundingBox = event.currentTarget.getBoundingClientRect();
+        const mouseX = event.clientX - boundingBox.left;
+        const mouseY = event.clientY - boundingBox.top;
 
-        const gridX = Math.floor(x / pixelSize);
-        const gridY = Math.floor(y / pixelSize);
+        const xPixelCoord = Math.floor(mouseX / pixelSize);
+        const yPixelCoord = Math.floor(mouseY / pixelSize);
 
-        const hoveredObject = getObjectAt(gridX, gridY);
+        const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord);
 
+        // Only call onHover and onStopHover if the hovered object has changed
         if (hoveredObject !== lastHoveredObject) {
+            // Call onStopHover on the last hovered object
             if (lastHoveredObject && lastHoveredObject.onStopHover) {
                 lastHoveredObject.onStopHover();
             }
 
             if (hoveredObject) {
+                // Change cursor to pointer if the hovered object is a button
+                // TODO - add a general check system for interactive objects
                 if (hoveredObject instanceof Button) {
                     event.currentTarget.style.cursor = 'pointer'; // Change cursor to pointer
                 } else {
                     event.currentTarget.style.cursor = 'default'; // Reset cursor
                 }
 
+                // Call onHover on the hovered object
                 if (hoveredObject.onHover) {
                     hoveredObject.onHover();
                 }
@@ -138,26 +141,13 @@
 
     function getObjectAt(x, y) {
         for (let obj of $game.getObjectsOfCurrentRoom() ) {
+            // Check if the coordinates are within an object's bounding box
             if (x >= obj.x && x <= obj.x + obj.config.spriteWidth &&
                 y >= obj.y && y <= obj.y + obj.config.spriteHeight) {
                 return obj;
             }
         }
-        return null; // No object found at the clicked coordinates
-    }
-
-    function handleResize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        pixelSize = Math.floor(width / GRIDWIDTH); // update pixelSize here
-        screenWidth = GRIDWIDTH * pixelSize; // update screenWidth here
-        padding = (width - screenWidth) / 2;
-        let buttonContainerHeight = 50;
-        let buttonContainerTop = height - buttonContainerHeight;
-        document.documentElement.style.setProperty('--button-container-top', `${buttonContainerTop}px`);
-        document.documentElement.style.setProperty('--container-padding', `${padding}px`);
-        document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
-        document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
+        return null; // No object found at the coordinates
     }
 
     function switchRoom() {
