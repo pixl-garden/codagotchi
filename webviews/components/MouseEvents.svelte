@@ -1,10 +1,14 @@
 <script context="module">
-    import { game, Room } from './Game.svelte';
     import { Object, Button, NavigationButton } from './Object.svelte';
+
+    const GRIDWIDTH = 64;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let pixelSize = Math.floor(width / GRIDWIDTH);
     
     let lastHoveredObject = null;
 
-    export function handleClick(event) {
+    export function handleClick(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
 
         const mouseX = event.clientX - boundingBox.left;
@@ -13,16 +17,16 @@
         const gridX = Math.floor(mouseX / pixelSize);
         const gridY = Math.floor(mouseY / pixelSize);
 
-        const clickedObject = getObjectAt(gridX, gridY);
+        const clickedObject = getObjectAt(gridX, gridY, gameInstance);
 
         // TODO - add a general check system for interactive objects
-        if (clickedObject instanceof Button) {
+        if (clickedObject instanceof Button || NavigationButton) {
             clickedObject.clickAction();
         }
     }
 
     //handles mouse movement on screen (hovering)
-    export function handleMouseMove(event) {
+    export function handleMouseMove(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
         const mouseX = event.clientX - boundingBox.left;
         const mouseY = event.clientY - boundingBox.top;
@@ -30,7 +34,7 @@
         const xPixelCoord = Math.floor(mouseX / pixelSize);
         const yPixelCoord = Math.floor(mouseY / pixelSize);
 
-        const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord);
+        const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
 
         // Only call onHover and onStopHover if the hovered object has changed
         if (hoveredObject !== lastHoveredObject) {
@@ -60,8 +64,9 @@
         }
     }
 
-    function getObjectAt(x, y) {
-        for (let obj of game.getObjectsOfCurrentRoom() ) {
+    function getObjectAt(x, y, gameInstance) {
+        // Iterate through objects in room
+        for (let obj of gameInstance.getObjectsOfCurrentRoom()) {
             // Check if the coordinates are within an object's bounding box
             if (x >= obj.x && x <= obj.x + obj.config.spriteWidth &&
                 y >= obj.y && y <= obj.y + obj.config.spriteHeight) {

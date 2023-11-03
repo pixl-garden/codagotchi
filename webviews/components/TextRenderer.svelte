@@ -1,5 +1,6 @@
 <script context="module">
-    import { Sprite, spriteReader } from './Codagotchi.svelte';
+    import { Sprite } from './Codagotchi.svelte';
+    import { spriteReader } from './SpriteReader.svelte';
     import { spritesLoaded } from './store.js'
 
     //export a function that renders text

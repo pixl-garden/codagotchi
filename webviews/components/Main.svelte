@@ -1,10 +1,11 @@
 <script>
     import { onMount, afterUpdate } from 'svelte';
-    import { generateScreen, handleResize, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
+    import { generateScreen, handleResize, Sprite } from './Codagotchi.svelte';
     import { images } from './store.js';
     import { Object, Button, NavigationButton } from './Object.svelte';
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick } from './MouseEvents.svelte';
+    import { spriteReader, preloadAllSpriteSheets} from './SpriteReader.svelte';
     
     const FPS = 10; //second / frames per second
     let screen = [];
@@ -21,24 +22,16 @@
     //run once before main loop
     function pre() {
         handleResize();
-        renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
-        // myObject = new Button('objectType3', 10, 10, () => {console.log("clicked")});
-        // myObject = new Button('buttonObject', 10, 10, () => {console.log("clicked")} );
-        // objectsOnScreen.push(myObject);
 
         let room1 = new Room("room1");
         let room2 = new Room("room2");
-
-        let shopRoom = new Room("shopRoom");
         let settingsRoom = new Room("settingsRoom");
-
         petObject = new Object('objectType3', 14, 14)
         let toRoom1 = new NavigationButton('buttonObject', 0, 0, "room1");
         let toRoom2 = new NavigationButton('buttonObject', 18, 0, "room2");
-        
         room1.addObject(petObject);
         room2.addObject(toRoom1);
-
+        room1.addObject(toRoom2);
 
         // Set the initial room in the game
         $game.setCurrentRoom("room1");
@@ -95,9 +88,9 @@
 </script>
 
 <div class="grid-container" 
-     on:click={handleClick} 
-     on:mousemove={handleMouseMove} 
-     on:keypress={null}>
+    on:click={e => handleClick(e, $game)} 
+    on:mousemove={e => handleMouseMove(e, $game)} 
+    on:keypress={null}>
     {#if hasMainLoopStarted}
     {#each screen as row}
         <div class="row">
