@@ -1,44 +1,73 @@
 <script context="module">
-    import { Sprite } from './Codagotchi.svelte';
-    import { spriteReader } from './SpriteReader.svelte';
-    import { spritesLoaded } from './store.js'
+    import { spriteReaderFromStore } from './SpriteReader.svelte';
 
     //export a function that renders text
-    export function createTextRenderer(charmap, spriteWidth, spriteHeight, charMappingString) {
-        let charSprites = spriteReader(spriteWidth, spriteHeight, charmap);
-        let sprites = [];
-        
-        // Create mapping from charMappingString
+    export function createTextRenderer(charmap, spriteWidth, spriteHeight, charMappingString, backgroundColor = null, letterSpacing = 0) {
+        let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
+            
+        console.log(charMappingString.split(''));
+        // Convert charMappingString to an array of characters
+        const charsArray = Array.from(charMappingString);
+        console.log("CHARS ARRAY: ", charsArray)
+
+        // Create mapping from charsArray
         const charToSpriteIndex = {};
-        for (let i = 0; i < charMappingString.length; i++) {
-            charToSpriteIndex[charMappingString[i]] = i;
+        for (let i = 0; i < charsArray.length; i++) {
+            charToSpriteIndex[charsArray[i]] = i;
         }
 
-        //takes in a string, coords, and returns an array of sprites
-        //TODO implement screen size to limit positive bounds and reduce iterations
-        return function renderText(text, startX, startY) {
-            let x = startX;
-            let y = startY;
-            let newSprites = [];
+        //takes in a string and returns a sprite matrix for the entire text
+        return function renderText(text) {
+            const matrix = Array(spriteHeight).fill(null).map(() => []);
 
             for (const char of text) {
                 if (char === '\n') {
-                    y += spriteHeight;
-                    x = startX;
+                    // If newline is encountered, this renderer currently does not handle multi-line text
+                    // Therefore, we will reset the matrix, but you may adjust as needed for multi-line support
+                    matrix.forEach(row => row.length = 0);
                     continue;
                 }
+
                 if (charToSpriteIndex[char] !== undefined) {
                     const spriteIndex = charToSpriteIndex[char];
-                    // Only skip sprites that are fully off-screen
-                    if (x >= -spriteWidth && y >= 0) {
-                        const sprite = new Sprite(charSprites[spriteIndex], x, y);
-                        newSprites.push(sprite);
+                    for (let y = 0; y < spriteHeight; y++) {
+                        matrix[y].push(...charSprites[spriteIndex][y]);
                     }
-                    x += spriteWidth;
+                    
+                    // Apply letterSpacing
+                    if (letterSpacing !== 0) {
+                        for (let y = 0; y < spriteHeight; y++) {
+                            for (let s = 0; s < Math.abs(letterSpacing); s++) {
+                                if (letterSpacing > 0) {
+                                    matrix[y].push(backgroundColor);  // Add spacing with background color
+                                } else {
+                                    matrix[y].pop();  // Remove spacing (ensure not to remove more than the sprite width)
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            return newSprites;
+            console.log("MATRIX: ", replaceMatrixColor(matrix, "black", "transparent"));
+            return (backgroundColor) ? replaceMatrixColor(matrix, backgroundColor, "transparent") : matrix;
         };
+    }
+
+    function replaceMatrixColor(matrix, colorToReplace, replacementColor) {
+        if (!matrix || !Array.isArray(matrix)) {
+            console.error("Invalid matrix provided:", matrix);
+            return;
+        }
+        
+        for (let y = 0; y < matrix.length; y++) {
+            for (let x = 0; x < matrix[y].length; x++) {
+                if (matrix[y][x] === colorToReplace) {
+                    matrix[y][x] = replacementColor;
+                }
+            }
+        }
+        
+        return matrix; // Return the modified matrix
     }
 
     // Example instantiation

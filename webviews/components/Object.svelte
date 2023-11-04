@@ -6,15 +6,17 @@
   import { get } from 'svelte/store';
 
   export class GeneratedObject {
-    constructor(spriteMatrix, states, x, y, z = 0) {
-      if (!spriteMatrix) {
+    constructor(sprites, states, x, y, z = 0) {
+      if (!sprites) {
           console.error(`Sprite matrix not found for object at coordinates: (${x}, ${y})`);
       }
-      this.sprites = spriteMatrix;
+      this.sprites = sprites;
+      this.spriteWidth = sprites[0][0].length;
+      this.spriteHeight = sprites[0].length
       console.log("SPRITES: ", this.sprites);
       this.states = states;
       this.currentSpriteIndex = 0;
-      this.state = "default"; // Default state
+      this.state = "default"; 
       this.setCoordinate(x, y, z);
     }
 
@@ -52,6 +54,10 @@
     onStopHover() {
       console.log(`Stopped hovering over generated object at coordinates: (${this.x}, ${this.y})`);
     }
+
+    clickAction() {
+      console.log(`Clicked on generated object at coordinates: (${this.x}, ${this.y})`);
+    }
   }
 
   export class Object extends GeneratedObject {
@@ -78,7 +84,8 @@
       const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
       console.log("SPRITE MATRIX: ", spriteMatrix);
       super(spriteMatrix, config.states, x, y, z);
-
+      this.spriteWidth = config.spriteWidth;
+      this.spriteHeight = config.spriteHeight;
       this.objectType = objectName;
       this.config = config;
     }

@@ -2,13 +2,12 @@
     import { get } from 'svelte/store';
     import { images, preloadedSpriteSheets } from './store.js';
 
-
     export function spriteReader(spriteWidth, spriteHeight, pixelMatrix) {
         if (!pixelMatrix || !Array.isArray(pixelMatrix) || pixelMatrix.length === 0) {
             console.error("Invalid sprite matrix provided:", pixelMatrix);
             return [];
         }
-        
+
         // Check if pixelMatrix[0] is defined and is an array
         if (!pixelMatrix[0] || !Array.isArray(pixelMatrix[0])) {
             console.error("Invalid sprite matrix[0] provided:", pixelMatrix[0]);
@@ -16,18 +15,18 @@
         }
 
         let sprites = [];
-        let spriteCount = 0;
 
-        const spriteCountWidth = pixelMatrix[0].length / spriteWidth;
-        const spriteCountHeight = pixelMatrix.length / spriteHeight;
-        //loop over each sprite
-        for (let y = 0; y < spriteCountHeight; y++){
-            for (let x = 0; x < spriteCountWidth; x++){
+        const spriteCountWidth = Math.floor(pixelMatrix[0].length / spriteWidth); // Use Math.floor() here
+        const spriteCountHeight = Math.floor(pixelMatrix.length / spriteHeight);  // Optional: Also here for consistency
+
+        // Loop over each sprite
+        for (let y = 0; y < spriteCountHeight; y++) {
+            for (let x = 0; x < spriteCountWidth; x++) {
                 let sprite = [];
-                //each y level of sprite
-                for (let sy = 0; sy < spriteHeight; sy++){
+                // Each y level of sprite
+                for (let sy = 0; sy < spriteHeight; sy++) {
                     if (pixelMatrix[(y * spriteHeight) + sy]) {
-                        //add the x level of sprite as an array
+                        // Add the x level of sprite as an array
                         sprite.push(pixelMatrix[(y * spriteHeight) + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
                     } else {
                         console.warn(`Invalid index y:${y + sy}`);
@@ -37,13 +36,11 @@
                 if (sprite.length === spriteHeight) {
                     sprites.push(sprite);
                 }
-                spriteCount++;
             }
         }
-        
+
         return sprites;
     }
-
     export function spriteReaderFromStore(spriteWidth, spriteHeight, spriteSheetFile) {
         const preloaded = get(preloadedSpriteSheets);
         if (!preloaded) {

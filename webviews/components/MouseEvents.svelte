@@ -68,8 +68,8 @@
         // Iterate through objects in room
         for (let obj of gameInstance.getObjectsOfCurrentRoom()) {
             // Check if the coordinates are within an object's bounding box
-            if (x >= obj.x && x <= obj.x + obj.config.spriteWidth &&
-                y >= obj.y && y <= obj.y + obj.config.spriteHeight) {
+            if (x >= obj.x && x <= obj.x + obj.spriteWidth &&
+                y >= obj.y && y <= obj.y + obj.spriteHeight) {
                 return obj;
             }
         }
