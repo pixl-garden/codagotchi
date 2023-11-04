@@ -1,7 +1,7 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
     import { Object, Button, NavigationButton } from './Object.svelte';
-    class Game {
+    export class Game {
         constructor() {
             if (Game.instance) {
                 return Game.instance;
