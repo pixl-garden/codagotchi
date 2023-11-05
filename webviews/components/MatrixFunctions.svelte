@@ -32,6 +32,23 @@
         return concatenated;
     }
 
+    export function replaceMatrixColor(matrix, colorToReplace, replacementColor) {
+        if (!matrix || !Array.isArray(matrix)) {
+            console.error('Invalid matrix provided:', matrix);
+            return;
+        }
+
+        for (let y = 0; y < matrix.length; y++) {
+            for (let x = 0; x < matrix[y].length; x++) {
+                if (matrix[y][x] === colorToReplace) {
+                    matrix[y][x] = replacementColor;
+                }
+            }
+        }
+
+        return matrix; // Return the modified matrix
+    }
+
     export function generateButtonMatrix(
         width,
         height,
