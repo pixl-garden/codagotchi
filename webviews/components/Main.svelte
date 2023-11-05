@@ -5,11 +5,10 @@
     import { Object, GeneratedObject, NavigationButton } from './Object.svelte';
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick } from './MouseEvents.svelte';
-    import {
-        spriteReader,
-        preloadAllSpriteSheets,
-    } from './SpriteReader.svelte';
+    import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer } from './TextRenderer.svelte';
+    import { generateButtonClass } from './ObjectGenerators.svelte';
+
 
     const FPS = 10; //second / frames per second
     let screen = [];
@@ -17,122 +16,6 @@
     let hasMainLoopStarted = false;
     let currentRoom;
     let renderBasicText;
-
-    function generateRectangleMatrix(width, height, color) {
-        const sprite = [];
-        for (let i = 0; i < height; i++) {
-            const row = Array(width).fill(color);
-            sprite.push(row);
-        }
-        return sprite;
-    }
-
-    function overlayMatrix(baseSprite, overlaySprite, startX, startY) {
-        for (let y = 0; y < overlaySprite.length; y++) {
-            for (let x = 0; x < overlaySprite[y].length; x++) {
-                if (overlaySprite[y][x] !== 'transparent') {
-                    baseSprite[startY + y][startX + x] = overlaySprite[y][x];
-                }
-            }
-        }
-        return baseSprite;
-    }
-
-    function concatenateMatrixes(matrix1, matrix2) {
-        if (matrix1.length !== matrix2.length) {
-            throw new Error('Both matrices must have the same number of rows');
-        }
-
-        const concatenated = [];
-        for (let i = 0; i < matrix1.length; i++) {
-            concatenated.push([...matrix1[i], ...matrix2[i]]);
-        }
-
-        return concatenated;
-    }
-
-    function generateButtonMatrix(
-        width,
-        height,
-        bgColor,
-        borderColor,
-        textSprite,
-    ) {
-        // Generate the outer rectangle sprite for the button border
-        const outerSprite = generateRectangleMatrix(width, height, borderColor);
-
-        // Generate the inner rectangle sprite for the button background
-        const innerWidth = width - 2;
-        const innerHeight = height - 2;
-        const innerSprite = generateRectangleMatrix(
-            innerWidth,
-            innerHeight,
-            bgColor,
-        );
-
-        // Overlay the inner sprite onto the outer sprite to create the button
-        overlayMatrix(outerSprite, innerSprite, 1, 1);
-
-        // Overlay the text sprite in the center of the button
-        const textX = Math.floor((width - textSprite[0].length) / 2);
-        const textY = Math.floor((height - textSprite.length) / 2);
-        overlayMatrix(outerSprite, textSprite, textX, textY);
-
-        return outerSprite;
-    }
-
-    function generateButtonClass(
-        width,
-        height,
-        bgColor,
-        borderColor,
-        bgColorHovered,
-        borderColorHovered,
-        textRenderer,
-    ) {
-        return class Button extends GeneratedObject {
-            constructor(text, x, y, actionOnClick) {
-                const defaultSprite = generateButtonMatrix(
-                    width,
-                    height,
-                    bgColor,
-                    borderColor,
-                    textRenderer(text),
-                );
-                const hoverSprite = generateButtonMatrix(
-                    width,
-                    height,
-                    bgColorHovered,
-                    borderColorHovered,
-                    textRenderer(text),
-                );
-
-                // State management: 0 for default sprite and 1 for hover sprite
-                super(
-                    [defaultSprite, hoverSprite],
-                    { default: [0], hovered: [1] },
-                    x,
-                    y,
-                );
-                this.actionOnClick = actionOnClick;
-            }
-
-            onHover() {
-                super.onHover(); // Call parent's hover function
-                this.updateState('hovered');
-            }
-
-            onStopHover() {
-                super.onStopHover(); // Call parent's stop hover function
-                this.updateState('default');
-            }
-
-            onClick() {
-                super.onClick(); // Call parent's click function
-                this.actionOnClick && this.actionOnClick();
-            }
-        };
-    }
 
     //run once before main loop
     function pre() {
@@ -169,6 +52,7 @@
 
         let room1 = new Room('room1');
         let room2 = new Room('room2');
+        let shopRoom = new Room('shopRoom');
         let settingsRoom = new Room('settingsRoom');
         petObject = new Object('objectType3', 14, 14);
         let toRoom1 = new NavigationButton('buttonObject', 0, 0, 'room1');
@@ -216,17 +100,10 @@
         window.addEventListener('resize', handleResize);
     });
 
-    function switchRoom() {
-        $game.setCurrentRoom('shopRoom');
-    }
-
     function handleGitHubLogin() {
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
     }
 
-    function firebaseExample() {
-        tsvscode.postMessage({ type: 'pushData' });
-    }
 </script>
 
 <div
@@ -250,7 +127,7 @@
                     on:click={() => $game.setCurrentRoom('settingsRoom')}
                     >Settings</button
                 >
-                <button class="navButton" on:click={switchRoom}>Shop</button>
+                <button class="navButton" on:click={() => $game.setCurrentRoom('shopRoom')}>Shop</button>
             {/if}
 
             {#if currentRoom.name === 'shopRoom'}

@@ -35,6 +35,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "test": "jest",
+    "lint": "eslint . --ext .js,.ts,.svelte",
     "format": "prettier --write 'src/**/*.{js,ts}' 'webviews/**/*.{js,svelte,json}' 'tests/**/*.{js,ts}'"
   },
   "devDependencies": {
