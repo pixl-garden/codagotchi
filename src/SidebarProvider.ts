@@ -1,13 +1,15 @@
-import * as vscode from "vscode";
-import { getNonce } from "./getNonce";
+import * as vscode from 'vscode';
+import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package installed.
-import { set, get } from "firebase/database";
+import { set, get } from 'firebase/database';
 
-const CLIENT_ID = "a253a1599d7b631b091a";
-const REDIRECT_URI = encodeURIComponent("https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect");
-const REQUESTED_SCOPES = "user,read:user";
+const CLIENT_ID = 'a253a1599d7b631b091a';
+const REDIRECT_URI = encodeURIComponent(
+    'https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect',
+);
+const REQUESTED_SCOPES = 'user,read:user';
 
 // Generate a unique state value
 const state = uuidv4();
@@ -15,165 +17,182 @@ const state = uuidv4();
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  _view?: vscode.WebviewView;
-  _doc?: vscode.TextDocument;
+    _view?: vscode.WebviewView;
+    _doc?: vscode.TextDocument;
 
-  private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-  public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
+    private _onDidViewReady: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>();
+    public readonly onDidViewReady: vscode.Event<void> =
+        this._onDidViewReady.event;
 
-  private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
+    private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
 
-  constructor(private readonly _extensionUri: vscode.Uri) {}
+    constructor(private readonly _extensionUri: vscode.Uri) {}
 
-  private getImageUris(): { [key: string]: vscode.Uri } {
-    const imageDir = path.join(this._extensionUri.fsPath, 'images');
-    const imageNames = fs.readdirSync(imageDir);
-    const uris: { [key: string]: vscode.Uri } = {};
+    private getImageUris(): { [key: string]: vscode.Uri } {
+        const imageDir = path.join(this._extensionUri.fsPath, 'images');
+        const imageNames = fs.readdirSync(imageDir);
+        const uris: { [key: string]: vscode.Uri } = {};
 
-    for (const imageName of imageNames) {
-      const uri = vscode.Uri.file(path.join(imageDir, imageName));
-      uris[imageName] = uri;
+        for (const imageName of imageNames) {
+            const uri = vscode.Uri.file(path.join(imageDir, imageName));
+            uris[imageName] = uri;
+        }
+
+        // Convert the URIs using webview.asWebviewUri
+        for (const key in uris) {
+            this.webviewImageUris[key] =
+                this._view?.webview.asWebviewUri(uris[key]).toString() || '';
+        }
+
+        return uris;
     }
 
-    // Convert the URIs using webview.asWebviewUri
-    for (const key in uris) {
-      this.webviewImageUris[key] = this._view?.webview.asWebviewUri(uris[key]).toString() || "";
+    public resolveWebviewView(webviewView: vscode.WebviewView) {
+        this._view = webviewView;
+
+        // Store the state value temporarily in globalState
+        vscode.commands.executeCommand('setContext', 'oauthState', state);
+
+        webviewView.webview.options = {
+            // Allow scripts in the webview
+            enableScripts: true,
+
+            // Include the folder containing the images in localResourceRoots
+            localResourceRoots: [
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
+                vscode.Uri.file(
+                    path.join(this._extensionUri.fsPath, 'out', 'compiled'),
+                ),
+            ],
+        };
+
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+        this._onDidViewReady.fire();
+
+        webviewView.webview.onDidReceiveMessage(async (data) => {
+            switch (data.type) {
+                case 'webview-ready': {
+                    // Convert the URIs using webview.asWebviewUri
+                    const imageUris = this.getImageUris();
+                    const webviewImageUris: { [key: string]: string } = {};
+                    for (const key in imageUris) {
+                        webviewImageUris[key] = webviewView.webview
+                            .asWebviewUri(imageUris[key])
+                            .toString();
+                    }
+
+                    // Send the converted URIs to the webview
+                    webviewView.webview.postMessage({
+                        type: 'image-uris',
+                        uris: webviewImageUris,
+                    });
+                    break;
+                }
+
+                case 'openOAuthURL': {
+                    vscode.commands.executeCommand(
+                        'vscode.open',
+                        vscode.Uri.parse(O_AUTH_URL),
+                    );
+                    console.log('openOAuthUrl');
+
+                    // Wait for a few seconds to give the OAuth process time to complete
+                    setTimeout(() => {
+                        // Fetch the token from the Cloud Function
+                        fetch(
+                            'https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect',
+                        )
+                            .then((response) => response.json())
+                            .then((data) => {
+                                const token = data.token;
+                                // Use the token or handle the data as needed
+                                console.log('Received token:', token);
+                            })
+                            .catch((error) => {
+                                console.error('Error fetching data:', error);
+                            });
+                    }, 5000); // 5 seconds delay, adjust as needed
+                    break;
+                }
+
+                case 'onInfo': {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showInformationMessage(data.value);
+                    break;
+                }
+                case 'onError': {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showErrorMessage(data.value);
+                    break;
+                }
+                case 'resize': {
+                    const width = data.width;
+                    const height = data.height;
+
+                    // Now you have the dimensions of the WebView
+                    console.log(`WebView dimensions: ${width}x${height}`);
+                    break;
+                }
+            }
+        });
     }
 
-    return uris;
-  }
+    public revive(panel: vscode.WebviewView) {
+        this._view = panel;
+    }
 
-  public resolveWebviewView(webviewView: vscode.WebviewView) {
-    this._view = webviewView;
-    
-    // Store the state value temporarily in globalState
-    vscode.commands.executeCommand('setContext', 'oauthState', state);
+    public setCurrentRoom(roomName: string) {
+        this._view?.webview.postMessage({
+            type: 'currentRoom',
+            value: roomName,
+        });
+    }
 
-    webviewView.webview.options = {
-      // Allow scripts in the webview
-      enableScripts: true,
-  
-      // Include the folder containing the images in localResourceRoots
-      localResourceRoots: [
-      vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
-      vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
-      vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))
-      ],
-    };
-  
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-  
-    this._onDidViewReady.fire();
+    // private handleOAuthCallback(state: string, code: string) {
+    //     if (state !== this.currentIdentifier) {
+    //         console.error("State does not match! Possible CSRF attack.");
+    //         return;
+    //     }
+    //     // Continue with the OAuth process using the provided code
+    // }
 
-    webviewView.webview.onDidReceiveMessage(async (data) => {
-      switch (data.type) {
-        case "webview-ready": {
-          // Convert the URIs using webview.asWebviewUri
-          const imageUris = this.getImageUris();
-          const webviewImageUris: { [key: string]: string } = {};
-          for (const key in imageUris) {
-              webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
-          }
+    private _getHtmlForWebview(webview: vscode.Webview) {
+        const styleResetUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'),
+        );
+        const styleVSCodeUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'codagotchi.css'),
+        );
+        const scriptUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(
+                this._extensionUri,
+                'out/compiled',
+                'sidebar.js',
+            ),
+        );
+        const styleMainUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(
+                this._extensionUri,
+                'out/compiled',
+                'sidebar.css',
+            ),
+        );
 
-          // Send the converted URIs to the webview
-          webviewView.webview.postMessage({
-              type: 'image-uris',
-              uris: webviewImageUris,
-          });
-          break;
-        }
+        // Use a nonce to only allow a specific script to be run.
+        const nonce = getNonce();
 
-        case "openOAuthURL": {
-          vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
-          console.log("openOAuthUrl");
-
-          // Wait for a few seconds to give the OAuth process time to complete
-          setTimeout(() => {
-              // Fetch the token from the Cloud Function
-              fetch('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect')
-              .then(response => response.json())
-              .then(data => {
-                  const token = data.token;
-                  // Use the token or handle the data as needed
-                  console.log("Received token:", token);
-              })
-              .catch(error => {
-                  console.error('Error fetching data:', error);
-              });
-          }, 5000); // 5 seconds delay, adjust as needed
-          break;
-        }
-
-        case "onInfo": {
-          if (!data.value) {
-            return;
-          }
-          vscode.window.showInformationMessage(data.value);
-          break;
-        }
-        case "onError": {
-          if (!data.value) {
-            return;
-          }
-          vscode.window.showErrorMessage(data.value);
-          break;
-        }
-        case "resize": {
-          const width = data.width;
-          const height = data.height;
-
-          // Now you have the dimensions of the WebView
-          console.log(`WebView dimensions: ${width}x${height}`);
-          break;
-        }
-      }
-    });
-  }
-
-  public revive(panel: vscode.WebviewView) {
-    this._view = panel;
-  }
-  
-  public setCurrentRoom(roomName: string) {
-    this._view?.webview.postMessage({
-      type: 'currentRoom',
-      value: roomName
-    });
-  }
-
-  // private handleOAuthCallback(state: string, code: string) {
-  //     if (state !== this.currentIdentifier) {
-  //         console.error("State does not match! Possible CSRF attack.");
-  //         return;
-  //     }
-  //     // Continue with the OAuth process using the provided code
-  // }
-  
-  private _getHtmlForWebview(webview: vscode.Webview) {
-    const styleResetUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")
-    );
-    const styleVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "media", "codagotchi.css")
-    );
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "out/compiled", "sidebar.js")
-    );
-    const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "out/compiled", "sidebar.css")
-    );
-        
-    // Use a nonce to only allow a specific script to be run.
-    const nonce = getNonce();
-    
-
-    return `<!DOCTYPE html>
+        return `<!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="img-src vscode-webview-resource: https: data:; style-src 'unsafe-inline' ${
-          webview.cspSource
-        }; script-src 'nonce-${nonce}';">
+        <meta http-equiv="Content-Security-Policy" content="img-src vscode-webview-resource: https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${styleResetUri}" rel="stylesheet">
         <link href="${styleVSCodeUri}" rel="stylesheet">
@@ -250,5 +269,5 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
-      }
     }
+}

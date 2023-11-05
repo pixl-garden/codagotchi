@@ -28,9 +28,9 @@ const getNonce_1 = __webpack_require__(3);
 const fs = __webpack_require__(4);
 const path = __webpack_require__(5);
 const uuid_1 = __webpack_require__(6); // Ensure you have the 'uuid' package installed.
-const CLIENT_ID = "a253a1599d7b631b091a";
-const REDIRECT_URI = encodeURIComponent("https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect");
-const REQUESTED_SCOPES = "user,read:user";
+const CLIENT_ID = 'a253a1599d7b631b091a';
+const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
+const REQUESTED_SCOPES = 'user,read:user';
 // Generate a unique state value
 const state = (0, uuid_1.v4)();
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
@@ -52,7 +52,8 @@ class SidebarProvider {
         }
         // Convert the URIs using webview.asWebviewUri
         for (const key in uris) {
-            this.webviewImageUris[key] = ((_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.asWebviewUri(uris[key]).toString()) || "";
+            this.webviewImageUris[key] =
+                ((_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.asWebviewUri(uris[key]).toString()) || '';
         }
         return uris;
     }
@@ -67,19 +68,21 @@ class SidebarProvider {
             localResourceRoots: [
                 vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
                 vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
-                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled')),
             ],
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
         this._onDidViewReady.fire();
         webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
             switch (data.type) {
-                case "webview-ready": {
+                case 'webview-ready': {
                     // Convert the URIs using webview.asWebviewUri
                     const imageUris = this.getImageUris();
                     const webviewImageUris = {};
                     for (const key in imageUris) {
-                        webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
+                        webviewImageUris[key] = webviewView.webview
+                            .asWebviewUri(imageUris[key])
+                            .toString();
                     }
                     // Send the converted URIs to the webview
                     webviewView.webview.postMessage({
@@ -88,40 +91,40 @@ class SidebarProvider {
                     });
                     break;
                 }
-                case "openOAuthURL": {
-                    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(O_AUTH_URL));
-                    console.log("openOAuthUrl");
+                case 'openOAuthURL': {
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
+                    console.log('openOAuthUrl');
                     // Wait for a few seconds to give the OAuth process time to complete
                     setTimeout(() => {
                         // Fetch the token from the Cloud Function
                         fetch('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect')
-                            .then(response => response.json())
-                            .then(data => {
+                            .then((response) => response.json())
+                            .then((data) => {
                             const token = data.token;
                             // Use the token or handle the data as needed
-                            console.log("Received token:", token);
+                            console.log('Received token:', token);
                         })
-                            .catch(error => {
+                            .catch((error) => {
                             console.error('Error fetching data:', error);
                         });
                     }, 5000); // 5 seconds delay, adjust as needed
                     break;
                 }
-                case "onInfo": {
+                case 'onInfo': {
                     if (!data.value) {
                         return;
                     }
                     vscode.window.showInformationMessage(data.value);
                     break;
                 }
-                case "onError": {
+                case 'onError': {
                     if (!data.value) {
                         return;
                     }
                     vscode.window.showErrorMessage(data.value);
                     break;
                 }
-                case "resize": {
+                case 'resize': {
                     const width = data.width;
                     const height = data.height;
                     // Now you have the dimensions of the WebView
@@ -138,7 +141,7 @@ class SidebarProvider {
         var _a;
         (_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
             type: 'currentRoom',
-            value: roomName
+            value: roomName,
         });
     }
     // private handleOAuthCallback(state: string, code: string) {
@@ -149,10 +152,10 @@ class SidebarProvider {
     //     // Continue with the OAuth process using the provided code
     // }
     _getHtmlForWebview(webview) {
-        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
-        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "codagotchi.css"));
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "sidebar.js"));
-        const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out/compiled", "sidebar.css"));
+        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
+        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'codagotchi.css'));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out/compiled', 'sidebar.js'));
+        const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out/compiled', 'sidebar.css'));
         // Use a nonce to only allow a specific script to be run.
         const nonce = (0, getNonce_1.getNonce)();
         return `<!DOCTYPE html>
@@ -249,8 +252,8 @@ exports.SidebarProvider = SidebarProvider;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getNonce = void 0;
 function getNonce() {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (let i = 0; i < 32; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
@@ -882,12 +885,12 @@ const SidebarProvider_1 = __webpack_require__(2);
 function activate(context) {
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
     listenForDocumentSave(context);
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider("codagotchiView", sidebarProvider));
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
 }
 exports.activate = activate;
 function listenForDocumentSave(context) {
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(() => {
-        console.log("Test!!!");
+        console.log('Test!!!');
     }));
 }
 // This method is called when your extension is deactivated
