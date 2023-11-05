@@ -1,46 +1,48 @@
 {
-  "objectType1": {
-    "spriteWidth": 7,
-    "spriteHeight": 9,
-    "states": {
-      "hidden": [5],
-      "visible": [1]
+    "objectType1": {
+        "spriteWidth": 7,
+        "spriteHeight": 9,
+        "states": {
+            "hidden": [5],
+            "visible": [1]
+        }
+    },
+    "objectType2": {
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "dinowalk.png",
+        "states": {
+            "hidden": [
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+            ],
+            "visible": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        }
+    },
+    "objectType3": {
+        "spriteWidth": 48,
+        "spriteHeight": 48,
+        "spriteSheet": "color_test.png",
+        "states": {
+            "default": [0, "...", 14],
+            "visible": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        }
+    },
+    "buttonObject": {
+        "spriteWidth": 24,
+        "spriteHeight": 12,
+        "spriteSheet": "buttontest.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "shopButton": {
+        "spriteWidth": 32,
+        "spriteHeight": 16,
+        "spriteSheet": "shop.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
     }
-  },
-  "objectType2": {
-    "spriteWidth": 32,
-    "spriteHeight": 32,
-    "spriteSheet": "dinowalk.png",
-    "states": {
-      "hidden": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-      "visible": [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    }
-  },
-  "objectType3": {
-    "spriteWidth": 48,
-    "spriteHeight": 48,
-    "spriteSheet": "color_test.png",
-    "states": {
-      "default": [0, "...", 14],
-      "visible": [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    }
-  },
-  "buttonObject": {
-    "spriteWidth": 24,
-    "spriteHeight": 12,
-    "spriteSheet": "buttontest.png",
-    "states": {
-      "default": [0], 
-      "hovered": [1]
-    }
-  },
-  "shopButton": {
-    "spriteWidth": 32,
-    "spriteHeight": 16,
-    "spriteSheet": "shop.png",
-    "states": {
-      "default": [0], 
-      "hovered": [1]
-  }
-}
 }
