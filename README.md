@@ -58,4 +58,4 @@ This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) fo
 * Our user story interviewees
 * Tamagotchi (Of course!)
 * Dr. Palmer
-* Big Oil
+* Big Oil (for giving us a reason to fight)
