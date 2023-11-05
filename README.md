@@ -29,7 +29,7 @@ Installation:
  * To begin, fork the repository and then clone it. See CONTRIBUTING.md for more details.
  * Once inside the cloned repository, run ```npm install concurrently``` in the CLI.
  * Next, run ```npm run watch```
- * Then, hit F5 or run the extension through the VSCode GUI and you are good to go!
+ * Then, hit F5 or run the extension through the VSCode GUI and you are ready to start your adventure!
    
 ### Prerequisites
 
@@ -45,7 +45,7 @@ Please look at our [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you
 
 ## Authors
 * **Ben Griepp** - **Product & Repo Owner**
-* **Noah Gooby**
+* **Noah Gooby** 
 * **Payton Watts**
 * **Forrest Hartley**
 * **Kyle Bambling**
