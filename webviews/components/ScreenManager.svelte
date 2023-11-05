@@ -53,24 +53,12 @@
     function updateButtonContainer() {
         let buttonContainerHeight = 50;
         let buttonContainerTop = height - buttonContainerHeight;
-        document.documentElement.style.setProperty(
-            '--button-container-top',
-            `${buttonContainerTop}px`,
-        );
+        document.documentElement.style.setProperty('--button-container-top', `${buttonContainerTop}px`);
     }
 
     function updateStyles() {
-        document.documentElement.style.setProperty(
-            '--container-padding',
-            `${padding}px`,
-        );
-        document.documentElement.style.setProperty(
-            '--pixel-size',
-            `${pixelSize}px`,
-        );
-        document.documentElement.style.setProperty(
-            '--screen-width',
-            `${screenWidth}px`,
-        );
+        document.documentElement.style.setProperty('--container-padding', `${padding}px`);
+        document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
+        document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
     }
 </script>

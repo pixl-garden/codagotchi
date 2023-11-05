@@ -1,5 +1,4 @@
 <script context = 'module'>
-
     export function generateRectangleMatrix(width, height, color) {
         const sprite = [];
         for (let i = 0; i < height; i++) {
@@ -46,11 +45,7 @@
         // Generate the inner rectangle sprite for the button background
         const innerWidth = width - 2;
         const innerHeight = height - 2;
-        const innerSprite = generateRectangleMatrix(
-            innerWidth,
-            innerHeight,
-            bgColor,
-        );
+        const innerSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
 
         // Overlay the inner sprite onto the outer sprite to create the button
         overlayMatrix(outerSprite, innerSprite, 1, 1);
@@ -62,5 +57,4 @@
 
         return outerSprite;
     }
-    
 </script>

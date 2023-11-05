@@ -10,11 +10,7 @@
         backgroundColor = null,
         letterSpacing = 0,
     ) {
-        let charSprites = spriteReaderFromStore(
-            spriteWidth,
-            spriteHeight,
-            charmap,
-        );
+        let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
 
         console.log(charMappingString.split(''));
         // Convert charMappingString to an array of characters
@@ -61,13 +57,8 @@
                     }
                 }
             }
-            console.log(
-                'MATRIX: ',
-                replaceMatrixColor(matrix, 'black', 'transparent'),
-            );
-            return backgroundColor
-                ? replaceMatrixColor(matrix, backgroundColor, 'transparent')
-                : matrix;
+            console.log('MATRIX: ', replaceMatrixColor(matrix, 'black', 'transparent'));
+            return backgroundColor ? replaceMatrixColor(matrix, backgroundColor, 'transparent') : matrix;
         };
     }
 

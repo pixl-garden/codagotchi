@@ -3,11 +3,7 @@
     import { images, preloadedSpriteSheets } from './store.js';
 
     export function spriteReader(spriteWidth, spriteHeight, pixelMatrix) {
-        if (
-            !pixelMatrix ||
-            !Array.isArray(pixelMatrix) ||
-            pixelMatrix.length === 0
-        ) {
+        if (!pixelMatrix || !Array.isArray(pixelMatrix) || pixelMatrix.length === 0) {
             console.error('Invalid sprite matrix provided:', pixelMatrix);
             return [];
         }
@@ -20,9 +16,7 @@
 
         let sprites = [];
 
-        const spriteCountWidth = Math.floor(
-            pixelMatrix[0].length / spriteWidth,
-        ); // Use Math.floor() here
+        const spriteCountWidth = Math.floor(pixelMatrix[0].length / spriteWidth); // Use Math.floor() here
         const spriteCountHeight = Math.floor(pixelMatrix.length / spriteHeight); // Optional: Also here for consistency
 
         // Loop over each sprite
@@ -33,12 +27,7 @@
                 for (let sy = 0; sy < spriteHeight; sy++) {
                     if (pixelMatrix[y * spriteHeight + sy]) {
                         // Add the x level of sprite as an array
-                        sprite.push(
-                            pixelMatrix[y * spriteHeight + sy].slice(
-                                x * spriteWidth,
-                                (x + 1) * spriteWidth,
-                            ),
-                        );
+                        sprite.push(pixelMatrix[y * spriteHeight + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
                     } else {
                         console.warn(`Invalid index y:${y + sy}`);
                         break;
@@ -52,11 +41,7 @@
 
         return sprites;
     }
-    export function spriteReaderFromStore(
-        spriteWidth,
-        spriteHeight,
-        spriteSheetFile,
-    ) {
+    export function spriteReaderFromStore(spriteWidth, spriteHeight, spriteSheetFile) {
         const preloaded = get(preloadedSpriteSheets);
         if (!preloaded) {
             console.error('preloadedSpriteSheets is undefined');
@@ -116,12 +101,7 @@
                         } else {
                             const hexColor =
                                 '#' +
-                                (
-                                    (1 << 24) +
-                                    (pixel[0] << 16) +
-                                    (pixel[1] << 8) +
-                                    pixel[2]
-                                )
+                                ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2])
                                     .toString(16)
                                     .slice(1)
                                     .toUpperCase();

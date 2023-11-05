@@ -38,12 +38,7 @@
     export const game = writable(new Game());
 
     export class Room {
-        constructor(
-            roomName,
-            enterLogic = false,
-            exitLogic = false,
-            updateLogic = false,
-        ) {
+        constructor(roomName, enterLogic = false, exitLogic = false, updateLogic = false) {
             this.name = roomName;
             this.adjacentRooms = new Set(); // Set ensures no duplicate rooms in list
             this.objects = [];

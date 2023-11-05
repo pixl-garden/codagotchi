@@ -52,8 +52,7 @@ class SidebarProvider {
         }
         // Convert the URIs using webview.asWebviewUri
         for (const key in uris) {
-            this.webviewImageUris[key] =
-                ((_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.asWebviewUri(uris[key]).toString()) || '';
+            this.webviewImageUris[key] = ((_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.asWebviewUri(uris[key]).toString()) || '';
         }
         return uris;
     }
@@ -80,9 +79,7 @@ class SidebarProvider {
                     const imageUris = this.getImageUris();
                     const webviewImageUris = {};
                     for (const key in imageUris) {
-                        webviewImageUris[key] = webviewView.webview
-                            .asWebviewUri(imageUris[key])
-                            .toString();
+                        webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
                     }
                     // Send the converted URIs to the webview
                     webviewView.webview.postMessage({

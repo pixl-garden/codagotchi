@@ -34,11 +34,7 @@
         const xPixelCoord = Math.floor(mouseX / pixelSize);
         const yPixelCoord = Math.floor(mouseY / pixelSize);
 
-        const hoveredObject = getObjectAt(
-            xPixelCoord,
-            yPixelCoord,
-            gameInstance,
-        );
+        const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
 
         // Only call onHover and onStopHover if the hovered object has changed
         if (hoveredObject !== lastHoveredObject) {
@@ -72,12 +68,7 @@
         // Iterate through objects in room
         for (let obj of gameInstance.getObjectsOfCurrentRoom()) {
             // Check if the coordinates are within an object's bounding box
-            if (
-                x >= obj.x &&
-                x <= obj.x + obj.spriteWidth &&
-                y >= obj.y &&
-                y <= obj.y + obj.spriteHeight
-            ) {
+            if (x >= obj.x && x <= obj.x + obj.spriteWidth && y >= obj.y && y <= obj.y + obj.spriteHeight) {
                 return obj;
             }
         }

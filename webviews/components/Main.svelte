@@ -9,7 +9,6 @@
     import { createTextRenderer } from './TextRenderer.svelte';
     import { generateButtonClass } from './ObjectGenerators.svelte';
 
-
     const FPS = 10; //second / frames per second
     let screen = [];
     let petObject;
@@ -28,24 +27,8 @@
             '#FFFFFF',
             -1,
         );
-        const ButtonClass = generateButtonClass(
-            40,
-            15,
-            'blue',
-            'black',
-            'lightblue',
-            'darkgray',
-            renderBasicText,
-        );
-        const newButton = generateButtonClass(
-            33,
-            14,
-            'red',
-            'white',
-            'pink',
-            'cyan',
-            renderBasicText,
-        );
+        const ButtonClass = generateButtonClass(40, 15, 'blue', 'black', 'lightblue', 'darkgray', renderBasicText);
+        const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', renderBasicText);
         const myButton = new newButton('kyle', 0, 20, () => {
             console.log('Button was clicked!');
         });
@@ -103,7 +86,6 @@
     function handleGitHubLogin() {
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
     }
-
 </script>
 
 <div
@@ -122,43 +104,25 @@
         {/each}
         <div class="roomButtonContainer">
             {#if currentRoom.name === 'room1'}
-                <button
-                    class="navButton"
-                    on:click={() => $game.setCurrentRoom('settingsRoom')}
-                    >Settings</button
-                >
+                <button class="navButton" on:click={() => $game.setCurrentRoom('settingsRoom')}>Settings</button>
                 <button class="navButton" on:click={() => $game.setCurrentRoom('shopRoom')}>Shop</button>
             {/if}
 
             {#if currentRoom.name === 'shopRoom'}
-                <button
-                    class="navButton"
-                    on:click={() => $game.setCurrentRoom('room1')}>Back</button
-                >
+                <button class="navButton" on:click={() => $game.setCurrentRoom('room1')}>Back</button>
             {/if}
 
             {#if currentRoom.name === 'settingsRoom'}
-                <button
-                    class="navButton"
-                    on:click={() => $game.setCurrentRoom('room1')}>Back</button
-                >
+                <button class="navButton" on:click={() => $game.setCurrentRoom('room1')}>Back</button>
             {/if}
         </div>
         {#if currentRoom.name === 'settingsRoom'}
             <div class="settingsButtonContainer">
-                <button
-                    class="settingsButton"
-                    on:click={handleGitHubLogin}
-                    id="github-login"
-                >
+                <button class="settingsButton" on:click={handleGitHubLogin} id="github-login">
                     Login with GitHub
                 </button>
-                <button class="settingsButton" id="changeNotifications">
-                    Change Notifications
-                </button>
-                <button class="settingsButton" id="changeDifficulty">
-                    Change Difficulty
-                </button>
+                <button class="settingsButton" id="changeNotifications"> Change Notifications </button>
+                <button class="settingsButton" id="changeDifficulty"> Change Difficulty </button>
             </div>
         {/if}
     {/if}

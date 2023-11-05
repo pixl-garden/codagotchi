@@ -1,8 +1,6 @@
 function spriteReader(spriteWidth, spriteHeight, spriteSheet) {
     const { get } = require('svelte/store');
-    const {
-        preloadedSpriteSheets,
-    } = require('../webviews/components/store.js');
+    const { preloadedSpriteSheets } = require('../webviews/components/store.js');
     const pixelSheet = get(preloadedSpriteSheets)[spriteSheet];
     if (!pixelSheet) {
         console.error('Sprite sheet not preloaded:', spriteSheet);
@@ -24,18 +22,9 @@ function spriteReader(spriteWidth, spriteHeight, spriteSheet) {
             for (let sy = 0; sy < spriteHeight; sy++) {
                 if (pixelSheet[y * spriteHeight + sy]) {
                     //add the x level of sprite as an array
-                    sprite.push(
-                        pixelSheet[y * spriteHeight + sy].slice(
-                            x * spriteWidth,
-                            (x + 1) * spriteWidth,
-                        ),
-                    );
+                    sprite.push(pixelSheet[y * spriteHeight + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
                 } else {
-                    console.warn(
-                        `Invalid index y:${
-                            y + sy
-                        } for spriteSheet:${spriteSheet}`,
-                    );
+                    console.warn(`Invalid index y:${y + sy} for spriteSheet:${spriteSheet}`);
                     break;
                 }
             }

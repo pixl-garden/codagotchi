@@ -11,8 +11,7 @@ describe('getNonce', () => {
     });
 
     it('should return a string containing only valid characters', () => {
-        const possible =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         const nonce = getNonce();
 
         // Check each character in the nonce

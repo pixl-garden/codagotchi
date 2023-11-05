@@ -8,9 +8,7 @@
     export class GeneratedObject {
         constructor(sprites, states, x, y, z = 0) {
             if (!sprites) {
-                console.error(
-                    `Sprite matrix not found for object at coordinates: (${x}, ${y})`,
-                );
+                console.error(`Sprite matrix not found for object at coordinates: (${x}, ${y})`);
             }
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
@@ -29,11 +27,7 @@
         }
 
         getSprite() {
-            return new Sprite(
-                this.sprites[this.currentSpriteIndex],
-                this.x,
-                this.y,
-            );
+            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
         }
 
         updateState(newState) {
@@ -54,21 +48,15 @@
         }
 
         onHover() {
-            console.log(
-                `Hovered over generated object at coordinates: (${this.x}, ${this.y})`,
-            );
+            console.log(`Hovered over generated object at coordinates: (${this.x}, ${this.y})`);
         }
 
         onStopHover() {
-            console.log(
-                `Stopped hovering over generated object at coordinates: (${this.x}, ${this.y})`,
-            );
+            console.log(`Stopped hovering over generated object at coordinates: (${this.x}, ${this.y})`);
         }
 
         clickAction() {
-            console.log(
-                `Clicked on generated object at coordinates: (${this.x}, ${this.y})`,
-            );
+            console.log(`Clicked on generated object at coordinates: (${this.x}, ${this.y})`);
         }
     }
 
@@ -77,9 +65,7 @@
             const config = objectConfig[objectName];
             console.log(config);
             if (!config) {
-                throw new Error(
-                    `No configuration found for object type: ${objectName}`,
-                );
+                throw new Error(`No configuration found for object type: ${objectName}`);
             }
 
             for (const state in config.states) {
@@ -90,19 +76,12 @@
                 if (frames.length === 3 && frames[1] === '...') {
                     const start = frames[0];
                     const end = frames[2];
-                    return Array.from(
-                        { length: end - start + 1 },
-                        (_, i) => start + i,
-                    );
+                    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
                 }
                 return frames;
             }
 
-            const spriteMatrix = spriteReaderFromStore(
-                config.spriteWidth,
-                config.spriteHeight,
-                config.spriteSheet,
-            );
+            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
             console.log('SPRITE MATRIX: ', spriteMatrix);
             super(spriteMatrix, config.states, x, y, z);
             this.spriteWidth = config.spriteWidth;
@@ -116,9 +95,7 @@
         }
 
         onStopHover() {
-            console.log(
-                `Stopped hovering over object of type: ${this.objectType}`,
-            );
+            console.log(`Stopped hovering over object of type: ${this.objectType}`);
         }
     }
 

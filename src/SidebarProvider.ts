@@ -6,9 +6,7 @@ import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package insta
 import { set, get } from 'firebase/database';
 
 const CLIENT_ID = 'a253a1599d7b631b091a';
-const REDIRECT_URI = encodeURIComponent(
-    'https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect',
-);
+const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
 const REQUESTED_SCOPES = 'user,read:user';
 
 // Generate a unique state value
@@ -20,10 +18,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
 
-    private _onDidViewReady: vscode.EventEmitter<void> =
-        new vscode.EventEmitter<void>();
-    public readonly onDidViewReady: vscode.Event<void> =
-        this._onDidViewReady.event;
+    private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+    public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
 
     private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
 
@@ -41,8 +37,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         // Convert the URIs using webview.asWebviewUri
         for (const key in uris) {
-            this.webviewImageUris[key] =
-                this._view?.webview.asWebviewUri(uris[key]).toString() || '';
+            this.webviewImageUris[key] = this._view?.webview.asWebviewUri(uris[key]).toString() || '';
         }
 
         return uris;
@@ -62,9 +57,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             localResourceRoots: [
                 vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
                 vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
-                vscode.Uri.file(
-                    path.join(this._extensionUri.fsPath, 'out', 'compiled'),
-                ),
+                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled')),
             ],
         };
 
@@ -79,9 +72,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     const imageUris = this.getImageUris();
                     const webviewImageUris: { [key: string]: string } = {};
                     for (const key in imageUris) {
-                        webviewImageUris[key] = webviewView.webview
-                            .asWebviewUri(imageUris[key])
-                            .toString();
+                        webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
                     }
 
                     // Send the converted URIs to the webview
@@ -93,18 +84,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 case 'openOAuthURL': {
-                    vscode.commands.executeCommand(
-                        'vscode.open',
-                        vscode.Uri.parse(O_AUTH_URL),
-                    );
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
                     console.log('openOAuthUrl');
 
                     // Wait for a few seconds to give the OAuth process time to complete
                     setTimeout(() => {
                         // Fetch the token from the Cloud Function
-                        fetch(
-                            'https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect',
-                        )
+                        fetch('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect')
                             .then((response) => response.json())
                             .then((data) => {
                                 const token = data.token;
@@ -164,25 +150,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     // }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
-        const styleResetUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'),
-        );
-        const styleVSCodeUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'media', 'codagotchi.css'),
-        );
-        const scriptUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(
-                this._extensionUri,
-                'out/compiled',
-                'sidebar.js',
-            ),
-        );
+        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
+        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'codagotchi.css'));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out/compiled', 'sidebar.js'));
         const styleMainUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(
-                this._extensionUri,
-                'out/compiled',
-                'sidebar.css',
-            ),
+            vscode.Uri.joinPath(this._extensionUri, 'out/compiled', 'sidebar.css'),
         );
 
         // Use a nonce to only allow a specific script to be run.
