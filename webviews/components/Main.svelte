@@ -6,30 +6,29 @@
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { createTextRenderer } from './TextRenderer.svelte';
+    import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass } from './ObjectGenerators.svelte';
 
-    const FPS = 10; //second / frames per second
+    const FPS = 10; //frames per second
+    const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
     let screen = [];
     let petObject;
     let hasMainLoopStarted = false;
     let currentRoom;
-    let renderBasicText;
+    let basic, gang, retro; //font renderers
 
     //run once before main loop
     function pre() {
         handleResize();
-        renderBasicText = createTextRenderer(
-            'charmap1.png',
-            7,
-            9,
-            ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`,
-            '#FFFFFF',
-            -1,
-        );
-        const ButtonClass = generateButtonClass(40, 15, 'blue', 'black', 'lightblue', 'darkgray', renderBasicText);
-        const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', renderBasicText);
-        const myButton = new newButton('kyle', 0, 20, () => {
+        //prettier-ignore
+        basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
+        gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
+        retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
+
+        const ButtonClass = generateButtonClass( 40, 15, 'blue', 'black', 'lightblue', 'darkgray', basic);
+        const newButton = generateButtonClass( 33, 14, 'red', 'white', 'pink', 'cyan', retro);
+
+        const myButton = new newButton('OWO', 0, 20, () => {
             console.log('Button was clicked!');
         });
 
@@ -38,8 +37,10 @@
         let shopRoom = new Room('shopRoom');
         let settingsRoom = new Room('settingsRoom');
         petObject = new Object('objectType3', 14, 14);
+
         let toRoom1 = new NavigationButton('buttonObject', 0, 0, 'room1');
         let toRoom2 = new NavigationButton('buttonObject', 18, 0, 'room2');
+
         room2.addObject(myButton);
         room1.addObject(petObject);
         room2.addObject(toRoom1);
@@ -51,7 +52,6 @@
     //main loop
     function main() {
         let sprites = []; // Clear previous sprites
-        // let test = new Sprite(renderBasicText("./0123456789"), 1, 20, 0);
         petObject.nextFrame();
 
         // Get the current room from the game object

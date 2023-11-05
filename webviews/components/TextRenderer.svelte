@@ -1,14 +1,15 @@
 <script context="module">
     import { spriteReaderFromStore } from './SpriteReader.svelte';
+    import { replaceMatrixColor } from './MatrixFunctions.svelte';
 
     //export a function that renders text
     export function createTextRenderer(
         charmap,
         spriteWidth,
         spriteHeight,
-        charMappingString,
         backgroundColor = null,
         letterSpacing = 0,
+        charMappingString,
     ) {
         let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
 
@@ -57,28 +58,10 @@
                     }
                 }
             }
-            console.log('MATRIX: ', replaceMatrixColor(matrix, 'black', 'transparent'));
             return backgroundColor ? replaceMatrixColor(matrix, backgroundColor, 'transparent') : matrix;
         };
     }
 
-    function replaceMatrixColor(matrix, colorToReplace, replacementColor) {
-        if (!matrix || !Array.isArray(matrix)) {
-            console.error('Invalid matrix provided:', matrix);
-            return;
-        }
-
-        for (let y = 0; y < matrix.length; y++) {
-            for (let x = 0; x < matrix[y].length; x++) {
-                if (matrix[y][x] === colorToReplace) {
-                    matrix[y][x] = replacementColor;
-                }
-            }
-        }
-
-        return matrix; // Return the modified matrix
-    }
-
     // Example instantiation
-    // export const renderBasicText = createTextRenderer('charmap1.png', 7, 9, ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`);
+    // const renderBasicText = createTextRenderer('basic.png', 8, 8, 'black', -3, ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 </script>
