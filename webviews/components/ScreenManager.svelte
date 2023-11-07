@@ -42,6 +42,14 @@
         updateStyles();
     }
 
+    export function getPadding() {
+        return padding;
+    }
+
+    export function getPixelSize() {
+        return pixelSize;
+    }
+
     function updateDimensions() {
         width = window.innerWidth;
         height = window.innerHeight;

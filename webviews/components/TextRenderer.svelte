@@ -12,12 +12,8 @@
         charMappingString,
     ) {
         let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
-
-        console.log(charMappingString.split(''));
         // Convert charMappingString to an array of characters
         const charsArray = Array.from(charMappingString);
-        console.log('CHARS ARRAY: ', charsArray);
-
         // Create mapping from charsArray
         const charToSpriteIndex = {};
         for (let i = 0; i < charsArray.length; i++) {

@@ -173,28 +173,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <script nonce="${nonce}">
         
         const tsvscode = acquireVsCodeApi();
-      
-        <!-- github login buton -->
-        document.addEventListener("DOMContentLoaded", function() {
-          document.getElementById('github-login').addEventListener('click', () => {
-            
-            // Send a message to the extension
-            tsvscode.postMessage({
-              type: 'openOAuthURL',
-              value: '${O_AUTH_URL}'
-            });
-          });         
-        });
-        
-        document.addEventListener("DOMContentLoaded", function() {
-          document.getElementById('pushData').addEventListener('click', () => {
-            
-            // Send a message to the extension
-            tsvscode.postMessage({
-              type: 'pushData'
-            });
-          });         
-        });
 
         window.addEventListener('resize', () => {
           const width = window.innerWidth;

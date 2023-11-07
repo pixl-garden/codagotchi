@@ -4,7 +4,7 @@
     import { images } from './store.js';
     import { Object, GeneratedObject, NavigationButton } from './Object.svelte';
     import { Room, game } from './Game.svelte';
-    import { handleMouseMove, handleClick } from './MouseEvents.svelte';
+    import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass } from './ObjectGenerators.svelte';
@@ -21,30 +21,46 @@
     function pre() {
         handleResize();
         //prettier-ignore
+        //createTextRenderer(image, charWidth, charHeight, color, letterSpacing, charMap)
         basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
         gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
-
-        const ButtonClass = generateButtonClass( 40, 15, 'blue', 'black', 'lightblue', 'darkgray', basic);
-        const newButton = generateButtonClass( 33, 14, 'red', 'white', 'pink', 'cyan', retro);
-
-        const myButton = new newButton('OWO', 0, 20, () => {
-            console.log('Button was clicked!');
-        });
+        //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
+        const settingsTitleButton = generateButtonClass(64, 11, '#426b9e', 'black', '#426b9e', 'black', basic);
+        const settingsMenuButton = generateButtonClass(64, 13, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', retro);
 
         let room1 = new Room('room1');
         let room2 = new Room('room2');
+
+        const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {
+            console.log('Button was clicked!');
+        });
+        const gitlogin = new settingsMenuButton('Git Login', 0, 10, () => {
+            handleGitHubLogin();
+        });
+        const notifications = new settingsMenuButton('Notifs', 0, 22, () => {
+            console.log('Button was clicked!');
+        });
+        const display = new settingsMenuButton('Display', 0, 34, () => {
+            console.log('Button was clicked!');
+        });
+        const about = new settingsMenuButton('<BACK', 0, 46, () => {
+                    $game.setCurrentRoom('room1');
+                    console.log("BRUHHH")
+        });
+        room2.addObject(settingsTitle, gitlogin, notifications, display, about);
+
+
         let shopRoom = new Room('shopRoom');
         let settingsRoom = new Room('settingsRoom');
         petObject = new Object('objectType3', 14, 14);
 
-        let toRoom1 = new NavigationButton('buttonObject', 0, 0, 'room1');
+        let toRoom1 = new NavigationButton('buttonObject', 0, 54, 'room1');
         let toRoom2 = new NavigationButton('buttonObject', 18, 0, 'room2');
 
-        room2.addObject(myButton);
-        room1.addObject(petObject);
-        room2.addObject(toRoom1);
-        room1.addObject(toRoom2);
+        room1.addObject(petObject, toRoom2);
+
 
         // Set the initial room in the game
         $game.setCurrentRoom('room1');
@@ -63,7 +79,7 @@
             sprites.push(obj.getSprite());
         }
 
-        screen = generateScreen(sprites, 48, 48);
+        screen = generateScreen(sprites, 64, 64);
     }
 
     onMount(async () => {
@@ -92,7 +108,9 @@
     class="grid-container"
     on:click={(e) => handleClick(e, $game)}
     on:mousemove={(e) => handleMouseMove(e, $game)}
+    on:mouseleave={(e) => handleMouseOut(e)}
     on:keypress={null}
+    on:blur={null}
 >
     {#if hasMainLoopStarted}
         {#each screen as row}
