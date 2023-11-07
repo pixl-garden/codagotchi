@@ -1,41 +1,61 @@
 <script context="module">
     import { Object, Button, NavigationButton } from './Object.svelte';
+    import { getPadding, getPixelSize } from "./ScreenManager.svelte";
 
     const GRIDWIDTH = 64;
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let pixelSize = Math.floor(width / GRIDWIDTH);
-
+    let mouseExited = false;
     let lastHoveredObject = null;
 
     export function handleClick(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
-
+        const padding = getPadding();
+        const pixelSize = getPixelSize();
+        
+        // Adjust the mouse coordinates for the current pixelSize and screen padding
         const mouseX = event.clientX - boundingBox.left;
         const mouseY = event.clientY - boundingBox.top;
-
-        const gridX = Math.floor(mouseX / pixelSize);
+        const gridX = Math.floor((mouseX - padding) / pixelSize);
         const gridY = Math.floor(mouseY / pixelSize);
 
         const clickedObject = getObjectAt(gridX, gridY, gameInstance);
 
-        // TODO - add a general check system for interactive objects
-        if (clickedObject instanceof Button || NavigationButton) {
+        // Check for interactive objects
+        if(clickedObject){
             clickedObject.clickAction();
         }
     }
 
-    //handles mouse movement on screen (hovering)
     export function handleMouseMove(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
+        const padding = getPadding();
+        const pixelSize = getPixelSize();
+        
+        // Adjust the mouse coordinates for the current pixelSize and screen padding
         const mouseX = event.clientX - boundingBox.left;
         const mouseY = event.clientY - boundingBox.top;
-
-        const xPixelCoord = Math.floor(mouseX / pixelSize);
+        const xPixelCoord = Math.floor((mouseX - padding) / pixelSize);
         const yPixelCoord = Math.floor(mouseY / pixelSize);
 
         const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
 
+        if (mouseExited && hoveredObject === lastHoveredObject) {
+            // Handle the case when mouse re-enters over the same object
+            if (hoveredObject.onHover) {
+                hoveredObject.onHover();
+            }
+            mouseExited = false;  // Reset the flag
+        }
+        // Check if we've moved off an object
+        else if (!hoveredObject && lastHoveredObject) {
+            if (lastHoveredObject.onStopHover) {
+                lastHoveredObject.onStopHover();
+            }
+            event.currentTarget.style.cursor = 'default'; // Reset cursor
+            lastHoveredObject = null; // Reset the last hovered object
+            return; // Exit early
+        }
         // Only call onHover and onStopHover if the hovered object has changed
         if (hoveredObject !== lastHoveredObject) {
             // Call onStopHover on the last hovered object
@@ -43,25 +63,27 @@
                 lastHoveredObject.onStopHover();
             }
 
-            if (hoveredObject) {
-                // Change cursor to pointer if the hovered object is a button
-                // TODO - add a general check system for interactive objects
-                if (hoveredObject instanceof Button) {
-                    event.currentTarget.style.cursor = 'pointer'; // Change cursor to pointer
-                } else {
-                    event.currentTarget.style.cursor = 'default'; // Reset cursor
-                }
-
-                // Call onHover on the hovered object
-                if (hoveredObject.onHover) {
-                    hoveredObject.onHover();
-                }
+            // Update the cursor based on the new hoveredObject
+            if (hoveredObject instanceof Button) {
+                event.currentTarget.style.cursor = 'pointer';
             } else {
-                event.currentTarget.style.cursor = 'default'; // Reset cursor if no object is hovered
+                event.currentTarget.style.cursor = 'default';
+            }
+
+            if (hoveredObject && hoveredObject.onHover) {
+                hoveredObject.onHover();
             }
 
             lastHoveredObject = hoveredObject;
         }
+    }
+
+    export function handleMouseOut(event) {
+        if (lastHoveredObject && lastHoveredObject.onStopHover) {
+            lastHoveredObject.onStopHover();
+            event.currentTarget.style.cursor = 'default';
+        }
+        mouseExited = true; // Set the flag to true
     }
 
     function getObjectAt(x, y, gameInstance) {

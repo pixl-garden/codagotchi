@@ -3,5 +3,5 @@
     "singleQuote": true,
     "tabWidth": 4,
     "plugins": ["prettier-plugin-svelte"],
-    "printWidth": 120
+    "printWidth": 150
   }

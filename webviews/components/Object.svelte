@@ -6,18 +6,18 @@
     import { get } from 'svelte/store';
 
     export class GeneratedObject {
-        constructor(sprites, states, x, y, z = 0) {
+        constructor(sprites, states, x, y, z = 0, actionOnClick = null) {
             if (!sprites) {
-                console.error(`Sprite matrix not found for object at coordinates: (${x}, ${y})`);
+                console.error(`Sprite matrix not found for object with states: ${states}`);
             }
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
             this.spriteHeight = sprites[0].length;
-            console.log('SPRITES: ', this.sprites);
             this.states = states;
             this.currentSpriteIndex = 0;
             this.state = 'default';
             this.setCoordinate(x, y, z);
+            this.actionOnClick = actionOnClick;
         }
 
         setCoordinate(newX, newY, newZ) {
@@ -48,22 +48,22 @@
         }
 
         onHover() {
-            console.log(`Hovered over generated object at coordinates: (${this.x}, ${this.y})`);
+            // console.log(`Hovered over generated object at coordinates: (${this.x}, ${this.y})`);
         }
 
         onStopHover() {
-            console.log(`Stopped hovering over generated object at coordinates: (${this.x}, ${this.y})`);
+            // console.log(`Stopped hovering over generated object at coordinates: (${this.x}, ${this.y})`);
         }
 
         clickAction() {
-            console.log(`Clicked on generated object at coordinates: (${this.x}, ${this.y})`);
+            this.actionOnClick();
         }
     }
 
     export class Object extends GeneratedObject {
-        constructor(objectName, x, y, z = 0) {
+        constructor(objectName, x, y, z = 0, actionOnClick = null) {
             const config = objectConfig[objectName];
-            console.log(config);
+            // console.log(config);
             if (!config) {
                 throw new Error(`No configuration found for object type: ${objectName}`);
             }
@@ -82,8 +82,8 @@
             }
 
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
-            console.log('SPRITE MATRIX: ', spriteMatrix);
-            super(spriteMatrix, config.states, x, y, z);
+            // console.log('SPRITE MATRIX: ', spriteMatrix);
+            super(spriteMatrix, config.states, x, y, z, actionOnClick);
             this.spriteWidth = config.spriteWidth;
             this.spriteHeight = config.spriteHeight;
             this.objectType = objectName;
@@ -91,32 +91,28 @@
         }
 
         onHover() {
-            console.log(`Hovered over object of type: ${this.objectType}`);
+            // console.log(`Hovered over object of type: ${this.objectType}`);
         }
 
         onStopHover() {
-            console.log(`Stopped hovering over object of type: ${this.objectType}`);
+            // console.log(`Stopped hovering over object of type: ${this.objectType}`);
         }
     }
 
     export class Button extends Object {
-        constructor(objectName, x, y, action, z = 0) {
-            super(objectName, x, y, z);
-            this.action = action || (() => {});
-        }
-
-        clickAction() {
-            this.action();
+        constructor(objectName, x, y, actionOnClick, z = 0) {
+            super(objectName, x, y, z, actionOnClick);
+            this.action = actionOnClick || (() => {});
         }
 
         onHover() {
-            console.log('Button is hovered!');
+            // console.log('Button is hovered!');
             this.updateState('hovered');
             // Add any button-specific hover effects or logic here
         }
 
         onStopHover() {
-            console.log('Button hover stopped!');
+            // console.log('Button hover stopped!');
             this.updateState('default');
             // Reset any button-specific hover effects here
         }
@@ -124,14 +120,10 @@
     export class NavigationButton extends Button {
         constructor(objectName, x, y, targetRoom, z = 0) {
             super(
-                objectName,
-                x,
-                y,
-                () => {
+                objectName, x, y, () => {
                     // Set the current room in the game object to the target room
-                    get(game).setCurrentRoom(targetRoom);
-                },
-                z,
+                    get(game).setCurrentRoom(targetRoom); 
+                }, z
             );
         }
     }

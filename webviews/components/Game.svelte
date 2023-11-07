@@ -1,6 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
-    import { Object, Button, NavigationButton } from './Object.svelte';
+    import { NavigationButton } from './Object.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -54,13 +54,16 @@
             return this.name;
         }
 
-        addObject(object) {
-            this.objects.push(object);
+        addObject(...objects) {
+            //allows for multiple object parameters to be added at once
+            for (let object of objects) {
+                this.objects.push(object);
 
-            // Check if the object is a NavigationButton
-            if (object instanceof NavigationButton) {
-                // If so, add the target room to the list of adjacent rooms
-                this.adjacentRooms.add(object.targetRoom);
+                // Check if the object is a NavigationButton
+                if (object instanceof NavigationButton) {
+                    // If so, add the target room to the list of adjacent rooms
+                    this.adjacentRooms.add(object.targetRoom);
+                }
             }
         }
 

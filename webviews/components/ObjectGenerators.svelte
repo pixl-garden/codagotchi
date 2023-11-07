@@ -12,7 +12,7 @@
         textRenderer,
     ) {
         return class Button extends GeneratedObject {
-            constructor(text, x, y, actionOnClick) {
+            constructor(text, x, y, actionOnClick, z = 0) {
                 const defaultSprite = generateButtonMatrix(
                     width,
                     height,
@@ -29,8 +29,7 @@
                 );
 
                 // State management: 0 for default sprite and 1 for hover sprite
-                super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y);
-                this.actionOnClick = actionOnClick;
+                super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
             }
 
             onHover() {
@@ -41,11 +40,6 @@
             onStopHover() {
                 super.onStopHover(); // Call parent's stop hover function
                 this.updateState('default');
-            }
-
-            onClick() {
-                super.onClick(); // Call parent's click function
-                this.actionOnClick && this.actionOnClick();
             }
         };
     }

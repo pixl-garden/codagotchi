@@ -71,7 +71,7 @@
         const textX = Math.floor((width - textSprite[0].length) / 2);
         const textY = Math.floor((height - textSprite.length) / 2);
         overlayMatrix(outerSprite, textSprite, textX, textY);
-
+        // console.log('OUTER SPRITE: ', outerSprite);
         return outerSprite;
     }
 </script>
