@@ -22,7 +22,9 @@ We designed the system this way in order to let the backend modify clients’ ga
 
 ## Class Diagram
 
-![image](https://github.com/pixl-garden/codagotchi/assets/116697167/1a0518f1-1915-4a88-bc22-258020546b54)
+![Copy of deli5 drawio](https://github.com/pixl-garden/codagotchi/assets/116697167/f8853618-b759-42f9-8544-f5206e5208da)
+
+<br>
 
 ## Sequence Diagram
 
