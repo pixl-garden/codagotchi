@@ -2,7 +2,7 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, spriteReader, preloadAllSpriteSheets, Sprite, createTextRenderer } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object, Button, NavigationButton } from './Object.svelte';
+    import { Object, Button, NavigationButton, items } from './Object.svelte';
     import { Room, game } from './Game.svelte';
     
     const GRIDWIDTH = 64;
@@ -31,6 +31,9 @@
         petObject = new Object('objectType3', 14, 14)
         let toRoom1 = new NavigationButton('buttonObject', 0, 0, "room1");
         let toRoom2 = new NavigationButton('buttonObject', 18, 0, "room2");
+
+        //This is where the items room will be 
+        //itemObject = new items('hat', 0, 0)
 
         // Add objects to rooms as needed
         room1.addObject(toRoom2);
