@@ -2,7 +2,7 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, handleResize, Sprite } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object, GeneratedObject, NavigationButton } from './Object.svelte';
+    import { Object, Button, GeneratedObject, NavigationButton } from './Object.svelte';
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
@@ -26,6 +26,7 @@
         gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
+        const mainMenuButton = new NavigationButton('mainMenuButton', 0, 0, 'room2');
         const settingsTitleButton = generateButtonClass(64, 11, '#426b9e', 'black', '#426b9e', 'black', basic);
         const settingsMenuButton = generateButtonClass(64, 13, '#7997bc', 'black', '#426b9e', 'black', basic);
         const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', retro);
@@ -56,10 +57,7 @@
         let settingsRoom = new Room('settingsRoom');
         petObject = new Object('objectType3', 14, 14);
 
-        let toRoom1 = new NavigationButton('buttonObject', 0, 54, 'room1');
-        let toRoom2 = new NavigationButton('buttonObject', 18, 0, 'room2');
-
-        room1.addObject(petObject, toRoom2);
+        room1.addObject(petObject, mainMenuButton);
 
 
         // Set the initial room in the game

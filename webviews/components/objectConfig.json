@@ -42,5 +42,14 @@
             "default": [0],
             "hovered": [1]
         }
+    },
+    "mainMenuButton": {
+        "spriteWidth": 16,
+        "spriteHeight": 16,
+        "spriteSheet": "menuButtonSprite.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
     }
 }
