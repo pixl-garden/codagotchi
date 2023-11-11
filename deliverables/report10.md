@@ -30,7 +30,7 @@
 * **Appreciations:** We started and completed Deliverable 5 earlier than expected.
 * **Successes:** See above: also, we implemented new functionalities during the meeting and have a clear plan for work to be completed this coming week.
 * **Failures:** None for this week
-* **Barriers: **Ben dropped and fried his laptop
+* **Barriers:** Ben dropped and fried his laptop
 * **What to try next time:** Try to start Deliverable 6 earlier like we did with Deliverable 5
 
 ## Minutes
