@@ -1,5 +1,5 @@
 <script context="module">
-    const GRIDWIDTH = 64;
+    const GRIDWIDTH = 96;
     let width = window.innerWidth;
     let height = window.innerHeight;
     let pixelSize = Math.floor(width / GRIDWIDTH);

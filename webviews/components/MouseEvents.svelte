@@ -2,7 +2,7 @@
     import { Object, Button, NavigationButton } from './Object.svelte';
     import { getPadding, getPixelSize } from "./ScreenManager.svelte";
 
-    const GRIDWIDTH = 64;
+    const GRIDWIDTH = 96;
     let width = window.innerWidth;
     let height = window.innerHeight;
     let mouseExited = false;
