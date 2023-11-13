@@ -5,18 +5,12 @@
         "spriteSheet": "pearguin.png",
         "states":
             {
-                "default": {
-                    "default": {
-                        "frames": [0],
-                        "odds": 1
-                    }
-                },
-                "idle-animation": {
-                    "blink":{
-                        "frames": [0, "...", 23],
-                        "odds": 3
-                    }
-                }
+                "default": [0],
+                "flop": [0, "...", 23]
+            },
+        "stateGroups":
+            {
+                
             }
     }
 }
