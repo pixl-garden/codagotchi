@@ -2,6 +2,7 @@
     import { Sprite } from './Codagotchi.svelte';
     import { spriteReader, spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
+    import petConfig from './petConfig.json';
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
 
@@ -60,6 +61,128 @@
         }
     }
 
+    function processStateFrames(frames) {
+        if (frames.length === 3 && frames[1] === '...') {
+            const start = frames[0];
+            const end = frames[2];
+            return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
+        return frames;
+    }
+
+    export class Pet extends GeneratedObject {
+    constructor(petType, x, y, z) {
+        const config = petConfig[petType];
+        if (!config) {
+            throw new Error(`No configuration found for pet type: ${petType}`);
+        }
+
+        
+        const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
+        super(spriteMatrix, config.states, x, y, z, () => {
+            this.queueState('idle-animation');
+            this.queueState('idle-animation');
+            this.queueState('default');
+        });
+        
+        this.processStates(config.states);
+        this.currentStateFrames = [];
+        this.currentGroupState = null;
+        this.stateQueue = [];
+        this.isStateCompleted = false;
+        this.updateState('default');
+    }
+
+    processStates(states) {
+        for (const key in states) {
+            if (typeof states[key] === 'object' && !Array.isArray(states[key])) {
+                this.processStatesWithOdds(states[key]);
+            } else {
+                states[key] = processStateFrames(states[key]);
+            }
+        }
+    }
+
+    processStatesWithOdds(states) {
+        for (const stateName in states) {
+            let state = states[stateName];
+            if (typeof state === 'object' && state.odds !== undefined) {
+                state.frames = processStateFrames(state.frames);
+            }
+        }
+    }
+
+    selectRandomStateInGroup(groupName) {
+        const stateGroup = this.states[groupName];
+        if (!stateGroup) {
+            console.error(`State group '${groupName}' not found.`);
+            return null;
+        }
+
+        let weightedList = [];
+
+        for (const stateName in stateGroup) {
+            const state = stateGroup[stateName];
+            for (let i = 0; i < state.odds; i++) {
+                weightedList.push({ stateName, frames: state.frames });
+            }
+        }
+
+        const randomIndex = Math.floor(Math.random() * weightedList.length);
+        return weightedList[randomIndex];
+    }
+
+    updateState(newState) {
+        if (typeof this.states[newState] === 'object' && !Array.isArray(this.states[newState])) {
+            const randomState = this.selectRandomStateInGroup(newState);
+            if (randomState) {
+                this.currentGroupState = randomState.stateName;
+                this.currentStateFrames = randomState.frames;
+            }
+        } else if (this.states[newState]) {
+            this.currentGroupState = null;
+            this.currentStateFrames = this.states[newState];
+        } else {
+            console.error(`State '${newState}' not found.`);
+            return;
+        }
+
+        this.state = newState;
+        this.currentSpriteIndex = 0;
+        this.isStateCompleted = false;
+    }
+
+    nextFrame() {
+        if (this.currentStateFrames.length === 0) {
+            console.error('No frames available for the current state.');
+            return;
+        }
+
+        this.currentSpriteIndex++;
+
+        if (this.currentSpriteIndex >= this.currentStateFrames.length) {
+            this.currentSpriteIndex = 0; // Reset to the first frame
+            this.isStateCompleted = true;
+            this.nextState();
+        }
+    }
+
+    queueState(state) {
+        this.stateQueue.push(state);
+        if (!this.state || this.isStateCompleted) {
+            this.nextState();
+        }
+    }
+
+    nextState() {
+        if (this.stateQueue.length > 0) {
+            const nextState = this.stateQueue.shift();
+            this.updateState(nextState);
+        }
+    }
+}
+
+
     export class Object extends GeneratedObject {
         constructor(objectName, x, y, z = 0, actionOnClick = null) {
             const config = objectConfig[objectName];
@@ -70,15 +193,6 @@
 
             for (const state in config.states) {
                 config.states[state] = processStateFrames(config.states[state]);
-            }
-
-            function processStateFrames(frames) {
-                if (frames.length === 3 && frames[1] === '...') {
-                    const start = frames[0];
-                    const end = frames[2];
-                    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-                }
-                return frames;
             }
 
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);

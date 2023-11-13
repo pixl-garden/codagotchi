@@ -2,14 +2,14 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, handleResize, Sprite } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object, Button, GeneratedObject, NavigationButton } from './Object.svelte';
+    import { Object, Pet, Button, GeneratedObject, NavigationButton } from './Object.svelte';
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass } from './ObjectGenerators.svelte';
 
-    const FPS = 10; //frames per second
+    const FPS = 16; //frames per second
     const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
     let screen = [];
     let petObject;
@@ -27,8 +27,8 @@
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const mainMenuButton = new NavigationButton('mainMenuButton', 0, 0, 'room2');
-        const settingsTitleButton = generateButtonClass(64, 11, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const settingsMenuButton = generateButtonClass(64, 13, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+        const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', retro);
 
         let room1 = new Room('room1');
@@ -37,17 +37,17 @@
         const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {
             console.log('Button was clicked!');
         });
-        const gitlogin = new settingsMenuButton('Git Login', 0, 10, () => {
+        const gitlogin = new settingsMenuButton('Git Login', 0, 12, () => {
             handleGitHubLogin();
         });
-        const notifications = new settingsMenuButton('Notifs', 0, 22, () => {
+        const notifications = new settingsMenuButton('Notifs', 0, 28, () => {
             console.log('Button was clicked!');
         });
-        const display = new settingsMenuButton('Display', 0, 34, () => {
+        const display = new settingsMenuButton('Display', 0, 44, () => {
             console.log('Button was clicked!');
         });
-        const about = new settingsMenuButton('<BACK', 0, 46, () => {
-                    $game.setCurrentRoom('room1');
+        const about = new settingsMenuButton('<BACK', 0, 60, () => {
+                    $game.setCurrentRoom('room1'); 
                     console.log("BRUHHH")
         });
         room2.addObject(settingsTitle, gitlogin, notifications, display, about);
@@ -55,7 +55,9 @@
 
         let shopRoom = new Room('shopRoom');
         let settingsRoom = new Room('settingsRoom');
-        petObject = new Object('objectType3', 14, 14);
+        // petObject = new Object('objectType3', 14, 14);
+        petObject = new Pet('pearguin', 20, 25);
+        
 
         room1.addObject(petObject, mainMenuButton);
 
@@ -77,7 +79,7 @@
             sprites.push(obj.getSprite());
         }
 
-        screen = generateScreen(sprites, 64, 64);
+        screen = generateScreen(sprites, 96, 96);
     }
 
     onMount(async () => {
