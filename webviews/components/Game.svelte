@@ -75,5 +75,10 @@
         update() {
             // Default room-specific logic and updates
         }
+        removeObject(...objects) {
+            for (let object of objects) {
+                this.objects = this.objects.filter((obj) => obj !== object);
+            }
+        }
     }
 </script>
