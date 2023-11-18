@@ -6,10 +6,17 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "svelte3"
+    ],
+    "overrides" : [
+        {
+            "files": ["*.svelte"],
+            "processor": "svelte3/svelte3"
+        }
     ],
     "rules": {
-        "@typescript-eslint/naming-convention": "warn",
+        "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/semi": "off",
         "curly": "warn",
         "eqeqeq": "warn",

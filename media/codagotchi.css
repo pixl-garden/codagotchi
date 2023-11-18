@@ -101,7 +101,6 @@
   }
   
   .pixel {
-    /* flex: 1 0 calc((100% - (--container-padding * 2)) / 32); Adjust based on your desired square size and number of columns */
     width: var(--pixel-size, 3px);
     height: var(--pixel-size, 3px);
   }
@@ -123,60 +122,3 @@
     color: var(--vscode-input-placeholderForeground);
   }
 
-  .roomButtonContainer {
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    padding: 10px 0;
-    position: absolute;
-    width: var(--screen-width, 0px);
-    top: var(--button-container-top);
-    background-color: #141414
-  }
-
-  .settingsButtonContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-  }
-
-  .navButton {
-    background-color: #555; /* Dark grey, adjust as needed */
-    color: white;           /* White text color */
-    width: 75px;            /* 40px wide */
-    height: 20px;           /* 20px tall */
-    border-radius: 10px;    /* Half of the height to make it ovular horizontally */
-    text-align: center;     /* Center the text */
-    line-height: 20px;      /* Vertically center the text */
-    border: none;           /* Remove any default border */
-    cursor: pointer;        /* Change cursor to pointer on hover */
-    font-size: 12px;        /* Adjust if the text size is not fitting as desired */
-  }
-
-  .settingsButton {
-    padding: 10px; 
-    width: 100%;
-    border-radius: 3px; 
-    background-color: #4f4f4f; 
-    transition: background-color 0.2s; 
-    cursor: pointer; 
-    color: #c9c9c9;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-  }
-
-  .settingsButton:last-child {
-    margin-bottom: 0;
-  }
-  
-.settingsButton:hover {
-    background-color: #999797;
-}
-
-.settingsButton:active {
-    background-color: #333;
-}
