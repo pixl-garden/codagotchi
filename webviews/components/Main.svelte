@@ -16,6 +16,7 @@
     let hasMainLoopStarted = false;
     let currentRoom;
     let basic, gang, retro; //font renderers
+    let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
 
     //run once before main loop
     function pre() {
@@ -36,6 +37,10 @@
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+
+        const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', retro);
+
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
 
         // drop down buttons
@@ -75,13 +80,19 @@
         // create rooms
         let mainRoom = new Room('mainRoom');
         let settingsRoom = new Room('settingsRoom');
+        petObject = new Pet('pearguin', 24, 25, 0, "superSaiyan");
+        
+        const leftHatArrow = new singleLetterButton('<', 20, 72, () => {
+            petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
+        });
+        const rightHatArrow = new singleLetterButton('>', 60, 72, () => {
+            petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
+        });
+
         let shopRoom = new Room('shopRoom'); 
-      
-        // petObject = new Object('objectType3', 14, 14);
-        petObject = new Pet('pearguin', 20, 25);
         
         // add objects to rooms
-        mainRoom.addObject(petObject, mainMenuButton);
+        mainRoom.addObject(petObject, mainMenuButton, leftHatArrow, rightHatArrow);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
 
         // Set the initial room in the game
@@ -91,16 +102,23 @@
     function main() {
         let sprites = []; // Clear previous sprites
         petObject.nextFrame();
-
+        
         // Get the current room from the game object
         currentRoom = $game.getCurrentRoom();
         hasMainLoopStarted = true;
-
+        
         // Render objects in the current room
         for (let obj of currentRoom.getObjects()) {
-            sprites.push(obj.getSprite());
+            const sprite = obj.getSprite();
+            //if an array, unpack array and push each sprite individually
+            if (Array.isArray(sprite)) {
+                sprites.push(...sprite);
+            //if not an array, push sprite
+            } else {
+                sprites.push(sprite);
+            }
         }
-
+        
         screen = generateScreen(sprites, 96, 96);
     }
 
