@@ -37,10 +37,7 @@
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
-
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', retro);
-
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
 
         // drop down buttons
@@ -51,7 +48,7 @@
             $game.setCurrentRoom('shopRoom');
         });
         const dropDown_3 = new dropDownButton('Customize', 0, 24, () => {
-            console.log('Button was clicked!');
+            $game.setCurrentRoom('customizeRoom');
         });
         const dropDown_4 = new dropDownButton('Close', 0, 36, () => {
             $game.getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
@@ -80,7 +77,8 @@
         // create rooms
         let mainRoom = new Room('mainRoom');
         let settingsRoom = new Room('settingsRoom');
-        petObject = new Pet('pearguin', 24, 25, 0, "superSaiyan");
+        let customizeRoom = new Room('customizeRoom');
+        petObject = new Pet('pearguin', 24, 25, 0, "leaf");
         
         const leftHatArrow = new singleLetterButton('<', 20, 72, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
@@ -88,12 +86,17 @@
         const rightHatArrow = new singleLetterButton('>', 60, 72, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
         });
+        const backToMain = new singleLetterButton('<', 0, 0, () => {
+            $game.setCurrentRoom('mainRoom');
+        });
 
         let shopRoom = new Room('shopRoom'); 
         
         // add objects to rooms
-        mainRoom.addObject(petObject, mainMenuButton, leftHatArrow, rightHatArrow);
+        mainRoom.addObject(petObject, mainMenuButton);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
+        customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain);
+        shopRoom.addObject(backToMain);
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
