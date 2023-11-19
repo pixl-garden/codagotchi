@@ -2,6 +2,7 @@
     import { get } from 'svelte/store';
     import { images, preloadedSpriteSheets } from './store.js';
 
+    //takes in a pixelMatrix (of a spriteSheet) and returns an array of sprites
     export function spriteReader(spriteWidth, spriteHeight, pixelMatrix) {
         if (!pixelMatrix || !Array.isArray(pixelMatrix) || pixelMatrix.length === 0) {
             console.error('Invalid sprite matrix provided:', pixelMatrix);
@@ -41,6 +42,8 @@
 
         return sprites;
     }
+
+    //takes in a sprite sheet file name and returns an array of sprites
     export function spriteReaderFromStore(spriteWidth, spriteHeight, spriteSheetFile) {
         const preloaded = get(preloadedSpriteSheets);
         if (!preloaded) {

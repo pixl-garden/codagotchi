@@ -1,0 +1,30 @@
+{
+    "spriteWidth": 32,
+    "spriteHeight": 32,
+    "spriteSheet": "hats.png",
+    "leaf":{
+        "anchorX": 8,
+        "anchorY": 5,
+        "spriteIndex": 0
+    },
+    "marge": {
+        "anchorX": 14,
+        "anchorY": 23,
+        "spriteIndex": 1
+    },
+    "partyDots":{
+        "anchorX": 15,
+        "anchorY": 8,
+        "spriteIndex": 2
+    },
+    "partySpiral":{
+        "anchorX": 19,
+        "anchorY": 13,
+        "spriteIndex": 3
+    },
+    "superSaiyan":{
+        "anchorX": 12,
+        "anchorY": 15,
+        "spriteIndex": 4
+    }
+}

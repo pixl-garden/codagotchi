@@ -5,6 +5,7 @@
     import petConfig from './petConfig.json';
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
+    import hatConfig from './hatConfig.json'
 
     export class GeneratedObject {
         constructor(sprites, states, x, y, z = 0, actionOnClick = null) {
@@ -71,15 +72,14 @@
     }
 
     export class Pet extends GeneratedObject {
-        constructor(petType, x, y, z) {
+        constructor(petType, x, y, z, hat) {
             const config = petConfig[petType];
             if (!config) {
                 throw new Error(`No configuration found for pet type: ${petType}`);
             }
 
-            
-            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
-            super(spriteMatrix, config.states, x, y, z, () => {
+            const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);            //GeneratedObject(sprites, states, x, y, z, actionOnClick)
+            super(petSpriteArray, config.states, x, y, z, () => {
                 this.queueState('flop')
                 this.queueState('flop')
                 this.queueState('default')
@@ -91,10 +91,33 @@
             } else {
                 this.stateGroups = {};
             }
+            //TODO: map hat anchor from pet spritesheet
+            this.petAnchorX = 24
+            this.petAnchorY = 12
             this.currentStateFrames = [];
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.updateState("default")
+            this.hatConfig = hatConfig
+            this.setHat(hat)
+        }
+
+        getSprite() {
+            let petSprite = new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
+            let hatSprite = this.getHat()
+            return [petSprite, hatSprite]
+        }
+
+        setHat(hat) {
+            this.hat = hat
+            this.currentHatConfig = this.hatConfig[hat]
+            this.hatSprite = spriteReaderFromStore(this.hatConfig.spriteWidth, this.hatConfig.spriteHeight, this.hatConfig.spriteSheet)[this.currentHatConfig.spriteIndex]
+            this.hatAnchorX = this.currentHatConfig.anchorX
+            this.hatAnchorY = this.currentHatConfig.anchorY
+        }
+
+        getHat() {
+            return new Sprite(this.hatSprite, this.x + this.petAnchorX - this.hatAnchorX, this.y + this.petAnchorY - this.hatAnchorY);
         }
 
         processStates(states) {
