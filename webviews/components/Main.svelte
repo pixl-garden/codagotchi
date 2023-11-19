@@ -20,22 +20,46 @@
 
     //run once before main loop
     function pre() {
+
         handleResize();
         //prettier-ignore
         //createTextRenderer(image, charWidth, charHeight, color, letterSpacing, charMap)
         basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
         gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
+
+        // main menu button (drop down)
+        const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
+            $game.getCurrentRoom().removeObject(mainMenuButton);
+            $game.getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4);
+        }, 1);
+
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
-        const mainMenuButton = new NavigationButton('mainMenuButton', 0, 0, 'room2');
         const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
         const newButton = generateButtonClass(33, 14, 'red', 'white', 'pink', 'cyan', retro);
 
-        let room1 = new Room('room1');
-        let room2 = new Room('room2');
+        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
 
+        // drop down buttons
+        const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
+            $game.setCurrentRoom('settingsRoom');
+        });
+        const dropDown_2 = new dropDownButton('Shop', 0, 12, () => {
+            $game.setCurrentRoom('shopRoom');
+        });
+        const dropDown_3 = new dropDownButton('Customize', 0, 24, () => {
+            console.log('Button was clicked!');
+        });
+        const dropDown_4 = new dropDownButton('Close', 0, 36, () => {
+            $game.getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
+                                                 dropDown_3, dropDown_4 );
+            $game.getCurrentRoom().addObject(mainMenuButton);
+        });
+
+        // settings menu buttons
         const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {
             console.log('Button was clicked!');
         });
@@ -49,13 +73,12 @@
             console.log('Button was clicked!');
         });
         const about = new settingsMenuButton('<BACK', 0, 60, () => {
-                    $game.setCurrentRoom('room1'); 
-                    console.log("BRUHHH")
+            $game.setCurrentRoom('mainRoom'); 
+            console.log("BRUHHH")
         });
-        room2.addObject(settingsTitle, gitlogin, notifications, display, about);
-
-
-        let shopRoom = new Room('shopRoom');
+        
+        // create rooms
+        let mainRoom = new Room('mainRoom');
         let settingsRoom = new Room('settingsRoom');
         petObject = new Pet('pearguin', 24, 25, 0, "superSaiyan");
         
@@ -65,11 +88,15 @@
         const rightHatArrow = new singleLetterButton('>', 60, 72, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
         });
-        room1.addObject(petObject, mainMenuButton, leftHatArrow, rightHatArrow);
 
+        let shopRoom = new Room('shopRoom'); 
+        
+        // add objects to rooms
+        mainRoom.addObject(petObject, mainMenuButton, leftHatArrow, rightHatArrow);
+        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
 
         // Set the initial room in the game
-        $game.setCurrentRoom('room1');
+        $game.setCurrentRoom('mainRoom');
     }
     //main loop
     function main() {
@@ -115,6 +142,7 @@
     function handleGitHubLogin() {
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
     }
+
 </script>
 
 <div
@@ -133,28 +161,5 @@
                 {/each}
             </div>
         {/each}
-        <div class="roomButtonContainer">
-            {#if currentRoom.name === 'room1'}
-                <button class="navButton" on:click={() => $game.setCurrentRoom('settingsRoom')}>Settings</button>
-                <button class="navButton" on:click={() => $game.setCurrentRoom('shopRoom')}>Shop</button>
-            {/if}
-
-            {#if currentRoom.name === 'shopRoom'}
-                <button class="navButton" on:click={() => $game.setCurrentRoom('room1')}>Back</button>
-            {/if}
-
-            {#if currentRoom.name === 'settingsRoom'}
-                <button class="navButton" on:click={() => $game.setCurrentRoom('room1')}>Back</button>
-            {/if}
-        </div>
-        {#if currentRoom.name === 'settingsRoom'}
-            <div class="settingsButtonContainer">
-                <button class="settingsButton" on:click={handleGitHubLogin} id="github-login">
-                    Login with GitHub
-                </button>
-                <button class="settingsButton" id="changeNotifications"> Change Notifications </button>
-                <button class="settingsButton" id="changeDifficulty"> Change Difficulty </button>
-            </div>
-        {/if}
     {/if}
 </div>

@@ -38,7 +38,6 @@
 
     export function handleResize() {
         updateDimensions();
-        updateButtonContainer();
         updateStyles();
     }
 
@@ -56,12 +55,6 @@
         pixelSize = Math.floor(width / GRIDWIDTH);
         screenWidth = GRIDWIDTH * pixelSize;
         padding = (width - screenWidth) / 2;
-    }
-
-    function updateButtonContainer() {
-        let buttonContainerHeight = 50;
-        let buttonContainerTop = height - buttonContainerHeight;
-        document.documentElement.style.setProperty('--button-container-top', `${buttonContainerTop}px`);
     }
 
     function updateStyles() {
