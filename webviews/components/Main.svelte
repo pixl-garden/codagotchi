@@ -126,18 +126,28 @@
     }
 
     onMount(async () => {
+        //current load times: 2.4, 1.9, 2.6, 2.5
+        let startTime, endTime;
+
         window.addEventListener('message', async (event) => {
             const message = event.data;
             if (message.type === 'image-uris') {
+                startTime = performance.now();  // Start timing
+
                 images.set(message.uris);
-                //wait until all sprites are loaded
+                // Wait until all sprites are loaded
                 await preloadAllSpriteSheets().then(() => {
-                    //call pre() once and start main loop
+                    // Call pre() once and start main loop
                     pre();
+                    endTime = performance.now();  // End timing
+
+                    console.log(`Time taken: ${endTime - startTime} milliseconds`);
+
                     setInterval(main, Math.floor(1000 / FPS));
                 });
             }
         });
+
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);
     });
