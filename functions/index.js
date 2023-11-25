@@ -3,7 +3,6 @@ const admin = require('firebase-admin');
 const axios = require('axios');
 
 admin.initializeApp();
-
 exports.handleGitHubRedirect = functions.https.onRequest(async (request, response) => {
     const code = request.query.code;
     const state = request.query.state;
@@ -37,16 +36,28 @@ exports.handleGitHubRedirect = functions.https.onRequest(async (request, respons
             return;
         }
 
-        // Store the access token in Firebase
+        const githubUserResponse = await axios.get('https://api.github.com/user', {
+            headers: {
+                'Authorization': `token ${accessToken}`,
+                'User-Agent': 'Codagotchi'
+            }
+        });
+
+        const githubUserId = githubUserResponse.data.id;
+        const githubUsername = githubUserResponse.data.login;
+
+        // Create a Firebase custom token
+        const firebaseToken = await admin.auth().createCustomToken(githubUserId.toString());
+
+        // Update the Realtime Database
         const db = admin.database();
-        const ref = db.ref('oauthData');
+        const ref = db.ref('authTokens/' + state); // 'state' is the UUID
+        await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready' });
 
-        await ref.child(state).set({ accessToken: accessToken });
-
-        response.status(200).json({ message: "Access token stored successfully" });
-
-    } catch (error) {
-        console.error("Failed to exchange code for token:", error);
-        response.status(500).json({ error: "Failed to exchange code for token" });
+        response.send("Authentication successful, you can return to the app.");
+    } 
+    catch (error) {
+        console.error("Error in GitHub authentication:", error);
+        response.status(500).send("Authentication failed");
     }
 });
