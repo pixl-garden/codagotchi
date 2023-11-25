@@ -76,7 +76,7 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
-    "firebase": "^10.4.0",
+    "firebase": "^10.6.0",
     "uuid": "^9.0.1"
   },
   "jest": {

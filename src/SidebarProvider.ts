@@ -3,11 +3,14 @@ import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package installed.
-import { set, get } from 'firebase/database';
+import { database } from './firebaseInit';
+import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { getDatabase, ref, set, get, onValue } from 'firebase/database';
 
 const CLIENT_ID = 'a253a1599d7b631b091a';
 const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
 const REQUESTED_SCOPES = 'user,read:user';
+let githubUsername = '';
 
 // Generate a unique state value
 const state = uuidv4();
@@ -86,21 +89,58 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 case 'openOAuthURL': {
                     vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
                     console.log('openOAuthUrl');
-
-                    // Wait for a few seconds to give the OAuth process time to complete
-                    setTimeout(() => {
-                        // Fetch the token from the Cloud Function
-                        fetch('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect')
-                            .then((response) => response.json())
-                            .then((data) => {
-                                const token = data.token;
-                                // Use the token or handle the data as needed
-                                console.log('Received token:', token);
+                
+                    const tokenRef = ref(database, 'authTokens/' + state);
+                    onValue(tokenRef, (snapshot) => {
+                        const data = snapshot.val();
+                        if (data && data.status === 'ready') {
+                            const firebaseToken = data.token;
+                            githubUsername = data.githubUsername;
+                            console.log('Received token:', firebaseToken);
+                
+                            // Automatically sign in with the received custom token
+                            const auth = getAuth();
+                            signInWithCustomToken(auth, firebaseToken)
+                            .then((userCredential) => {
+                                // User is now authenticated with Firebase
+                                const uid = userCredential.user.uid;
+                                
+                                // Reference to the user's data in the database
+                                const db = getDatabase();
+                                const userRef = ref(db, 'users/' + uid);
+                        
+                                // Check if the user's data exists
+                                get(userRef).then((snapshot) => {
+                                    if (!snapshot.exists()) {
+                                        // If the user's data doesn't exist, create it
+                                        set(userRef, {
+                                            // Initialize user data, e.g., 
+                                            createdAt: new Date().toISOString(),
+                                            githubUsername: githubUsername
+                                            // ... other initial data
+                                        }).then(() => {
+                                            console.log('User data initialized.');
+                                            // Send the GitHub username to the webview
+                                            webviewView.webview.postMessage({
+                                                type: 'github-username',
+                                                username: githubUsername,
+                                            });
+                                        }).catch((error) => {
+                                            console.error('Error initializing user data:', error);
+                                        });
+                                    }
+                                }).catch((error) => {
+                                    console.error('Error checking user data:', error);
+                                });
+                        
                             })
                             .catch((error) => {
-                                console.error('Error fetching data:', error);
+                                // Handle errors
+                                console.error('Error signing in with custom token:', error);
                             });
-                    }, 5000); // 5 seconds delay, adjust as needed
+                        }
+                    });
+                
                     break;
                 }
 
@@ -139,6 +179,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             type: 'currentRoom',
             value: roomName,
         });
+    }
+
+    public getGithubUsername() {
+        return githubUsername;
     }
 
     // private handleOAuthCallback(state: string, code: string) {

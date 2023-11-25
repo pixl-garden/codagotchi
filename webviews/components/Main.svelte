@@ -17,6 +17,7 @@
     let currentRoom;
     let basic, gang, retro; //font renderers
     let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
+    let githubUsername;
 
     //run once before main loop
     function pre() {
@@ -64,7 +65,7 @@
             handleGitHubLogin();
         });
         const notifications = new settingsMenuButton('Notifs', 0, 28, () => {
-            console.log('Button was clicked!');
+            console.log('Button was clicked!')
         });
         const display = new settingsMenuButton('Display', 0, 44, () => {
             console.log('Button was clicked!');
@@ -146,6 +147,10 @@
                     setInterval(main, Math.floor(1000 / FPS));
                 });
             }
+            else if (message.type === 'github-username') {
+                githubUsername = message.username;
+                console.log("GITHUB USERNAME: " + githubUsername);
+            }
         });
 
         tsvscode.postMessage({ type: 'webview-ready' });
@@ -154,7 +159,7 @@
 
     function handleGitHubLogin() {
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
-    }
+    };
 
 </script>
 
