@@ -12,7 +12,7 @@
         textRenderer,
     ) {
         return class Button extends GeneratedObject {
-            constructor(text, x, y, actionOnClick, z = 0) {
+            constructor(text, x, y, actionOnClick, z) {
                 const defaultSprite = generateButtonMatrix(
                     width,
                     height,

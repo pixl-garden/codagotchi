@@ -51,5 +51,15 @@
             "default": [0],
             "hovered": [1]
         }
+    },
+    "vanityBackground": {
+        "spriteWidth": 96,
+        "spriteHeight": 96,
+        "spriteSheet": "vanitySliding.png",
+        "states":{
+            "default": [0],
+            "slide": [1, "...", 36],
+            "open": [36]
+        }
     }
 }

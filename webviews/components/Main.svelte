@@ -18,6 +18,7 @@
     let basic, gang, retro; //font renderers
     let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
     let githubUsername;
+    // let background;
 
     //run once before main loop
     function pre() {
@@ -44,18 +45,18 @@
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
             $game.setCurrentRoom('settingsRoom');
-        });
+        }, 20);
         const dropDown_2 = new dropDownButton('Shop', 0, 12, () => {
             $game.setCurrentRoom('shopRoom');
-        });
+        }, 20);
         const dropDown_3 = new dropDownButton('Customize', 0, 24, () => {
             $game.setCurrentRoom('customizeRoom');
-        });
+        }, 20);
         const dropDown_4 = new dropDownButton('Close', 0, 36, () => {
             $game.getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
                                                  dropDown_3, dropDown_4 );
             $game.getCurrentRoom().addObject(mainMenuButton);
-        });
+        }, 20);
 
         // settings menu buttons
         const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {
@@ -83,15 +84,17 @@
         
         const leftHatArrow = new singleLetterButton('<', 20, 72, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
-        });
+        }, 0);
         const rightHatArrow = new singleLetterButton('>', 60, 72, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
-        });
+        }, 0);
         const backToMain = new singleLetterButton('<', 0, 0, () => {
             $game.setCurrentRoom('mainRoom');
-        });
+        }, 0);
 
         let shopRoom = new Room('shopRoom'); 
+
+        // background = new Background('vanityBackground', 0, 0, -20);
         
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton);
@@ -106,6 +109,7 @@
     function main() {
         let sprites = []; // Clear previous sprites
         petObject.nextFrame();
+        // background.nextFrame();
         
         // Get the current room from the game object
         currentRoom = $game.getCurrentRoom();

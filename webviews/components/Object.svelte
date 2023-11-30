@@ -8,7 +8,7 @@
     import hatConfig from './hatConfig.json'
 
     export class GeneratedObject {
-        constructor(sprites, states, x, y, z = 0, actionOnClick = null) {
+        constructor(sprites, states, x, y, z, actionOnClick = null) {
             if (!sprites) {
                 console.error(`Sprite matrix not found for object with states: ${states}`);
             }
@@ -22,6 +22,10 @@
             this.actionOnClick = actionOnClick;
         }
 
+        getZ() {
+            return this.z;
+        }
+
         setCoordinate(newX, newY, newZ) {
             this.x = newX;
             this.y = newY;
@@ -29,7 +33,7 @@
         }
 
         getSprite() {
-            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
+            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
         }
 
         updateState(newState) {
