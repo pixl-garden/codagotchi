@@ -87,8 +87,12 @@
     }
 
     function getObjectAt(x, y, gameInstance) {
-        // Iterate through objects in room
-        for (let obj of gameInstance.getObjectsOfCurrentRoom()) {
+        // Get all objects in the current room and sort them by z-axis (descending order)
+        let objects = gameInstance.getObjectsOfCurrentRoom();
+        objects.sort((a, b) => b.getZ() - a.getZ()); // Assuming getZ() returns the z-axis value
+
+        // Iterate through sorted objects to find the topmost object at the coordinates
+        for (let obj of objects) {
             // Check if the coordinates are within an object's bounding box
             if (x >= obj.x && x <= obj.x + obj.spriteWidth && y >= obj.y && y <= obj.y + obj.spriteHeight) {
                 return obj;

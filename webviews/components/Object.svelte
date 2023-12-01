@@ -8,18 +8,25 @@
     import hatConfig from './hatConfig.json'
 
     export class GeneratedObject {
-        constructor(sprites, states, x, y, z = 0, actionOnClick = null) {
+        constructor(sprites, states, x, y, z, actionOnClick = null) {
             if (!sprites) {
                 console.error(`Sprite matrix not found for object with states: ${states}`);
             }
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
             this.spriteHeight = sprites[0].length;
-            this.states = states;
+            this.states = processStates(states);
             this.currentSpriteIndex = 0;
+            this.currentStateIndex = 0;
             this.state = 'default';
             this.setCoordinate(x, y, z);
             this.actionOnClick = actionOnClick;
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+        }
+
+        getZ() {
+            return this.z;
         }
 
         setCoordinate(newX, newY, newZ) {
@@ -29,7 +36,7 @@
         }
 
         getSprite() {
-            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
+            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
         }
 
         updateState(newState) {
@@ -40,12 +47,34 @@
         }
 
         nextFrame() {
+            // Define sprites for current state
             const stateSprites = this.config.states[this.state];
-            this.currentSpriteIndex++;
+            this.currentStateIndex++;
 
-            // If the index goes beyond the number of sprites for the current state, wrap around
-            if (this.currentSpriteIndex >= stateSprites.length) {
-                this.currentSpriteIndex = this.config.states[this.state][0];
+            // If the state index exceeds the state length, reset to first sprite in state
+            if (this.currentStateIndex >= stateSprites.length) {
+                this.currentSpriteIndex = stateSprites[0];
+                this.currentStateIndex = 0;
+                this.isStateCompleted = true;
+                this.nextState();
+            }
+            // Otherwise, set the current sprite to the next sprite in the state
+            else{
+                this.currentSpriteIndex = stateSprites[this.currentStateIndex];
+            }
+        }
+
+        queueState(state) {
+            this.stateQueue.push(state);
+            if (!this.state || this.isStateCompleted) {
+                this.nextState();
+            }
+        }
+
+        nextState() {
+            if (this.stateQueue.length > 0) {
+                const nextState = this.stateQueue.shift();
+                this.updateState(nextState);
             }
         }
 
@@ -62,16 +91,8 @@
         }
     }
 
-    function processStateFrames(frames) {
-        if (frames.length === 3 && frames[1] === '...') {
-            const start = frames[0];
-            const end = frames[2];
-            return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-        }
-        return frames;
-    }
-
     export class Pet extends GeneratedObject {
+        //TODO: abstract state groups into a separate class
         constructor(petType, x, y, z, hat) {
             const config = petConfig[petType];
             if (!config) {
@@ -85,16 +106,15 @@
                 this.queueState('default')
             });
             
-            this.processStates(config.states);
             if (config.stateGroups) {
                 this.stateGroups = this.processStateGroups(config.stateGroups);
             } else {
                 this.stateGroups = {};
             }
+            this.config = config;
             //TODO: map hat anchor from pet spritesheet
             this.petAnchorX = 24
             this.petAnchorY = 12
-            this.currentStateFrames = [];
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.updateState("default")
@@ -103,7 +123,7 @@
         }
 
         getSprite() {
-            let petSprite = new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y);
+            let petSprite = new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
             let hatSprite = this.getHat()
             return [petSprite, hatSprite]
         }
@@ -118,12 +138,6 @@
 
         getHat() {
             return new Sprite(this.hatSprite, this.x + this.petAnchorX - this.hatAnchorX, this.y + this.petAnchorY - this.hatAnchorY);
-        }
-
-        processStates(states) {
-            for (const key in states) {
-                states[key] = processStateFrames(states[key]);
-            }
         }
 
         processStateGroups(stateGroups) {
@@ -160,48 +174,18 @@
                 // newState is a state group
                 const randomState = this.selectRandomStateInGroup(newState);
                 if (randomState) {
-                    this.currentStateFrames = randomState.frames;
                     this.state = randomState.stateName;
+                    this.currentSpriteIndex = this.state[randomState][0]
+                    this.isStateCompleted = false;
                 }
             } else if (this.states[newState]) {
                 // newState is a top-level state
-                this.currentStateFrames = this.states[newState];
                 this.state = newState;
+                this.currentSpriteIndex = this.states[newState][0]; // set to the first sprite of the new state
+                this.isStateCompleted = false;
             } else {
                 console.error(`State '${newState}' not found.`);
                 return;
-            }
-
-            this.currentSpriteIndex = 0;
-            this.isStateCompleted = false;
-        }
-
-        nextFrame() {
-            if (this.currentStateFrames.length === 0) {
-                console.error('No frames available for the current state.');
-                return;
-            }
-
-            this.currentSpriteIndex++;
-
-            if (this.currentSpriteIndex >= this.currentStateFrames.length) {
-                this.currentSpriteIndex = 0; // Reset to the first frame
-                this.isStateCompleted = true;
-                this.nextState();
-            }
-        }
-
-        queueState(state) {
-            this.stateQueue.push(state);
-            if (!this.state || this.isStateCompleted) {
-                this.nextState();
-            }
-        }
-
-        nextState() {
-            if (this.stateQueue.length > 0) {
-                const nextState = this.stateQueue.shift();
-                this.updateState(nextState);
             }
         }
     }
@@ -264,5 +248,21 @@
                 }, z
             );
         }
+    }
+
+    function processStates(states) {
+            for (const key in states) {
+                states[key] = processStateFrames(states[key]);
+            }
+            return states;
+        }
+
+    function processStateFrames(frames) {
+        if (frames.length === 3 && frames[1] === '...') {
+            const start = frames[0];
+            const end = frames[2];
+            return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
+        return frames;
     }
 </script>
