@@ -2,7 +2,7 @@
     import { onMount, afterUpdate } from 'svelte';
     import { generateScreen, handleResize, Sprite } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object, Pet, Button, GeneratedObject, NavigationButton } from './Object.svelte';
+    import { Object, Pet, Button, GeneratedObject, NavigationButton, Background } from './Object.svelte';
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
@@ -18,7 +18,7 @@
     let basic, gang, retro; //font renderers
     let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
     let githubUsername;
-    // let background;
+    let background;
 
     //run once before main loop
     function pre() {
@@ -94,12 +94,12 @@
 
         let shopRoom = new Room('shopRoom'); 
 
-        // background = new Background('vanityBackground', 0, 0, -20);
+        background = new Background('vanityBackground', 0, 0, -20);
         
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
-        customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain);
+        customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, background);
         shopRoom.addObject(backToMain);
 
         // Set the initial room in the game
@@ -109,7 +109,7 @@
     function main() {
         let sprites = []; // Clear previous sprites
         petObject.nextFrame();
-        // background.nextFrame();
+        background.nextFrame();
         
         // Get the current room from the game object
         currentRoom = $game.getCurrentRoom();
