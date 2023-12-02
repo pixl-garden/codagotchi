@@ -4,8 +4,6 @@
     --input-padding-horizontal: 4px;
     --input-margin-vertical: 4px;
     --input-margin-horizontal: 0;
-    --button-size: 33px; /* Size of the square buttons */
-    --button-container-top: 0;
   }
   * {
     margin: 0;
@@ -49,48 +47,6 @@
   code {
     font-size: var(--vscode-editor-font-size);
     font-family: var(--vscode-editor-font-family);
-  }
-  
-  .button-row {
-    display: flex;
-    justify-content: space-between;
-    min-width: 146px; /* Adjust this value to fit your needs */
-    overflow-x: auto; /* Add a scrollbar when the content overflows */
-  }
-  
-  .bottom-row {
-    bottom: 0;
-  }
-  
-  .button-row button {
-    width: var(--button-size);
-    height: var(--button-size);
-    padding: 0;
-    margin: 0;
-    text-align: center;
-    border: 1px solid var(--vscode-button-foreground); /* Add border */
-    outline: 1px solid transparent;
-    outline-offset: 2px !important;
-    color: var(--vscode-button-foreground);
-    background: transparent; /* Make background transparent */
-  }
-  
-  .button-row button:hover {
-    cursor: pointer;
-    background: var(--vscode-button-hoverBackground);
-  }
-  
-  .button-row button:focus {
-    outline-color: var(--vscode-focusBorder);
-  }
-  
-  .button-row button.secondary {
-    color: var(--vscode-button-secondaryForeground);
-    background: transparent; /* Make background transparent */
-  }
-  
-  .button-row button.secondary:hover {
-    background: var(--vscode-button-secondaryHoverBackground);
   }
 
   .grid-container {

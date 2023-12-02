@@ -2,7 +2,7 @@
     const GRIDWIDTH = 96;
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let pixelSize = Math.floor(width / GRIDWIDTH);
+    let pixelSize = width / GRIDWIDTH
     let screenWidth = GRIDWIDTH * pixelSize;
     let padding;
 
@@ -54,7 +54,8 @@
         height = window.innerHeight;
         pixelSize = Math.floor(width / GRIDWIDTH);
         screenWidth = GRIDWIDTH * pixelSize;
-        padding = (width - screenWidth) / 2;
+        // TODO: fix padding so that it doesnt need to be set here 
+        padding = 1;
     }
 
     function updateStyles() {
