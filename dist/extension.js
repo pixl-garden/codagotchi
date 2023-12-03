@@ -912,7 +912,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 var app = __webpack_require__(25);
 
 var name = "firebase";
-var version = "10.4.0";
+var version = "10.6.0";
 
 /**
  * @license
@@ -1011,7 +1011,7 @@ function isVersionServiceProvider(provider) {
 }
 
 var name$o = "@firebase/app";
-var version$1 = "0.9.19";
+var version$1 = "0.9.23";
 
 /**
  * @license
@@ -1078,7 +1078,7 @@ var name$2 = "@firebase/firestore";
 var name$1 = "@firebase/firestore-compat";
 
 var name = "firebase";
-var version = "10.4.0";
+var version = "10.6.0";
 
 /**
  * @license
@@ -1757,22 +1757,23 @@ var HeartbeatServiceImpl = /** @class */ (function () {
      * already logged, subsequent calls to this function in the same day will be ignored.
      */
     HeartbeatServiceImpl.prototype.triggerHeartbeat = function () {
+        var _a;
         return tslib.__awaiter(this, void 0, void 0, function () {
-            var platformLogger, agent, date, _a;
-            return tslib.__generator(this, function (_b) {
-                switch (_b.label) {
+            var platformLogger, agent, date, _b;
+            return tslib.__generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         platformLogger = this.container
                             .getProvider('platform-logger')
                             .getImmediate();
                         agent = platformLogger.getPlatformInfoString();
                         date = getUTCDateString();
-                        if (!(this._heartbeatsCache === null)) return [3 /*break*/, 2];
-                        _a = this;
+                        if (!(((_a = this._heartbeatsCache) === null || _a === void 0 ? void 0 : _a.heartbeats) == null)) return [3 /*break*/, 2];
+                        _b = this;
                         return [4 /*yield*/, this._heartbeatsCachePromise];
                     case 1:
-                        _a._heartbeatsCache = _b.sent();
-                        _b.label = 2;
+                        _b._heartbeatsCache = _c.sent();
+                        _c.label = 2;
                     case 2:
                         // Do not store a heartbeat if one is already stored for this day
                         // or if a header has already been sent today.
@@ -1803,24 +1804,25 @@ var HeartbeatServiceImpl = /** @class */ (function () {
      * returns an empty string.
      */
     HeartbeatServiceImpl.prototype.getHeartbeatsHeader = function () {
+        var _a;
         return tslib.__awaiter(this, void 0, void 0, function () {
-            var date, _a, heartbeatsToSend, unsentEntries, headerString;
-            return tslib.__generator(this, function (_b) {
-                switch (_b.label) {
+            var date, _b, heartbeatsToSend, unsentEntries, headerString;
+            return tslib.__generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         if (!(this._heartbeatsCache === null)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this._heartbeatsCachePromise];
                     case 1:
-                        _b.sent();
-                        _b.label = 2;
+                        _c.sent();
+                        _c.label = 2;
                     case 2:
                         // If it's still null or the array is empty, there is no data to send.
-                        if (this._heartbeatsCache === null ||
+                        if (((_a = this._heartbeatsCache) === null || _a === void 0 ? void 0 : _a.heartbeats) == null ||
                             this._heartbeatsCache.heartbeats.length === 0) {
                             return [2 /*return*/, ''];
                         }
                         date = getUTCDateString();
-                        _a = extractHeartbeatsForHeader(this._heartbeatsCache.heartbeats), heartbeatsToSend = _a.heartbeatsToSend, unsentEntries = _a.unsentEntries;
+                        _b = extractHeartbeatsForHeader(this._heartbeatsCache.heartbeats), heartbeatsToSend = _b.heartbeatsToSend, unsentEntries = _b.unsentEntries;
                         headerString = util.base64urlEncodeWithoutPadding(JSON.stringify({ version: 2, heartbeats: heartbeatsToSend }));
                         // Store last sent date to prevent another being logged/sent for the same day.
                         this._heartbeatsCache.lastSentHeartbeatDate = date;
@@ -1835,13 +1837,13 @@ var HeartbeatServiceImpl = /** @class */ (function () {
                         // This seems more likely than emptying the array (below) to lead to some odd state
                         // since the cache isn't empty and this will be called again on the next request,
                         // and is probably safest if we await it.
-                        _b.sent();
+                        _c.sent();
                         return [3 /*break*/, 5];
                     case 4:
                         this._heartbeatsCache.heartbeats = [];
                         // Do not wait for this, to reduce latency.
                         void this._storage.overwrite(this._heartbeatsCache);
-                        _b.label = 5;
+                        _c.label = 5;
                     case 5: return [2 /*return*/, headerString];
                 }
             });
@@ -25659,6 +25661,7 @@ exports.reauthenticateWithPhoneNumber = totp.reauthenticateWithPhoneNumber;
 exports.reauthenticateWithPopup = totp.reauthenticateWithPopup;
 exports.reauthenticateWithRedirect = totp.reauthenticateWithRedirect;
 exports.reload = totp.reload;
+exports.revokeAccessToken = totp.revokeAccessToken;
 exports.sendEmailVerification = totp.sendEmailVerification;
 exports.sendPasswordResetEmail = totp.sendPasswordResetEmail;
 exports.sendSignInLinkToEmail = totp.sendSignInLinkToEmail;
@@ -25817,49 +25820,6 @@ var ActionCodeOperation = {
     /** The email verification action. */
     VERIFY_EMAIL: 'VERIFY_EMAIL'
 };
-
-/**
- * @license
- * Copyright 2020 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-function isEnterprise(grecaptcha) {
-    return (grecaptcha !== undefined &&
-        grecaptcha.enterprise !== undefined);
-}
-var RecaptchaConfig = /** @class */ (function () {
-    function RecaptchaConfig(response) {
-        /**
-         * The reCAPTCHA site key.
-         */
-        this.siteKey = '';
-        /**
-         * The reCAPTCHA enablement status of the {@link EmailAuthProvider} for the current tenant.
-         */
-        this.emailPasswordEnabled = false;
-        if (response.recaptchaKey === undefined) {
-            throw new Error('recaptchaKey undefined');
-        }
-        // Example response.recaptchaKey: "projects/proj123/keys/sitekey123"
-        this.siteKey = response.recaptchaKey.split('/')[3];
-        this.emailPasswordEnabled = response.recaptchaEnforcementState.some(function (enforcementState) {
-            return enforcementState.provider === 'EMAIL_PASSWORD_PROVIDER' &&
-                enforcementState.enforcementState !== 'OFF';
-        });
-    }
-    return RecaptchaConfig;
-}());
 
 /**
  * @license
@@ -26491,6 +26451,12 @@ var FetchProvider = /** @class */ (function () {
         if (typeof self !== 'undefined' && 'fetch' in self) {
             return self.fetch;
         }
+        if (typeof globalThis !== 'undefined' && globalThis.fetch) {
+            return globalThis.fetch;
+        }
+        if (typeof fetch !== 'undefined') {
+            return fetch;
+        }
         debugFail('Could not find fetch implementation, make sure you call FetchProvider.initialize() with an appropriate polyfill');
     };
     FetchProvider.headers = function () {
@@ -26500,6 +26466,12 @@ var FetchProvider = /** @class */ (function () {
         if (typeof self !== 'undefined' && 'Headers' in self) {
             return self.Headers;
         }
+        if (typeof globalThis !== 'undefined' && globalThis.Headers) {
+            return globalThis.Headers;
+        }
+        if (typeof Headers !== 'undefined') {
+            return Headers;
+        }
         debugFail('Could not find Headers implementation, make sure you call FetchProvider.initialize() with an appropriate polyfill');
     };
     FetchProvider.response = function () {
@@ -26508,6 +26480,12 @@ var FetchProvider = /** @class */ (function () {
         }
         if (typeof self !== 'undefined' && 'Response' in self) {
             return self.Response;
+        }
+        if (typeof globalThis !== 'undefined' && globalThis.Response) {
+            return globalThis.Response;
+        }
+        if (typeof Response !== 'undefined') {
+            return Response;
         }
         debugFail('Could not find Response implementation, make sure you call FetchProvider.initialize() with an appropriate polyfill');
     };
@@ -26761,6 +26739,18 @@ function _getFinalTarget(auth, host, path, query) {
     }
     return _emulatorUrl(auth.config, base);
 }
+function _parseEnforcementState(enforcementStateStr) {
+    switch (enforcementStateStr) {
+        case 'ENFORCE':
+            return "ENFORCE" /* EnforcementState.ENFORCE */;
+        case 'AUDIT':
+            return "AUDIT" /* EnforcementState.AUDIT */;
+        case 'OFF':
+            return "OFF" /* EnforcementState.OFF */;
+        default:
+            return "ENFORCEMENT_STATE_UNSPECIFIED" /* EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED */;
+    }
+}
 var NetworkTimeout = /** @class */ (function () {
     function NetworkTimeout(auth) {
         var _this = this;
@@ -26795,6 +26785,77 @@ function _makeTaggedError(auth, code, response) {
     error.customData._tokenResponse = response;
     return error;
 }
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+function isEnterprise(grecaptcha) {
+    return (grecaptcha !== undefined &&
+        grecaptcha.enterprise !== undefined);
+}
+var RecaptchaConfig = /** @class */ (function () {
+    function RecaptchaConfig(response) {
+        /**
+         * The reCAPTCHA site key.
+         */
+        this.siteKey = '';
+        /**
+         * The list of providers and their enablement status for reCAPTCHA Enterprise.
+         */
+        this.recaptchaEnforcementState = [];
+        if (response.recaptchaKey === undefined) {
+            throw new Error('recaptchaKey undefined');
+        }
+        // Example response.recaptchaKey: "projects/proj123/keys/sitekey123"
+        this.siteKey = response.recaptchaKey.split('/')[3];
+        this.recaptchaEnforcementState = response.recaptchaEnforcementState;
+    }
+    /**
+     * Returns the reCAPTCHA Enterprise enforcement state for the given provider.
+     *
+     * @param providerStr - The provider whose enforcement state is to be returned.
+     * @returns The reCAPTCHA Enterprise enforcement state for the given provider.
+     */
+    RecaptchaConfig.prototype.getProviderEnforcementState = function (providerStr) {
+        if (!this.recaptchaEnforcementState ||
+            this.recaptchaEnforcementState.length === 0) {
+            return null;
+        }
+        for (var _i = 0, _a = this.recaptchaEnforcementState; _i < _a.length; _i++) {
+            var recaptchaEnforcementState = _a[_i];
+            if (recaptchaEnforcementState.provider &&
+                recaptchaEnforcementState.provider === providerStr) {
+                return _parseEnforcementState(recaptchaEnforcementState.enforcementState);
+            }
+        }
+        return null;
+    };
+    /**
+     * Returns true if the reCAPTCHA Enterprise enforcement state for the provider is set to ENFORCE or AUDIT.
+     *
+     * @param providerStr - The provider whose enablement state is to be returned.
+     * @returns Whether or not reCAPTCHA Enterprise protection is enabled for the given provider.
+     */
+    RecaptchaConfig.prototype.isProviderEnabled = function (providerStr) {
+        return (this.getProviderEnforcementState(providerStr) ===
+            "ENFORCE" /* EnforcementState.ENFORCE */ ||
+            this.getProviderEnforcementState(providerStr) === "AUDIT" /* EnforcementState.AUDIT */);
+    };
+    return RecaptchaConfig;
+}());
 
 /**
  * @license
@@ -27359,6 +27420,13 @@ function requestStsToken(auth, refreshToken) {
                             refreshToken: response.refresh_token
                         }];
             }
+        });
+    });
+}
+function revokeToken(auth, request) {
+    return tslib.__awaiter(this, void 0, void 0, function () {
+        return tslib.__generator(this, function (_a) {
+            return [2 /*return*/, _performApiRequest(auth, "POST" /* HttpMethod.POST */, "/v2/accounts:revokeToken" /* Endpoint.REVOKE_TOKEN */, _addTidIfNecessary(auth, request))];
         });
     });
 }
@@ -28958,6 +29026,37 @@ var AuthImpl = /** @class */ (function () {
             }
         });
     };
+    /**
+     * Revokes the given access token. Currently only supports Apple OAuth access tokens.
+     */
+    AuthImpl.prototype.revokeAccessToken = function (token) {
+        return tslib.__awaiter(this, void 0, void 0, function () {
+            var idToken, request;
+            return tslib.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.currentUser) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.currentUser.getIdToken()];
+                    case 1:
+                        idToken = _a.sent();
+                        request = {
+                            providerId: 'apple.com',
+                            tokenType: "ACCESS_TOKEN" /* TokenType.ACCESS_TOKEN */,
+                            token: token,
+                            idToken: idToken
+                        };
+                        if (this.tenantId != null) {
+                            request.tenantId = this.tenantId;
+                        }
+                        return [4 /*yield*/, revokeToken(this, request)];
+                    case 2:
+                        _a.sent();
+                        _a.label = 3;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
     AuthImpl.prototype.toJSON = function () {
         var _a;
         return {
@@ -29460,6 +29559,39 @@ function injectRecaptchaFields(auth, request, action, captchaResp) {
         });
     });
 }
+function handleRecaptchaFlow(authInstance, request, actionName, actionMethod) {
+    var _a;
+    return tslib.__awaiter(this, void 0, void 0, function () {
+        var requestWithRecaptcha;
+        var _this = this;
+        return tslib.__generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    if (!((_a = authInstance
+                        ._getRecaptchaConfig()) === null || _a === void 0 ? void 0 : _a.isProviderEnabled("EMAIL_PASSWORD_PROVIDER" /* RecaptchaProvider.EMAIL_PASSWORD_PROVIDER */))) return [3 /*break*/, 2];
+                    return [4 /*yield*/, injectRecaptchaFields(authInstance, request, actionName, actionName === "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */)];
+                case 1:
+                    requestWithRecaptcha = _b.sent();
+                    return [2 /*return*/, actionMethod(authInstance, requestWithRecaptcha)];
+                case 2: return [2 /*return*/, actionMethod(authInstance, request).catch(function (error) { return tslib.__awaiter(_this, void 0, void 0, function () {
+                        var requestWithRecaptcha;
+                        return tslib.__generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!(error.code === "auth/".concat("missing-recaptcha-token" /* AuthErrorCode.MISSING_RECAPTCHA_TOKEN */))) return [3 /*break*/, 2];
+                                    console.log("".concat(actionName, " is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow."));
+                                    return [4 /*yield*/, injectRecaptchaFields(authInstance, request, actionName, actionName === "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */)];
+                                case 1:
+                                    requestWithRecaptcha = _a.sent();
+                                    return [2 /*return*/, actionMethod(authInstance, requestWithRecaptcha)];
+                                case 2: return [2 /*return*/, Promise.reject(error)];
+                            }
+                        });
+                    }); })];
+            }
+        });
+    });
+}
 function _initializeRecaptchaConfig(auth) {
     return tslib.__awaiter(this, void 0, void 0, function () {
         var authInternal, response, config, verifier;
@@ -29480,7 +29612,7 @@ function _initializeRecaptchaConfig(auth) {
                     else {
                         authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
                     }
-                    if (config.emailPasswordEnabled) {
+                    if (config.isProviderEnabled("EMAIL_PASSWORD_PROVIDER" /* RecaptchaProvider.EMAIL_PASSWORD_PROVIDER */)) {
                         verifier = new RecaptchaEnterpriseVerifier(authInternal);
                         void verifier.verify();
                     }
@@ -29765,6 +29897,15 @@ function updateEmailPassword(auth, request) {
         });
     });
 }
+// Used for linking an email/password account to an existing idToken. Uses the same request/response
+// format as updateEmailPassword.
+function linkEmailPassword(auth, request) {
+    return tslib.__awaiter(this, void 0, void 0, function () {
+        return tslib.__generator(this, function (_a) {
+            return [2 /*return*/, _performApiRequest(auth, "POST" /* HttpMethod.POST */, "/v1/accounts:signUp" /* Endpoint.SIGN_UP */, request)];
+        });
+    });
+}
 function applyActionCode$1(auth, request) {
     return tslib.__awaiter(this, void 0, void 0, function () {
         return tslib.__generator(this, function (_a) {
@@ -29946,70 +30087,45 @@ var EmailAuthCredential = /** @class */ (function (_super) {
     };
     /** @internal */
     EmailAuthCredential.prototype._getIdTokenResponse = function (auth) {
-        var _a;
         return tslib.__awaiter(this, void 0, void 0, function () {
-            var _b, request_1, requestWithRecaptcha;
-            var _this = this;
-            return tslib.__generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = this.signInMethod;
-                        switch (_b) {
-                            case "password" /* SignInMethod.EMAIL_PASSWORD */: return [3 /*break*/, 1];
-                            case "emailLink" /* SignInMethod.EMAIL_LINK */: return [3 /*break*/, 4];
-                        }
-                        return [3 /*break*/, 5];
-                    case 1:
-                        request_1 = {
+            var request;
+            return tslib.__generator(this, function (_a) {
+                switch (this.signInMethod) {
+                    case "password" /* SignInMethod.EMAIL_PASSWORD */:
+                        request = {
                             returnSecureToken: true,
                             email: this._email,
                             password: this._password,
                             clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
                         };
-                        if (!((_a = auth._getRecaptchaConfig()) === null || _a === void 0 ? void 0 : _a.emailPasswordEnabled)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, injectRecaptchaFields(auth, request_1, "signInWithPassword" /* RecaptchaActionName.SIGN_IN_WITH_PASSWORD */)];
-                    case 2:
-                        requestWithRecaptcha = _c.sent();
-                        return [2 /*return*/, signInWithPassword(auth, requestWithRecaptcha)];
-                    case 3: return [2 /*return*/, signInWithPassword(auth, request_1).catch(function (error) { return tslib.__awaiter(_this, void 0, void 0, function () {
-                            var requestWithRecaptcha;
-                            return tslib.__generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        if (!(error.code === "auth/".concat("missing-recaptcha-token" /* AuthErrorCode.MISSING_RECAPTCHA_TOKEN */))) return [3 /*break*/, 2];
-                                        console.log('Sign-in with email address and password is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.');
-                                        return [4 /*yield*/, injectRecaptchaFields(auth, request_1, "signInWithPassword" /* RecaptchaActionName.SIGN_IN_WITH_PASSWORD */)];
-                                    case 1:
-                                        requestWithRecaptcha = _a.sent();
-                                        return [2 /*return*/, signInWithPassword(auth, requestWithRecaptcha)];
-                                    case 2: return [2 /*return*/, Promise.reject(error)];
-                                }
-                            });
-                        }); })];
-                    case 4: return [2 /*return*/, signInWithEmailLink$1(auth, {
-                            email: this._email,
-                            oobCode: this._password
-                        })];
-                    case 5:
+                        return [2 /*return*/, handleRecaptchaFlow(auth, request, "signInWithPassword" /* RecaptchaActionName.SIGN_IN_WITH_PASSWORD */, signInWithPassword)];
+                    case "emailLink" /* SignInMethod.EMAIL_LINK */:
+                        return [2 /*return*/, signInWithEmailLink$1(auth, {
+                                email: this._email,
+                                oobCode: this._password
+                            })];
+                    default:
                         _fail(auth, "internal-error" /* AuthErrorCode.INTERNAL_ERROR */);
-                        _c.label = 6;
-                    case 6: return [2 /*return*/];
                 }
+                return [2 /*return*/];
             });
         });
     };
     /** @internal */
     EmailAuthCredential.prototype._linkToIdToken = function (auth, idToken) {
         return tslib.__awaiter(this, void 0, void 0, function () {
+            var request;
             return tslib.__generator(this, function (_a) {
                 switch (this.signInMethod) {
                     case "password" /* SignInMethod.EMAIL_PASSWORD */:
-                        return [2 /*return*/, updateEmailPassword(auth, {
-                                idToken: idToken,
-                                returnSecureToken: true,
-                                email: this._email,
-                                password: this._password
-                            })];
+                        request = {
+                            idToken: idToken,
+                            returnSecureToken: true,
+                            email: this._email,
+                            password: this._password,
+                            clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
+                        };
+                        return [2 /*return*/, handleRecaptchaFlow(auth, request, "signUpPassword" /* RecaptchaActionName.SIGN_UP_PASSWORD */, linkEmailPassword)];
                     case "emailLink" /* SignInMethod.EMAIL_LINK */:
                         return [2 /*return*/, signInWithEmailLinkForLinking(auth, {
                                 idToken: idToken,
@@ -32204,12 +32320,10 @@ function recachePasswordPolicy(auth) {
  * @public
  */
 function sendPasswordResetEmail(auth, email, actionCodeSettings) {
-    var _a;
     return tslib.__awaiter(this, void 0, void 0, function () {
-        var authInternal, request, requestWithRecaptcha;
-        var _this = this;
-        return tslib.__generator(this, function (_b) {
-            switch (_b.label) {
+        var authInternal, request;
+        return tslib.__generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     authInternal = _castAuth(auth);
                     request = {
@@ -32217,48 +32331,13 @@ function sendPasswordResetEmail(auth, email, actionCodeSettings) {
                         email: email,
                         clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
                     };
-                    if (!((_a = authInternal._getRecaptchaConfig()) === null || _a === void 0 ? void 0 : _a.emailPasswordEnabled)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, injectRecaptchaFields(authInternal, request, "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */, true)];
-                case 1:
-                    requestWithRecaptcha = _b.sent();
-                    if (actionCodeSettings) {
-                        _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
-                    }
-                    return [4 /*yield*/, sendPasswordResetEmail$1(authInternal, requestWithRecaptcha)];
-                case 2:
-                    _b.sent();
-                    return [3 /*break*/, 5];
-                case 3:
                     if (actionCodeSettings) {
                         _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
                     }
-                    return [4 /*yield*/, sendPasswordResetEmail$1(authInternal, request)
-                            .catch(function (error) { return tslib.__awaiter(_this, void 0, void 0, function () {
-                            var requestWithRecaptcha;
-                            return tslib.__generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        if (!(error.code === "auth/".concat("missing-recaptcha-token" /* AuthErrorCode.MISSING_RECAPTCHA_TOKEN */))) return [3 /*break*/, 3];
-                                        console.log('Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.');
-                                        return [4 /*yield*/, injectRecaptchaFields(authInternal, request, "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */, true)];
-                                    case 1:
-                                        requestWithRecaptcha = _a.sent();
-                                        if (actionCodeSettings) {
-                                            _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
-                                        }
-                                        return [4 /*yield*/, sendPasswordResetEmail$1(authInternal, requestWithRecaptcha)];
-                                    case 2:
-                                        _a.sent();
-                                        return [3 /*break*/, 4];
-                                    case 3: return [2 /*return*/, Promise.reject(error)];
-                                    case 4: return [2 /*return*/];
-                                }
-                            });
-                        }); })];
-                case 4:
-                    _b.sent();
-                    _b.label = 5;
-                case 5: return [2 /*return*/];
+                    return [4 /*yield*/, handleRecaptchaFlow(authInternal, request, "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */, sendPasswordResetEmail$1)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
             }
         });
     });
@@ -32413,12 +32492,10 @@ function verifyPasswordResetCode(auth, code) {
  * @public
  */
 function createUserWithEmailAndPassword(auth, email, password) {
-    var _a;
     return tslib.__awaiter(this, void 0, void 0, function () {
-        var authInternal, request, signUpResponse, requestWithRecaptcha, response, userCredential;
-        var _this = this;
-        return tslib.__generator(this, function (_b) {
-            switch (_b.label) {
+        var authInternal, request, signUpResponse, response, userCredential;
+        return tslib.__generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     authInternal = _castAuth(auth);
                     request = {
@@ -32427,43 +32504,21 @@ function createUserWithEmailAndPassword(auth, email, password) {
                         password: password,
                         clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
                     };
-                    if (!((_a = authInternal._getRecaptchaConfig()) === null || _a === void 0 ? void 0 : _a.emailPasswordEnabled)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, injectRecaptchaFields(authInternal, request, "signUpPassword" /* RecaptchaActionName.SIGN_UP_PASSWORD */)];
-                case 1:
-                    requestWithRecaptcha = _b.sent();
-                    signUpResponse = signUp(authInternal, requestWithRecaptcha);
-                    return [3 /*break*/, 3];
-                case 2:
-                    signUpResponse = signUp(authInternal, request).catch(function (error) { return tslib.__awaiter(_this, void 0, void 0, function () {
-                        var requestWithRecaptcha;
-                        return tslib.__generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    if (!(error.code === "auth/".concat("missing-recaptcha-token" /* AuthErrorCode.MISSING_RECAPTCHA_TOKEN */))) return [3 /*break*/, 2];
-                                    console.log('Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.');
-                                    return [4 /*yield*/, injectRecaptchaFields(authInternal, request, "signUpPassword" /* RecaptchaActionName.SIGN_UP_PASSWORD */)];
-                                case 1:
-                                    requestWithRecaptcha = _a.sent();
-                                    return [2 /*return*/, signUp(authInternal, requestWithRecaptcha)];
-                                case 2: throw error;
+                    signUpResponse = handleRecaptchaFlow(authInternal, request, "signUpPassword" /* RecaptchaActionName.SIGN_UP_PASSWORD */, signUp);
+                    return [4 /*yield*/, signUpResponse.catch(function (error) {
+                            if (error.code === "auth/".concat("password-does-not-meet-requirements" /* AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS */)) {
+                                void recachePasswordPolicy(auth);
                             }
-                        });
-                    }); });
-                    _b.label = 3;
-                case 3: return [4 /*yield*/, signUpResponse.catch(function (error) {
-                        if (error.code === "auth/".concat("password-does-not-meet-requirements" /* AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS */)) {
-                            void recachePasswordPolicy(auth);
-                        }
-                        throw error;
-                    })];
-                case 4:
-                    response = _b.sent();
+                            throw error;
+                        })];
+                case 1:
+                    response = _a.sent();
                     return [4 /*yield*/, UserCredentialImpl._fromIdTokenResponse(authInternal, "signIn" /* OperationType.SIGN_IN */, response)];
-                case 5:
-                    userCredential = _b.sent();
+                case 2:
+                    userCredential = _a.sent();
                     return [4 /*yield*/, authInternal._updateCurrentUser(userCredential.user)];
-                case 6:
-                    _b.sent();
+                case 3:
+                    _a.sent();
                     return [2 /*return*/, userCredential];
             }
         });
@@ -32552,7 +32607,6 @@ function signInWithEmailAndPassword(auth, email, password) {
  * @public
  */
 function sendSignInLinkToEmail(auth, email, actionCodeSettings) {
-    var _a;
     return tslib.__awaiter(this, void 0, void 0, function () {
         function setActionCodeSettings(request, actionCodeSettings) {
             _assert(actionCodeSettings.handleCodeInApp, authInternal, "argument-error" /* AuthErrorCode.ARGUMENT_ERROR */);
@@ -32560,10 +32614,9 @@ function sendSignInLinkToEmail(auth, email, actionCodeSettings) {
                 _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
             }
         }
-        var authInternal, request, requestWithRecaptcha;
-        var _this = this;
-        return tslib.__generator(this, function (_b) {
-            switch (_b.label) {
+        var authInternal, request;
+        return tslib.__generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     authInternal = _castAuth(auth);
                     request = {
@@ -32571,42 +32624,11 @@ function sendSignInLinkToEmail(auth, email, actionCodeSettings) {
                         email: email,
                         clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
                     };
-                    if (!((_a = authInternal._getRecaptchaConfig()) === null || _a === void 0 ? void 0 : _a.emailPasswordEnabled)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, injectRecaptchaFields(authInternal, request, "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */, true)];
-                case 1:
-                    requestWithRecaptcha = _b.sent();
-                    setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-                    return [4 /*yield*/, sendSignInLinkToEmail$1(authInternal, requestWithRecaptcha)];
-                case 2:
-                    _b.sent();
-                    return [3 /*break*/, 5];
-                case 3:
                     setActionCodeSettings(request, actionCodeSettings);
-                    return [4 /*yield*/, sendSignInLinkToEmail$1(authInternal, request)
-                            .catch(function (error) { return tslib.__awaiter(_this, void 0, void 0, function () {
-                            var requestWithRecaptcha;
-                            return tslib.__generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        if (!(error.code === "auth/".concat("missing-recaptcha-token" /* AuthErrorCode.MISSING_RECAPTCHA_TOKEN */))) return [3 /*break*/, 3];
-                                        console.log('Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.');
-                                        return [4 /*yield*/, injectRecaptchaFields(authInternal, request, "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */, true)];
-                                    case 1:
-                                        requestWithRecaptcha = _a.sent();
-                                        setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-                                        return [4 /*yield*/, sendSignInLinkToEmail$1(authInternal, requestWithRecaptcha)];
-                                    case 2:
-                                        _a.sent();
-                                        return [3 /*break*/, 4];
-                                    case 3: return [2 /*return*/, Promise.reject(error)];
-                                    case 4: return [2 /*return*/];
-                                }
-                            });
-                        }); })];
-                case 4:
-                    _b.sent();
-                    _b.label = 5;
-                case 5: return [2 /*return*/];
+                    return [4 /*yield*/, handleRecaptchaFlow(authInternal, request, "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */, sendSignInLinkToEmail$1)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
             }
         });
     });
@@ -33358,6 +33380,18 @@ function signOut(auth) {
     return util.getModularInstance(auth).signOut();
 }
 /**
+ * Revokes the given access token. Currently only supports Apple OAuth access tokens.
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param token - The Apple OAuth access token.
+ *
+ * @public
+ */
+function revokeAccessToken(auth, token) {
+    var authInternal = _castAuth(auth);
+    return authInternal.revokeAccessToken(token);
+}
+/**
  * Deletes and signs out the user.
  *
  * @remarks
@@ -33680,7 +33714,7 @@ function multiFactor(user) {
 }
 
 var name = "@firebase/auth";
-var version = "1.3.0";
+var version = "1.4.0";
 
 /**
  * @license
@@ -34227,6 +34261,7 @@ exports.reauthenticateWithPhoneNumber = reauthenticateWithPhoneNumber;
 exports.reauthenticateWithPopup = reauthenticateWithPopup;
 exports.reauthenticateWithRedirect = reauthenticateWithRedirect;
 exports.reload = reload;
+exports.revokeAccessToken = revokeAccessToken;
 exports.sendEmailVerification = sendEmailVerification;
 exports.sendPasswordResetEmail = sendPasswordResetEmail;
 exports.sendSignInLinkToEmail = sendSignInLinkToEmail;
@@ -34251,7 +34286,7 @@ exports.useDeviceLanguage = useDeviceLanguage;
 exports.validatePassword = validatePassword;
 exports.verifyBeforeUpdateEmail = verifyBeforeUpdateEmail;
 exports.verifyPasswordResetCode = verifyPasswordResetCode;
-//# sourceMappingURL=totp-cceb0d01.js.map
+//# sourceMappingURL=totp-d9065ba0.js.map
 
 
 /***/ }),

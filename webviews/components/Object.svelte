@@ -31,6 +31,8 @@
             this.actionOnClick = actionOnClick;
             this.stateQueue = [];
             this.isStateCompleted = false;
+            this.callbackQueue = [];
+            this.currentStateCallback = null;
         }
 
         getZ() {
@@ -47,33 +49,40 @@
             return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
         }
 
-        updateState(newState) {
+        updateState(newState, callback = null) {
             if (this.states[newState]) {
                 this.state = newState;
-                this.currentSpriteIndex = this.states[newState][0]; // set to the first sprite of the new state
+                this.currentSpriteIndex = this.states[newState][0];
+                this.isStateCompleted = false;
+                this.currentStateCallback = callback; // Store the callback
             }
         }
 
         nextFrame() {
+            // Avoid unneccessary frame update if object has only one state and no queued states
+            if(this.state.length <= 1 && this.stateQueue.length == 0){
+                return;
+            }
+
             // Define sprites for current state
             const stateSprites = this.config.states[this.state];
-            this.currentStateIndex++;
 
             // If the state index exceeds the state length, reset to first sprite in state
             if (this.currentStateIndex >= stateSprites.length) {
                 this.currentSpriteIndex = stateSprites[0];
                 this.currentStateIndex = 0;
                 this.isStateCompleted = true;
+                this.executeCurrentStateCallback();
                 this.nextState();
             }
             // Otherwise, set the current sprite to the next sprite in the state
             else{
-                this.currentSpriteIndex = stateSprites[this.currentStateIndex];
+                this.currentSpriteIndex = stateSprites[this.currentStateIndex++];
             }
         }
 
-        queueState(state) {
-            this.stateQueue.push(state);
+        queueState(state, callback = null) {
+            this.stateQueue.push({ state, callback });
             if (!this.state || this.isStateCompleted) {
                 this.nextState();
             }
@@ -81,8 +90,15 @@
 
         nextState() {
             if (this.stateQueue.length > 0) {
-                const nextState = this.stateQueue.shift();
-                this.updateState(nextState);
+                const { state, callback } = this.stateQueue.shift();
+                this.updateState(state, callback);
+            }
+        }
+
+        executeCurrentStateCallback() {
+            if (this.currentStateCallback) {
+                this.currentStateCallback();
+                this.currentStateCallback = null; // Reset the callback
             }
         }
 
@@ -110,7 +126,9 @@
             const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);            //GeneratedObject(sprites, states, x, y, z, actionOnClick)
             super(petSpriteArray, config.states, x, y, z, () => {
                 this.queueState('flop')
-                this.queueState('flop')
+                this.queueState('flop', () => {
+                    console.log('Flop state completed');
+                });
                 this.queueState('default')
             });
             
@@ -181,7 +199,7 @@
             return stateGroup[randomIndex];
         }
 
-        updateState(newState) {
+        updateState(newState, callback = null) {
             if (this.stateGroups[newState]) {
                 // newState is a state group
                 const randomState = this.selectRandomStateInGroup(newState);
@@ -189,19 +207,20 @@
                     this.state = randomState.stateName;
                     this.currentSpriteIndex = this.state[randomState][0]
                     this.isStateCompleted = false;
+                    this.currentStateCallback = callback
                 }
             } else if (this.states[newState]) {
                 // newState is a top-level state
                 this.state = newState;
                 this.currentSpriteIndex = this.states[newState][0]; // set to the first sprite of the new state
                 this.isStateCompleted = false;
+                this.currentStateCallback = callback
             } else {
                 console.error(`State '${newState}' not found.`);
                 return;
             }
         }
     }
-
 
     export class Object extends GeneratedObject {
         constructor(objectName, x, y, z = 0, actionOnClick = null) {
@@ -249,6 +268,18 @@
             // console.log('Button hover stopped!');
             this.updateState('default');
             // Reset any button-specific hover effects here
+        }
+    }
+
+    export class Background extends Object {
+        constructor(objectName, x, y, z){
+            super(objectName, x, y, z, () => {
+                this.queueState('slide')
+                this.queueState('open')
+            });
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.updateState("default")
         }
     }
     export class NavigationButton extends Button {
