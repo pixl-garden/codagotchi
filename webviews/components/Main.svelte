@@ -8,6 +8,7 @@
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass } from './ObjectGenerators.svelte';
+    import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
 
     const FPS = 16; //frames per second
     const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
@@ -18,10 +19,15 @@
     let basic, gang, retro; //font renderers
     let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
     let githubUsername;
+    let test;
+    // let background;
     let background;
 
     //run once before main loop
     function pre() {
+
+        setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
+        getGlobalState( {} );
 
         handleResize();
         //prettier-ignore
@@ -155,6 +161,11 @@
                 githubUsername = message.username;
                 console.log("GITHUB USERNAME: " + githubUsername);
             }
+            else if (message.type === 'currentState') {
+                setLocalState(message.value);
+                console.log("yoyoyoyoyoyoyo")
+                printJsonObject(getLocalState());
+            }
         });
 
         tsvscode.postMessage({ type: 'webview-ready' });
@@ -165,6 +176,13 @@
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
     };
 
+    function printJsonObject(jsonObject) {
+        for (const key in jsonObject) {
+            if (jsonObject.hasOwnProperty(key)) {
+                console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+                }
+            }
+        }
 </script>
 
 <div

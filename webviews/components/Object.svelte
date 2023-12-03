@@ -6,7 +6,15 @@
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
+    import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
 
+    function printJsonObject(jsonObject) {
+        for (const key in jsonObject) {
+            if (jsonObject.hasOwnProperty(key)) {
+                console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+            }
+        }
+    }
     export class GeneratedObject {
         constructor(sprites, states, x, y, z, actionOnClick = null) {
             if (!sprites) {
@@ -36,7 +44,7 @@
             this.y = newY;
             this.z = newZ;
         }
-
+        
         getSprite() {
             return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
         }
@@ -137,6 +145,9 @@
             this.isStateCompleted = false;
             this.updateState("default")
             this.hatConfig = hatConfig
+            getGlobalState()
+            console.log("hey!!!!!!")
+            printJsonObject(getLocalState())
             this.setHat(hat)
         }
 
@@ -152,6 +163,7 @@
             this.hatSprite = spriteReaderFromStore(this.hatConfig.spriteWidth, this.hatConfig.spriteHeight, this.hatConfig.spriteSheet)[this.currentHatConfig.spriteIndex]
             this.hatAnchorX = this.currentHatConfig.anchorX
             this.hatAnchorY = this.currentHatConfig.anchorY
+            setGlobalState({"hat": this.hat})
         }
 
         getHat() {
