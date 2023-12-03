@@ -17,6 +17,30 @@ const state = uuidv4();
 
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
 
+function printJsonObject(jsonObject: { [key: string]: any }): void {
+    for (const key in jsonObject) {
+        if (jsonObject.hasOwnProperty(key)) {
+            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+        }
+    }
+}
+
+function setCurrentState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
+    // Retrieve the existing global state
+    const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
+
+    // Merge the partial update with the existing state
+    const updatedGlobalState = { ...currentGlobalState, ...partialUpdate };
+
+    // Update the global state with the merged result
+    return context.globalState.update('globalInfo', updatedGlobalState);
+}
+
+function getCurrentState(context: vscode.ExtensionContext): { [key: string]: any } {
+    // Retrieve and return the global state
+    return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
+}
+
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -26,7 +50,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
 
-    constructor(private readonly _extensionUri: vscode.Uri) {}
+    private context: vscode.ExtensionContext;
+
+    constructor(private readonly _extensionUri: vscode.Uri, context: vscode.ExtensionContext) {
+        this.context = context; }
 
     private getImageUris(): { [key: string]: vscode.Uri } {
         const imageDir = path.join(this._extensionUri.fsPath, 'images');
@@ -83,6 +110,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         type: 'image-uris',
                         uris: webviewImageUris,
                     });
+                    break;
+                }
+
+                case 'getGlobalState': {
+                    console.log("----Getting globalState----")
+                    printJsonObject(getCurrentState(this.context))
+                    this._view?.webview.postMessage({
+                        type: 'currentState',
+                        value: getCurrentState(this.context),
+                    });
+                    break;
+                }
+
+                case 'setGlobalState': {
+                    console.log("****Setting globalState****")
+                    printJsonObject(data.value)
+                    setCurrentState(this.context, data.value)
                     break;
                 }
 

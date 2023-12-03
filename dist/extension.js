@@ -39,12 +39,32 @@ let githubUsername = '';
 // Generate a unique state value
 const state = (0, uuid_1.v4)();
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
+function printJsonObject(jsonObject) {
+    for (const key in jsonObject) {
+        if (jsonObject.hasOwnProperty(key)) {
+            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+        }
+    }
+}
+function setCurrentState(context, partialUpdate) {
+    // Retrieve the existing global state
+    const currentGlobalState = context.globalState.get('globalInfo', {});
+    // Merge the partial update with the existing state
+    const updatedGlobalState = Object.assign(Object.assign({}, currentGlobalState), partialUpdate);
+    // Update the global state with the merged result
+    return context.globalState.update('globalInfo', updatedGlobalState);
+}
+function getCurrentState(context) {
+    // Retrieve and return the global state
+    return context.globalState.get('globalInfo', {});
+}
 class SidebarProvider {
-    constructor(_extensionUri) {
+    constructor(_extensionUri, context) {
         this._extensionUri = _extensionUri;
         this._onDidViewReady = new vscode.EventEmitter();
         this.onDidViewReady = this._onDidViewReady.event;
         this.webviewImageUris = {}; // Store the image URIs
+        this.context = context;
     }
     getImageUris() {
         var _a;
@@ -78,6 +98,7 @@ class SidebarProvider {
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
         this._onDidViewReady.fire();
         webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             switch (data.type) {
                 case 'webview-ready': {
                     // Convert the URIs using webview.asWebviewUri
@@ -91,6 +112,21 @@ class SidebarProvider {
                         type: 'image-uris',
                         uris: webviewImageUris,
                     });
+                    break;
+                }
+                case 'getGlobalState': {
+                    console.log("----Getting globalState----");
+                    printJsonObject(getCurrentState(this.context));
+                    (_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
+                        type: 'currentState',
+                        value: getCurrentState(this.context),
+                    });
+                    break;
+                }
+                case 'setGlobalState': {
+                    console.log("****Setting globalState****");
+                    printJsonObject(data.value);
+                    setCurrentState(this.context, data.value);
                     break;
                 }
                 case 'openOAuthURL': {
@@ -38608,11 +38644,17 @@ const vscode = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(2);
 const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60; // cap to 10 min
 function activate(context) {
-    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
+    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context);
     listenForDocumentSave(context);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
+    context.subscriptions.push(vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
+        clearGlobalState(context);
+    }));
 }
 exports.activate = activate;
+function clearGlobalState(context) {
+    return context.globalState.update('globalInfo', {});
+}
 function getElapsedTimeInSeconds(lastSaveTime) {
     let now = new Date();
     if (lastSaveTime) {

@@ -3,9 +3,16 @@ import { SidebarProvider } from './SidebarProvider';
 const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
 
 export function activate(context: vscode.ExtensionContext) {
-    const sidebarProvider = new SidebarProvider(context.extensionUri);
+    const sidebarProvider = new SidebarProvider(context.extensionUri, context);
     listenForDocumentSave(context);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
+    context.subscriptions.push(vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
+        clearGlobalState(context);
+    }));
+}
+
+function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
+    return context.globalState.update('globalInfo', {});
 }
 
 function getElapsedTimeInSeconds(lastSaveTime: Date | undefined): number{

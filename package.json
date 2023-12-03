@@ -24,7 +24,12 @@
         }
       ]
     },
-    "commands": []
+    "commands": [
+      {
+        "command": "codagotchi.clearGlobalInfo",
+        "title": "Clear Global Info"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
