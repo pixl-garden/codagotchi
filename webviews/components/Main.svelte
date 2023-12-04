@@ -26,7 +26,7 @@
     //run once before main loop
     function pre() {
 
-        setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
+        // setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
         getGlobalState( {} );
 
         handleResize();
@@ -79,7 +79,6 @@
         });
         const about = new settingsMenuButton('<BACK', 0, 60, () => {
             $game.setCurrentRoom('mainRoom'); 
-            console.log("BRUHHH")
         });
         
         // create rooms
@@ -162,9 +161,7 @@
                 console.log("GITHUB USERNAME: " + githubUsername);
             }
             else if (message.type === 'currentState') {
-                setLocalState(message.value);
-                console.log("yoyoyoyoyoyoyo")
-                printJsonObject(getLocalState());
+                $game.setLocalState(message.value);
             }
         });
 
@@ -175,14 +172,6 @@
     function handleGitHubLogin() {
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
     };
-
-    function printJsonObject(jsonObject) {
-        for (const key in jsonObject) {
-            if (jsonObject.hasOwnProperty(key)) {
-                console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
-                }
-            }
-        }
 </script>
 
 <div

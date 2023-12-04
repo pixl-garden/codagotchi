@@ -125,7 +125,7 @@ class SidebarProvider {
                 }
                 case 'setGlobalState': {
                     console.log("****Setting globalState****");
-                    printJsonObject(data.value);
+                    // printJsonObject(data.value)
                     setCurrentState(this.context, data.value);
                     break;
                 }

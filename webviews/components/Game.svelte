@@ -8,8 +8,10 @@
 
             this.rooms = {};
             this.currentRoom = null;
+            this.localState = {};
 
             Game.instance = this;
+            this.getGlobalState();
         }
 
         updateRooms(roomName, roomObj) {
@@ -31,6 +33,22 @@
 
         getObjectsOfCurrentRoom() {
             return this.rooms[this.currentRoomName].getObjects();
+        }
+
+        getGlobalState() {
+            tsvscode.postMessage({ type: 'getGlobalState'});
+        };
+
+        setGlobalState( stateInfo ) {
+            tsvscode.postMessage({ type: 'setGlobalState', value: stateInfo });
+        };
+
+        setLocalState( stateInfo ) {
+            game.localState = stateInfo
+        }
+
+        getLocalState () {
+            return game.localState
         }
     }
 
