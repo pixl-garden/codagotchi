@@ -1,167 +1,143 @@
-# Deliverable 7: Verification and Validation
+# Deliverable 6: Implementation 2
 
 _Group 7: Codagotchi_
 
-_Date and location: December 3rd, 2023_
+_Date and location: November 19th, 2023_
 
 _Group Members: Ben Griepp, Noah Gooby, Monique Parrish, Payton Watts, Forrest Hartley, Kyle Bambling_
 
-
-## Description
+## 1. Introduction
 
 The problem of irregular coding practice and lack of motivation to write code impacts a wide range of programmers, from brand-new learners to experienced developers, resulting in skill stagnation and reduced productivity. This lack of consistency hinders skill development, wastes time, and can impact software quality, incurring additional costs and missed opportunities for career growth.
 
-For VSCode users seeking consistent coding practice and skill improvement, Codagotchi is a free VSCode extension that gamifies learning and development, incentivizing regular coding to keep a virtual pet alive and happy. Unlike traditional learning methods, our product transforms coding into an engaging and interactive experience, fostering skill growth through motivation and rewards. Codagotchi empowers programmers to maintain consistent engagement in learning and skill development.
+For VSCode users seeking consistent coding practice and skill improvement, Codagotchi is a free VSCode extension that gamifies learning and development, incentivizing regular coding to keep a virtual pet alive and happy. Unlike traditional learning methods, our product transforms coding into an engaging and interactive experience, fostering skill growth through motivation and rewards. Codagotchi empowers programmers to maintain consistent engagement in learning and skill development by offering fun experiences like pet customization and interaction, and even the ability to interact with your friends on Github. 
 
 By transforming coding into an enjoyable experience where a virtual pet thrives through regular code-writing, Codagotchi offers a compelling incentive for programmers to stay motivated and active.
 
-## Verification
+Codagotchi is currently in the early stages of development (as of 11 / 2023). We plan to have a fully functional release available on the VSCode Extension Store by February of 2024.
+
+Github Repo: [https://github.com/pixl-garden/codagotchi](https://github.com/pixl-garden/codagotchi) 
+
+## 2. Implemented Requirements
+
+Ideas:
+
+
+
+1. As a user of Codagotchi, I would like to be able to customize my pet with various items (especially hats) to make the pet feel unique and personalized.
+2. As a professional programmer, I would not like the game to be able to read or store my actual code to track progress, so that my and my company’s privacy can be maintained.
+3. As a user of Codagotchi, I would like the UI to be minimal and not cluttered with buttons so that it does not become distracting.
+4. As a Codagotchi user, I would like to be able to interact with my pet by having them react when I click on them.
+
+### Requirement: As a Codagotchi user, I would like to be able to interact with my pet by having them react when I click on them.
+
+Issue: [https://github.com/pixl-garden/codagotchi/issues/99](https://github.com/pixl-garden/codagotchi/issues/99) 
+
+Pull request: [https://github.com/pixl-garden/codagotchi/pull/94](https://github.com/pixl-garden/codagotchi/pull/94) 
+
+Implemented by: Ben Griepp, Forrest Hartley
+
+Approved by: Noah Gooby
+
+Print screen (Difficult to screenshot, but the pearguin waddles on click! Can be seen in demo) : 
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/93d0c850-4567-4861-99e2-3c8ef186b282)
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/7773332b-51b8-4c02-9920-2cf71fd3a154)
+
+
+### Requirement: As a user of Codagotchi, I would like the UI to be minimal and not cluttered with buttons so that it does not become distracting.
+
+Issue: [https://github.com/pixl-garden/codagotchi/issues/98](https://github.com/pixl-garden/codagotchi/issues/98) 
+
+Pull request: [https://github.com/pixl-garden/codagotchi/pull/95](https://github.com/pixl-garden/codagotchi/pull/95) 
+
+Implemented by: Noah Gooby
+
+Approved by: Payton Watts, Ben Griepp
+
+Print screen (No more HTML buttons, everything is made using sprites):
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/da16ca0a-ea0d-4c09-b824-855c4b9b7d43)
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/869cde8e-ea56-41de-9ade-52ab9e4fd66c)
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/0c7dff94-3a22-4169-b455-f649dcdb40d6)
+
+
+### Requirement: As a user of Codagotchi, I would like to be able to customize my pet with various items (especially hats) to make the pet feel unique and personalized. 
+
+Issue: [https://github.com/pixl-garden/codagotchi/issues/96](https://github.com/pixl-garden/codagotchi/issues/96)
+
+Pull request: [https://github.com/pixl-garden/codagotchi/pull/102](https://github.com/pixl-garden/codagotchi/pull/102)
+
+[https://github.com/pixl-garden/codagotchi/pull/101](https://github.com/pixl-garden/codagotchi/pull/101)
+
+Implemented by: Ben Griepp, Forrest Hartley
+
+Approved by: Noah Gooby
+
+Print Screen:
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/08fad89e-989f-42c9-803f-2baffd4f29e3)
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/40b60216-1abb-48a4-aa95-51b93234302d)
+
+### Requirement: As a professional programmer, I would not like the game to be able to read or store my actual code to track progress, so that my and my company’s privacy can be maintained. We intend tracking time between saves to be the max extent of our recording user data. The date will be used for QoL elements and play into our system to reward the user with points for code.
+
+Issue: [https://github.com/pixl-garden/codagotchi/issues/97](https://github.com/pixl-garden/codagotchi/issues/97)
+
+Pull request: [https://github.com/pixl-garden/codagotchi/pull/100](https://github.com/pixl-garden/codagotchi/pull/100)
+
+Implemented by: Payton Watts
+
+Approved by: Ben Griepp
+
+Print screen: 
+
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/de3c7d5c-f375-4dbb-b253-6a505aa82206)
+
+## 3. Tests
 
 ### Test framework: **Jest** ([https://jestjs.io/](https://jestjs.io/)) 
 
 We chose to use Jest as our testing framework because of it’s balance between feature diversity and simplicity. Jest automatically supports modern JS features and requires little to no configuration / setup; combined with it’s simple syntax, it is very user-friendly. It can also be ran as a node package, and as we are using Node.js as our runtime environment, it seemed like an easy choice to choose Jest.
 
-### GitHub Test Folder: [https://github.com/pixl-garden/codagotchi/tree/main/tests](https://github.com/pixl-garden/codagotchi/tree/main/tests) 
+### GitHub Test folder: [https://github.com/pixl-garden/codagotchi/tree/main/tests](https://github.com/pixl-garden/codagotchi/tree/main/tests) 
 
 ### Test Case Example:
 
 
 
-* Link: [https://github.com/pixl-garden/codagotchi/blob/main/tests/ScreenComponent.test.js](https://github.com/pixl-garden/codagotchi/blob/main/tests/ScreenComponent.test.js) 
-* Description: generateScreen tests
-    * Should place a single sprite correctly on the screen.
-    * Should return an empty screen if no sprites are given
-    * Should not show a sprite if it is out-of-bounds of the screen
-    * Should only show part of the sprite if that part is within bounds
+* Description: Matrix Functions Tests
+    * Should properly generate colored rectangular matrices
+    * Should be able to overlay matrices on top of eachother
+    * Should be able to concatenate matrices of same height
+    * Should be able to replace color of matrix cells
+* Class: [https://github.com/pixl-garden/codagotchi/blob/main/webviews/components/MatrixFunctions.svelte](https://github.com/pixl-garden/codagotchi/blob/main/webviews/components/MatrixFunctions.svelte) 
+* Test: [https://github.com/pixl-garden/codagotchi/blob/main/tests/MatrixFunction.test.js](https://github.com/pixl-garden/codagotchi/blob/main/tests/MatrixFunction.test.js) 
+* Print Screen:
 
-### Print Screen: 
+![image](https://github.com/pixl-garden/codagotchi/assets/116697167/d024d5ea-34a4-4e67-aab5-34632c1f167a)
 
-![image](https://github.com/pixl-garden/codagotchi/assets/87792049/0e952aa6-07cc-41c3-8485-52e441f15cf6)
+## 4. Demo
 
+[https://www.youtube.com/watch?v=XRiHarD9dDY](https://www.youtube.com/watch?v=XRiHarD9dDY)
 
-## Acceptance Test
+## 5. Code Quality
 
-### Test Framework: 
+Our team implemented a series of measures to ensure our codebase remains clean, consistent and error-free. To do this, we incorporated a variety of tools and practices as part of our development process.
 
-VSCode Mock Object and Jest
+We adopted “Prettier” ([https://prettier.io/](https://prettier.io/)) as our code formatting tool. Prettier automatically formats our code according to our specifications whenever we run it. This helps to maintain consistent style and formatting principles across our entire codebase. We agreed on using a standard 4-space indentation rule, which Prettier can automatically implement.
 
-(https://code.visualstudio.com/api/working-with-extensions/testing-extension)
+Alongside Prettier, we integrated ESLint into our codebase. This allows us to detect potential errors or warnings pertaining to syntax. This has enabled us to minimize errors and improve our consistency regarding naming conventions and other style standards.
 
-### GitHub Test Folder: 
+Lastly, we implemented a strict code-review policy that requires all submitted code to be reviewed by another team member before being merged into our main branch. This peer review process not only catches potential errors but also increases knowledge-sharing and collaboration within our team.
 
-https://github.com/pixl-garden/codagotchi/tree/main/tests 
+## 6. Lessons Learned
 
-### Test Case Example: 
+In our second release, we have learned that features like customization and progress tracking can be far more complex to implement than initially expected. This realization has taught us the importance of allocating more time for development and reassessing our project timelines to accommodate these intricate tasks.
 
-The test is not a full blackbox test as performing these tests using Selenium or something similar within the VSCode environment is not possible. However we are able to create a mock VSCode object that simulates running the web components in a VSCode Environment. Our first test initializes the webview and ensures that it receives the proper html to display the game. Our second test simulates an asynchronous message exchange between the VSCode API and the webview using ‘await onDidReceiveMessage(messageToSend);’ and ensures that VSCode’s globalState is properly set which is what we use to store local user data between sessions without directly saving files on the user’s system. 
-Mock VSCode object implementation: 
+We also have realized that the implementation of Jest has been invaluable. Automated testing has allowed us to maintain a high standard of code quality and enables us to catch errors early. Similarly, the use of Prettier has taught us the importance of consistent code styling, and how it improves our collaborative experience.
 
-https://github.com/pixl-garden/codagotchi/blob/main/__mocks__/vscode.js
-
-Webview Test:
-
-https://github.com/pixl-garden/codagotchi/blob/main/tests/webview.test.js
-
-### Print Screen: 
-
-![image](https://github.com/pixl-garden/codagotchi/assets/87792049/a1befe1a-6daf-4b12-9526-02110507472a)
-
-
-## Validation
-
-### Script:
-
-Tasks given to User:
-1. Install Codagotchi 
-2. Explore customization room
-3. Explore settings room
-4. Interact with pet
-5. Authenticate via Github
-
-Questions Asked:
-1. What was your first impression when you launched the extension?
-2. Did everything run smoothly (any lag, hangups?)
-3. What were your thoughts on the stylistic choices of the extension?
-4. On a scale of 1-10, how intuitive did you find navigation within the extension?
-5. Did any features seem confusing or unclear?
-6. What feature did you find the most useful or enjoyable?
-7. What features do you feel could be improved?
-8. On a scale of 1-10, how likely are you to use our extension in its current state?
-9. What would increase the likelihood of you using the extension regularly?
-10. What is the main thing you liked most about the extension?
-11. Please rate / describe your overall experience from 1-10?
-12. Would you recommend Codagotchi to a friend?
-13. Do you have any other comments or feedback?
-
-Data Collected:
-- Natural interaction with extension, any obstacles / points of friction, intuitiveness of navigation / interaction, ease of installation, ease of authentication, general impressions and likelihood to regularly use the extension, what could be improved to increase retention.
-	
-
-### Results 1:
-
-* Interviewer: Forrest Hartley
-* Interviewee: Ryan Mitchell
-* Date: December 1st, 2023
-1. “I liked it. It felt a bit minimalistic, but overall it had a nice interface”
-2. “I didn’t experience any noticeable lag, but window resizing could have been smoother, it was kind of choppy.”
-3. “I liked the stylistic choices, but felt that the theme could have been more consistent
-4. “I would give it a 7. It was easy to move around and simple, but sometimes button hovering didn’t seem to work right”
-5. “There wasn’t any tutorial, which could have been helpful to understand how you’re supposed to progress.”
-6. “The marge Simpson hair. I liked the marge simpson hair”
-7. “I’d like to actually be able to make progress with coding”
-8. “I would say 1. It’s still half-baked but if the code to gain XP part of the extension gets implemented I’ll bump that number up considerably.”
-9. “Like I said previously, I want to be rewarded for coding”
-10. “My answer is still the marge Simpson hair”
-11. “Overall, it seems like it could be really cool, but in its current state, moving around and authenticating my GitHub account doesn’t quite do it for me. I did like the customization area though, so I’ll say 6.5”
-12. “Not in its current state, but if it gets finished, I would say yes”
-13. “I like the idea, but I would say that it still needs a bit of work”
-
-	
-### Results 2:
-
-* Interviewer: Noah Gooby
-* Interviewee: Ethan Gooby
-* Date: December 2nd, 2023
-1. “I really liked the pixel art aesthetic and the design of the main pet, which is more detailed than I expected.”
-2. “The extension window took a few seconds to load, and resizing the window isn’t fluid.”
-3. “Like I mentioned, I enjoy the pixel art design and the current pet.”
-4. “I would give navigation a 9, I didn’t experience any issues with it.”
-5. “I’m unclear on how progression is supposed to work, but it just seems like it isn’t fully implemented yet. I assume the shop page will also be tied into progression and rewards.”
-6. “The ability to equip hats is definitely the best feature right now.”
-7. “I would rather buy items with points than be able to equip all of them from the start. Progression and more interaction options with the pet also need to be added.”
-8. “In it’s current state, I would say 3. I might run it occasionally to check in on it’s development, but I wouldn’t use it regularly until progression or rewards are added. If those are added, along with more pet interactions, I would likely give it an 8.5.”
-9. “I would say the same as my last answer.”
-10.  “I liked the overall design and the vision for the extension. I think it will be awesome when it is closer to being finished.”
-11.  “Probably a 7. It was cool to see how far the extension has come and the direction that it’s taking.”
-12.  “Absolutely, once a full release comes out.”
-13. “Great work so far, focus on finishing the core mechanics.”
-
-### Results 3:
-
-* Interviewer: Noah Gooby
-* Interviewee: Eras Kesee
-* Date: December 2nd, 2023
-1. “It feels nostalgic, I like it.”
-2. “It took longer to load than I expected but no other issues.”
-3. “The pixel art is awesome, the pet looks professionally made.”
-4. “7, moving between screens was easy but some of the screens felt empty.”
-5. “I don’t understand the benefit of authenticating with Github, there should be a message somewhere explaining it.”
-6. “Making the little dude waddle when I click on him and giving him Marge Simpson hair.”
-7. “Add more animations to the pet and flesh out some of the different menu backgrounds. Also like I said, explain the authentication part.”
-8. “Probably a 2 since it doesn’t do a lot right now, but it was cool to see and I would use it later down the line.”
-9.  “Getting rewards for coding, getting some benefit from authenticating, a bigger selection of customization items and more activities I can do with the pet.”
-10.  “The general design of the pet and the UI, I like how simplistic the UI is.”
-11.  “7, it was fun to mess around with but I won’t use it regularly until it is more finished.”
-12.  “I would recommend it down the line if some of the things I brought up are added, but not at the moment. I will start building hype for it though”
-13. “I want PvP, give me PvP”. 
-
-
-### Reflections:
-
-We gained a lot of insight into how users react to our extension from these interviews. It seemed that users generally liked the overall design and UI. Everyone also enjoyed the customization options (with Marge Simpson hair particularly being a hit), and users want to see us continue to add more similar options. Users also had an easy time navigating the extension.
-
-We learned that in its current state, users feel slightly confused about the general purpose and features such as GitHub authentication. Ryan brought up a great point about adding a tutorial, which is something we will prioritize. Our progression system is not fully implemented yet, so it is understandable why the users were confused -- we will re-interview them when a fuller release is completed. 
-
-Users also enjoyed the idea of interacting with the virtual pet, but want more interaction options to be added. 
-
-Overall, we learned that our extension has a great foundation currently, and that we have a lot of opportunity for growth. We received great feedback that we can use to increase user engagement. Key areas that we will focus on based on these interviews are performance optimization, a clear implementation of a progression system, and providing users with a tutorial / other explanations regarding certain features. These interviews told us that users are excited about the potential of Codagotchi and are willing to recommend it when it is more developed. This presents a promising future for Codagotchi as long as we incorporate the improvements mentioned by these users.
+Based on these learned lessons, for future development, we plan to set aside more time for the implementation of complex features, further integrate automated testing, and continue to strictly enforce code styling guidelines. Additionally, we plan to improve collaboration when it comes to designing new sprites.
