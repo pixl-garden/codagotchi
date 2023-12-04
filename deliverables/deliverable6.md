@@ -34,8 +34,9 @@ We chose to use Jest as our testing framework because of it’s balance between 
     * Should not show a sprite if it is out-of-bounds of the screen
     * Should only show part of the sprite if that part is within bounds
 
-### Print Screen: PASTE IMAGE ONCE ON GITHUB
+### Print Screen: 
 
+![image](https://github.com/pixl-garden/codagotchi/assets/87792049/0e952aa6-07cc-41c3-8485-52e441f15cf6)
 
 
 ## Acceptance Test
@@ -60,6 +61,8 @@ Webview Test:
 https://github.com/pixl-garden/codagotchi/blob/main/tests/webview.test.js
 
 ### Print Screen: 
+
+![image](https://github.com/pixl-garden/codagotchi/assets/87792049/a1befe1a-6daf-4b12-9526-02110507472a)
 
 
 ## Validation
