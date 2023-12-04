@@ -15,7 +15,6 @@ const vscode = {
 
     commands: {
         executeCommand: jest.fn(),
-        // Add other command methods if needed
     },
 
     EventEmitter: class extends EventEmitter {
