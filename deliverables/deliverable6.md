@@ -40,16 +40,26 @@ We chose to use Jest as our testing framework because of it’s balance between 
 
 ## Acceptance Test
 
-	### Test Framework: VSCode Mock Object and Jest (https://code.visualstudio.com/api/working-with-extensions/testing-extension) The 
+### Test Framework: 
 
-	### GitHub Test Folder: https://github.com/pixl-garden/codagotchi/tree/main/tests 
+VSCode Mock Object and Jest (https://code.visualstudio.com/api/working-with-extensions/testing-extension) The 
 
-	### Test Case Example: The test is not a full blackbox test as performing these tests using Selenium or something similar within the VSCode environment is not possible. However we are able to create a mock VSCode object that simulates running the web components in a VSCode Environment. Our first test initializes the webview and ensures that it receives the proper html to display the game. Our second test simulates an asynchronous message exchange between the VSCode API and the webview using ‘await onDidReceiveMessage(messageToSend);’ and ensures that VSCode’s globalState is properly set which is what we use to store local user data between sessions without directly saving files on the user’s system. 
-Mock VSCode object implementation: https://github.com/pixl-garden/codagotchi/blob/main/__mocks__/vscode.js
+### GitHub Test Folder: 
+
+https://github.com/pixl-garden/codagotchi/tree/main/tests 
+
+### Test Case Example: 
+
+The test is not a full blackbox test as performing these tests using Selenium or something similar within the VSCode environment is not possible. However we are able to create a mock VSCode object that simulates running the web components in a VSCode Environment. Our first test initializes the webview and ensures that it receives the proper html to display the game. Our second test simulates an asynchronous message exchange between the VSCode API and the webview using ‘await onDidReceiveMessage(messageToSend);’ and ensures that VSCode’s globalState is properly set which is what we use to store local user data between sessions without directly saving files on the user’s system. 
+Mock VSCode object implementation: 
+
+https://github.com/pixl-garden/codagotchi/blob/main/__mocks__/vscode.js
+
 Webview Test:
+
 https://github.com/pixl-garden/codagotchi/blob/main/tests/webview.test.js
 
-	### Print Screen: 
+### Print Screen: 
 
 
 ## Validation
