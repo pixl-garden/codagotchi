@@ -43,7 +43,9 @@ We chose to use Jest as our testing framework because of it’s balance between 
 
 ### Test Framework: 
 
-VSCode Mock Object and Jest (https://code.visualstudio.com/api/working-with-extensions/testing-extension) The 
+VSCode Mock Object and Jest
+
+(https://code.visualstudio.com/api/working-with-extensions/testing-extension)
 
 ### GitHub Test Folder: 
 
