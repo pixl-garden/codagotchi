@@ -39,7 +39,7 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "test": "jest",
+    "test": "jest --verbose",
     "lint": "eslint . --ext .js,.ts,.svelte",
     "format": "prettier --write 'src/**/*.{js,ts}' 'webviews/**/*.{js,svelte,json}' 'tests/**/*.{js,ts}'"
   },
@@ -65,7 +65,6 @@
     "eslint-plugin-svelte3": "^4.0.0",
     "glob": "^8.1.0",
     "jest": "^29.7.0",
-    "mocha": "^10.2.0",
     "prettier": "^3.0.3",
     "prettier-plugin-svelte": "^3.0.3",
     "rollup-plugin-svelte": "^7.1.6",
