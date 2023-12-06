@@ -1,4 +1,5 @@
-<script context = 'module'>
+<script context='module'>
+    import { spriteReader } from "./SpriteReader.svelte";
     export function generateRectangleMatrix(width, height, color) {
         const sprite = [];
         for (let i = 0; i < height; i++) {
@@ -73,5 +74,54 @@
         overlayMatrix(outerSprite, textSprite, textX, textY);
         // console.log('OUTER SPRITE: ', outerSprite);
         return outerSprite;
+    }
+
+    export function generateStatusBarSprite(
+        width,
+        height,
+        borderColor,
+        bgColor,
+        statusBarColor,
+        filledWidth
+    ) {
+        // Create the outer border
+        const borderSprite = generateRectangleMatrix(width, height, borderColor);
+
+        // Create the inner background
+        const innerWidth = width - 2; // Adjust for border
+        const innerHeight = height - 2; // Adjust for border
+        const backgroundSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
+
+        // Overlay the background onto the border
+        overlayMatrix(borderSprite, backgroundSprite, 1, 1);
+
+        // Create the filled part of the status bar
+        if (filledWidth > 0) {
+            const statusBarSprite = generateRectangleMatrix(filledWidth, innerHeight, statusBarColor);
+            overlayMatrix(borderSprite, statusBarSprite, 1, 1);
+        }
+
+        return borderSprite;
+    }
+
+    export function generateStatusBarSpriteSheet(
+        width,
+        height,
+        borderColor,
+        bgColor,
+        statusBarColor
+    ) {
+        let spriteSheet = [];
+
+        for (let i = 0; i < width - 2; i++) {
+            const statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, i);
+            if (i === 0) {
+                spriteSheet = statusBarSprite;
+            } else {
+                spriteSheet = concatenateMatrixes(spriteSheet, statusBarSprite);
+            }
+        }
+
+        return spriteReader(width, height, spriteSheet);
     }
 </script>

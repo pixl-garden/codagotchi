@@ -56,6 +56,13 @@
             lastHoveredObject = null; // Reset the last hovered object
             return; // Exit early
         }
+        else if (hoveredObject == lastHoveredObject && hoveredObject.whileHover) {
+            hoveredObject.whileHover();
+        }
+        // else if (hoveredObject !== lastHoveredObject && lastHoveredObject && lastHoveredObject.onStopHover) {
+        //     lastHoveredObject.onStopHover();
+        //     event.currentTarget.style.cursor = 'default'; // Reset cursor
+        // }
         // Only call onHover and onStopHover if the hovered object has changed
         if (hoveredObject !== lastHoveredObject) {
             // Call onStopHover on the last hovered object

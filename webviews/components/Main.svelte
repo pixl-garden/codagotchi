@@ -7,7 +7,7 @@
     import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
-    import { generateButtonClass } from './ObjectGenerators.svelte';
+    import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
 
     const FPS = 16; //frames per second
@@ -41,6 +41,10 @@
             $game.getCurrentRoom().removeObject(mainMenuButton);
             $game.getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4);
         }, 1);
+
+        const StatusBar = generateStatusBarClass(75, 12, 'black', 'grey', '#40D61A');
+
+
 
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
@@ -97,12 +101,14 @@
             $game.setCurrentRoom('mainRoom');
         }, 0);
 
+        const statusBar = new StatusBar(20, 2, 0);
+
         let shopRoom = new Room('shopRoom'); 
 
         background = new Background('vanityBackground', 0, 0, -20);
         
         // add objects to rooms
-        mainRoom.addObject(petObject, mainMenuButton);
+        mainRoom.addObject(petObject, mainMenuButton, statusBar);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, background);
         shopRoom.addObject(backToMain);
