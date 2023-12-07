@@ -40,23 +40,20 @@
 
         const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
 
-        if (mouseExited && hoveredObject === lastHoveredObject) {
+        if (mouseExited && hoveredObject === lastHoveredObject && hoveredObject) {
             // Handle the case when mouse re-enters over the same object
-            if (hoveredObject.onHover) {
-                hoveredObject.onHover();
-            }
+            hoveredObject.onHover();
             mouseExited = false;  // Reset the flag
         }
         // Check if we've moved off an object
         else if (!hoveredObject && lastHoveredObject) {
-            if (lastHoveredObject.onStopHover) {
                 lastHoveredObject.onStopHover();
-            }
+
             event.currentTarget.style.cursor = 'default'; // Reset cursor
             lastHoveredObject = null; // Reset the last hovered object
             return; // Exit early
         }
-        else if (hoveredObject == lastHoveredObject && hoveredObject.whileHover) {
+        else if (hoveredObject == lastHoveredObject && hoveredObject) {
             hoveredObject.whileHover();
         }
         // else if (hoveredObject !== lastHoveredObject && lastHoveredObject && lastHoveredObject.onStopHover) {
@@ -66,7 +63,7 @@
         // Only call onHover and onStopHover if the hovered object has changed
         if (hoveredObject !== lastHoveredObject) {
             // Call onStopHover on the last hovered object
-            if (lastHoveredObject && lastHoveredObject.onStopHover) {
+            if (lastHoveredObject) {
                 lastHoveredObject.onStopHover();
             }
 

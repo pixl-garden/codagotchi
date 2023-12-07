@@ -6,12 +6,13 @@
     import { Room, game } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { createTextRenderer} from './TextRenderer.svelte';
+    import { createTextRenderer } from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
+    import { preloadObjects, roomMain } from './Rooms.svelte';
+    import { get } from 'svelte/store';
 
     const FPS = 16; //frames per second
-    const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
     let screen = [];
     let petObject;
     let hasMainLoopStarted = false;
@@ -20,98 +21,15 @@
     let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
     let githubUsername;
     let test;
-    // let background;
-    let background;
 
     //run once before main loop
     function pre() {
 
         // setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
         getGlobalState( {} );
-
         handleResize();
+        preloadObjects();
         //prettier-ignore
-        //createTextRenderer(image, charWidth, charHeight, color, letterSpacing, charMap)
-        basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
-        gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
-        retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
-
-        // main menu button (drop down)
-        const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
-            $game.getCurrentRoom().removeObject(mainMenuButton);
-            $game.getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4);
-        }, 1);
-
-        const StatusBar = generateStatusBarClass(75, 12, 'black', 'grey', '#40D61A');
-
-
-
-        //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
-        const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
-
-        // drop down buttons
-        const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
-            $game.setCurrentRoom('settingsRoom');
-        }, 20);
-        const dropDown_2 = new dropDownButton('Shop', 0, 12, () => {
-            $game.setCurrentRoom('shopRoom');
-        }, 20);
-        const dropDown_3 = new dropDownButton('Customize', 0, 24, () => {
-            $game.setCurrentRoom('customizeRoom');
-        }, 20);
-        const dropDown_4 = new dropDownButton('Close', 0, 36, () => {
-            $game.getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
-                                                 dropDown_3, dropDown_4 );
-            $game.getCurrentRoom().addObject(mainMenuButton);
-        }, 20);
-
-        // settings menu buttons
-        const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {
-            console.log('Button was clicked!');
-        });
-        const gitlogin = new settingsMenuButton('Git Login', 0, 12, () => {
-            handleGitHubLogin();
-        });
-        const notifications = new settingsMenuButton('Notifs', 0, 28, () => {
-            console.log('Button was clicked!')
-        });
-        const display = new settingsMenuButton('Display', 0, 44, () => {
-            console.log('Button was clicked!');
-        });
-        const about = new settingsMenuButton('<BACK', 0, 60, () => {
-            $game.setCurrentRoom('mainRoom'); 
-        });
-        
-        // create rooms
-        let mainRoom = new Room('mainRoom');
-        let settingsRoom = new Room('settingsRoom');
-        let customizeRoom = new Room('customizeRoom');
-        petObject = new Pet('pearguin', 24, 25, 0, "leaf");
-        
-        const leftHatArrow = new singleLetterButton('<', 20, 72, () => {
-            petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
-        }, 0);
-        const rightHatArrow = new singleLetterButton('>', 60, 72, () => {
-            petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
-        }, 0);
-        const backToMain = new singleLetterButton('<', 0, 0, () => {
-            $game.setCurrentRoom('mainRoom');
-        }, 0);
-
-        const statusBar = new StatusBar(20, 2, 0);
-
-        let shopRoom = new Room('shopRoom'); 
-
-        background = new Background('vanityBackground', 0, 0, -20);
-        
-        // add objects to rooms
-        mainRoom.addObject(petObject, mainMenuButton, statusBar);
-        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
-        customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, background);
-        shopRoom.addObject(backToMain);
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
@@ -119,8 +37,7 @@
     //main loop
     function main() {
         let sprites = []; // Clear previous sprites
-        petObject.nextFrame();
-        background.nextFrame();
+        roomMain();
         
         // Get the current room from the game object
         currentRoom = $game.getCurrentRoom();
@@ -174,16 +91,12 @@
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);
     });
-
-    function handleGitHubLogin() {
-        tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
-    };
 </script>
 
 <div
     class="grid-container"
-    on:click={(e) => handleClick(e, $game)}
-    on:mousemove={(e) => handleMouseMove(e, $game)}
+    on:click={(e) => handleClick(e, get(game))}
+    on:mousemove={(e) => handleMouseMove(e, get(game))}
     on:mouseleave={(e) => handleMouseOut(e)}
     on:keypress={null}
     on:blur={null}

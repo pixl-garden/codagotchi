@@ -95,13 +95,11 @@
             }
         }
 
-        onHover() {
-            // console.log(`Hovered over generated object at coordinates: (${this.x}, ${this.y})`);
-        }
+        onHover() {}
 
-        onStopHover() {
-            // console.log(`Stopped hovering over generated object at coordinates: (${this.x}, ${this.y})`);
-        }
+        onStopHover() {}
+
+        whileHover() {}
 
         clickAction() {
             this.actionOnClick();
@@ -234,14 +232,6 @@
             this.spriteHeight = config.spriteHeight;
             this.objectType = objectName;
             this.config = config;
-        }
-
-        onHover() {
-            // console.log(`Hovered over object of type: ${this.objectType}`);
-        }
-
-        onStopHover() {
-            // console.log(`Stopped hovering over object of type: ${this.objectType}`);
         }
     }
 
