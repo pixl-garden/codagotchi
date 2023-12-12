@@ -61,5 +61,13 @@
             "slide": [1, "...", 25],
             "open": [25]
         }
+    },
+    "customizeUI": {
+        "spriteWidth": 77,
+        "spriteHeight": 64,
+        "spriteSheet": "customizeUI.png",
+        "states": {
+            "default": [0]
+        }
     }
 }

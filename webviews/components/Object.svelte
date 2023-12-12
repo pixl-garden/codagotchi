@@ -26,6 +26,21 @@
             this.isStateCompleted = false;
             this.callbackQueue = [];
             this.currentStateCallback = null;
+            
+            // Movement related properties
+            this.isMoving = false;
+            this.targetX = 0;
+            this.targetY = 0;
+            this.speedFunction = null;
+            this.startX = 0;
+            this.startY = 0;
+            this.accumulatedMoveX = 0;
+            this.accumulatedMoveY = 0;
+
+            this.bouncing = false;
+            this.bounceFrame = 0;
+            this.maxBounceFrames = 3; // Total frames for the bounce
+            this.bounceHeight = 1; // Height of the bounce
         }
 
         getZ() {
@@ -51,7 +66,82 @@
             }
         }
 
+        // Basic movement function (z axis unchanged)
+        move(deltaX, deltaY) {
+            console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
+            this.x += deltaX;
+            this.y += deltaY;
+            // this.z remains unchanged
+        }
+
+        // Function to start moving towards a target
+        startMovingTo(targetX, targetY, speedFunction) {
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.speedFunction = speedFunction;
+            this.isMoving = true;
+            this.startX = this.x;
+            this.startY = this.y;
+        }
+
+         // Function to handle the movement towards the target
+// Function to handle the movement towards the target
+moveToTarget() {
+    let diffX = this.targetX - this.x;
+    let diffY = this.targetY - this.y;
+
+    let remainingDistanceX = Math.abs(diffX);
+    let remainingDistanceY = Math.abs(diffY);
+
+    if (remainingDistanceX < 1 && remainingDistanceY < 1 && !this.bouncing) {
+        // Start bouncing
+        this.bouncing = true;
+        this.bounceFrame = 0;
+        this.bounceDirection = Math.sign(diffY); // Determine the direction of the bounce
+    }
+
+    if (!this.bouncing) {
+        // Normal movement logic
+        let desiredMoveX = Math.sign(diffX) * this.speedFunction(remainingDistanceX, Math.abs(this.targetX - this.startX));
+        let desiredMoveY = Math.sign(diffY) * this.speedFunction(remainingDistanceY, Math.abs(this.targetY - this.startY));
+
+        desiredMoveX = Math.min(Math.abs(desiredMoveX), remainingDistanceX) * Math.sign(desiredMoveX);
+        desiredMoveY = Math.min(Math.abs(desiredMoveY), remainingDistanceY) * Math.sign(desiredMoveY);
+
+        this.accumulatedMoveX += desiredMoveX;
+        this.accumulatedMoveY += desiredMoveY;
+
+        let moveX = Math.round(this.accumulatedMoveX);
+        let moveY = Math.round(this.accumulatedMoveY);
+
+        this.move(moveX, moveY);
+        this.accumulatedMoveX -= moveX;
+        this.accumulatedMoveY -= moveY;
+    } else if (this.bounceFrame < this.maxBounceFrames) {
+        // Bounce logic
+        let bounceAmount = Math.round(this.bounceHeight * Math.sin(Math.PI * this.bounceFrame / this.maxBounceFrames));
+        if (this.bounceDirection === 1) {
+            // Bounce down
+            this.y = this.targetY + bounceAmount;
+        } else {
+            // Bounce up
+            this.y = this.targetY - bounceAmount;
+        }
+        this.bounceFrame++;
+    } else {
+        // End of bounce, settle at the target
+        this.isMoving = false;
+        this.bouncing = false;
+        this.y = this.targetY;
+    }
+}
+
+
         nextFrame() {
+            if (this.isMoving) {
+                // Continue moving towards the target
+                this.moveToTarget();
+            }
             // Avoid unneccessary frame update if object has only one state and no queued states
             if(this.state.length <= 1 && this.stateQueue.length == 0){
                 return;
@@ -255,10 +345,9 @@
     }
 
     export class Background extends Object {
-        constructor(objectName, x, y, z){
+        constructor(objectName, x, y, z, actionOnClick = () => {}) {
             super(objectName, x, y, z, () => {
-                this.queueState('slide')
-                this.queueState('open')
+                actionOnClick();
             });
             this.stateQueue = [];
             this.isStateCompleted = false;

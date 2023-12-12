@@ -14,13 +14,9 @@
 
     const FPS = 16; //frames per second
     let screen = [];
-    let petObject;
     let hasMainLoopStarted = false;
     let currentRoom;
-    let basic, gang, retro; //font renderers
-    let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
     let githubUsername;
-    let test;
 
     //run once before main loop
     function pre() {

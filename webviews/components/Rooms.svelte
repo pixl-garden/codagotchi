@@ -4,6 +4,7 @@
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
+    import { compute_rest_props } from 'svelte/internal';
 
     let background;
     let petObject;
@@ -22,7 +23,7 @@
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
 
         // main menu button (drop down)
-        const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
+        const mainMenuButton = new Button('mainMenuButton', 2, 0, () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
             get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4);
         }, 1);
@@ -69,10 +70,16 @@
         });
         
         // create rooms
-        let mainRoom = new Room('mainRoom');
+        let mainRoom = new Room('mainRoom', false, false, () => {
+            petObject.nextFrame();
+        });
         let settingsRoom = new Room('settingsRoom');
-        let customizeRoom = new Room('customizeRoom');
-        petObject = new Pet('pearguin', 24, 25, 0, "leaf");
+        let customizeRoom = new Room('customizeRoom', false, false, () => {
+            petObject.nextFrame();
+            background.nextFrame();
+            customizeUI.nextFrame();
+        });
+        petObject = new Pet('pearguin', 24, 32, 0, "leaf");
         
         const leftHatArrow = new singleLetterButton('<', 20, 72, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
@@ -88,17 +95,61 @@
 
         let shopRoom = new Room('shopRoom'); 
 
-        background = new Background('vanityBackground', 0, 0, -20);
+        background = new Background('vanityBackground', 0, 0, -20, () => {
+            this.queueState('slide')
+            this.queueState('open')
+        });
+
+        // Speed function example
+        function linearSpeed(diff) {
+            const speed = 3; // Speed factor, adjust as needed
+            return Math.sign(diff) * Math.min(Math.abs(diff), speed);
+        }
+        function sineWaveSpeed(currentDistance, totalDistance) {
+            if (totalDistance === 0) return 0;
+
+            // Normalize the progress
+            let progress = currentDistance / totalDistance;
+
+            // Adjust the progress for a wider bell curve
+            // This will make the sine wave reach its peak faster
+            progress = Math.pow(progress, .7); // Adjust this exponent to control the curve
+
+            // Sine wave parameters
+            let frequency = Math.PI; // One complete sine wave
+            let amplitude = 15; // Adjust for maximum speed
+
+            // Calculate speed based on sine wave
+            let speed = Math.sin(progress * frequency) * amplitude;
+
+            // Ensure a minimum speed to avoid being stuck
+            return Math.max(speed, 0.6);
+        }
+
+        function linearSpeed(currentDistance, totalDistance) {
+            const speed = 1; // You can adjust this value for faster or slower speed
+            return speed;
+        }
+
+
+        let customizeUI = new Background('customizeUI', 9, 88, -10, () => {
+            if(customizeUI.y < 22){
+                customizeUI.startMovingTo(9, 88, sineWaveSpeed);
+            }
+            else{
+                customizeUI.startMovingTo(9, 21, sineWaveSpeed);
+            }
+        });
+        
         
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
-        customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, background);
+        customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain);
     }
 
     export function roomMain(){
-        petObject.nextFrame();
-        background.nextFrame();
+        get(game).getCurrentRoom().update();
     }
 </script>
