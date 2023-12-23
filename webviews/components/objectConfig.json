@@ -59,13 +59,22 @@
         "states":{
             "default": [0],
             "slide": [1, "...", 25],
-            "open": [25]
+            "open": [25],
+            "slideBack": [25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13 ,12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
         }
     },
     "customizeUI": {
         "spriteWidth": 77,
         "spriteHeight": 64,
         "spriteSheet": "customizeUI.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "vendingBackground": {
+        "spriteWidth": 96,
+        "spriteHeight": 96,
+        "spriteSheet": "vending.png",
         "states": {
             "default": [0]
         }
