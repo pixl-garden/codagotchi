@@ -75,66 +75,71 @@
         }
 
         // Function to start moving towards a target
-        startMovingTo(targetX, targetY, speedFunction) {
+        startMovingTo(targetX, targetY, speedFunction, attachedObjs = []) {
             this.targetX = targetX;
             this.targetY = targetY;
             this.speedFunction = speedFunction;
             this.isMoving = true;
             this.startX = this.x;
             this.startY = this.y;
+            this.attachedObjs = attachedObjs;
         }
 
-         // Function to handle the movement towards the target
-// Function to handle the movement towards the target
-moveToTarget() {
-    let diffX = this.targetX - this.x;
-    let diffY = this.targetY - this.y;
+        // Function to handle the movement towards the target
+        moveToTarget() {
+            let diffX = this.targetX - this.x;
+            let diffY = this.targetY - this.y;
 
-    let remainingDistanceX = Math.abs(diffX);
-    let remainingDistanceY = Math.abs(diffY);
+            let remainingDistanceX = Math.abs(diffX);
+            let remainingDistanceY = Math.abs(diffY);
 
-    if (remainingDistanceX < 1 && remainingDistanceY < 1 && !this.bouncing) {
-        // Start bouncing
-        this.bouncing = true;
-        this.bounceFrame = 0;
-        this.bounceDirection = Math.sign(diffY); // Determine the direction of the bounce
-    }
+            if (remainingDistanceX < 1 && remainingDistanceY < 1 && !this.bouncing) {
+                // Start bouncing
+                this.bouncing = true;
+                this.bounceFrame = 0;
+                this.bounceDirection = Math.sign(diffY); // Determine the direction of the bounce
+            }
 
-    if (!this.bouncing) {
-        // Normal movement logic
-        let desiredMoveX = Math.sign(diffX) * this.speedFunction(remainingDistanceX, Math.abs(this.targetX - this.startX));
-        let desiredMoveY = Math.sign(diffY) * this.speedFunction(remainingDistanceY, Math.abs(this.targetY - this.startY));
+            if (!this.bouncing) {
+                // Normal movement logic
+                let desiredMoveX = Math.sign(diffX) * this.speedFunction(remainingDistanceX, Math.abs(this.targetX - this.startX));
+                let desiredMoveY = Math.sign(diffY) * this.speedFunction(remainingDistanceY, Math.abs(this.targetY - this.startY));
 
-        desiredMoveX = Math.min(Math.abs(desiredMoveX), remainingDistanceX) * Math.sign(desiredMoveX);
-        desiredMoveY = Math.min(Math.abs(desiredMoveY), remainingDistanceY) * Math.sign(desiredMoveY);
+                desiredMoveX = Math.min(Math.abs(desiredMoveX), remainingDistanceX) * Math.sign(desiredMoveX);
+                desiredMoveY = Math.min(Math.abs(desiredMoveY), remainingDistanceY) * Math.sign(desiredMoveY);
 
-        this.accumulatedMoveX += desiredMoveX;
-        this.accumulatedMoveY += desiredMoveY;
+                this.accumulatedMoveX += desiredMoveX;
+                this.accumulatedMoveY += desiredMoveY;
 
-        let moveX = Math.round(this.accumulatedMoveX);
-        let moveY = Math.round(this.accumulatedMoveY);
+                let moveX = Math.round(this.accumulatedMoveX);
+                let moveY = Math.round(this.accumulatedMoveY);
 
-        this.move(moveX, moveY);
-        this.accumulatedMoveX -= moveX;
-        this.accumulatedMoveY -= moveY;
-    } else if (this.bounceFrame < this.maxBounceFrames) {
-        // Bounce logic
-        let bounceAmount = Math.round(this.bounceHeight * Math.sin(Math.PI * this.bounceFrame / this.maxBounceFrames));
-        if (this.bounceDirection === 1) {
-            // Bounce down
-            this.y = this.targetY + bounceAmount;
-        } else {
-            // Bounce up
-            this.y = this.targetY - bounceAmount;
+                this.move(moveX, moveY);
+
+                for(let i = 0; i < this.attachedObjs.length; i++){
+                    this.attachedObjs[i].move(moveX, moveY);
+                }
+
+                this.accumulatedMoveX -= moveX;
+                this.accumulatedMoveY -= moveY;
+            } else if (this.bounceFrame < this.maxBounceFrames) {
+                // Bounce logic
+                let bounceAmount = Math.round(this.bounceHeight * Math.sin(Math.PI * this.bounceFrame / this.maxBounceFrames));
+                if (this.bounceDirection === 1) {
+                    // Bounce down
+                    this.y = this.targetY + bounceAmount;
+                } else {
+                    // Bounce up
+                    this.y = this.targetY - bounceAmount;
+                }
+                this.bounceFrame++;
+            } else {
+                // End of bounce, settle at the target
+                this.isMoving = false;
+                this.bouncing = false;
+                this.y = this.targetY;
+            }
         }
-        this.bounceFrame++;
-    } else {
-        // End of bounce, settle at the target
-        this.isMoving = false;
-        this.bouncing = false;
-        this.y = this.targetY;
-    }
-}
 
 
         nextFrame() {

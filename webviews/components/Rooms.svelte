@@ -34,7 +34,8 @@
         const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
+        const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const dropDownButton = new generateButtonClass(58, 12, '#pink', 'black', '#888dfc', 'black', retro);
 
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
@@ -45,6 +46,7 @@
         }, 20);
         const dropDown_3 = new dropDownButton('Customize', 0, 24, () => {
             get(game).setCurrentRoom('customizeRoom');
+            petObject.setCoordinate(24, 99, 0)
         }, 20);
         const dropDown_4 = new dropDownButton('Close', 0, 36, () => {
             get(game).getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
@@ -81,14 +83,15 @@
         });
         petObject = new Pet('pearguin', 24, 32, 0, "leaf");
         
-        const leftHatArrow = new singleLetterButton('<', 20, 72, () => {
+        const leftHatArrow = new singleLetterButton('<', 20, 144, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
         }, 0);
-        const rightHatArrow = new singleLetterButton('>', 60, 72, () => {
+        const rightHatArrow = new singleLetterButton('>', 60, 144, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
         }, 0);
-        const backToMain = new singleLetterButton('<', 0, 0, () => {
+        const backToMain = new smallLetterButton('<', 0, 0, () => {
             get(game).setCurrentRoom('mainRoom');
+            petObject.setCoordinate(24, 32, 0)
         }, 0);
 
         const statusBar = new StatusBar(20, 2, 0);
@@ -96,9 +99,17 @@
         let shopRoom = new Room('shopRoom'); 
 
         background = new Background('vanityBackground', 0, 0, -20, () => {
-            this.queueState('slide')
-            this.queueState('open')
+            if (background.state === 'open'){
+                background.queueState('slideBack')
+                background.queueState('default')
+            }
+            else{
+                background.queueState('slide')
+                background.queueState('open')
+            }
         });
+
+        let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
 
         // Speed function example
         function linearSpeed(diff) {
@@ -134,10 +145,10 @@
 
         let customizeUI = new Background('customizeUI', 9, 88, -10, () => {
             if(customizeUI.y < 22){
-                customizeUI.startMovingTo(9, 88, sineWaveSpeed);
+                customizeUI.startMovingTo(9, 88, sineWaveSpeed, [leftHatArrow, rightHatArrow, petObject]);
             }
             else{
-                customizeUI.startMovingTo(9, 21, sineWaveSpeed);
+                customizeUI.startMovingTo(9, 21, sineWaveSpeed, [leftHatArrow, rightHatArrow, petObject]);
             }
         });
         
@@ -146,7 +157,7 @@
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
-        shopRoom.addObject(backToMain);
+        shopRoom.addObject(backToMain, shopBackground);
     }
 
     export function roomMain(){
