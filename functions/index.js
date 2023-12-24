@@ -48,11 +48,13 @@ exports.handleGitHubRedirect = functions.https.onRequest(async (request, respons
 
         // Create a Firebase custom token
         const firebaseToken = await admin.auth().createCustomToken(githubUserId.toString());
+        const token_time = Date.now(); // Current timestamp in milliseconds
+
 
         // Update the Realtime Database
         const db = admin.database();
         const ref = db.ref('authTokens/' + state); // 'state' is the UUID
-        await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready' });
+        await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time});
 
         response.send("Authentication successful, you can return to the app.");
     } 
@@ -61,3 +63,26 @@ exports.handleGitHubRedirect = functions.https.onRequest(async (request, respons
         response.status(500).send("Authentication failed");
     }
 });
+
+exports.deleteOldTokens = functions.pubsub.schedule('every 1 minutes').onRun(async context => {
+    const db = admin.database();
+    const ref = db.ref('authTokens');
+    const now = Date.now();
+
+    const snapshot = await ref.once('value');
+    const tokens = snapshot.val();
+
+    if (tokens) {
+        for (const [key, value] of Object.entries(tokens)) {
+            // Check if the token is older than 10 minutes
+            if (now - value.timestamp > 600000) { // 600000 milliseconds = 10 minutes
+                console.log(`Deleting old token: ${key}`);
+                await ref.child(key).remove();
+            }
+        }
+    }
+
+    return null;
+});
+
+
