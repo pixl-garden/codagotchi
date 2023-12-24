@@ -75,7 +75,7 @@ exports.deleteOldTokens = functions.pubsub.schedule('every 1 minutes').onRun(asy
     if (tokens) {
         for (const [key, value] of Object.entries(tokens)) {
             // Check if the token is older than 10 minutes
-            if (now - value.timestamp > 600000) { // 600000 milliseconds = 10 minutes
+            if (now - value.timestamp > 86400000) { // 600000 milliseconds = 10 minutes
                 console.log(`Deleting old token: ${key}`);
                 await ref.child(key).remove();
             }
