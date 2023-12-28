@@ -35,7 +35,7 @@
         const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
         const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const dropDownButton = new generateButtonClass(58, 12, '#pink', 'black', '#888dfc', 'black', retro);
+        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
 
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
