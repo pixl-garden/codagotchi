@@ -57,6 +57,10 @@ exports.handleGitHubRedirect = functions.https.onRequest(async (request, respons
         await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time});
 
         response.send("Authentication successful, you can return to the app.");
+
+        await ref.remove();
+        console.log(`Token for state ${state} removed after successful verification.`);
+
     } 
     catch (error) {
         console.error("Error in GitHub authentication:", error);
@@ -64,7 +68,7 @@ exports.handleGitHubRedirect = functions.https.onRequest(async (request, respons
     }
 });
 
-exports.deleteOldTokens = functions.pubsub.schedule('every 1 minutes').onRun(async context => {
+exports.deleteOldTokens = functions.pubsub.schedule('0 0 * * *').timeZone('America/Los_Angeles').onRun(async context => {
     const db = admin.database();
     const ref = db.ref('authTokens');
     const now = Date.now();
@@ -81,7 +85,6 @@ exports.deleteOldTokens = functions.pubsub.schedule('every 1 minutes').onRun(asy
             }
         }
     }
-
     return null;
 });
 
