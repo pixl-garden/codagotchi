@@ -4,7 +4,7 @@
     import { images } from './store.js';
     import { Object, Pet, Button, GeneratedObject, NavigationButton, Background } from './Object.svelte';
     import { Room, game } from './Game.svelte';
-    import { handleMouseMove, handleClick, handleMouseOut } from './MouseEvents.svelte';
+    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp} from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer } from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
@@ -12,7 +12,7 @@
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
 
-    const FPS = 16; //frames per second
+    const FPS = 60; //frames per second
     let screen = [];
     let hasMainLoopStarted = false;
     let currentRoom;
@@ -93,6 +93,8 @@
     class="grid-container"
     on:click={(e) => handleClick(e, get(game))}
     on:mousemove={(e) => handleMouseMove(e, get(game))}
+    on:mousedown={(e) => handleMouseDown(e, get(game))}
+    on:mouseup={handleMouseUp}
     on:mouseleave={(e) => handleMouseOut(e)}
     on:keypress={null}
     on:blur={null}

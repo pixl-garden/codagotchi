@@ -7,6 +7,8 @@
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
+    import { generateEmptyMatrix } from './MatrixFunctions.svelte';
+    
 
     export class GeneratedObject {
         constructor(sprites, states, x, y, z, actionOnClick = null) {
@@ -196,8 +198,8 @@
 
         whileHover() {}
 
-        clickAction() {
-            this.actionOnClick();
+        clickAction(gridX, gridY) {
+            this.actionOnClick(gridX, gridY);
         }
     }
 
@@ -306,6 +308,43 @@
                 return;
             }
         }
+    }
+
+    export class PixelCanvas extends GeneratedObject {
+        constructor(x, y, z, width, height) {
+            const emptyMatrix = generateEmptyMatrix(width, height);
+            super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
+                this.paintPixel(gridX-1, gridY-1);
+            });
+            this.canvasWidth = width;
+            this.canvasHeight = height;
+            this.pixelMatrix = emptyMatrix;
+            this.color = 'red';
+        }
+
+        getSprite() {
+            return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+        }
+
+        setColor(color) {
+            this.color = color;
+        }
+
+        paintPixel(x, y) {
+            if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) return;
+            this.pixelMatrix[y][x] = this.color;
+            console.log(`Painted pixel at (${x}, ${y})`);
+        }
+
+        clearCanvas() {
+            this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
+        }
+
+        // clickAction() {
+        //     this.actionOnClick();
+        // }
+
+        // Other methods as needed (e.g., save, load)
     }
 
     export class Object extends GeneratedObject {

@@ -1,5 +1,15 @@
 <script context='module'>
     import { spriteReader } from "./SpriteReader.svelte";
+
+    export function generateEmptyMatrix(width, height) {
+        const sprite = [];
+        for (let i = 0; i < height; i++) {
+            const row = Array(width).fill('transparent');
+            sprite.push(row);
+        }
+        return sprite;
+    }
+
     export function generateRectangleMatrix(width, height, color) {
         const sprite = [];
         for (let i = 0; i < height; i++) {

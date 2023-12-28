@@ -7,6 +7,9 @@
     let height = window.innerHeight;
     let mouseExited = false;
     let lastHoveredObject = null;
+    let isMouseDown = false;
+    let activeDragObject = null;
+    let hoveredObject = null;
 
     export function handleClick(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
@@ -21,13 +24,28 @@
 
         const clickedObject = getObjectAt(gridX, gridY, gameInstance);
 
-        // Check for interactive objects
-        if(clickedObject){
-            clickedObject.clickAction();
+        if (clickedObject && isMouseDown) {
+            // Set activeDragObject only if it's a new drag action
+            if (!activeDragObject) {
+                activeDragObject = clickedObject;
+            }
+            clickedObject.clickAction(gridX, gridY);
         }
     }
 
+    export function handleMouseDown(event, gameInstance) {
+        event.preventDefault();
+        isMouseDown = true;
+        handleClick(event, gameInstance); // Handle the initial click
+    }
+
+    export function handleMouseUp(event) {
+        isMouseDown = false;
+        activeDragObject = null; // Reset the active drag object
+    }
+
     export function handleMouseMove(event, gameInstance) {
+        event.preventDefault();
         const boundingBox = event.currentTarget.getBoundingClientRect();
         const padding = getPadding();
         const pixelSize = getPixelSize();
@@ -38,7 +56,7 @@
         const xPixelCoord = Math.floor((mouseX - padding) / pixelSize);
         const yPixelCoord = Math.floor(mouseY / pixelSize);
 
-        const hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
+        hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
 
         if (mouseExited && hoveredObject === lastHoveredObject && hoveredObject) {
             // Handle the case when mouse re-enters over the same object
@@ -55,6 +73,10 @@
         }
         else if (hoveredObject == lastHoveredObject && hoveredObject) {
             hoveredObject.whileHover();
+            //handle drag clicking
+            if (isMouseDown && hoveredObject === activeDragObject) {
+                hoveredObject.clickAction(xPixelCoord, yPixelCoord);
+            }
         }
         // else if (hoveredObject !== lastHoveredObject && lastHoveredObject && lastHoveredObject.onStopHover) {
         //     lastHoveredObject.onStopHover();
