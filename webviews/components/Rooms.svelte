@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room } from './Game.svelte';
-    import { Pet, Button, Background } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -25,7 +25,7 @@
         // main menu button (drop down)
         const mainMenuButton = new Button('mainMenuButton', 2, 0, () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
-            get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4);
+            get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5);
         }, 1);
 
         const StatusBar = generateStatusBarClass(75, 12, 'black', 'grey', '#40D61A');
@@ -48,9 +48,12 @@
             get(game).setCurrentRoom('customizeRoom');
             petObject.setCoordinate(24, 99, 0)
         }, 20);
-        const dropDown_4 = new dropDownButton('Close', 0, 36, () => {
+        const dropDown_4 = new dropDownButton('Paint', 0, 36, () => {
+            get(game).setCurrentRoom('paintRoom');
+        }, 20);
+        const dropDown_5 = new dropDownButton('Close', 0, 48, () => {
             get(game).getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
-                                                 dropDown_3, dropDown_4 );
+                                                 dropDown_3, dropDown_4, dropDown_5 );
             get(game).getCurrentRoom().addObject(mainMenuButton);
         }, 20);
 
@@ -111,6 +114,9 @@
 
         let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
 
+        let paintRoom = new Room('paintRoom');
+        let paintCanvas = new PixelCanvas(2, 2, 0, 92, 92);
+
         // Speed function example
         function linearSpeed(diff) {
             const speed = 3; // Speed factor, adjust as needed
@@ -158,6 +164,7 @@
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
+        paintRoom.addObject(backToMain, paintCanvas);
     }
 
     export function roomMain(){
