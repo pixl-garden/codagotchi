@@ -1,5 +1,5 @@
 <script context="module">
-    import { Object, Button, NavigationButton } from './Object.svelte';
+    import { Object, Button, NavigationButton, PixelCanvas } from './Object.svelte';
     import { getPadding, getPixelSize } from "./ScreenManager.svelte";
 
     const GRIDWIDTH = 96;
@@ -10,6 +10,7 @@
     let isMouseDown = false;
     let activeDragObject = null;
     let hoveredObject = null;
+    let lastX, lastY;
 
     export function handleClick(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
@@ -36,11 +37,21 @@
     export function handleMouseDown(event, gameInstance) {
         event.preventDefault();
         isMouseDown = true;
+        const boundingBox = event.currentTarget.getBoundingClientRect();
+        const padding = getPadding();
+        const pixelSize = getPixelSize();
+        const mouseX = event.clientX - boundingBox.left;
+        const mouseY = event.clientY - boundingBox.top;
+        const xPixelCoord = Math.floor((mouseX - padding) / pixelSize);
+        const yPixelCoord = Math.floor(mouseY / pixelSize);
+        lastX = xPixelCoord;
+        lastY = yPixelCoord;
         handleClick(event, gameInstance); // Handle the initial click
     }
 
     export function handleMouseUp(event) {
         isMouseDown = false;
+        lastX = lastY = undefined;
         activeDragObject = null; // Reset the active drag object
     }
 
@@ -75,7 +86,20 @@
             hoveredObject.whileHover();
             //handle drag clicking
             if (isMouseDown && hoveredObject === activeDragObject) {
-                hoveredObject.clickAction(xPixelCoord, yPixelCoord);
+                if(typeof hoveredObject === PixelCanvas){
+                    hoveredObject.clickAction(xPixelCoord, yPixelCoord);
+                }
+                else{
+                    const currentX = xPixelCoord;
+                    const currentY = yPixelCoord;
+
+                    if (typeof lastX === 'number') {
+                        hoveredObject.drawLine(lastX, lastY, currentX, currentY);
+                    }
+
+                    lastX = currentX;
+                    lastY = currentY;
+                }
             }
         }
         // else if (hoveredObject !== lastHoveredObject && lastHoveredObject && lastHoveredObject.onStopHover) {

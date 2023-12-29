@@ -1,10 +1,10 @@
 <script context="module">
-    const GRIDWIDTH = 96;
+    const GRIDWIDTH = 128;
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let pixelSize = width / GRIDWIDTH
+    let pixelSize;
     let screenWidth = GRIDWIDTH * pixelSize;
-    let padding;
+    let padding = 0;
 
     export function generateScreen(sprites, xSize, ySize) {
         // Initialize an empty screen with the given size
@@ -52,14 +52,14 @@
     function updateDimensions() {
         width = window.innerWidth;
         height = window.innerHeight;
-        pixelSize = Math.floor(width / GRIDWIDTH);
-        screenWidth = GRIDWIDTH * pixelSize;
-        // TODO: fix padding so that it doesnt need to be set here 
-        padding = 1;
+        //
+        pixelSize = Math.min(width / (GRIDWIDTH + 6), height / GRIDWIDTH).toFixed(1);
+        screenWidth = Math.floor(GRIDWIDTH * pixelSize);
+        console.log("width: " + width + " height: " + height + " pixelSize: " + pixelSize + " screenWidth: " + screenWidth);
     }
 
     function updateStyles() {
-        document.documentElement.style.setProperty('--container-padding', `${padding}px`);
+        // document.documentElement.style.setProperty('--container-padding', `${padding}px`);
         document.documentElement.style.setProperty('--pixel-size', `${pixelSize}px`);
         document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
     }
