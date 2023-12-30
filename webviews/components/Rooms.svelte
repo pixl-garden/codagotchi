@@ -23,18 +23,20 @@
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
 
         // main menu button (drop down)
-        const mainMenuButton = new Button('mainMenuButton', 2, 0, () => {
+        const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
-            get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5);
+            get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5, dropDown_6);
         }, 1);
 
-        const StatusBar = generateStatusBarClass(75, 12, 'black', 'grey', '#40D61A');
+        const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A');
 
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
         const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const friendTitle = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+        const friendButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
 
         // drop down buttons
@@ -51,9 +53,12 @@
         const dropDown_4 = new dropDownButton('Paint', 0, 36, () => {
             get(game).setCurrentRoom('paintRoom');
         }, 20);
-        const dropDown_5 = new dropDownButton('Close', 0, 48, () => {
+        const dropDown_5 = new dropDownButton('Social', 0, 48, () => {
+            get(game).setCurrentRoom('socialRoom');
+        }, 20);
+        const dropDown_6 = new dropDownButton('Close', 0, 60, () => {
             get(game).getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
-                                                 dropDown_3, dropDown_4, dropDown_5 );
+                                                 dropDown_3, dropDown_4, dropDown_5, dropDown_6 );
             get(game).getCurrentRoom().addObject(mainMenuButton);
         }, 20);
 
@@ -95,7 +100,7 @@
         const backToMain = new smallLetterButton('<', 0, 0, () => {
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(24, 32, 0)
-        }, 0);
+        }, 10);
 
         const statusBar = new StatusBar(20, 2, 0);
 
@@ -116,6 +121,21 @@
 
         let paintRoom = new Room('paintRoom');
         let paintCanvas = new PixelCanvas(2, 2, 0, 92, 92);
+
+        let socialRoom = new Room('socialRoom');
+
+
+        function instantiateFriends(friends, friendTitle, friendButton){
+            let friendArray = [];
+            const titleHeight = 12;
+            const buttonHeight = 16;
+            const title = new friendTitle('Friends', 0, 0, () => {}, 0);
+            friendArray.push(title);
+            for (let i = 0; i < friends.length; i++){
+                friendArray.push(new friendButton(friends[i], 0, titleHeight + (buttonHeight * i), () => {}, 0))
+            }
+            return friendArray;
+        }
 
         // Speed function example
         function linearSpeed(diff) {
@@ -165,6 +185,7 @@
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
         paintRoom.addObject(backToMain, paintCanvas);
+        socialRoom.addObject(...instantiateFriends(["wolfjak", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
     }
 
     export function roomMain(){

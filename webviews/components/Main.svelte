@@ -12,7 +12,7 @@
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
 
-    const FPS = 60; //frames per second
+    const FPS = 16; //frames per second
     let screen = [];
     let hasMainLoopStarted = false;
     let currentRoom;
@@ -51,7 +51,7 @@
             }
         }
         
-        screen = generateScreen(sprites, 96, 96);
+        screen = generateScreen(sprites, 128, 128);
     }
 
     onMount(async () => {

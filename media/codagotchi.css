@@ -1,10 +1,10 @@
-:root {
+/* :root {
     --container-padding: 12px;
     --input-padding-vertical: 6px;
     --input-padding-horizontal: 4px;
     --input-margin-vertical: 4px;
     --input-margin-horizontal: 0;
-  }
+  } */
   * {
     margin: 0;
     padding: 0;
@@ -50,27 +50,16 @@
   }
 
   .grid-container {
-    width: var(--screen-width, 144px);
-    height: var(--screen-width, 144px);
+    width: var(--screen-width, 100px);
+    height: auto; 
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: none;
+    margin: 0 auto;
   }
   
   .pixel {
     width: var(--pixel-size, 3px);
     height: var(--pixel-size, 3px);
-  }
-  
-  input:not([type="checkbox"]),
-  textarea {
-    display: block;
-    width: 100%;
-    border: none;
-    font-family: var(--vscode-font-family);
-    padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-    color: var(--vscode-input-foreground);
-    outline-color: var(--vscode-input-border);
-    background-color: var(--vscode-input-background);
   }
   
   input::placeholder,
