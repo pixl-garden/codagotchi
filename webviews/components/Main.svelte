@@ -3,8 +3,8 @@
     import { generateScreen, handleResize, Sprite } from './Codagotchi.svelte';
     import { images } from './store.js';
     import { Object, Pet, Button, GeneratedObject, NavigationButton, Background } from './Object.svelte';
-    import { Room, game } from './Game.svelte';
-    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp} from './MouseEvents.svelte';
+    import { Room, game, shouldFocus, inputValue } from './Game.svelte';
+    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus } from './MouseEvents.svelte';
     import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { createTextRenderer } from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
@@ -87,8 +87,14 @@
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);
     });
+
+    $: if ($shouldFocus) {
+        console.log('Input is focused');
+    }
+    $: console.log('Input Value:', $inputValue);
 </script>
 
+<input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
 <div
     class="grid-container"
     on:click={(e) => handleClick(e, get(game))}

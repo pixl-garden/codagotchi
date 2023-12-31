@@ -2,9 +2,6 @@
     import { Object, Button, NavigationButton, PixelCanvas } from './Object.svelte';
     import { getPadding, getPixelSize } from "./ScreenManager.svelte";
 
-    const GRIDWIDTH = 96;
-    let width = window.innerWidth;
-    let height = window.innerHeight;
     let mouseExited = false;
     let lastHoveredObject = null;
     let isMouseDown = false;
@@ -82,7 +79,7 @@
             lastHoveredObject = null; // Reset the last hovered object
             return; // Exit early
         }
-        else if (hoveredObject == lastHoveredObject && hoveredObject) {
+        else if (hoveredObject == lastHoveredObject && hoveredObject && (lastX != xPixelCoord || lastY != yPixelCoord)) {
             hoveredObject.whileHover();
             //handle drag clicking
             if (isMouseDown && hoveredObject === activeDragObject) {
@@ -134,6 +131,23 @@
             event.currentTarget.style.cursor = 'default';
         }
         mouseExited = true; // Set the flag to true
+    }
+
+    export function focus(node, enabled) {
+        if (enabled) {
+            node.focus();
+        } else {
+            node.blur();
+        }
+        return {
+            update(newEnabled) {
+                if (newEnabled) {
+                    node.focus();
+                } else {
+                    node.blur();
+                }
+            }
+        };
     }
 
     function getObjectAt(x, y, gameInstance) {

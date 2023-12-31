@@ -76,7 +76,7 @@
 
         // Basic movement function (z axis unchanged)
         move(deltaX, deltaY) {
-            console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
+            // console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
             this.x += deltaX;
             this.y += deltaY;
             // this.z remains unchanged
@@ -219,10 +219,8 @@
 
             const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);            //GeneratedObject(sprites, states, x, y, z, actionOnClick)
             super(petSpriteArray, config.states, x, y, z, () => {
-                this.queueState('flop')
-                this.queueState('flop', () => {
-                    console.log('Flop state completed');
-                });
+                this.queueState('flop');
+                this.queueState('flop');
                 this.queueState('default')
             });
             
@@ -341,7 +339,7 @@
         paintPixel(x, y) {
             if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) return;
             this.pixelMatrix[y][x] = this.color;
-            console.log(`Painted pixel at (${x}, ${y})`);
+            // console.log(`Painted pixel at (${x}, ${y})`);
         }
 
         clearCanvas() {
@@ -349,7 +347,7 @@
         }
 
         getIntermediatePoints(x0, y0, x1, y1) {
-            console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
+            // console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
             let points = [];
             const dx = Math.abs(x1 - x0);
             const dy = Math.abs(y1 - y0);
@@ -365,7 +363,7 @@
                 if (e2 > -dy) { err -= dy; x0 += sx; }
                 if (e2 < dx) { err += dx; y0 += sy; }
             }
-
+            // console.log(points)
             return points;
         }
 

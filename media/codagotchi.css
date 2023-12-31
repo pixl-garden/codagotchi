@@ -18,6 +18,7 @@
     font-weight: var(--vscode-font-weight);
     font-family: var(--vscode-font-family);
     background-color: var(--vscode-editor-background);
+    overflow: hidden;
   }
   
   ol,
@@ -65,5 +66,12 @@
   input::placeholder,
   textarea::placeholder {
     color: var(--vscode-input-placeholderForeground);
+  }
+
+  #hiddenInput {
+    position: absolute;
+    width: 0px;
+    height: 0px;
+    opacity: 0;
   }
 
