@@ -1,6 +1,6 @@
 <script context='module'>
-    import { game, Room, shouldFocus } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas } from './Object.svelte';
+    import { game, Room, shouldFocus,  } from './Game.svelte';
+    import { Pet, Button, Background, PixelCanvas, activeTextRenderer } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -38,6 +38,7 @@
         const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
+        const inputTextRenderer = new activeTextRenderer(basic, 0, 80, 0);
 
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
@@ -186,7 +187,7 @@
         
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
-        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
+        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about, inputTextRenderer);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
         paintRoom.addObject(backToMain, paintCanvas);

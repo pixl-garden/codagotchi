@@ -3,11 +3,12 @@
     import { spriteReader, spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
-    import { game } from './Game.svelte';
+    import { game, inputValue } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { generateEmptyMatrix } from './MatrixFunctions.svelte';
+    import TextRenderer from './TextRenderer.svelte';
     
 
     export class GeneratedObject {
@@ -209,6 +210,24 @@
         }
     }
 
+    export class activeTextRenderer extends GeneratedObject {
+        constructor(textRenderer, x, y, z, actionOnClick = null) {
+            const emptyMatrix = generateEmptyMatrix(1, 1);
+            super([emptyMatrix], { default: [0] }, x, y, z, actionOnClick);
+            this.textRenderer = textRenderer;
+            this.text = "";
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.updateState("default");
+        }
+        setText(text) {
+            this.text = text;
+        }
+        getSprite(){
+            return new Sprite(this.textRenderer(get(inputValue)), this.x, this.y, this.z);
+        }
+    }
+
     export class Pet extends GeneratedObject {
         //TODO: abstract state groups into a separate class
         constructor(petType, x, y, z, hat) {
@@ -286,7 +305,6 @@
                 console.error(`State group '${groupName}' not found.`);
                 return null;
             }
-
             const randomIndex = Math.floor(Math.random() * stateGroup.length);
             return stateGroup[randomIndex];
         }
@@ -373,8 +391,6 @@
                 this.paintPixel(point.x, point.y);
             });
         }
-
-
         // clickAction() {
         //     this.actionOnClick();
         // }
