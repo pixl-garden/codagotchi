@@ -28,7 +28,7 @@
             get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5, dropDown_6);
         }, 1);
 
-        const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A');
+        const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
 
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);

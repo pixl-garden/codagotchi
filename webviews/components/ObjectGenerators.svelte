@@ -50,11 +50,12 @@
         height,
         borderColor,
         bgColor,
-        statusBarColor
+        statusBarColor,
+        roundness
     ) {
         return class StatusBar extends GeneratedObject {
             constructor(x, y, z) {
-                const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor);
+                const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness);
 
                 // Initial state management
                 let states = {};

@@ -3378,6 +3378,52 @@ var app = (function () {
     	return sprite;
     }
 
+    function generateRoundedRectangleMatrix(width, height, color, rounding) {
+    	const sprite = [];
+
+    	// Adjust the rounding value if it's too large
+    	rounding = Math.min(rounding, height / 2, width / 2);
+
+    	// Function to check if a pixel should be colored based on rounded corners
+    	function shouldColorPixel(x, y) {
+    		// Check for corners
+    		if (x < rounding && y < rounding) {
+    			// Top-left corner
+    			return (x - rounding) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
+    		}
+
+    		if (x >= width - rounding && y < rounding) {
+    			// Top-right corner
+    			return (x - (width - 1 - rounding)) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
+    		}
+
+    		if (x < rounding && y >= height - rounding) {
+    			// Bottom-left corner
+    			return (x - rounding) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
+    		}
+
+    		if (x >= width - rounding && y >= height - rounding) {
+    			// Bottom-right corner
+    			return (x - (width - 1 - rounding)) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
+    		}
+
+    		return true; // All non-corner cases
+    	}
+
+    	// Fill the sprite matrix
+    	for (let y = 0; y < height; y++) {
+    		const row = [];
+
+    		for (let x = 0; x < width; x++) {
+    			row.push(shouldColorPixel(x, y) ? color : 'transparent');
+    		}
+
+    		sprite.push(row);
+    	}
+
+    	return sprite;
+    }
+
     function overlayMatrix(baseSprite, overlaySprite, startX, startY) {
     	for (let y = 0; y < overlaySprite.length; y++) {
     		for (let x = 0; x < overlaySprite[y].length; x++) {
@@ -3444,33 +3490,65 @@ var app = (function () {
     	return outerSprite;
     }
 
-    function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth) {
-    	// Create the outer border
-    	const borderSprite = generateRectangleMatrix(width, height, borderColor);
+    function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
+    	// Create the full sprite with the border
+    	let sprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
 
-    	// Create the inner background
-    	const innerWidth = width - 2; // Adjust for border
+    	// Calculate the maximum fill for the status bar to ensure it does not exceed the inner width
+    	filledWidth = Math.min(filledWidth, width - 2 - roundness * 2 + 1);
 
-    	const innerHeight = height - 2; // Adjust for border
-    	const backgroundSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
+    	// Start drawing the inner background and the status bar from 1 pixel inside the border
+    	const borderOffset = 1;
 
-    	// Overlay the background onto the border
-    	overlayMatrix(borderSprite, backgroundSprite, 1, 1);
+    	// Iterate over each pixel within the inner area
+    	for (let y = borderOffset; y < height - borderOffset; y++) {
+    		for (let x = borderOffset; x < width - borderOffset; x++) {
+    			// Determine if the current pixel is inside the rounded corners of the border
+    			let insideCorner = false;
 
-    	// Create the filled part of the status bar
-    	if (filledWidth > 0) {
-    		const statusBarSprite = generateRectangleMatrix(filledWidth, innerHeight, statusBarColor);
-    		overlayMatrix(borderSprite, statusBarSprite, 1, 1);
+    			const cornerCenters = [
+    				{ cx: roundness, cy: roundness },
+    				{
+    					cx: width - roundness - 1, // Top-left
+    					cy: roundness
+    				},
+    				{
+    					cx: roundness, // Top-right
+    					cy: height - roundness - 1
+    				},
+    				{
+    					cx: width - roundness - 1, // Bottom-left
+    					cy: height - roundness - 1
+    				}
+    			]; // Bottom-right
+
+    			for (const { cx, cy } of cornerCenters) {
+    				if ((x - cx) ** 2 + (y - cy) ** 2 < roundness ** 2) {
+    					insideCorner = true;
+    					break;
+    				}
+    			}
+
+    			// Fill with background color if not within the rounded corners of the status bar
+    			if (!insideCorner || x >= filledWidth + roundness) {
+    				sprite[y][x] = bgColor;
+    			}
+
+    			// Draw the status bar where appropriate
+    			if (x < filledWidth + roundness && !insideCorner) {
+    				sprite[y][x] = statusBarColor;
+    			}
+    		}
     	}
 
-    	return borderSprite;
+    	return sprite;
     }
 
-    function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor) {
+    function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness) {
     	let spriteSheet = [];
 
     	for (let i = 0; i < width - 2; i++) {
-    		const statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, i);
+    		const statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, i, roundness);
 
     		if (i === 0) {
     			spriteSheet = statusBarSprite;
@@ -4708,10 +4786,10 @@ var app = (function () {
     	};
     }
 
-    function generateStatusBarClass(width, height, borderColor, bgColor, statusBarColor) {
+    function generateStatusBarClass(width, height, borderColor, bgColor, statusBarColor, roundness) {
     	return class StatusBar extends GeneratedObject {
     		constructor(x, y, z) {
-    			const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor);
+    			const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness);
 
     			// Initial state management
     			let states = {};
@@ -4788,7 +4866,7 @@ var app = (function () {
     		},
     	1);
 
-    	const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A');
+    	const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
 
     	//generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
     	const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
