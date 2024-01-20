@@ -100,4 +100,7 @@
             }
         }
     }
+
+    export const shouldFocus = writable(false);
+    export const inputValue = writable('');
 </script>

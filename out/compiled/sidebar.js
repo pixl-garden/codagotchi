@@ -35,6 +35,9 @@ var app = (function () {
     function component_subscribe(component, store, callback) {
         component.$$.on_destroy.push(subscribe(store, callback));
     }
+    function action_destroyer(action_result) {
+        return action_result && is_function(action_result.destroy) ? action_result.destroy : noop;
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -76,6 +79,9 @@ var app = (function () {
     }
     function children(element) {
         return Array.from(element.childNodes);
+    }
+    function set_input_value(input, value) {
+        input.value = value == null ? '' : value;
     }
     function set_style(node, key, value, important) {
         if (value == null) {
@@ -3372,6 +3378,52 @@ var app = (function () {
     	return sprite;
     }
 
+    function generateRoundedRectangleMatrix(width, height, color, rounding) {
+    	const sprite = [];
+
+    	// Adjust the rounding value if it's too large
+    	rounding = Math.min(rounding, height / 2, width / 2);
+
+    	// Function to check if a pixel should be colored based on rounded corners
+    	function shouldColorPixel(x, y) {
+    		// Check for corners
+    		if (x < rounding && y < rounding) {
+    			// Top-left corner
+    			return (x - rounding) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
+    		}
+
+    		if (x >= width - rounding && y < rounding) {
+    			// Top-right corner
+    			return (x - (width - 1 - rounding)) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
+    		}
+
+    		if (x < rounding && y >= height - rounding) {
+    			// Bottom-left corner
+    			return (x - rounding) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
+    		}
+
+    		if (x >= width - rounding && y >= height - rounding) {
+    			// Bottom-right corner
+    			return (x - (width - 1 - rounding)) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
+    		}
+
+    		return true; // All non-corner cases
+    	}
+
+    	// Fill the sprite matrix
+    	for (let y = 0; y < height; y++) {
+    		const row = [];
+
+    		for (let x = 0; x < width; x++) {
+    			row.push(shouldColorPixel(x, y) ? color : 'transparent');
+    		}
+
+    		sprite.push(row);
+    	}
+
+    	return sprite;
+    }
+
     function overlayMatrix(baseSprite, overlaySprite, startX, startY) {
     	for (let y = 0; y < overlaySprite.length; y++) {
     		for (let x = 0; x < overlaySprite[y].length; x++) {
@@ -3438,33 +3490,65 @@ var app = (function () {
     	return outerSprite;
     }
 
-    function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth) {
-    	// Create the outer border
-    	const borderSprite = generateRectangleMatrix(width, height, borderColor);
+    function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
+    	// Create the full sprite with the border
+    	let sprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
 
-    	// Create the inner background
-    	const innerWidth = width - 2; // Adjust for border
+    	// Calculate the maximum fill for the status bar to ensure it does not exceed the inner width
+    	filledWidth = Math.min(filledWidth, width - 2 - roundness * 2 + 1);
 
-    	const innerHeight = height - 2; // Adjust for border
-    	const backgroundSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
+    	// Start drawing the inner background and the status bar from 1 pixel inside the border
+    	const borderOffset = 1;
 
-    	// Overlay the background onto the border
-    	overlayMatrix(borderSprite, backgroundSprite, 1, 1);
+    	// Iterate over each pixel within the inner area
+    	for (let y = borderOffset; y < height - borderOffset; y++) {
+    		for (let x = borderOffset; x < width - borderOffset; x++) {
+    			// Determine if the current pixel is inside the rounded corners of the border
+    			let insideCorner = false;
 
-    	// Create the filled part of the status bar
-    	if (filledWidth > 0) {
-    		const statusBarSprite = generateRectangleMatrix(filledWidth, innerHeight, statusBarColor);
-    		overlayMatrix(borderSprite, statusBarSprite, 1, 1);
+    			const cornerCenters = [
+    				{ cx: roundness, cy: roundness },
+    				{
+    					cx: width - roundness - 1, // Top-left
+    					cy: roundness
+    				},
+    				{
+    					cx: roundness, // Top-right
+    					cy: height - roundness - 1
+    				},
+    				{
+    					cx: width - roundness - 1, // Bottom-left
+    					cy: height - roundness - 1
+    				}
+    			]; // Bottom-right
+
+    			for (const { cx, cy } of cornerCenters) {
+    				if ((x - cx) ** 2 + (y - cy) ** 2 < roundness ** 2) {
+    					insideCorner = true;
+    					break;
+    				}
+    			}
+
+    			// Fill with background color if not within the rounded corners of the status bar
+    			if (!insideCorner || x >= filledWidth + roundness) {
+    				sprite[y][x] = bgColor;
+    			}
+
+    			// Draw the status bar where appropriate
+    			if (x < filledWidth + roundness && !insideCorner) {
+    				sprite[y][x] = statusBarColor;
+    			}
+    		}
     	}
 
-    	return borderSprite;
+    	return sprite;
     }
 
-    function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor) {
+    function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness) {
     	let spriteSheet = [];
 
     	for (let i = 0; i < width - 2; i++) {
-    		const statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, i);
+    		const statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, i, roundness);
 
     		if (i === 0) {
     			spriteSheet = statusBarSprite;
@@ -3640,51 +3724,6 @@ var app = (function () {
     	document.documentElement.style.setProperty('--screen-width', `${screenWidth}px`);
     }
 
-    /* webviews\components\localSave.svelte generated by Svelte v3.59.2 */
-
-    function getGlobalState() {
-    	tsvscode.postMessage({ type: 'getGlobalState' });
-    }
-
-    var spriteWidth = 32;
-    var spriteHeight = 32;
-    var spriteSheet = "hats.png";
-    var leaf = {
-    	anchorX: 8,
-    	anchorY: 5,
-    	spriteIndex: 0
-    };
-    var marge = {
-    	anchorX: 14,
-    	anchorY: 23,
-    	spriteIndex: 1
-    };
-    var partyDots = {
-    	anchorX: 15,
-    	anchorY: 8,
-    	spriteIndex: 2
-    };
-    var partySpiral = {
-    	anchorX: 19,
-    	anchorY: 13,
-    	spriteIndex: 3
-    };
-    var superSaiyan = {
-    	anchorX: 12,
-    	anchorY: 15,
-    	spriteIndex: 4
-    };
-    var hatConfig = {
-    	spriteWidth: spriteWidth,
-    	spriteHeight: spriteHeight,
-    	spriteSheet: spriteSheet,
-    	leaf: leaf,
-    	marge: marge,
-    	partyDots: partyDots,
-    	partySpiral: partySpiral,
-    	superSaiyan: superSaiyan
-    };
-
     /* webviews\components\Game.svelte generated by Svelte v3.59.2 */
 
     class Game {
@@ -3791,6 +3830,54 @@ var app = (function () {
     		}
     	}
     }
+
+    const shouldFocus = writable(false);
+    const inputValue = writable('');
+
+    /* webviews\components\localSave.svelte generated by Svelte v3.59.2 */
+
+    function getGlobalState() {
+    	tsvscode.postMessage({ type: 'getGlobalState' });
+    }
+
+    var spriteWidth = 32;
+    var spriteHeight = 32;
+    var spriteSheet = "hats.png";
+    var leaf = {
+    	anchorX: 8,
+    	anchorY: 5,
+    	spriteIndex: 0
+    };
+    var marge = {
+    	anchorX: 14,
+    	anchorY: 23,
+    	spriteIndex: 1
+    };
+    var partyDots = {
+    	anchorX: 15,
+    	anchorY: 8,
+    	spriteIndex: 2
+    };
+    var partySpiral = {
+    	anchorX: 19,
+    	anchorY: 13,
+    	spriteIndex: 3
+    };
+    var superSaiyan = {
+    	anchorX: 12,
+    	anchorY: 15,
+    	spriteIndex: 4
+    };
+    var hatConfig = {
+    	spriteWidth: spriteWidth,
+    	spriteHeight: spriteHeight,
+    	spriteSheet: spriteSheet,
+    	leaf: leaf,
+    	marge: marge,
+    	partyDots: partyDots,
+    	partySpiral: partySpiral,
+    	superSaiyan: superSaiyan
+    };
 
     var pearguin = {
     	spriteWidth: 48,
@@ -4072,8 +4159,9 @@ var app = (function () {
 
     	// Basic movement function (z axis unchanged)
     	move(deltaX, deltaY) {
-    		console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
+    		// console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
     		this.x += deltaX;
+
     		this.y += deltaY;
     	} // this.z remains unchanged
 
@@ -4210,6 +4298,26 @@ var app = (function () {
     	}
     }
 
+    class activeTextRenderer extends GeneratedObject {
+    	constructor(textRenderer, x, y, z, actionOnClick = null) {
+    		const emptyMatrix = generateEmptyMatrix(1, 1);
+    		super([emptyMatrix], { default: [0] }, x, y, z, actionOnClick);
+    		this.textRenderer = textRenderer;
+    		this.text = "";
+    		this.stateQueue = [];
+    		this.isStateCompleted = false;
+    		this.updateState("default");
+    	}
+
+    	setText(text) {
+    		this.text = text;
+    	}
+
+    	getSprite() {
+    		return new Sprite(this.textRenderer(get_store_value(inputValue)), this.x, this.y, this.z);
+    	}
+    }
+
     class Pet extends GeneratedObject {
     	//TODO: abstract state groups into a separate class
     	constructor(petType, x, y, z, hat) {
@@ -4223,11 +4331,7 @@ var app = (function () {
 
     		super(petSpriteArray, config.states, x, y, z, () => {
     			this.queueState('flop');
-
-    			this.queueState('flop', () => {
-    				console.log('Flop state completed');
-    			});
-
+    			this.queueState('flop');
     			this.queueState('default');
     		});
 
@@ -4359,16 +4463,16 @@ var app = (function () {
     	paintPixel(x, y) {
     		if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) return;
     		this.pixelMatrix[y][x] = this.color;
-    		console.log(`Painted pixel at (${x}, ${y})`);
-    	}
+    	} // console.log(`Painted pixel at (${x}, ${y})`);
 
     	clearCanvas() {
     		this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
     	}
 
     	getIntermediatePoints(x0, y0, x1, y1) {
-    		console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
+    		// console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
     		let points = [];
+
     		const dx = Math.abs(x1 - x0);
     		const dy = Math.abs(y1 - y0);
     		const sx = x0 < x1 ? 1 : -1;
@@ -4391,6 +4495,7 @@ var app = (function () {
     			}
     		}
 
+    		// console.log(points)
     		return points;
     	}
 
@@ -4558,7 +4663,7 @@ var app = (function () {
     		event.currentTarget.style.cursor = 'default'; // Reset cursor
     		lastHoveredObject = null; // Reset the last hovered object
     		return; // Exit early
-    	} else if (hoveredObject == lastHoveredObject && hoveredObject) {
+    	} else if (hoveredObject == lastHoveredObject && hoveredObject && (lastX != xPixelCoord || lastY != yPixelCoord)) {
     		hoveredObject.whileHover();
 
     		//handle drag clicking
@@ -4614,6 +4719,24 @@ var app = (function () {
     	mouseExited = true; // Set the flag to true
     }
 
+    function focus(node, enabled) {
+    	if (enabled) {
+    		node.focus();
+    	} else {
+    		node.blur();
+    	}
+
+    	return {
+    		update(newEnabled) {
+    			if (newEnabled) {
+    				node.focus();
+    			} else {
+    				node.blur();
+    			}
+    		}
+    	};
+    }
+
     function getObjectAt(x, y, gameInstance) {
     	// Get all objects in the current room and sort them by z-axis (descending order)
     	let objects = gameInstance.getObjectsOfCurrentRoom();
@@ -4663,10 +4786,10 @@ var app = (function () {
     	};
     }
 
-    function generateStatusBarClass(width, height, borderColor, bgColor, statusBarColor) {
+    function generateStatusBarClass(width, height, borderColor, bgColor, statusBarColor, roundness) {
     	return class StatusBar extends GeneratedObject {
     		constructor(x, y, z) {
-    			const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor);
+    			const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness);
 
     			// Initial state management
     			let states = {};
@@ -4743,17 +4866,18 @@ var app = (function () {
     		},
     	1);
 
-    	const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A');
+    	const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
 
     	//generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
-    	const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+    	const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
 
-    	const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+    	const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
     	const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
     	const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
-    	const friendTitle = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-    	const friendButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+    	const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+    	const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
     	const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
+    	const inputTextRenderer = new activeTextRenderer(basic, 0, 80, 0);
 
     	// drop down buttons
     	const dropDown_1 = new dropDownButton('Settings',
@@ -4825,7 +4949,11 @@ var app = (function () {
     	0,
     	28,
     	() => {
-    			console.log('Button was clicked!');
+    			if (get_store_value(shouldFocus) === false) {
+    				shouldFocus.set(true);
+    			} else {
+    				shouldFocus.set(false);
+    			}
     		});
 
     	const display = new settingsMenuButton('Display',
@@ -4918,7 +5046,7 @@ var app = (function () {
     		});
 
     	let paintRoom = new Room('paintRoom');
-    	let paintCanvas = new PixelCanvas(2, 2, 0, 92, 92);
+    	let paintCanvas = new PixelCanvas(2, 2, 0, 124, 124);
     	let socialRoom = new Room('socialRoom');
 
     	function instantiateFriends(friends, friendTitle, friendButton) {
@@ -4986,11 +5114,11 @@ var app = (function () {
     	// add objects to rooms
     	mainRoom.addObject(petObject, mainMenuButton, statusBar);
 
-    	settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
+    	settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about, inputTextRenderer);
     	customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
     	shopRoom.addObject(backToMain, shopBackground);
     	paintRoom.addObject(backToMain, paintCanvas);
-    	socialRoom.addObject(...instantiateFriends(["wolfjak", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
+    	socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
     }
 
     function roomMain() {
@@ -5001,20 +5129,20 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[11] = list[i];
+    	child_ctx[14] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[14] = list[i];
+    	child_ctx[17] = list[i];
     	return child_ctx;
     }
 
-    // (102:4) {#if hasMainLoopStarted}
+    // (104:4) {#if hasMainLoopStarted}
     function create_if_block(ctx) {
     	let each_1_anchor;
-    	let each_value = /*screen*/ ctx[0];
+    	let each_value = /*screen*/ ctx[2];
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
@@ -5039,8 +5167,8 @@ var app = (function () {
     			insert(target, each_1_anchor, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*screen*/ 1) {
-    				each_value = /*screen*/ ctx[0];
+    			if (dirty & /*screen*/ 4) {
+    				each_value = /*screen*/ ctx[2];
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
@@ -5069,7 +5197,7 @@ var app = (function () {
     	};
     }
 
-    // (105:16) {#each row as cell}
+    // (107:16) {#each row as cell}
     function create_each_block_1(ctx) {
     	let div;
 
@@ -5077,14 +5205,14 @@ var app = (function () {
     		c() {
     			div = element("div");
     			attr(div, "class", "pixel");
-    			set_style(div, "background-color", /*cell*/ ctx[14]);
+    			set_style(div, "background-color", /*cell*/ ctx[17]);
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*screen*/ 1) {
-    				set_style(div, "background-color", /*cell*/ ctx[14]);
+    			if (dirty & /*screen*/ 4) {
+    				set_style(div, "background-color", /*cell*/ ctx[17]);
     			}
     		},
     		d(detaching) {
@@ -5093,11 +5221,11 @@ var app = (function () {
     	};
     }
 
-    // (103:8) {#each screen as row}
+    // (105:8) {#each screen as row}
     function create_each_block(ctx) {
     	let div;
     	let t;
-    	let each_value_1 = /*row*/ ctx[11];
+    	let each_value_1 = /*row*/ ctx[14];
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value_1.length; i += 1) {
@@ -5127,8 +5255,8 @@ var app = (function () {
     			append(div, t);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*screen*/ 1) {
-    				each_value_1 = /*row*/ ctx[11];
+    			if (dirty & /*screen*/ 4) {
+    				each_value_1 = /*row*/ ctx[14];
     				let i;
 
     				for (i = 0; i < each_value_1.length; i += 1) {
@@ -5158,28 +5286,40 @@ var app = (function () {
     }
 
     function create_fragment(ctx) {
+    	let input;
+    	let focus_action;
+    	let t;
     	let div;
     	let mounted;
     	let dispose;
-    	let if_block = /*hasMainLoopStarted*/ ctx[1] && create_if_block(ctx);
+    	let if_block = /*hasMainLoopStarted*/ ctx[3] && create_if_block(ctx);
 
     	return {
     		c() {
+    			input = element("input");
+    			t = space();
     			div = element("div");
     			if (if_block) if_block.c();
+    			attr(input, "type", "text");
+    			attr(input, "id", "hiddenInput");
     			attr(div, "class", "grid-container");
     		},
     		m(target, anchor) {
+    			insert(target, input, anchor);
+    			set_input_value(input, /*$inputValue*/ ctx[0]);
+    			insert(target, t, anchor);
     			insert(target, div, anchor);
     			if (if_block) if_block.m(div, null);
 
     			if (!mounted) {
     				dispose = [
-    					listen(div, "click", /*click_handler*/ ctx[2]),
-    					listen(div, "mousemove", /*mousemove_handler*/ ctx[3]),
-    					listen(div, "mousedown", /*mousedown_handler*/ ctx[4]),
+    					listen(input, "input", /*input_input_handler*/ ctx[4]),
+    					action_destroyer(focus_action = focus.call(null, input, /*$shouldFocus*/ ctx[1])),
+    					listen(div, "click", /*click_handler*/ ctx[5]),
+    					listen(div, "mousemove", /*mousemove_handler*/ ctx[6]),
+    					listen(div, "mousedown", /*mousedown_handler*/ ctx[7]),
     					listen(div, "mouseup", handleMouseUp),
-    					listen(div, "mouseleave", /*mouseleave_handler*/ ctx[5]),
+    					listen(div, "mouseleave", /*mouseleave_handler*/ ctx[8]),
     					listen(div, "keypress", null),
     					listen(div, "blur", null)
     				];
@@ -5188,7 +5328,13 @@ var app = (function () {
     			}
     		},
     		p(ctx, [dirty]) {
-    			if (/*hasMainLoopStarted*/ ctx[1]) {
+    			if (dirty & /*$inputValue*/ 1 && input.value !== /*$inputValue*/ ctx[0]) {
+    				set_input_value(input, /*$inputValue*/ ctx[0]);
+    			}
+
+    			if (focus_action && is_function(focus_action.update) && dirty & /*$shouldFocus*/ 2) focus_action.update.call(null, /*$shouldFocus*/ ctx[1]);
+
+    			if (/*hasMainLoopStarted*/ ctx[3]) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
     				} else {
@@ -5204,6 +5350,8 @@ var app = (function () {
     		i: noop,
     		o: noop,
     		d(detaching) {
+    			if (detaching) detach(input);
+    			if (detaching) detach(t);
     			if (detaching) detach(div);
     			if (if_block) if_block.d();
     			mounted = false;
@@ -5215,8 +5363,12 @@ var app = (function () {
     const FPS = 16; //frames per second
 
     function instance($$self, $$props, $$invalidate) {
+    	let $inputValue;
+    	let $shouldFocus;
     	let $game;
-    	component_subscribe($$self, game, $$value => $$invalidate(8, $game = $$value));
+    	component_subscribe($$self, inputValue, $$value => $$invalidate(0, $inputValue = $$value));
+    	component_subscribe($$self, shouldFocus, $$value => $$invalidate(1, $shouldFocus = $$value));
+    	component_subscribe($$self, game, $$value => $$invalidate(11, $game = $$value));
     	let screen = [];
     	let hasMainLoopStarted = false;
     	let currentRoom;
@@ -5243,7 +5395,7 @@ var app = (function () {
     		// Get the current room from the game object
     		currentRoom = $game.getCurrentRoom();
 
-    		$$invalidate(1, hasMainLoopStarted = true);
+    		$$invalidate(3, hasMainLoopStarted = true);
 
     		// Render objects in the current room
     		for (let obj of currentRoom.getObjects()) {
@@ -5257,7 +5409,7 @@ var app = (function () {
     			}
     		}
 
-    		$$invalidate(0, screen = generateScreen(sprites, 128, 128));
+    		$$invalidate(2, screen = generateScreen(sprites, 128, 128));
     	}
 
     	onMount(async () => {
@@ -5292,14 +5444,34 @@ var app = (function () {
     		window.addEventListener('resize', handleResize);
     	});
 
+    	function input_input_handler() {
+    		$inputValue = this.value;
+    		inputValue.set($inputValue);
+    	}
+
     	const click_handler = e => handleClick(e, get_store_value(game));
     	const mousemove_handler = e => handleMouseMove(e, get_store_value(game));
     	const mousedown_handler = e => handleMouseDown(e, get_store_value(game));
     	const mouseleave_handler = e => handleMouseOut(e);
 
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$shouldFocus*/ 2) {
+    			if ($shouldFocus) {
+    				console.log('Input is focused');
+    			}
+    		}
+
+    		if ($$self.$$.dirty & /*$inputValue*/ 1) {
+    			console.log('Input Value:', $inputValue);
+    		}
+    	};
+
     	return [
+    		$inputValue,
+    		$shouldFocus,
     		screen,
     		hasMainLoopStarted,
+    		input_input_handler,
     		click_handler,
     		mousemove_handler,
     		mousedown_handler,

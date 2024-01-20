@@ -1,6 +1,6 @@
 <script context='module'>
-    import { game, Room } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas } from './Object.svelte';
+    import { game, Room, shouldFocus,  } from './Game.svelte';
+    import { Pet, Button, Background, PixelCanvas, activeTextRenderer } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -28,16 +28,17 @@
             get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5, dropDown_6);
         }, 1);
 
-        const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A');
+        const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
 
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
-        const settingsTitleButton = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const settingsMenuButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+        const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
         const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const friendTitle = generateButtonClass(96, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const friendButton = generateButtonClass(96, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+        const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
+        const inputTextRenderer = new activeTextRenderer(basic, 0, 80, 0);
 
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
@@ -70,7 +71,12 @@
             handleGitHubLogin();
         });
         const notifications = new settingsMenuButton('Notifs', 0, 28, () => {
-            console.log('Button was clicked!')
+            if(get(shouldFocus) === false){
+                shouldFocus.set(true);
+            }
+            else{
+                shouldFocus.set(false);
+            }
         });
         const display = new settingsMenuButton('Display', 0, 44, () => {
             console.log('Button was clicked!');
@@ -120,7 +126,7 @@
         let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
 
         let paintRoom = new Room('paintRoom');
-        let paintCanvas = new PixelCanvas(2, 2, 0, 92, 92);
+        let paintCanvas = new PixelCanvas(2, 2, 0, 124, 124);
 
         let socialRoom = new Room('socialRoom');
 
@@ -181,11 +187,11 @@
         
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
-        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
+        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about, inputTextRenderer);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
         paintRoom.addObject(backToMain, paintCanvas);
-        socialRoom.addObject(...instantiateFriends(["wolfjak", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
+        socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
     }
 
     export function roomMain(){

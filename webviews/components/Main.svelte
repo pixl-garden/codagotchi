@@ -1,13 +1,10 @@
 <script>
-    import { onMount, afterUpdate } from 'svelte';
-    import { generateScreen, handleResize, Sprite } from './Codagotchi.svelte';
+    import { onMount } from 'svelte';
+    import { generateScreen, handleResize } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Object, Pet, Button, GeneratedObject, NavigationButton, Background } from './Object.svelte';
-    import { Room, game } from './Game.svelte';
-    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp} from './MouseEvents.svelte';
-    import { spriteReader, preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { createTextRenderer } from './TextRenderer.svelte';
-    import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
+    import { Room, game, shouldFocus, inputValue } from './Game.svelte';
+    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus } from './MouseEvents.svelte';
+    import { preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
@@ -20,7 +17,6 @@
 
     //run once before main loop
     function pre() {
-
         // setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
         getGlobalState( {} );
         handleResize();
@@ -87,8 +83,14 @@
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);
     });
+
+    $: if ($shouldFocus) {
+        console.log('Input is focused');
+    }
+    $: console.log('Input Value:', $inputValue);
 </script>
 
+<input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
 <div
     class="grid-container"
     on:click={(e) => handleClick(e, get(game))}

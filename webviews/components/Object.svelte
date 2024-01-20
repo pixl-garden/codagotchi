@@ -3,11 +3,12 @@
     import { spriteReader, spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
-    import { game } from './Game.svelte';
+    import { game, inputValue } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { generateEmptyMatrix } from './MatrixFunctions.svelte';
+    import TextRenderer from './TextRenderer.svelte';
     
 
     export class GeneratedObject {
@@ -76,7 +77,7 @@
 
         // Basic movement function (z axis unchanged)
         move(deltaX, deltaY) {
-            console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
+            // console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
             this.x += deltaX;
             this.y += deltaY;
             // this.z remains unchanged
@@ -209,6 +210,24 @@
         }
     }
 
+    export class activeTextRenderer extends GeneratedObject {
+        constructor(textRenderer, x, y, z, actionOnClick = null) {
+            const emptyMatrix = generateEmptyMatrix(1, 1);
+            super([emptyMatrix], { default: [0] }, x, y, z, actionOnClick);
+            this.textRenderer = textRenderer;
+            this.text = "";
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.updateState("default");
+        }
+        setText(text) {
+            this.text = text;
+        }
+        getSprite(){
+            return new Sprite(this.textRenderer(get(inputValue)), this.x, this.y, this.z);
+        }
+    }
+
     export class Pet extends GeneratedObject {
         //TODO: abstract state groups into a separate class
         constructor(petType, x, y, z, hat) {
@@ -219,10 +238,8 @@
 
             const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);            //GeneratedObject(sprites, states, x, y, z, actionOnClick)
             super(petSpriteArray, config.states, x, y, z, () => {
-                this.queueState('flop')
-                this.queueState('flop', () => {
-                    console.log('Flop state completed');
-                });
+                this.queueState('flop');
+                this.queueState('flop');
                 this.queueState('default')
             });
             
@@ -288,7 +305,6 @@
                 console.error(`State group '${groupName}' not found.`);
                 return null;
             }
-
             const randomIndex = Math.floor(Math.random() * stateGroup.length);
             return stateGroup[randomIndex];
         }
@@ -341,7 +357,7 @@
         paintPixel(x, y) {
             if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) return;
             this.pixelMatrix[y][x] = this.color;
-            console.log(`Painted pixel at (${x}, ${y})`);
+            // console.log(`Painted pixel at (${x}, ${y})`);
         }
 
         clearCanvas() {
@@ -349,7 +365,7 @@
         }
 
         getIntermediatePoints(x0, y0, x1, y1) {
-            console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
+            // console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
             let points = [];
             const dx = Math.abs(x1 - x0);
             const dy = Math.abs(y1 - y0);
@@ -365,7 +381,7 @@
                 if (e2 > -dy) { err -= dy; x0 += sx; }
                 if (e2 < dx) { err += dx; y0 += sy; }
             }
-
+            // console.log(points)
             return points;
         }
 
@@ -375,8 +391,6 @@
                 this.paintPixel(point.x, point.y);
             });
         }
-
-
         // clickAction() {
         //     this.actionOnClick();
         // }
