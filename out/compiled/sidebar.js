@@ -3381,7 +3381,7 @@ var app = (function () {
     function generateRoundedRectangleMatrix(width, height, color, rounding) {
     	const sprite = [];
 
-    	// Adjust the rounding value if it's too large
+    	// Cap the rounding to half the width or height, whichever is smallest
     	rounding = Math.min(rounding, height / 2, width / 2);
 
     	// Function to check if a pixel should be colored based on rounded corners
@@ -3424,19 +3424,47 @@ var app = (function () {
     	return sprite;
     }
 
-    function overlayMatrix(baseSprite, overlaySprite, startX, startY) {
-    	for (let y = 0; y < overlaySprite.length; y++) {
-    		for (let x = 0; x < overlaySprite[y].length; x++) {
-    			if (overlaySprite[y][x] !== 'transparent') {
-    				baseSprite[startY + y][startX + x] = overlaySprite[y][x];
+    function overlayMatrix(
+    	baseSprite,
+    overlaySprite,
+    baseXOffset = 0,
+    baseYOffset = 0,
+    overlayXOffset = 0,
+    overlayYOffset = 0
+    ) {
+    	// Define size of result sprite
+    	const outWidth = Math.max(baseSprite[0].length + baseXOffset, overlaySprite[0].length + overlayXOffset);
+
+    	const outHeight = Math.max(baseSprite.length + baseYOffset, overlaySprite.length + overlayYOffset);
+    	let outSprite = generateEmptyMatrix(outWidth, outHeight);
+
+    	for (let y = 0; y < outHeight; y++) {
+    		for (let x = 0; x < outWidth; x++) {
+    			// Calculate coordinates in base and overlay sprites
+    			const baseX = x - baseXOffset;
+
+    			const baseY = y - baseYOffset;
+    			const overlayX = x - overlayXOffset;
+    			const overlayY = y - overlayYOffset;
+
+    			// Check if we are within the bounds of the overlay sprite
+    			if (overlayX >= 0 && overlayX < overlaySprite[0].length && overlayY >= 0 && overlayY < overlaySprite.length && overlaySprite[overlayY][overlayX] !== 'transparent') {
+    				outSprite[y][x] = overlaySprite[overlayY][overlayX];
+    			} else // Check if we are within the bounds of the base sprite
+    			if (baseX >= 0 && baseX < baseSprite[0].length && baseY >= 0 && baseY < baseSprite.length) {
+    				outSprite[y][x] = baseSprite[baseY][baseX];
+    			} else // Otherwise, set to transparent
+    			{
+    				outSprite[y][x] = 'transparent';
     			}
     		}
     	}
 
-    	return baseSprite;
+    	return outSprite;
     }
 
     function concatenateMatrixes(matrix1, matrix2) {
+    	//Function used to create sprite sheets (adds matrix2 to the right of matrix1)
     	if (matrix1.length !== matrix2.length) {
     		throw new Error('Both matrices must have the same number of rows');
     	}
@@ -3451,6 +3479,9 @@ var app = (function () {
     }
 
     function replaceMatrixColor(matrix, colorToReplace, replacementColor) {
+    	//Deep copy the matrix to avoid modifying the original (because javascript is stupid)
+    	let outputMatrix = JSON.parse(JSON.stringify(matrix));
+
     	if (!matrix || !Array.isArray(matrix)) {
     		console.error('Invalid matrix provided:', matrix);
     		return;
@@ -3459,89 +3490,54 @@ var app = (function () {
     	for (let y = 0; y < matrix.length; y++) {
     		for (let x = 0; x < matrix[y].length; x++) {
     			if (matrix[y][x] === colorToReplace) {
-    				matrix[y][x] = replacementColor;
+    				outputMatrix[y][x] = replacementColor;
     			}
     		}
     	}
 
-    	return matrix; // Return the modified matrix
+    	return outputMatrix;
     }
 
     function generateButtonMatrix(width, height, bgColor, borderColor, textSprite) {
-    	// Generate the outer rectangle sprite for the button border
     	const outerSprite = generateRectangleMatrix(width, height, borderColor);
-
-    	// Generate the inner rectangle sprite for the button background
     	const innerWidth = width - 2;
-
     	const innerHeight = height - 2;
     	const innerSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
 
     	// Overlay the inner sprite onto the outer sprite to create the button
-    	overlayMatrix(outerSprite, innerSprite, 1, 1);
+    	const buttonSprite = overlayMatrix(outerSprite, innerSprite, 0, 0, 1, 1);
+
+    	const textX = Math.floor((width - textSprite[0].length) / 2);
+    	const textY = Math.floor((height - textSprite.length) / 2);
 
     	// Overlay the text sprite in the center of the button
-    	const textX = Math.floor((width - textSprite[0].length) / 2);
+    	const finalButtonSprite = overlayMatrix(buttonSprite, textSprite, 0, 0, textX, textY);
 
-    	const textY = Math.floor((height - textSprite.length) / 2);
-    	overlayMatrix(outerSprite, textSprite, textX, textY);
-
-    	// console.log('OUTER SPRITE: ', outerSprite);
-    	return outerSprite;
+    	return finalButtonSprite;
     }
 
     function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
-    	// Create the full sprite with the border
-    	let sprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
+    	const backgroundSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
+    	const innerBackground = generateRoundedRectangleMatrix(width - 2, height - 2, bgColor, roundness);
+    	let statusBarSprite = overlayMatrix(backgroundSprite, innerBackground, 0, 0, 1, 1);
 
-    	// Calculate the maximum fill for the status bar to ensure it does not exceed the inner width
-    	filledWidth = Math.min(filledWidth, width - 2 - roundness * 2 + 1);
+    	// Create the border overlay sprite by replacing the background color with transparent
+    	let borderSprite = replaceMatrixColor(statusBarSprite, bgColor, 'transparent');
 
-    	// Start drawing the inner background and the status bar from 1 pixel inside the border
-    	const borderOffset = 1;
+    	if (filledWidth > 0) {
+    		// Adjust the filledWidth to account for the border
+    		filledWidth = Math.min(filledWidth, width - 2);
 
-    	// Iterate over each pixel within the inner area
-    	for (let y = borderOffset; y < height - borderOffset; y++) {
-    		for (let x = borderOffset; x < width - borderOffset; x++) {
-    			// Determine if the current pixel is inside the rounded corners of the border
-    			let insideCorner = false;
+    		let filledStatusBarSprite = generateRoundedRectangleMatrix(filledWidth, height - 2, statusBarColor, roundness);
 
-    			const cornerCenters = [
-    				{ cx: roundness, cy: roundness },
-    				{
-    					cx: width - roundness - 1, // Top-left
-    					cy: roundness
-    				},
-    				{
-    					cx: roundness, // Top-right
-    					cy: height - roundness - 1
-    				},
-    				{
-    					cx: width - roundness - 1, // Bottom-left
-    					cy: height - roundness - 1
-    				}
-    			]; // Bottom-right
+    		// Overlay the filled status bar onto the combined border and background sprite
+    		statusBarSprite = overlayMatrix(statusBarSprite, filledStatusBarSprite, 0, 0, 1, 1);
 
-    			for (const { cx, cy } of cornerCenters) {
-    				if ((x - cx) ** 2 + (y - cy) ** 2 < roundness ** 2) {
-    					insideCorner = true;
-    					break;
-    				}
-    			}
-
-    			// Fill with background color if not within the rounded corners of the status bar
-    			if (!insideCorner || x >= filledWidth + roundness) {
-    				sprite[y][x] = bgColor;
-    			}
-
-    			// Draw the status bar where appropriate
-    			if (x < filledWidth + roundness && !insideCorner) {
-    				sprite[y][x] = statusBarColor;
-    			}
-    		}
+    		// Overlay the border onto the filled status bar sprite to cover up overlaps
+    		statusBarSprite = overlayMatrix(statusBarSprite, borderSprite, 0, 0, 0, 0);
     	}
 
-    	return sprite;
+    	return statusBarSprite;
     }
 
     function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness) {
