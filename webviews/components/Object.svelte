@@ -344,6 +344,8 @@
             this.color = 'red';
             this.lastX = null;
             this.lastY = null;
+            this.offsetX = x;
+            this.offsetY = y;
         }
 
         getSprite() {
@@ -355,9 +357,15 @@
         }
 
         paintPixel(x, y) {
-            if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) return;
-            this.pixelMatrix[y][x] = this.color;
-            // console.log(`Painted pixel at (${x}, ${y})`);
+            // Adjust x and y based on the canvas offset
+            const adjustedX = x - this.offsetX;
+            const adjustedY = y - this.offsetY;
+
+            // Check if the adjusted coordinates are within canvas bounds
+            if (adjustedX < 0 || adjustedX >= this.canvasWidth || adjustedY < 0 || adjustedY >= this.canvasHeight) return;
+
+            this.pixelMatrix[adjustedY][adjustedX] = this.color;
+            // console.log(`Painted pixel at (${adjustedX}, ${adjustedY})`);
         }
 
         clearCanvas() {

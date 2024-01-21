@@ -3381,7 +3381,7 @@ var app = (function () {
     function generateRoundedRectangleMatrix(width, height, color, rounding) {
     	const sprite = [];
 
-    	// Adjust the rounding value if it's too large
+    	// Cap the rounding to half the width or height, whichever is smallest
     	rounding = Math.min(rounding, height / 2, width / 2);
 
     	// Function to check if a pixel should be colored based on rounded corners
@@ -3424,19 +3424,47 @@ var app = (function () {
     	return sprite;
     }
 
-    function overlayMatrix(baseSprite, overlaySprite, startX, startY) {
-    	for (let y = 0; y < overlaySprite.length; y++) {
-    		for (let x = 0; x < overlaySprite[y].length; x++) {
-    			if (overlaySprite[y][x] !== 'transparent') {
-    				baseSprite[startY + y][startX + x] = overlaySprite[y][x];
+    function overlayMatrix(
+    	baseSprite,
+    overlaySprite,
+    baseXOffset = 0,
+    baseYOffset = 0,
+    overlayXOffset = 0,
+    overlayYOffset = 0
+    ) {
+    	// Define size of result sprite
+    	const outWidth = Math.max(baseSprite[0].length + baseXOffset, overlaySprite[0].length + overlayXOffset);
+
+    	const outHeight = Math.max(baseSprite.length + baseYOffset, overlaySprite.length + overlayYOffset);
+    	let outSprite = generateEmptyMatrix(outWidth, outHeight);
+
+    	for (let y = 0; y < outHeight; y++) {
+    		for (let x = 0; x < outWidth; x++) {
+    			// Calculate coordinates in base and overlay sprites
+    			const baseX = x - baseXOffset;
+
+    			const baseY = y - baseYOffset;
+    			const overlayX = x - overlayXOffset;
+    			const overlayY = y - overlayYOffset;
+
+    			// Check if we are within the bounds of the overlay sprite
+    			if (overlayX >= 0 && overlayX < overlaySprite[0].length && overlayY >= 0 && overlayY < overlaySprite.length && overlaySprite[overlayY][overlayX] !== 'transparent') {
+    				outSprite[y][x] = overlaySprite[overlayY][overlayX];
+    			} else // Check if we are within the bounds of the base sprite
+    			if (baseX >= 0 && baseX < baseSprite[0].length && baseY >= 0 && baseY < baseSprite.length) {
+    				outSprite[y][x] = baseSprite[baseY][baseX];
+    			} else // Otherwise, set to transparent
+    			{
+    				outSprite[y][x] = 'transparent';
     			}
     		}
     	}
 
-    	return baseSprite;
+    	return outSprite;
     }
 
     function concatenateMatrixes(matrix1, matrix2) {
+    	//Function used to create sprite sheets (adds matrix2 to the right of matrix1)
     	if (matrix1.length !== matrix2.length) {
     		throw new Error('Both matrices must have the same number of rows');
     	}
@@ -3451,6 +3479,9 @@ var app = (function () {
     }
 
     function replaceMatrixColor(matrix, colorToReplace, replacementColor) {
+    	//Deep copy the matrix to avoid modifying the original (because javascript is stupid)
+    	let outputMatrix = JSON.parse(JSON.stringify(matrix));
+
     	if (!matrix || !Array.isArray(matrix)) {
     		console.error('Invalid matrix provided:', matrix);
     		return;
@@ -3459,89 +3490,78 @@ var app = (function () {
     	for (let y = 0; y < matrix.length; y++) {
     		for (let x = 0; x < matrix[y].length; x++) {
     			if (matrix[y][x] === colorToReplace) {
-    				matrix[y][x] = replacementColor;
+    				outputMatrix[y][x] = replacementColor;
     			}
     		}
     	}
 
-    	return matrix; // Return the modified matrix
+    	return outputMatrix;
     }
 
-    function generateButtonMatrix(width, height, bgColor, borderColor, textSprite) {
-    	// Generate the outer rectangle sprite for the button border
+    function generateButtonMatrix(
+    	width,
+    height,
+    bgColor,
+    borderColor,
+    textSprite,
+    bottomShadowColor = null,
+    topShadowColor = null
+    ) {
     	const outerSprite = generateRectangleMatrix(width, height, borderColor);
-
-    	// Generate the inner rectangle sprite for the button background
     	const innerWidth = width - 2;
-
     	const innerHeight = height - 2;
     	const innerSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
 
     	// Overlay the inner sprite onto the outer sprite to create the button
-    	overlayMatrix(outerSprite, innerSprite, 1, 1);
+    	let buttonSprite = overlayMatrix(outerSprite, innerSprite, 0, 0, 1, 1);
+
+    	// If top shadow color is provided, generate a shadow strip and overlay it
+    	if (topShadowColor) {
+    		const topShadowHorizontal = generateRectangleMatrix(innerWidth, 1, topShadowColor);
+    		const topShadowVertical = generateRectangleMatrix(1, innerHeight, topShadowColor); // Extend to the full height
+    		buttonSprite = overlayMatrix(buttonSprite, topShadowHorizontal, 0, 0, 1, 1);
+    		buttonSprite = overlayMatrix(buttonSprite, topShadowVertical, 0, 0, 1, 1);
+    	}
+
+    	// If bottom shadow color is provided, generate a shadow strip and overlay it
+    	if (bottomShadowColor) {
+    		const bottomShadowHorizontal = generateRectangleMatrix(innerWidth, 1, bottomShadowColor);
+    		const bottomShadowVertical = generateRectangleMatrix(1, innerHeight, bottomShadowColor); // Extend to the full height
+    		buttonSprite = overlayMatrix(buttonSprite, bottomShadowHorizontal, 0, 0, 1, height - 2);
+    		buttonSprite = overlayMatrix(buttonSprite, bottomShadowVertical, 0, 0, width - 2, 1);
+    	}
+
+    	const textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
+    	const textY = Math.floor((innerHeight - textSprite.length) / 2) + 1;
 
     	// Overlay the text sprite in the center of the button
-    	const textX = Math.floor((width - textSprite[0].length) / 2);
+    	const finalButtonSprite = overlayMatrix(buttonSprite, textSprite, 0, 0, textX, textY);
 
-    	const textY = Math.floor((height - textSprite.length) / 2);
-    	overlayMatrix(outerSprite, textSprite, textX, textY);
-
-    	// console.log('OUTER SPRITE: ', outerSprite);
-    	return outerSprite;
+    	return finalButtonSprite;
     }
 
     function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
-    	// Create the full sprite with the border
-    	let sprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
+    	const backgroundSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
+    	const innerBackground = generateRoundedRectangleMatrix(width - 2, height - 2, bgColor, roundness);
+    	let statusBarSprite = overlayMatrix(backgroundSprite, innerBackground, 0, 0, 1, 1);
 
-    	// Calculate the maximum fill for the status bar to ensure it does not exceed the inner width
-    	filledWidth = Math.min(filledWidth, width - 2 - roundness * 2 + 1);
+    	// Create the border overlay sprite by replacing the background color with transparent
+    	let borderSprite = replaceMatrixColor(statusBarSprite, bgColor, 'transparent');
 
-    	// Start drawing the inner background and the status bar from 1 pixel inside the border
-    	const borderOffset = 1;
+    	if (filledWidth > 0) {
+    		// Adjust the filledWidth to account for the border
+    		filledWidth = Math.min(filledWidth, width - 2);
 
-    	// Iterate over each pixel within the inner area
-    	for (let y = borderOffset; y < height - borderOffset; y++) {
-    		for (let x = borderOffset; x < width - borderOffset; x++) {
-    			// Determine if the current pixel is inside the rounded corners of the border
-    			let insideCorner = false;
+    		let filledStatusBarSprite = generateRoundedRectangleMatrix(filledWidth, height - 2, statusBarColor, roundness);
 
-    			const cornerCenters = [
-    				{ cx: roundness, cy: roundness },
-    				{
-    					cx: width - roundness - 1, // Top-left
-    					cy: roundness
-    				},
-    				{
-    					cx: roundness, // Top-right
-    					cy: height - roundness - 1
-    				},
-    				{
-    					cx: width - roundness - 1, // Bottom-left
-    					cy: height - roundness - 1
-    				}
-    			]; // Bottom-right
+    		// Overlay the filled status bar onto the combined border and background sprite
+    		statusBarSprite = overlayMatrix(statusBarSprite, filledStatusBarSprite, 0, 0, 1, 1);
 
-    			for (const { cx, cy } of cornerCenters) {
-    				if ((x - cx) ** 2 + (y - cy) ** 2 < roundness ** 2) {
-    					insideCorner = true;
-    					break;
-    				}
-    			}
-
-    			// Fill with background color if not within the rounded corners of the status bar
-    			if (!insideCorner || x >= filledWidth + roundness) {
-    				sprite[y][x] = bgColor;
-    			}
-
-    			// Draw the status bar where appropriate
-    			if (x < filledWidth + roundness && !insideCorner) {
-    				sprite[y][x] = statusBarColor;
-    			}
-    		}
+    		// Overlay the border onto the filled status bar sprite to cover up overlaps
+    		statusBarSprite = overlayMatrix(statusBarSprite, borderSprite, 0, 0, 0, 0);
     	}
 
-    	return sprite;
+    	return statusBarSprite;
     }
 
     function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness) {
@@ -4076,6 +4096,16 @@ var app = (function () {
     		]
     	}
     };
+    var postcardBackground = {
+    	spriteWidth: 128,
+    	spriteHeight: 128,
+    	spriteSheet: "postcard.png",
+    	states: {
+    		"default": [
+    			0
+    		]
+    	}
+    };
     var objectConfig = {
     	objectType1: objectType1,
     	objectType2: objectType2,
@@ -4085,7 +4115,8 @@ var app = (function () {
     	mainMenuButton: mainMenuButton,
     	vanityBackground: vanityBackground,
     	customizeUI: customizeUI,
-    	vendingBackground: vendingBackground
+    	vendingBackground: vendingBackground,
+    	postcardBackground: postcardBackground
     };
 
     /* webviews\components\Object.svelte generated by Svelte v3.59.2 */
@@ -4450,6 +4481,8 @@ var app = (function () {
     		this.color = 'red';
     		this.lastX = null;
     		this.lastY = null;
+    		this.offsetX = x;
+    		this.offsetY = y;
     	}
 
     	getSprite() {
@@ -4461,9 +4494,16 @@ var app = (function () {
     	}
 
     	paintPixel(x, y) {
-    		if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) return;
-    		this.pixelMatrix[y][x] = this.color;
-    	} // console.log(`Painted pixel at (${x}, ${y})`);
+    		// Adjust x and y based on the canvas offset
+    		const adjustedX = x - this.offsetX;
+
+    		const adjustedY = y - this.offsetY;
+
+    		// Check if the adjusted coordinates are within canvas bounds
+    		if (adjustedX < 0 || adjustedX >= this.canvasWidth || adjustedY < 0 || adjustedY >= this.canvasHeight) return;
+
+    		this.pixelMatrix[adjustedY][adjustedX] = this.color;
+    	} // console.log(`Painted pixel at (${adjustedX}, ${adjustedY})`);
 
     	clearCanvas() {
     		this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
@@ -4763,12 +4803,16 @@ var app = (function () {
     borderColor,
     bgColorHovered,
     borderColorHovered,
-    textRenderer
+    textRenderer,
+    topShadow = null,
+    bottomShadow = null,
+    topShadowHover = null,
+    bottomShadowHover = null
     ) {
     	return class Button extends GeneratedObject {
     		constructor(text, x, y, actionOnClick, z) {
-    			const defaultSprite = generateButtonMatrix(width, height, bgColor, borderColor, textRenderer(text));
-    			const hoverSprite = generateButtonMatrix(width, height, bgColorHovered, borderColorHovered, textRenderer(text));
+    			const defaultSprite = generateButtonMatrix(width, height, bgColor, borderColor, textRenderer(text), topShadow, bottomShadow);
+    			const hoverSprite = generateButtonMatrix(width, height, bgColorHovered, borderColorHovered, textRenderer(text), topShadowHover, bottomShadowHover);
 
     			// State management: 0 for default sprite and 1 for hover sprite
     			super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
@@ -4869,14 +4913,14 @@ var app = (function () {
     	const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
 
     	//generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
-    	const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
+    	const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
 
-    	const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+    	const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
     	const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
     	const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
     	const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
     	const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
-    	const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
+    	const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
     	const inputTextRenderer = new activeTextRenderer(basic, 0, 80, 0);
 
     	// drop down buttons
@@ -4989,7 +5033,7 @@ var app = (function () {
     			customizeUI.nextFrame();
     		});
 
-    	petObject = new Pet('pearguin', 24, 32, 0, "leaf");
+    	petObject = new Pet('pearguin', 36, 54, 0, "leaf");
 
     	const leftHatArrow = new singleLetterButton('<',
     	20,
@@ -5016,7 +5060,7 @@ var app = (function () {
     	0,
     	() => {
     			get_store_value(game).setCurrentRoom('mainRoom');
-    			petObject.setCoordinate(24, 32, 0);
+    			petObject.setCoordinate(36, 54, 0);
     		},
     	10);
 
@@ -5046,8 +5090,16 @@ var app = (function () {
     		});
 
     	let paintRoom = new Room('paintRoom');
-    	let paintCanvas = new PixelCanvas(2, 2, 0, 124, 124);
+    	let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
     	let socialRoom = new Room('socialRoom');
+
+    	let postcardBackground = new Background('postcardBackground',
+    	0,
+    	0,
+    	-20,
+    	() => {
+    			
+    		});
 
     	function instantiateFriends(friends, friendTitle, friendButton) {
     		let friendArray = [];
@@ -5117,7 +5169,7 @@ var app = (function () {
     	settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about, inputTextRenderer);
     	customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
     	shopRoom.addObject(backToMain, shopBackground);
-    	paintRoom.addObject(backToMain, paintCanvas);
+    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground);
     	socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
     }
 

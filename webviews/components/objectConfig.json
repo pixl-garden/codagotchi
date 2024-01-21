@@ -78,5 +78,13 @@
         "states": {
             "default": [0]
         }
+    },
+    "postcardBackground": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "postcard.png",
+        "states": {
+            "default": [0]
+        }
     }
 }
