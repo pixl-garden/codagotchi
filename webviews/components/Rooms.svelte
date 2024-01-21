@@ -31,13 +31,13 @@
         const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
 
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
-        const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
+        const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
+        const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
         const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
         const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro);
+        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff" );
         const inputTextRenderer = new activeTextRenderer(basic, 0, 80, 0);
 
         // drop down buttons
@@ -95,7 +95,7 @@
             background.nextFrame();
             customizeUI.nextFrame();
         });
-        petObject = new Pet('pearguin', 24, 32, 0, "leaf");
+        petObject = new Pet('pearguin', 36, 54, 0, "leaf");
         
         const leftHatArrow = new singleLetterButton('<', 20, 144, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
@@ -105,7 +105,7 @@
         }, 0);
         const backToMain = new smallLetterButton('<', 0, 0, () => {
             get(game).setCurrentRoom('mainRoom');
-            petObject.setCoordinate(24, 32, 0)
+            petObject.setCoordinate(36, 54, 0)
         }, 10);
 
         const statusBar = new StatusBar(20, 2, 0);
@@ -126,9 +126,11 @@
         let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
 
         let paintRoom = new Room('paintRoom');
-        let paintCanvas = new PixelCanvas(2, 2, 0, 124, 124);
+        let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
 
         let socialRoom = new Room('socialRoom');
+
+        let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
 
 
         function instantiateFriends(friends, friendTitle, friendButton){
@@ -190,7 +192,7 @@
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about, inputTextRenderer);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
-        paintRoom.addObject(backToMain, paintCanvas);
+        paintRoom.addObject(backToMain, paintCanvas, postcardBackground);
         socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
     }
 

@@ -120,23 +120,40 @@
         return outputMatrix;
     }
 
-    export function generateButtonMatrix(width, height, bgColor, borderColor, textSprite) {
+    export function generateButtonMatrix( width, height, bgColor, borderColor, textSprite, bottomShadowColor = null, topShadowColor = null ) {
         const outerSprite = generateRectangleMatrix(width, height, borderColor);
         const innerWidth = width - 2;
         const innerHeight = height - 2;
         const innerSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor);
 
         // Overlay the inner sprite onto the outer sprite to create the button
-        const buttonSprite = overlayMatrix(outerSprite, innerSprite, 0, 0, 1, 1);
+        let buttonSprite = overlayMatrix(outerSprite, innerSprite, 0, 0, 1, 1);
 
-        const textX = Math.floor((width - textSprite[0].length) / 2);
-        const textY = Math.floor((height - textSprite.length) / 2);
+        // If top shadow color is provided, generate a shadow strip and overlay it
+        if (topShadowColor) {
+            const topShadowHorizontal = generateRectangleMatrix(innerWidth, 1, topShadowColor);
+            const topShadowVertical = generateRectangleMatrix(1, innerHeight, topShadowColor); // Extend to the full height
+            buttonSprite = overlayMatrix(buttonSprite, topShadowHorizontal, 0, 0, 1, 1);
+            buttonSprite = overlayMatrix(buttonSprite, topShadowVertical, 0, 0, 1, 1);
+        }
+
+        // If bottom shadow color is provided, generate a shadow strip and overlay it
+        if (bottomShadowColor) {
+            const bottomShadowHorizontal = generateRectangleMatrix(innerWidth, 1, bottomShadowColor);
+            const bottomShadowVertical = generateRectangleMatrix(1, innerHeight, bottomShadowColor); // Extend to the full height
+            buttonSprite = overlayMatrix(buttonSprite, bottomShadowHorizontal, 0, 0, 1, height - 2);
+            buttonSprite = overlayMatrix(buttonSprite, bottomShadowVertical, 0, 0, width - 2, 1);
+        }
+
+        const textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
+        const textY = Math.floor((innerHeight - textSprite.length) / 2) + 1;
 
         // Overlay the text sprite in the center of the button
         const finalButtonSprite = overlayMatrix(buttonSprite, textSprite, 0, 0, textX, textY);
 
         return finalButtonSprite;
     }
+
 
     export function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
         const backgroundSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
