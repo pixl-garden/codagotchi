@@ -1,6 +1,9 @@
 <script context='module'>
-    import { generateButtonMatrix, generateStatusBarSpriteSheet } from './MatrixFunctions.svelte';
-    import { GeneratedObject } from './Object.svelte';
+    import { generateButtonMatrix, generateStatusBarSpriteSheet, generateTextInputMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
+    import { GeneratedObject, activeTextRenderer } from './Object.svelte';
+    import { shouldFocus, inputValue } from './Game.svelte';
+    import { get } from 'svelte/store';
+    import { Sprite } from './SpriteComponent.svelte';
 
     export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null ) {
@@ -70,7 +73,29 @@
                 }
             }
         };
-    }
+    };
 
+    export function generateTextInputBar(width, height, borderColor, bgColor, roundness, textRenderer, textXOffset = 3, borderThickness = 1) {
+        return class TextInputBar extends GeneratedObject {
+            constructor(x, y, z) {
 
+                const emptyMatrix = generateEmptyMatrix(width, height);
+                super([emptyMatrix], { default: [0] }, x, y, z, () => {
+                    if(get(shouldFocus) === false){
+                        shouldFocus.set(true);
+                    }
+                    else{
+                        shouldFocus.set(false);
+                    }
+                });
+            }
+
+            whileHover(){
+            }
+            
+            getSprite(){
+                return new Sprite(generateTextInputMatrix( width, height, bgColor, borderColor, textRenderer(get(inputValue)), roundness, textXOffset, borderThickness ), this.x, this.y, this.z);
+            }
+        };
+    };
 </script>
