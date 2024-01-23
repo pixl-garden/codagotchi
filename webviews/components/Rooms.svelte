@@ -1,10 +1,9 @@
 <script context='module'>
     import { game, Room, shouldFocus,  } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, activeTextRenderer } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
-    import { generateButtonClass, generateStatusBarClass } from './ObjectGenerators.svelte';
+    import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
-    import { compute_rest_props } from 'svelte/internal';
 
     let background;
     let petObject;
@@ -38,7 +37,7 @@
         const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
         const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff" );
-        const inputTextRenderer = new activeTextRenderer(basic, 0, 80, 0);
+        const inputTextBar = new generateTextInputBar(100, 18, 'black', '#7997bc', 4, basic, 5, 1);
 
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
@@ -70,17 +69,8 @@
         const gitlogin = new settingsMenuButton('Git Login', 0, 12, () => {
             handleGitHubLogin();
         });
-        const notifications = new settingsMenuButton('Notifs', 0, 28, () => {
-            if(get(shouldFocus) === false){
-                shouldFocus.set(true);
-            }
-            else{
-                shouldFocus.set(false);
-            }
-        });
-        const display = new settingsMenuButton('Display', 0, 44, () => {
-            console.log('Button was clicked!');
-        });
+        const notifications = new settingsMenuButton('Notifs', 0, 28, () => {});
+        const display = new settingsMenuButton('Display', 0, 44, () => {});
         const about = new settingsMenuButton('<BACK', 0, 60, () => {
             get(game).setCurrentRoom('mainRoom'); 
         });
@@ -131,6 +121,8 @@
         let socialRoom = new Room('socialRoom');
 
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
+
+        let textInputBarTest = new inputTextBar(0, 65, 0);
 
 
         function instantiateFriends(friends, friendTitle, friendButton){
@@ -189,11 +181,11 @@
         
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
-        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about, inputTextRenderer);
+        settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground);
-        socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain);
+        socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
     }
 
     export function roomMain(){

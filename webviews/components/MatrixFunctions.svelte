@@ -192,4 +192,32 @@
 
         return spriteReader(width, height, spriteSheet);
     }
+
+    export function generateTextInputMatrix(width, height, bgColor, borderColor, textSprite, roundness, textXOffset, borderThickness = 1) {
+        // Ensure the border thickness doesn't exceed half the width or height of the sprite
+        borderThickness = Math.min(borderThickness, Math.floor(width / 2), Math.floor(height / 2));
+
+        // Create the outer rounded rectangle sprite for the border
+        const outerSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
+
+        // Adjust the innerWidth and innerHeight based on the border thickness
+        const innerWidth = width - (borderThickness * 2);
+        const innerHeight = height - (borderThickness * 2);
+
+        // Create the inner rounded rectangle sprite for the input field background and cap roundness to half the width or height, whichever is smallest
+        const innerRoundness = Math.min(roundness, Math.floor(innerWidth / 2), Math.floor(innerHeight / 2));
+        const innerSprite = generateRoundedRectangleMatrix(innerWidth, innerHeight, bgColor, innerRoundness);
+
+        // Overlay the inner sprite onto the outer sprite to create the text input background and offset it by the border thickness
+        let textInputSprite = overlayMatrix(outerSprite, innerSprite, 0, 0, borderThickness, borderThickness);
+
+        // Calculate the Y offset for the text
+        const textYOffset = Math.floor((innerHeight - textSprite.length) / 2) + borderThickness;
+
+        // Overlay the text sprite on the left side of the text input, starting after the border thickness
+        textInputSprite = overlayMatrix(textInputSprite, textSprite, 0, 0, textXOffset + borderThickness, textYOffset);
+
+        return textInputSprite;
+    }
+
 </script>
