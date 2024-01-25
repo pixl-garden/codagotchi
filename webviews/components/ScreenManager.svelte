@@ -17,21 +17,25 @@
         sprites.forEach((sprite) => {
             let spriteMatrix = sprite.getMatrix();
             // Calculate the bounds for y and x within the screen and sprite matrix
-            let startY = Math.max(0, sprite.y);
-            let endY = Math.min(ySize, sprite.y + spriteMatrix.length);
-            let startX = Math.max(0, sprite.x);
-            let endX = Math.min(xSize, sprite.x + spriteMatrix[0].length);
-
-            for (let y = startY; y < endY; y++) {
-                let matrixY = y - sprite.y;
-                for (let x = startX; x < endX; x++) {
-                    let matrixX = x - sprite.x;
-                    if (spriteMatrix[matrixY][matrixX] !== 'transparent') {
-                        screen[x][y] = spriteMatrix[matrixY][matrixX]; // Swap x and y here
+            if (spriteMatrix !== undefined || spriteMatrix !== null ){
+                let spriteMatrixYLen = spriteMatrix ? spriteMatrix.length : 0;
+                let spriteMatrixXLen = spriteMatrix ? spriteMatrix[0].length : 0;
+                let startY = Math.max(0, sprite.y);
+                let endY = Math.min(ySize, sprite.y + spriteMatrixYLen);
+                let startX = Math.max(0, sprite.x);
+                let endX = Math.min(xSize, sprite.x + spriteMatrixXLen);
+                
+                for (let y = startY; y < endY; y++) {
+                    let matrixY = y - sprite.y;
+                    for (let x = startX; x < endX; x++) {
+                        let matrixX = x - sprite.x;
+                        if (spriteMatrix[matrixY][matrixX] !== 'transparent') {
+                            screen[x][y] = spriteMatrix[matrixY][matrixX]; // Swap x and y here
+                        }
                     }
                 }
             }
-        });
+            });
 
         return screen;
     }
