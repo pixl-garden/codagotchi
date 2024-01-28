@@ -115,7 +115,7 @@ class SidebarProvider {
                     break;
                 }
                 case 'getGlobalState': {
-                    console.log("----Getting globalState----");
+                    console.log('----Getting globalState----');
                     printJsonObject(getCurrentState(this.context));
                     (_a = this._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
                         type: 'currentState',
@@ -124,7 +124,7 @@ class SidebarProvider {
                     break;
                 }
                 case 'setGlobalState': {
-                    console.log("****Setting globalState****");
+                    console.log('****Setting globalState****');
                     // printJsonObject(data.value)
                     setCurrentState(this.context, data.value);
                     break;
@@ -132,51 +132,59 @@ class SidebarProvider {
                 case 'openOAuthURL': {
                     vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
                     console.log('openOAuthUrl');
-                    const tokenRef = (0, database_1.ref)(firebaseInit_1.database, 'authTokens/' + state);
-                    (0, database_1.onValue)(tokenRef, (snapshot) => {
+                    const tokenRef = (0, database_1.ref)(firebaseInit_1.default, 'authTokens/' + state);
+                    const tokenListener = (0, database_1.onValue)(tokenRef, (snapshot) => {
                         const data = snapshot.val();
+                        console.log(`Snapshot received for state ${state}:`, data);
                         if (data && data.status === 'ready') {
                             const firebaseToken = data.token;
                             githubUsername = data.githubUsername;
                             console.log('Received token:', firebaseToken);
-                            // Automatically sign in with the received custom token
+                            console.log('Received username:', githubUsername);
+                            // Sign in to Firebase with the token
                             const auth = (0, auth_1.getAuth)();
                             (0, auth_1.signInWithCustomToken)(auth, firebaseToken)
-                                .then((userCredential) => {
-                                // User is now authenticated with Firebase
-                                const uid = userCredential.user.uid;
-                                // Reference to the user's data in the database
-                                const db = (0, database_1.getDatabase)();
-                                const userRef = (0, database_1.ref)(db, 'users/' + uid);
-                                // Check if the user's data exists
-                                (0, database_1.get)(userRef).then((snapshot) => {
-                                    if (!snapshot.exists()) {
-                                        // If the user's data doesn't exist, create it
-                                        (0, database_1.set)(userRef, {
-                                            // Initialize user data, e.g., 
-                                            createdAt: new Date().toISOString(),
-                                            githubUsername: githubUsername
-                                            // ... other initial data
-                                        }).then(() => {
-                                            console.log('User data initialized.');
-                                            // Send the GitHub username to the webview
-                                            webviewView.webview.postMessage({
-                                                type: 'github-username',
-                                                username: githubUsername,
-                                            });
-                                        }).catch((error) => {
-                                            console.error('Error initializing user data:', error);
-                                        });
-                                    }
-                                }).catch((error) => {
-                                    console.error('Error checking user data:', error);
-                                });
-                            })
+                                .then((userCredential) => __awaiter(this, void 0, void 0, function* () {
+                                // Signed in
+                                const user = userCredential.user;
+                                console.log('Signed in to Firebase:', user);
+                                // Store the GitHub username in the database under the user's UID
+                                const userRef = (0, database_1.ref)((0, database_1.getDatabase)(), `users/${user.uid}/public`);
+                                try {
+                                    yield (0, database_1.set)(userRef, {
+                                        type: 'github-user',
+                                        githubUsername: githubUsername,
+                                        lastLogin: Date.now(),
+                                    });
+                                    console.log('User data stored in the database.');
+                                }
+                                catch (error) {
+                                    console.error('Error storing user data in the database:', error);
+                                }
+                                // Remove the listener after successful authentication
+                                (0, database_1.off)(tokenRef, 'value', tokenListener);
+                                // Clear the state value
+                                yield setCurrentState(this.context, { oauthState: '' });
+                                console.log('OAuth state cleared.');
+                            }))
                                 .catch((error) => {
-                                // Handle errors
-                                console.error('Error signing in with custom token:', error);
+                                const errorCode = error.code;
+                                const errorMessage = error.message;
+                                console.error('Firebase signInWithCustomToken error:', errorCode, errorMessage);
+                                // Remove the listener due to authentication error
+                                (0, database_1.off)(tokenRef, 'value', tokenListener);
+                                // Inform the user of the error
+                                vscode.window.showErrorMessage(`Error signing in: ${errorMessage}`);
                             });
                         }
+                        else {
+                            // Data is null or status is not 'ready'
+                            console.log(`Token data is not ready or does not exist for state ${state}.`);
+                        }
+                    }, (error) => {
+                        // Handle any errors that occur during the `onValue` listener registration.
+                        console.error('Firebase onValue listener error:', error);
+                        vscode.window.showErrorMessage(`Error listening for token: ${error.message}`);
                     });
                     break;
                 }
@@ -880,7 +888,6 @@ function version(uuid) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.database = void 0;
 const app_1 = __webpack_require__(24);
 const database_1 = __webpack_require__(32);
 const firebaseConfig = {
@@ -895,7 +902,7 @@ const firebaseConfig = {
 };
 const app = (0, app_1.initializeApp)(firebaseConfig);
 const database = (0, database_1.getDatabase)(app);
-exports.database = database;
+exports["default"] = database;
 
 
 /***/ }),
@@ -910,7 +917,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 var app = __webpack_require__(25);
 
 var name = "firebase";
-var version = "10.7.1";
+var version = "10.7.2";
 
 /**
  * @license
@@ -1009,7 +1016,7 @@ function isVersionServiceProvider(provider) {
 }
 
 var name$o = "@firebase/app";
-var version$1 = "0.9.25";
+var version$1 = "0.9.26";
 
 /**
  * @license
@@ -1076,7 +1083,7 @@ var name$2 = "@firebase/firestore";
 var name$1 = "@firebase/firestore-compat";
 
 var name = "firebase";
-var version = "10.7.1";
+var version = "10.7.2";
 
 /**
  * @license
@@ -1622,7 +1629,15 @@ function getDbPromise() {
                 // eslint-disable-next-line default-case
                 switch (oldVersion) {
                     case 0:
-                        db.createObjectStore(STORE_NAME);
+                        try {
+                            db.createObjectStore(STORE_NAME);
+                        }
+                        catch (e) {
+                            // Safari/iOS browsers throw occasional exceptions on
+                            // db.createObjectStore() that may be a bug. Avoid blocking
+                            // the rest of the app functionality.
+                            console.warn(e);
+                        }
                 }
             }
         }).catch(function (e) {

@@ -55,10 +55,11 @@ exports.handleGitHubRedirect = functions.https.onRequest(async (request, respons
         const db = admin.database();
         const ref = db.ref('authTokens/' + state); // 'state' is the UUID
         await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time});
-
+        
+        
         response.send("Authentication successful, you can return to the app.");
 
-        await ref.remove();
+        // await ref.remove();
         console.log(`Token for state ${state} removed after successful verification.`);
 
     } 

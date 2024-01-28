@@ -3,9 +3,9 @@ import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package installed.
-import { database } from './firebaseInit';
+import database from './firebaseInit';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
-import { getDatabase, ref, set, get, onValue } from 'firebase/database';
+import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
 const CLIENT_ID = 'a253a1599d7b631b091a';
 const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
@@ -52,8 +52,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     private context: vscode.ExtensionContext;
 
-    constructor(private readonly _extensionUri: vscode.Uri, context: vscode.ExtensionContext) {
-        this.context = context; }
+    constructor(
+        private readonly _extensionUri: vscode.Uri,
+        context: vscode.ExtensionContext,
+    ) {
+        this.context = context;
+    }
 
     private getImageUris(): { [key: string]: vscode.Uri } {
         const imageDir = path.join(this._extensionUri.fsPath, 'images');
@@ -114,8 +118,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 case 'getGlobalState': {
-                    console.log("----Getting globalState----")
-                    printJsonObject(getCurrentState(this.context))
+                    console.log('----Getting globalState----');
+                    printJsonObject(getCurrentState(this.context));
                     this._view?.webview.postMessage({
                         type: 'currentState',
                         value: getCurrentState(this.context),
@@ -124,67 +128,82 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 case 'setGlobalState': {
-                    console.log("****Setting globalState****")
+                    console.log('****Setting globalState****');
                     // printJsonObject(data.value)
-                    setCurrentState(this.context, data.value)
+                    setCurrentState(this.context, data.value);
                     break;
                 }
 
                 case 'openOAuthURL': {
                     vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
                     console.log('openOAuthUrl');
-                
+
                     const tokenRef = ref(database, 'authTokens/' + state);
-                    onValue(tokenRef, (snapshot) => {
-                        const data = snapshot.val();
-                        if (data && data.status === 'ready') {
-                            const firebaseToken = data.token;
-                            githubUsername = data.githubUsername;
-                            console.log('Received token:', firebaseToken);
-                
-                            // Automatically sign in with the received custom token
-                            const auth = getAuth();
-                            signInWithCustomToken(auth, firebaseToken)
-                            .then((userCredential) => {
-                                // User is now authenticated with Firebase
-                                const uid = userCredential.user.uid;
-                                
-                                // Reference to the user's data in the database
-                                const db = getDatabase();
-                                const userRef = ref(db, 'users/' + uid);
-                        
-                                // Check if the user's data exists
-                                get(userRef).then((snapshot) => {
-                                    if (!snapshot.exists()) {
-                                        // If the user's data doesn't exist, create it
-                                        set(userRef, {
-                                            // Initialize user data, e.g., 
-                                            createdAt: new Date().toISOString(),
-                                            githubUsername: githubUsername
-                                            // ... other initial data
-                                        }).then(() => {
-                                            console.log('User data initialized.');
-                                            // Send the GitHub username to the webview
-                                            webviewView.webview.postMessage({
-                                                type: 'github-username',
-                                                username: githubUsername,
+                    const tokenListener = onValue(
+                        tokenRef,
+                        (snapshot) => {
+                            const data = snapshot.val();
+                            console.log(`Snapshot received for state ${state}:`, data);
+
+                            if (data && data.status === 'ready') {
+                                const firebaseToken = data.token;
+                                githubUsername = data.githubUsername;
+                                console.log('Received token:', firebaseToken);
+                                console.log('Received username:', githubUsername);
+
+                                // Sign in to Firebase with the token
+                                const auth = getAuth();
+
+                                signInWithCustomToken(auth, firebaseToken)
+                                    .then(async (userCredential) => {
+                                        // Signed in
+                                        const user = userCredential.user;
+                                        console.log('Signed in to Firebase:', user);
+
+                                        // Store the GitHub username in the database under the user's UID
+                                        const userRef = ref(getDatabase(), `users/${user.uid}/public`);
+                                        try {
+                                            await set(userRef, {
+                                                type: 'github-user',
+                                                githubUsername: githubUsername,
+                                                lastLogin: Date.now(),
+
                                             });
-                                        }).catch((error) => {
-                                            console.error('Error initializing user data:', error);
-                                        });
-                                    }
-                                }).catch((error) => {
-                                    console.error('Error checking user data:', error);
-                                });
-                        
-                            })
-                            .catch((error) => {
-                                // Handle errors
-                                console.error('Error signing in with custom token:', error);
-                            });
-                        }
-                    });
-                
+                                            console.log('User data stored in the database.');
+                                        } catch (error) {
+                                            console.error('Error storing user data in the database:', error);
+                                        }
+
+                                        // Remove the listener after successful authentication
+                                        off(tokenRef, 'value', tokenListener);
+
+                                        // Clear the state value
+                                        await setCurrentState(this.context, { oauthState: '' });
+                                        console.log('OAuth state cleared.');
+                                    })
+                                    .catch((error) => {
+                                        const errorCode = error.code;
+                                        const errorMessage = error.message;
+                                        console.error('Firebase signInWithCustomToken error:', errorCode, errorMessage);
+
+                                        // Remove the listener due to authentication error
+                                        off(tokenRef, 'value', tokenListener);
+
+                                        // Inform the user of the error
+                                        vscode.window.showErrorMessage(`Error signing in: ${errorMessage}`);
+                                    });
+                            } else {
+                                // Data is null or status is not 'ready'
+                                console.log(`Token data is not ready or does not exist for state ${state}.`);
+                            }
+                        },
+                        (error) => {
+                            // Handle any errors that occur during the `onValue` listener registration.
+                            console.error('Firebase onValue listener error:', error);
+                            vscode.window.showErrorMessage(`Error listening for token: ${error.message}`);
+                        },
+                    );
+
                     break;
                 }
 
