@@ -51,6 +51,7 @@ Please look at our [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you
 * **Kyle Bambling**
 * **Monique Parrish**
 * **Alim Kassymov** [@notalim](https://github.com/notalim/)
+* **Charles Booth** 
 
 ## Licensing
 This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for more information.
