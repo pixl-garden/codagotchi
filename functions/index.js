@@ -2,112 +2,123 @@ import axios from 'axios';
 import admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 
-admin.initializeApp();
-export const handleGitHubRedirect = functions
-    .runWith({
-        
-    })
-    .https.onRequest(async (request, response) => {
-        const code = request.query.code;
-        const state = request.query.state;
+import * as socialFunctions from './socialFunctions.js';
 
-        if (!code || !state) {
-            response.status(400).json({ error: 'Missing code or state parameter' });
+admin.initializeApp();
+
+const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (request, response) => {
+    const code = request.query.code;
+    const state = request.query.state;
+
+    if (!code || !state) {
+        response.status(400).json({ error: 'Missing code or state parameter' });
+        return;
+    }
+
+    const clientSecret = functions.config().github.client_secret;
+
+    // Exchange the code for an access token
+    try {
+        const githubResponse = await axios.post(
+            'https://github.com/login/oauth/access_token',
+            {
+                client_id: 'a253a1599d7b631b091a',
+                client_secret: clientSecret,
+                code: code,
+                redirect_uri: 'https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect',
+            },
+            {
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        );
+        console.log('GitHub Response:', githubResponse.data);
+
+        const accessToken = githubResponse.data.access_token;
+
+        if (!accessToken) {
+            console.error('No access token received from GitHub:', githubResponse.data);
+            response.status(500).send('No access token received from GitHub');
             return;
         }
 
-        const clientSecret = functions.config().github.client_secret;
+        const githubUserResponse = await axios.get('https://api.github.com/user', {
+            headers: {
+                Authorization: `token ${accessToken}`,
+                'User-Agent': 'Codagotchi',
+            },
+        });
 
-        // Exchange the code for an access token
-        try {
-            const githubResponse = await axios.post(
-                'https://github.com/login/oauth/access_token',
-                {
-                    client_id: 'a253a1599d7b631b091a',
-                    client_secret: clientSecret,
-                    code: code,
-                    redirect_uri: 'https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect',
-                },
-                {
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                },
-            );
-            console.log('GitHub Response:', githubResponse.data);
+        const githubUserId = githubUserResponse.data.id;
+        const githubUsername = githubUserResponse.data.login;
 
-            const accessToken = githubResponse.data.access_token;
+        // Create a Firebase custom token
+        const firebaseToken = await admin.auth().createCustomToken(githubUserId.toString());
+        const token_time = Date.now(); // Current timestamp in milliseconds
 
-            if (!accessToken) {
-                console.error('No access token received from GitHub:', githubResponse.data);
-                response.status(500).send('No access token received from GitHub');
-                return;
-            }
+        // Update the Realtime Database
+        const db = admin.database();
+        const ref = db.ref('authTokens/' + state); // 'state' is the UUID
+        await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time });
 
-            const githubUserResponse = await axios.get('https://api.github.com/user', {
-                headers: {
-                    Authorization: `token ${accessToken}`,
-                    'User-Agent': 'Codagotchi',
-                },
-            });
+        response.send('Authentication successful, you can return to the app.');
+        // check if token is complete
 
-            const githubUserId = githubUserResponse.data.id;
-            const githubUsername = githubUserResponse.data.login;
-
-            // Create a Firebase custom token
-            const firebaseToken = await admin.auth().createCustomToken(githubUserId.toString());
-            const token_time = Date.now(); // Current timestamp in milliseconds
-
-            // Update the Realtime Database
-            const db = admin.database();
-            const ref = db.ref('authTokens/' + state); // 'state' is the UUID
-            await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time });
-
-            response.send('Authentication successful, you can return to the app.');
-            // check if token is complete
-
-            const startTime = Date.now();
+        const startTime = Date.now();
         const timeout = 60000; // Timeout after 60 seconds
         let statusComplete = false;
 
         while (Date.now() - startTime < timeout && !statusComplete) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Poll every 1 second
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Poll every 1 second
 
             const tokenSnapshot = await ref.once('value');
             const tokenData = tokenSnapshot.val();
 
             if (tokenData && tokenData.status === 'complete') {
                 statusComplete = true;
-                    const userRef = db.ref(`users/${githubUserId}`);
-                    await userRef.set({
+                const userRef = db.ref(`users/${githubUserId}`);
+                await userRef.set({
+                    public: {
                         uid: githubUserId.toString(),
                         displayName: githubUsername,
-                        photoURL: `https://avatars.githubusercontent.com/u/${githubUserId}?v=4`,
                         githubUsername: githubUsername,
+                        photoURL: `https://avatars.githubusercontent.com/u/${githubUserId}?v=4`,
                         githubUserId: githubUserId,
                         createdAt: token_time,
                         lastLoginAt: token_time,
                         lastSeenAt: token_time,
                         level: 1,
                         experience: 0,
+                        friends: {}, 
                         status: "Hey there! I'm using WhatsApp.",
-                    });
-                    console.log('User profile created');
-                }
+                    },
+                    private: {
+                        inbox: {}, 
+                        friendRequests: {}, 
+                    },
+                });
+                console.log('User profile created');
             }
-            if (statusComplete) {
-                response.send('Authentication and user profile creation successful.');
-            } else {
-                response.status(408).send('Request timed out. User profile not created.');
-            }
-        } catch (error) {
-            console.error('GitHub authentication error:', error);
-            response.status(500).send('GitHub authentication error: ', error);
         }
-    });
+        if (statusComplete) {
+            response.send('Authentication and user profile creation successful.');
+            await ref.remove();
+            console.log(`Token for ${state} deleted after successful profile creation`);
+        } else {
+            response.status(408).send('Request timed out. User profile not created.');
+        }
+    } catch (error) {
+        console.error('GitHub authentication error:', error);
+        response.status(500).send('GitHub authentication error: ', error);
+    }
+});
 
-export const deleteOldTokens = functions.runWith({ /* your settings */ }).pubsub
-    .schedule('0 0 * * *')
+const deleteOldTokens = functions
+    .runWith({
+        /* your settings */
+    })
+    .pubsub.schedule('0 0 * * *')
     .timeZone('America/Los_Angeles')
     .onRun(async (context) => {
         // ... your existing code ...
@@ -130,3 +141,9 @@ export const deleteOldTokens = functions.runWith({ /* your settings */ }).pubsub
         }
         return null;
     });
+
+export { handleGitHubRedirect, deleteOldTokens };
+export const searchUsers = socialFunctions.searchUsers;
+export const sendFriendRequest = socialFunctions.sendFriendRequest;
+export const handleFriendRequest = socialFunctions.handleFriendRequest;
+export const removeFriend = socialFunctions.removeFriend;
