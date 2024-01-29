@@ -147,14 +147,12 @@ class SidebarProvider {
                                 .then((userCredential) => __awaiter(this, void 0, void 0, function* () {
                                 // Signed in
                                 const user = userCredential.user;
-                                console.log('Signed in to Firebase:', user);
+                                console.log('Firebase user:', user);
                                 // Store the GitHub username in the database under the user's UID
-                                const userRef = (0, database_1.ref)((0, database_1.getDatabase)(), `users/${user.uid}/public`);
+                                const authRef = (0, database_1.ref)((0, database_1.getDatabase)(), `authTokens/${state}`);
                                 try {
-                                    yield (0, database_1.set)(userRef, {
-                                        type: 'github-user',
-                                        githubUsername: githubUsername,
-                                        lastLogin: Date.now(),
+                                    yield (0, database_1.set)(authRef, {
+                                        status: 'complete',
                                     });
                                     console.log('User data stored in the database.');
                                 }
@@ -163,9 +161,6 @@ class SidebarProvider {
                                 }
                                 // Remove the listener after successful authentication
                                 (0, database_1.off)(tokenRef, 'value', tokenListener);
-                                // Clear the state value
-                                yield setCurrentState(this.context, { oauthState: '' });
-                                console.log('OAuth state cleared.');
                             }))
                                 .catch((error) => {
                                 const errorCode = error.code;
@@ -178,8 +173,7 @@ class SidebarProvider {
                             });
                         }
                         else {
-                            // Data is null or status is not 'ready'
-                            console.log(`Token data is not ready or does not exist for state ${state}.`);
+                            console.log(`No token found for state ${state}`);
                         }
                     }, (error) => {
                         // Handle any errors that occur during the `onValue` listener registration.

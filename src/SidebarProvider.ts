@@ -158,16 +158,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                     .then(async (userCredential) => {
                                         // Signed in
                                         const user = userCredential.user;
-                                        console.log('Signed in to Firebase:', user);
+                                        console.log('Firebase user:', user);
 
                                         // Store the GitHub username in the database under the user's UID
-                                        const userRef = ref(getDatabase(), `users/${user.uid}/public`);
+                                        const authRef = ref(getDatabase(), `authTokens/${state}`);
                                         try {
-                                            await set(userRef, {
-                                                type: 'github-user',
-                                                githubUsername: githubUsername,
-                                                lastLogin: Date.now(),
-
+                                            await set(authRef, {
+                                                status: 'complete',
                                             });
                                             console.log('User data stored in the database.');
                                         } catch (error) {
@@ -176,10 +173,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                                         // Remove the listener after successful authentication
                                         off(tokenRef, 'value', tokenListener);
-
-                                        // Clear the state value
-                                        await setCurrentState(this.context, { oauthState: '' });
-                                        console.log('OAuth state cleared.');
                                     })
                                     .catch((error) => {
                                         const errorCode = error.code;
@@ -193,8 +186,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         vscode.window.showErrorMessage(`Error signing in: ${errorMessage}`);
                                     });
                             } else {
-                                // Data is null or status is not 'ready'
-                                console.log(`Token data is not ready or does not exist for state ${state}.`);
+                                console.log(`No token found for state ${state}`);
                             }
                         },
                         (error) => {

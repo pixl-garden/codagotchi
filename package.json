@@ -32,6 +32,7 @@
     ]
   },
   "scripts": {
+    
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "concurrently \"rollup -c -w\" \"webpack --watch --config ./build/node-extension.webpack.config.js\"",
