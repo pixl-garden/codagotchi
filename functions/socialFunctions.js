@@ -19,6 +19,18 @@ export const sendFriendRequest = functions.https.onCall(async (data, context) =>
             message: 'Friend request already sent'};
     }
 
+    // check if they are already friends, if yes, do nothing
+    const friendsRef = admin.database().ref(`users/${toUserId}/public/friends`);
+    const friendsSnapshot = await friendsRef.once('value');
+    if (friendsSnapshot.val()) {
+        for (const [key, value] of Object.entries(friendsSnapshot.val())) {
+            if (value === fromUserId) {
+                return { success: true,
+                    message: 'You are already friends'};
+            }
+        }
+    }
+
     // Generate a new key for the friend request
     const friendRequestKey = admin.database().ref().child(`users/${toUserId}/private/friendRequests`).push().key;
     const updates = {};
@@ -81,6 +93,21 @@ export const handleFriendRequest = functions.https.onCall(async (data, context) 
 
 export const removeFriend = functions.https.onCall(async (data, context) => {
     const { toUserId, fromUserId } = data;
+
+    // Check if they are friends, if not, do nothing
+    const friendsRef = admin.database().ref(`users/${toUserId}/public/friends`);
+    const snapshot = await friendsRef.once('value');
+    let areFriends = false;
+    snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val() === fromUserId) {
+            areFriends = true;
+        }
+    });
+    if (!areFriends) {
+        return { success: true,
+            message: 'You are not friends'};
+    }
+
 
     // Remove each user from the other's friends list
     const updates = {};

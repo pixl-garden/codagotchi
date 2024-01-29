@@ -146,3 +146,4 @@ export { handleGitHubRedirect, deleteOldTokens };
 export const searchUsers = socialFunctions.searchUsers;
 export const sendFriendRequest = socialFunctions.sendFriendRequest;
 export const handleFriendRequest = socialFunctions.handleFriendRequest;
+export const removeFriend = socialFunctions.removeFriend;
