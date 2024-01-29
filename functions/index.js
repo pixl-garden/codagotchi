@@ -90,12 +90,12 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
                         lastSeenAt: token_time,
                         level: 1,
                         experience: 0,
-                        friends: [],
+                        friends: {}, 
                         status: "Hey there! I'm using WhatsApp.",
                     },
                     private: {
-                        inbox: [],
-                        friendRequests: [],
+                        inbox: {}, 
+                        friendRequests: {}, 
                     },
                 });
                 console.log('User profile created');
