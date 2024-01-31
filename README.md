@@ -48,8 +48,6 @@ Please look at our [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you
 * **Noah Gooby** 
 * **Payton Watts**
 * **Forrest Hartley**
-* **Kyle Bambling**
-* **Monique Parrish**
 * **Alim Kassymov** [@notalim](https://github.com/notalim/)
 * **Charles Booth** 
 
