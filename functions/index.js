@@ -77,6 +77,7 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
 
             if (tokenData && tokenData.status === 'complete') {
                 statusComplete = true;
+                db.ref('authTokens/' + state).remove();
                 const userRef = db.ref(`users/${githubUserId}`);
                 await userRef.set({
                     public: {
@@ -103,8 +104,6 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
         }
         if (statusComplete) {
             response.send('Authentication and user profile creation successful.');
-            await ref.remove();
-            console.log(`Token for ${state} deleted after successful profile creation`);
         } else {
             response.status(408).send('Request timed out. User profile not created.');
         }
@@ -132,7 +131,7 @@ const deleteOldTokens = functions
         if (tokens) {
             for (const [key, value] of Object.entries(tokens)) {
                 // Check if the token is older than 10 minutes
-                if (now - value.timestamp > 86400000) {
+                if (value.status === 'complete') {
                     // 600000 milliseconds = 10 minutes
                     console.log(`Deleting old token: ${key}`);
                     await ref.child(key).remove();
