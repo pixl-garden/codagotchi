@@ -120,7 +120,7 @@
         return outputMatrix;
     }
 
-    export function generateButtonMatrix( width, height, bgColor, borderColor, textSprite, bottomShadowColor = null, topShadowColor = null ) {
+    export function generateButtonMatrix( width, height, bgColor, borderColor, textSprite, bottomShadowColor = null, topShadowColor = null, layout = "center", offset = 0 ) {
         const outerSprite = generateRectangleMatrix(width, height, borderColor);
         const innerWidth = width - 2;
         const innerHeight = height - 2;
@@ -144,9 +144,21 @@
             buttonSprite = overlayMatrix(buttonSprite, bottomShadowHorizontal, 0, 0, 1, height - 2);
             buttonSprite = overlayMatrix(buttonSprite, bottomShadowVertical, 0, 0, width - 2, 1);
         }
-
-        const textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
-        const textY = Math.floor((innerHeight - textSprite.length) / 2) + 1;
+        let textX;
+        if(layout === "center"){
+            textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
+        }
+        else if(layout === "left"){
+            textX = 1 + offset;
+        }
+        else if(layout === "right"){
+            textX = innerWidth - textSprite[0].length - offset;
+        }
+        else{
+            textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
+        }
+        
+        let textY = Math.floor((innerHeight - textSprite.length) / 2) + 1;
 
         // Overlay the text sprite in the center of the button
         const finalButtonSprite = overlayMatrix(buttonSprite, textSprite, 0, 0, textX, textY);

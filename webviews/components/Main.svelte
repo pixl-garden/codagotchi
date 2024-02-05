@@ -37,6 +37,19 @@
         
         // Render objects in the current room
         for (let obj of currentRoom.getObjects()) {
+            const children = obj.getChildren();
+            if(children.length > 0) {
+                for (let child of children) {
+                    const sprite = child.getSprite();
+                    //if an array, unpack array and push each sprite individually
+                    if (Array.isArray(sprite)) {
+                        sprites.push(...sprite);
+                    //if not an array, push sprite
+                    } else {
+                        sprites.push(sprite);
+                    }
+                }
+            }
             const sprite = obj.getSprite();
             //if an array, unpack array and push each sprite individually
             if (Array.isArray(sprite)) {

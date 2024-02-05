@@ -157,6 +157,13 @@
 
         // Iterate through sorted objects to find the topmost object at the coordinates
         for (let obj of objects) {
+            if(obj.getChildren().length > 0){
+                    for (let child of obj.getChildren()) {
+                        if (x >= child.x && x <= child.x + child.spriteWidth && y >= child.y && y <= child.y + child.spriteHeight) {
+                            return child;
+                        }
+                    }
+                }
             // Check if the coordinates are within an object's bounding box
             if (x >= obj.x && x <= obj.x + obj.spriteWidth && y >= obj.y && y <= obj.y + obj.spriteHeight) {
                 return obj;

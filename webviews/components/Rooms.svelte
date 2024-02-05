@@ -7,7 +7,7 @@
 
     let background;
     let petObject;
-    let basic, gang, retro; //font renderers
+    let basic, gang, retro, tiny; //font renderers
     let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
     const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
 
@@ -20,6 +20,7 @@
         basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
         gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
         retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
+        tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", -4, standardCharMap);
 
         // main menu button (drop down)
         const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
@@ -35,8 +36,8 @@
         const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
         const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
         const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff" );
+        const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', retro, '#47596f', '#a4ccff', '#223751', "#629de9", "left", 2);
+        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const inputTextBar = new generateTextInputBar(100, 18, 'black', '#7997bc', 4, basic, 5, 1);
 
         // drop down buttons
@@ -59,7 +60,7 @@
         const dropDown_6 = new dropDownButton('Close', 0, 60, () => {
             get(game).getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
                                                  dropDown_3, dropDown_4, dropDown_5, dropDown_6 );
-            get(game).getCurrentRoom().addObject(mainMenuButton);
+            get(game).getCurrentRoom().addObject(mainMenuButton, checkButton, rejectButton);
         }, 20);
 
         // settings menu buttons
@@ -124,7 +125,6 @@
 
         let textInputBarTest = new inputTextBar(0, 65, 0);
 
-
         function instantiateFriends(friends, friendTitle, friendButton){
             let friendArray = [];
             const titleHeight = 12;
@@ -136,6 +136,45 @@
             }
             return friendArray;
         }
+
+        function instantiateFriends(friends, friendTitle, friendButton) {
+            let friendArray = [];
+            const titleHeight = 12;
+            const buttonHeight = 16;
+            const title = new friendTitle('Friends', 0, 0, () => {}, 0);
+            friendArray.push(title);
+
+            for (let i = 0; i < friends.length; i++) {
+                // Create the friend button
+                let friend = new friendButton(friends[i], 0, titleHeight + (buttonHeight * i), () => {}, 0);
+                
+                // Assuming friendButton can have child buttons and has methods to manage them
+                // Register child button parameters
+                // This is hypothetical and depends on your specific implementation
+                const checkButton = new Button('checkButton', 0, 30, () => {
+                    console.log('Button was clicked!');
+                }, 1);
+                const rejectButton = new Button('rejectButton', 0, 50, () => {
+                    console.log('Button was clicked!');
+                }, 1);
+
+                friend.registerButtonParams([
+                    { xOffset: 97, yOffset: 2, zOffset: 10, buttonObject: checkButton, actionOnClick: () => {
+                        console.log('Check Button');
+                    }},
+                    { xOffset: 114, yOffset: 2, zOffset: 10, buttonObject: rejectButton, actionOnClick: () => {
+                        console.log('Check Button');
+                    }},
+                ]);
+
+                // Initialize child buttons
+                friend.initializeButtons();
+
+                friendArray.push(friend);
+            }
+            return friendArray;
+        }
+
 
         // Speed function example
         function linearSpeed(diff) {

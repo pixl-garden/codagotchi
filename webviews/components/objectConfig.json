@@ -34,6 +34,24 @@
             "hovered": [1]
         }
     },
+    "checkButton": {
+        "spriteWidth": 16,
+        "spriteHeight": 13,
+        "spriteSheet": "checkButton.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "rejectButton": {
+        "spriteWidth": 13,
+        "spriteHeight": 13,
+        "spriteSheet": "rejectButton.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
     "shopButton": {
         "spriteWidth": 32,
         "spriteHeight": 16,

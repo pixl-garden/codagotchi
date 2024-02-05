@@ -6,11 +6,11 @@
     import { Sprite } from './SpriteComponent.svelte';
 
     export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
-        topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null ) {
+        topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(text, x, y, actionOnClick, z) {
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer(text), topShadow, bottomShadow );
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer(text), topShadowHover, bottomShadowHover );
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer(text), topShadow, bottomShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer(text), topShadowHover, bottomShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);

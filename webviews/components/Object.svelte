@@ -44,6 +44,7 @@
             this.bounceFrame = 0;
             this.maxBounceFrames = 3; // Total frames for the bounce
             this.bounceHeight = 1; // Height of the bounce
+            this.children = [];
         }
         getWidth() {
             return this.spriteWidth;
@@ -82,6 +83,30 @@
             this.y += deltaY;
             // this.z remains unchanged
         }
+        getChildren() {
+            return this.children;
+        }
+
+        // Method to register button parameters
+        registerButtonParams(buttonParams) {
+            this.buttonParams = buttonParams;
+        }
+
+        initializeButtons() {
+            this.buttonParams.forEach(param => {
+                const { xOffset, yOffset, zOffset, buttonObject, actionOnClick } = param;
+
+                // Calculate absolute positions by adding offsets to the object's position
+                const buttonX = this.x + xOffset;
+                const buttonY = this.y + yOffset;
+                const buttonZ = this.z + zOffset;
+
+                buttonObject.action = actionOnClick
+                buttonObject.setCoordinate(buttonX, buttonY, buttonZ);
+                this.children.push(buttonObject);
+            });
+        }
+
 
         // Function to start moving towards a target
         startMovingTo(targetX, targetY, speedFunction, attachedObjs = []) {
@@ -432,6 +457,7 @@
         constructor(objectName, x, y, actionOnClick, z = 0) {
             super(objectName, x, y, z, actionOnClick);
             this.action = actionOnClick || (() => {});
+            this.updateState("default");
         }
 
         onHover() {
