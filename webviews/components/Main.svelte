@@ -7,6 +7,7 @@
     import { preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
+    import { getPixelSize } from './ScreenManager.svelte';
     import { get } from 'svelte/store';
 
     const FPS = 16; //frames per second
@@ -14,6 +15,8 @@
     let hasMainLoopStarted = false;
     let currentRoom;
     let githubUsername;
+    let canvas, ctx;
+    let screenWidth = 128;
 
     //run once before main loop
     function pre() {
@@ -60,12 +63,35 @@
             }
         }
         
-        screen = generateScreen(sprites, 128, 128);
+        screen = generateScreen(sprites, screenWidth, screenWidth);
+        renderScreen(screen);
+    }
+
+    function renderScreen(screen) {
+        let pixelSize = getPixelSize();
+        screen.forEach((row, x) => {
+            row.forEach((color, y) => {
+                if(color === 'transparent'){
+                    ctx.clearRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                }else{
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                }
+            });
+        });
     }
 
     onMount(async () => {
         //current load times: 2.4, 1.9, 2.6, 2.5
         let startTime, endTime;
+
+        canvas = document.getElementsByClassName('pixel-grid')[0];
+        let screenSize = window.innerWidth;
+        canvas.width = screenSize;
+        canvas.height = screenSize;
+        ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
 
         window.addEventListener('message', async (event) => {
             const message = event.data;
@@ -91,6 +117,9 @@
             else if (message.type === 'currentState') {
                 $game.setLocalState(message.value);
             }
+            else if(message.type === 'resize'){
+                handleResize();
+            }
         });
 
         tsvscode.postMessage({ type: 'webview-ready' });
@@ -104,23 +133,12 @@
 </script>
 
 <input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
-<div
-    class="grid-container"
-    on:click={(e) => handleClick(e, get(game))}
-    on:mousemove={(e) => handleMouseMove(e, get(game))}
-    on:mousedown={(e) => handleMouseDown(e, get(game))}
-    on:mouseup={handleMouseUp}
-    on:mouseleave={(e) => handleMouseOut(e)}
-    on:keypress={null}
-    on:blur={null}
->
-    {#if hasMainLoopStarted}
-        {#each screen as row}
-            <div class="row">
-                {#each row as cell}
-                    <div class="pixel" style="background-color: {cell};"></div>
-                {/each}
-            </div>
-        {/each}
-    {/if}
-</div>
+<canvas class="pixel-grid"
+     on:click={(e) => handleClick(e, get(game))}
+     on:mousemove={(e) => handleMouseMove(e, get(game))}
+     on:mousedown={(e) => handleMouseDown(e, get(game))}
+     on:mouseup={handleMouseUp}
+     on:mouseleave={(e) => handleMouseOut(e)}
+     on:keypress={null}
+     on:blur={null}>
+</canvas>

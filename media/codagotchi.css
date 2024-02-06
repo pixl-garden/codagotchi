@@ -50,9 +50,9 @@
     font-family: var(--vscode-editor-font-family);
   }
 
-  .grid-container {
+  .pixel-grid {
     width: var(--screen-width, 100px);
-    height: auto; 
+    height: var(--screen-width, 100px);
     display: flex;
     flex-wrap: none;
     margin: 0 auto;

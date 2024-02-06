@@ -16,9 +16,9 @@
         const pixelSize = getPixelSize();
         
         // Adjust the mouse coordinates for the current pixelSize and screen padding
-        const mouseX = event.clientX - boundingBox.left;
-        const mouseY = event.clientY - boundingBox.top;
-        const gridX = Math.floor((mouseX - padding) / pixelSize);
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        const gridX = Math.floor(mouseX / pixelSize);
         const gridY = Math.floor(mouseY / pixelSize);
 
         const clickedObject = getObjectAt(gridX, gridY, gameInstance)[0];
