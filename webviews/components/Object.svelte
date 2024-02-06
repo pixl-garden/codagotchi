@@ -45,6 +45,7 @@
             this.maxBounceFrames = 3; // Total frames for the bounce
             this.bounceHeight = 1; // Height of the bounce
             this.children = [];
+            this.hoverWithChildren = false;
         }
         getWidth() {
             return this.spriteWidth;

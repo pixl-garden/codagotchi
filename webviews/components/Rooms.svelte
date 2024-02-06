@@ -33,10 +33,10 @@
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
         const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
-        const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic);
-        const friendTitle = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic);
-        const friendButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', retro, '#47596f', '#a4ccff', '#223751', "#629de9", "left", 2);
+        const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
+        const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
+        const friendTitle = generateButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
+        const friendButton = generateButtonClass(128, 19, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const inputTextBar = new generateTextInputBar(100, 18, 'black', '#7997bc', 4, basic, 5, 1);
 
@@ -60,7 +60,7 @@
         const dropDown_6 = new dropDownButton('Close', 0, 60, () => {
             get(game).getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
                                                  dropDown_3, dropDown_4, dropDown_5, dropDown_6 );
-            get(game).getCurrentRoom().addObject(mainMenuButton, checkButton, rejectButton);
+            get(game).getCurrentRoom().addObject(mainMenuButton);
         }, 20);
 
         // settings menu buttons
@@ -94,7 +94,7 @@
         const rightHatArrow = new singleLetterButton('>', 60, 144, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
         }, 0);
-        const backToMain = new smallLetterButton('<', 0, 0, () => {
+        const backToMain = new smallLetterButton('<', 3, 2, () => {
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0)
         }, 10);
@@ -123,34 +123,30 @@
 
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
 
-        let textInputBarTest = new inputTextBar(0, 65, 0);
-
-        function instantiateFriends(friends, friendTitle, friendButton){
-            let friendArray = [];
-            const titleHeight = 12;
-            const buttonHeight = 16;
-            const title = new friendTitle('Friends', 0, 0, () => {}, 0);
-            friendArray.push(title);
-            for (let i = 0; i < friends.length; i++){
-                friendArray.push(new friendButton(friends[i], 0, titleHeight + (buttonHeight * i), () => {}, 0))
-            }
-            return friendArray;
-        }
+        let textInputBarTest = new inputTextBar(0, 85, 0);
 
         function instantiateFriends(friends, friendTitle, friendButton) {
             let friendArray = [];
-            const titleHeight = 12;
-            const buttonHeight = 16;
-            const title = new friendTitle('Friends', 0, 0, () => {}, 0);
+            const titleHeight = 14;
+            const buttonHeight = 18;
+            const title = new friendTitle('Friend Requests', 0, 0, () => {}, 0);
             friendArray.push(title);
 
             for (let i = 0; i < friends.length; i++) {
                 // Create the friend button
                 let friend = new friendButton(friends[i], 0, titleHeight + (buttonHeight * i), () => {}, 0);
-                
-                // Assuming friendButton can have child buttons and has methods to manage them
+                friend.hoverWithChildren = true;
+                friend.onHover = () => {
+                    friend.updateState('hovered');
+                    friend.initializeButtons();
+                }
+
+                friend.onStopHover = () => {
+                    friend.updateState('default');
+                    friend.children = [];
+                }
+
                 // Register child button parameters
-                // This is hypothetical and depends on your specific implementation
                 const checkButton = new Button('checkButton', 0, 30, () => {
                     console.log('Button was clicked!');
                 }, 1);
@@ -159,16 +155,13 @@
                 }, 1);
 
                 friend.registerButtonParams([
-                    { xOffset: 97, yOffset: 2, zOffset: 10, buttonObject: checkButton, actionOnClick: () => {
+                    { xOffset: 40, yOffset: 3, zOffset: 10, buttonObject: checkButton, actionOnClick: () => {
                         console.log('Check Button');
                     }},
-                    { xOffset: 114, yOffset: 2, zOffset: 10, buttonObject: rejectButton, actionOnClick: () => {
+                    { xOffset: 68, yOffset: 3, zOffset: 10, buttonObject: rejectButton, actionOnClick: () => {
                         console.log('Check Button');
                     }},
                 ]);
-
-                // Initialize child buttons
-                friend.initializeButtons();
 
                 friendArray.push(friend);
             }
