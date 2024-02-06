@@ -2,7 +2,7 @@
     const GRIDWIDTH = 128;
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let pixelSize;
+    const pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
     let screenWidth = GRIDWIDTH * pixelSize;
     let padding = 0;
 
@@ -41,6 +41,7 @@
     }
 
     export function handleResize() {
+        console.log("handleResize")
         updateDimensions();
         updateStyles();
     }
@@ -56,9 +57,9 @@
     function updateDimensions() {
         width = window.innerWidth;
         height = window.innerHeight;
-        //
-        pixelSize = Math.min(width / (GRIDWIDTH + 6), height / GRIDWIDTH).toFixed(1);
-        screenWidth = Math.floor(GRIDWIDTH * pixelSize);
+        // pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
+        // screenWidth = Math.floor(GRIDWIDTH * pixelSize);
+        screenWidth = width;
         console.log("width: " + width + " height: " + height + " pixelSize: " + pixelSize + " screenWidth: " + screenWidth);
     }
 

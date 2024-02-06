@@ -29,14 +29,14 @@
         }, 1);
 
         const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
-
+        const defaultButtonParams = ['#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9"]
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer)
         const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const settingsMenuButton = generateButtonClass(128, 17, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
-        const singleLetterButton = generateButtonClass(16, 16, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
-        const smallLetterButton = generateButtonClass(10, 10, '#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9");
+        const settingsMenuButton = generateButtonClass(128, 17, ...defaultButtonParams);
+        const singleLetterButton = generateButtonClass(16, 16, ...defaultButtonParams);
+        const smallLetterButton = generateButtonClass(10, 10, ...defaultButtonParams);
         const friendTitle = generateButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const friendButton = generateButtonClass(128, 19, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
+        const friendButton = generateButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const inputTextBar = new generateTextInputBar(100, 18, 'black', '#7997bc', 4, basic, 5, 1);
 
@@ -128,7 +128,7 @@
         function instantiateFriends(friends, friendTitle, friendButton) {
             let friendArray = [];
             const titleHeight = 14;
-            const buttonHeight = 18;
+            const buttonHeight = 17;
             const title = new friendTitle('Friend Requests', 0, 0, () => {}, 0);
             friendArray.push(title);
 
