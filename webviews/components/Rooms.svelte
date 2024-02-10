@@ -40,6 +40,9 @@
         const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const inputTextBar = new generateTextInputBar(100, 18, 'black', '#7997bc', 4, basic, 5, 1);
 
+        const paintButton = generateButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
+
+
         // drop down buttons
         const dropDown_1 = new dropDownButton('Settings', 0, 0, () => {
             get(game).setCurrentRoom('settingsRoom');
@@ -117,6 +120,7 @@
         let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
 
         let paintRoom = new Room('paintRoom');
+        let paintButton1 = new paintButton('$$$', 0, 0, ()=>{console.log("$$$")}, 5);
         let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
 
         let socialRoom = new Room('socialRoom');
@@ -216,7 +220,7 @@
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
-        paintRoom.addObject(backToMain, paintCanvas, postcardBackground);
+        paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1);
         socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
     }
 
