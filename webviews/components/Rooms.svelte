@@ -120,7 +120,18 @@
         let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
 
         let paintRoom = new Room('paintRoom');
-        let paintButton1 = new paintButton('$$$', 0, 0, ()=>{console.log("$$$")}, 5);
+        let paintButton1 = new paintButton('$$$', 0, 0, ()=>{
+            paintCanvas.rotateColor();
+        }, 5);
+        let eraserButton = new paintButton('fuk', 24, 0, ()=>{
+            paintCanvas.setEraser();
+        }, 5);
+        let shapeButton = new paintButton('wuk', 49, 0, ()=>{
+            paintCanvas.rotateBrushShape();
+        }, 5);
+        let sizeButton = new paintButton('suk', 74, 0, ()=>{
+            paintCanvas.rotateSize();
+        }, 5);
         let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
 
         let socialRoom = new Room('socialRoom');
@@ -220,7 +231,7 @@
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
-        paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1);
+        paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButton, sizeButton);
         socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
     }
 

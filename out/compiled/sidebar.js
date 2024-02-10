@@ -4260,6 +4260,10 @@ var app = (function () {
     		return this.children;
     	}
 
+    	addChild(child) {
+    		this.children.push(child);
+    	}
+
     	// Method to register button parameters
     	registerButtonParams(buttonParams) {
     		this.buttonParams = buttonParams;
@@ -4542,19 +4546,19 @@ var app = (function () {
     		this.canvasWidth = width;
     		this.canvasHeight = height;
     		this.pixelMatrix = emptyMatrix;
-    		this.color = 'red';
+    		this.color = 'white';
     		this.lastX = null;
     		this.lastY = null;
     		this.offsetX = x;
     		this.offsetY = y;
+    		this.colorArray = ["white", "red", "blue", "green"];
+    		this.colorArrayIndex = 0;
+    		this.brushSize = 10;
+    		this.brushShape = "circle";
     	}
 
-    	getSprite() {
-    		return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
-    	}
-
-    	setColor(color) {
-    		this.color = color;
+    	setBrushSize(size) {
+    		this.brushSize = size;
     	}
 
     	paintPixel(x, y) {
@@ -4563,11 +4567,96 @@ var app = (function () {
 
     		const adjustedY = y - this.offsetY;
 
-    		// Check if the adjusted coordinates are within canvas bounds
-    		if (adjustedX < 0 || adjustedX >= this.canvasWidth || adjustedY < 0 || adjustedY >= this.canvasHeight) return;
+    		if (this.brushShape === 'square') {
+    			// Square brush logic (unchanged)
+    			const halfBrushSize = Math.floor(this.brushSize / 2);
 
-    		this.pixelMatrix[adjustedY][adjustedX] = this.color;
-    	} // console.log(`Painted pixel at (${adjustedX}, ${adjustedY})`);
+    			for (let offsetY = -halfBrushSize; offsetY <= halfBrushSize; offsetY++) {
+    				for (let offsetX = -halfBrushSize; offsetX <= halfBrushSize; offsetX++) {
+    					this.paintAt(adjustedX + offsetX, adjustedY + offsetY);
+    				}
+    			}
+    		} else if (this.brushShape === 'circle') {
+    			// Circle brush logic
+    			const radius = this.brushSize / 2;
+
+    			const radiusSquared = radius * radius;
+    			const minX = Math.ceil(adjustedX - radius);
+    			const maxX = Math.floor(adjustedX + radius);
+    			const minY = Math.ceil(adjustedY - radius);
+    			const maxY = Math.floor(adjustedY + radius);
+
+    			for (let paintY = minY; paintY <= maxY; paintY++) {
+    				for (let paintX = minX; paintX <= maxX; paintX++) {
+    					// Calculate distance from the center of the circle to this point
+    					const dx = paintX + 0.5 - adjustedX; // Add 0.5 to target the center of pixels
+
+    					const dy = paintY + 0.5 - adjustedY; // Add 0.5 to target the center of pixels
+
+    					if (dx * dx + dy * dy <= radiusSquared) {
+    						this.paintAt(paintX, paintY);
+    					}
+    				}
+    			}
+    		} else {
+    			console.error('Unknown brush shape:', this.brushShape);
+    		}
+    	}
+
+    	paintAt(x, y) {
+    		// Ensure the coordinates are within the canvas bounds
+    		if (x >= 0 && x < this.canvasWidth && y >= 0 && y < this.canvasHeight) {
+    			this.pixelMatrix[y][x] = this.color;
+    		}
+    	}
+
+    	setBrushShape(shape) {
+    		if (['square', 'circle'].includes(shape)) {
+    			this.brushShape = shape;
+    		} else {
+    			console.error('Invalid brush shape:', shape);
+    		}
+    	}
+
+    	setEraser() {
+    		this.setColor("transparent");
+    	}
+
+    	getSprite() {
+    		return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+    	}
+
+    	rotateColor() {
+    		if (this.color != "transparent") {
+    			if (this.colorArrayIndex < this.colorArray.length) {
+    				this.colorArrayIndex++;
+    			} else {
+    				this.colorArrayIndex = 0;
+    			}
+    		}
+
+    		this.setColor(this.colorArray[this.colorArrayIndex]);
+    	}
+
+    	rotateSize() {
+    		if (this.brushSize < 10) {
+    			this.brushSize++;
+    		} else {
+    			this.brushSize = 0;
+    		}
+    	}
+
+    	rotateBrushShape() {
+    		if (this.brushShape == "circle") {
+    			this.brushShape = "square";
+    		} else {
+    			this.brushShape = "circle";
+    		}
+    	}
+
+    	setColor(color) {
+    		this.color = color;
+    	}
 
     	clearCanvas() {
     		this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
@@ -5254,7 +5343,31 @@ var app = (function () {
     	0,
     	0,
     	() => {
-    			console.log("$$$");
+    			paintCanvas.rotateColor();
+    		},
+    	5);
+
+    	let eraserButton = new paintButton('fuk',
+    	24,
+    	0,
+    	() => {
+    			paintCanvas.setEraser();
+    		},
+    	5);
+
+    	let shapeButton = new paintButton('wuk',
+    	49,
+    	0,
+    	() => {
+    			paintCanvas.rotateBrushShape();
+    		},
+    	5);
+
+    	let sizeButton = new paintButton('suk',
+    	74,
+    	0,
+    	() => {
+    			paintCanvas.rotateSize();
     		},
     	5);
 
@@ -5392,7 +5505,7 @@ var app = (function () {
     	settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
     	customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
     	shopRoom.addObject(backToMain, shopBackground);
-    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1);
+    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButton, sizeButton);
     	socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
     }
 
