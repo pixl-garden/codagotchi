@@ -87,6 +87,9 @@
         getChildren() {
             return this.children;
         }
+        addChild(child) {
+            this.children.push(child);
+        }
 
         // Method to register button parameters
         registerButtonParams(buttonParams) {
@@ -362,7 +365,7 @@
         constructor(x, y, z, width, height) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
-                this.paintPixel(gridX-1, gridY-1);
+                this.paintPixel(gridX, gridY);
             });
             this.canvasWidth = width;
             this.canvasHeight = height;
@@ -510,4 +513,128 @@
         }
         return frames;
     }
+
+    export class objectGrid extends GeneratedObject{
+        //Set columns or rows to 0 to make it infinite
+        //Objects is a list of objects
+        //Set visibleX or visibleY to 0 to make it infinite
+        //Scroll direction can be "horizontal" or "vertical"
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = null, scrollSpeed = 0){
+            this.columns = columns > 0 ? columns : objects.length;
+            this.columnSpacing = columnSpacing;
+            this.rows = rows > 0 ? rows : Math.ceil(objects.length / this.columns);
+            this.rowSpacing = rowSpacing;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.children = objects;
+            this.objectGrid = [];
+            this.generateObjectGrid();
+        }
+
+        getSprite() {
+            return null;
+        }
+
+        generateObjectGrid() {
+            let currentX = this.x;
+            let currentY = this.y;
+            
+            for (let row = 0; row < this.rows; row++) {
+                for (let column = 0; column < this.columns; column++) {
+                    let index = row * this.columns + column;
+                    // Check if the index exceeds the number of children, useful if rows*columns > number of objects
+                    if (index >= this.children.length) break;
+
+                    // Calculate position for each object
+                    let objectX = currentX + (column * (this.spriteWidth + this.columnSpacing));
+                    let objectY = currentY + (row * (this.spriteHeight + this.rowSpacing));
+
+                    // Assuming each child has a method to set its position
+                    this.children[index].setCoordinate(objectX, objectY, this.z);
+
+                }
+            }
+        }
+    }
+
+    function instantiateObjects(ObjectClass, params) {
+        let objectsArray = [];
+
+        params.forEach(param => {
+            // Destructure the object parameters and child configurations from param
+            const { objectParams, childConfigs } = param;
+            
+            // Instantiate the object with its parameters
+            let object = new ObjectClass(...objectParams);
+            
+            // Optionally handle child objects if specified
+            if (childConfigs && childConfigs.length > 0) {
+                object.children = childConfigs.map(childConfig => {
+                    // Destructure child class and its params
+                    const { ChildClass, childParams } = childConfig;
+
+                    // Create the child object, potentially passing additional parameters or functions
+                    return new ChildClass(...childParams);
+                });
+
+                // If the object has a method to initialize or register these children, call it here
+                if (object.initializeChildren) {
+                    object.initializeChildren();
+                }
+            }
+
+            // Add the instantiated object (with its children) to the array
+            objectsArray.push(object);
+        });
+
+        return objectsArray;
+    }
+
+    function instantiateFromConfig(config, dynamicData) {
+        const objectsArray = [];
+        
+        config.objects.forEach(objConfig => {
+            if (objConfig.type === "StaticObject") {
+                const ObjectClass = getClassByName(objConfig.class); // Utility function to map class name string to class
+                objectsArray.push(new ObjectClass(...objConfig.params));
+            } else if (objConfig.type === "DynamicList") {
+                const dynamicList = dynamicData[objConfig.iterateOver];
+                const ObjectClass = getClassByName(objConfig.class);
+                
+                dynamicList.forEach((item, index) => {
+                    const params = objConfig.params.map(param => 
+                    // If the param is a string and contains "Action", resolve it to the corresponding action function
+                        param.replace(/\{(\w+)\}/g, (_, key) => item[key] || index)
+                    );
+
+                    const object = new ObjectClass(...params);
+                    
+                    objConfig.children.forEach(childConfig => {
+                        const ChildClass = getClassByName(childConfig.class);
+                        const childParams = resolveParams(childConfig.params, item, index);
+                        const child = new ChildClass(...childParams);
+                        object.addChild(child);
+                    });
+
+                    objectsArray.push(object);
+                });
+            }
+        });
+
+        return objectsArray;
+    }
+
+    function getClassByName(className) {
+        // Map class names to actual classes
+        const classMap = { Button, Pet, Background, NavigationButton, PixelCanvas };
+        return classMap[className];
+    }
+
+    function resolveParams(params, item, index) {
+        return params.map(param => 
+            typeof param === "string" && param.includes("Action") ? actions[param] : param.replace(/\{(\w+)\}/g, (_, key) => item[key] || index)
+        );
+    }
+
 </script>
