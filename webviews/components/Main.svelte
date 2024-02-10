@@ -58,7 +58,7 @@
             if (Array.isArray(sprite)) {
                 sprites.push(...sprite);
             //if not an array, push sprite
-            } else {
+            } else if (sprite){
                 sprites.push(sprite);
             }
         }
