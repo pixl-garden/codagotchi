@@ -9,17 +9,19 @@
     let activeDragObject = null;
     let hoveredObject = null;
     let lastX, lastY;
+    let GRIDWIDTH = 128;
 
     export function handleClick(event, gameInstance) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
-        const padding = getPadding();
-        const pixelSize = getPixelSize();
+        const width = boundingBox.width;
+        const height = boundingBox.height;
+        const pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
         
         // Adjust the mouse coordinates for the current pixelSize and screen padding
         const mouseX = event.clientX;
         const mouseY = event.clientY;
-        const gridX = Math.floor(mouseX / pixelSize);
-        const gridY = Math.floor(mouseY / pixelSize);
+        const gridX = Math.ceil(mouseX / pixelSize);
+        const gridY = Math.ceil(mouseY / pixelSize);
 
         const clickedObject = getObjectAt(gridX, gridY, gameInstance)[0];
 
@@ -36,12 +38,13 @@
         event.preventDefault();
         isMouseDown = true;
         const boundingBox = event.currentTarget.getBoundingClientRect();
-        const padding = getPadding();
-        const pixelSize = getPixelSize();
-        const mouseX = event.clientX - boundingBox.left;
-        const mouseY = event.clientY - boundingBox.top;
-        const xPixelCoord = Math.floor((mouseX - padding) / pixelSize);
-        const yPixelCoord = Math.floor(mouseY / pixelSize);
+        const width = boundingBox.width;
+        const height = boundingBox.height;
+        const pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        const xPixelCoord = Math.ceil(mouseX / pixelSize);
+        const yPixelCoord = Math.ceil(mouseY / pixelSize);
         lastX = xPixelCoord;
         lastY = yPixelCoord;
         handleClick(event, gameInstance); // Handle the initial click
@@ -56,14 +59,15 @@
     export function handleMouseMove(event, gameInstance) {
         event.preventDefault();
         const boundingBox = event.currentTarget.getBoundingClientRect();
-        const padding = getPadding();
-        const pixelSize = getPixelSize();
+        const width = boundingBox.width;
+        const height = boundingBox.height;
+        const pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
         
         // Adjust the mouse coordinates for the current pixelSize and screen padding
-        const mouseX = event.clientX - boundingBox.left;
-        const mouseY = event.clientY - boundingBox.top;
-        const xPixelCoord = Math.floor((mouseX - padding) / pixelSize);
-        const yPixelCoord = Math.floor(mouseY / pixelSize);
+        const mouseX = event.clientX
+        const mouseY = event.clientY
+        const xPixelCoord = Math.ceil(mouseX / pixelSize);
+        const yPixelCoord = Math.ceil(mouseY / pixelSize);
 
         hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance)[0];
         //TODO support multiple secondary hovers
