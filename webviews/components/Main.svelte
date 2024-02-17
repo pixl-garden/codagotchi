@@ -3,7 +3,7 @@
     import { generateScreen, handleResize } from './Codagotchi.svelte';
     import { images } from './store.js';
     import { Room, game, shouldFocus, inputValue } from './Game.svelte';
-    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus } from './MouseEvents.svelte';
+    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
@@ -41,17 +41,16 @@
         // Render objects in the current room
         for (let obj of currentRoom.getObjects()) {
             const children = obj.getChildren();
-            if(children.length > 0) {
-                for (let child of children) {
-                    const sprite = child.getSprite();
-                    //if an array, unpack array and push each sprite individually
+            if(children.length > 0 && obj.renderChildren) {
+                obj.getChildSprites().forEach((sprite) => {
+                    // console.log("Child sprite: ", sprite)
                     if (Array.isArray(sprite)) {
                         sprites.push(...sprite);
                     //if not an array, push sprite
                     } else {
                         sprites.push(sprite);
                     }
-                }
+                });
             }
             const sprite = obj.getSprite();
             //if an array, unpack array and push each sprite individually
@@ -139,6 +138,7 @@
      on:mousedown={(e) => handleMouseDown(e, get(game))}
      on:mouseup={handleMouseUp}
      on:mouseleave={(e) => handleMouseOut(e)}
+     on:wheel={(e) => handleScroll(e, get(game))}
      on:keypress={null}
      on:blur={null}>
 </canvas>

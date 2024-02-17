@@ -104,5 +104,62 @@
         "states": {
             "default": [0]
         }
+    },
+    "itemSlot":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "itemSlot.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "testItem":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "testItem.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "testItem1":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "testItems.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "testItem2":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "testItems.png",
+        "states": {
+            "default": [1]
+        }
+    },
+    "testItem3":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "testItems.png",
+        "states": {
+            "default": [2]
+        }
+    },
+    "testItem4":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "testItems.png",
+        "states": {
+            "default": [3]
+        }
+    },
+    "testItem5":{
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "testItems.png",
+        "states": {
+            "default": [4]
+        }
     }
 }

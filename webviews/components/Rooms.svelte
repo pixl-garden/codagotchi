@@ -1,9 +1,10 @@
 <script context='module'>
     import { game, Room, shouldFocus,  } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, inventoryGrid, Object } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
+    import Codagotchi from './Codagotchi.svelte';
 
     let background;
     let petObject;
@@ -25,7 +26,7 @@
         // main menu button (drop down)
         const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
-            get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5, dropDown_6);
+            get(game).getCurrentRoom().addObject(dropDown_1, dropDown_2, dropDown_3, dropDown_4, dropDown_5, dropDown_6, dropDown_7);
         }, 1);
 
         const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
@@ -60,9 +61,12 @@
         const dropDown_5 = new dropDownButton('Social', 0, 48, () => {
             get(game).setCurrentRoom('socialRoom');
         }, 20);
-        const dropDown_6 = new dropDownButton('Close', 0, 60, () => {
+        const dropDown_6 = new dropDownButton('Inventory', 0, 60, () => {
+            get(game).setCurrentRoom('inventoryRoom');
+        }, 20);
+        const dropDown_7 = new dropDownButton('Close', 0, 72, () => {
             get(game).getCurrentRoom().removeObject( dropDown_1, dropDown_2, 
-                                                 dropDown_3, dropDown_4, dropDown_5, dropDown_6 );
+                                                 dropDown_3, dropDown_4, dropDown_5, dropDown_6, dropDown_7 );
             get(game).getCurrentRoom().addObject(mainMenuButton);
         }, 20);
 
@@ -136,9 +140,33 @@
 
         let socialRoom = new Room('socialRoom');
 
+        let inventoryRoom = new Room('inventoryRoom');
+
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
 
         let textInputBarTest = new inputTextBar(0, 85, 0);
+
+        function createItemSlot() {
+            let output = new Object("itemSlot", 0, 0, 0);
+            output.hoverWithChildren = true;
+            console.log("createItemSlot instance:", output); // Check the instance
+            return output;
+        }
+        let testItem1 = new Object("testItem", 0, 0, 0);
+        let testItem2 = new Object("testItem3", 0, 0, 0);
+        let testItem3 = new Object("testItem5", 0, 0, 0);
+        let testItem4 = new Object("testItem1", 0, 0, 0);
+        let testItem5 = new Object("testItem2", 0, 0, 0);
+        let testItem6 = new Object("testItem3", 0, 0, 0);
+        let testItem7 = new Object("testItem4", 0, 0, 0);
+        let testItem8 = new Object("testItem5", 0, 0, 0);
+        let testItem9 = new Object("testItem1", 0, 0, 0);
+        let testItem10 = new Object("testItem2", 0, 0, 0);
+        let testItem11 = new Object("testItem4", 0, 0, 0);
+        
+        let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
+        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot);
+
 
         function instantiateFriends(friends, friendTitle, friendButton) {
             let friendArray = [];
@@ -229,9 +257,11 @@
         // add objects to rooms
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
         settingsRoom.addObject(settingsTitle, gitlogin, notifications, display, about);
+        console.log("InventoryGridTest: ", inventoryGridTest); // Check the instance
         customizeRoom.addObject(petObject, leftHatArrow, rightHatArrow, backToMain, customizeUI, background);
         shopRoom.addObject(backToMain, shopBackground);
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButton, sizeButton);
+        inventoryRoom.addObject(backToMain, inventoryGridTest);
         socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
     }
 

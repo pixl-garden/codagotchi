@@ -182,6 +182,35 @@
         };
     }
 
+    export function handleScroll(event, gameInstance){
+        event.preventDefault();
+        const boundingBox = event.currentTarget.getBoundingClientRect();
+        const width = boundingBox.width;
+        const height = boundingBox.height;
+        const pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
+        const scrollAmount = event.deltaY;
+        const mouseX = event.clientX
+        const mouseY = event.clientY
+        const xPixelCoord = Math.ceil(mouseX / pixelSize);
+        const yPixelCoord = Math.ceil(mouseY / pixelSize);
+
+        let hoveredObjects = getObjectsAt(xPixelCoord, yPixelCoord, gameInstance);
+        // console.log("SCROLLING, hoveredObjects: ", hoveredObjects);
+        hoveredObjects.forEach(obj => {
+            if(obj != null && obj.scrollable){
+                console.log("SCROLLING, obj: ", obj)
+                if (scrollAmount < 0) {
+                    // User scrolled up
+                    obj.onScrollUp();
+                } else if (scrollAmount > 0) {
+                    // User scrolled down
+                    obj.onScrollDown();
+                }
+            }
+        });
+        
+    }
+
     function getObjectAt(x, y, gameInstance) {
         // Get all objects in the current room and sort them by z-axis (descending order)
         let objects = gameInstance.getObjectsOfCurrentRoom();
@@ -191,7 +220,10 @@
         for (let obj of objects) {
             if(obj.getChildren().length > 0){
                     for (let child of obj.getChildren()) {
-                        if (x >= child.x && x <= child.x + child.spriteWidth && y >= child.y && y <= child.y + child.spriteHeight) {
+                        let childX = obj.x + child.x;
+                        let childY = obj.y + child.y;
+                        
+                        if (x >= childX && x <= childX + child.spriteWidth && y >= childY && y <= childY + child.spriteHeight) {
                             if(obj.hoverWithChildren){
                                 return [child, obj];
                             }
@@ -207,5 +239,42 @@
             }
         }
         return [null]; // No object found at the coordinates
+    }
+
+    function getObjectsAt(x, y, gameInstance) {
+        // Get all objects in the current room and sort them by z-axis (descending order)
+        let objects = gameInstance.getObjectsOfCurrentRoom();
+        console.log("objects: ", objects)
+        objects.sort((a, b) => b.getZ() - a.getZ()); // Assuming getZ() returns the z-axis value
+        let output = [];
+
+        // Iterate through sorted objects to find the topmost object at the coordinates
+        for (let obj of objects) {
+            if(obj.getChildren().length > 0){
+                    for (let child of obj.getChildren()) {
+                        let childX = obj.x + child.x;
+                        let childY = obj.y + child.y;
+                        
+                        if (x >= childX && x <= childX + child.spriteWidth && y >= childY && y <= childY + child.spriteHeight) {
+                            if(obj.hoverWithChildren){
+                                output.push(...[child, obj]);
+                            }
+                            else{
+                                output.push(child);
+                            }
+                        }
+                    }
+                }
+            // Check if the coordinates are within an object's bounding box
+            if (x >= obj.x && x <= obj.x + obj.spriteWidth && y >= obj.y && y <= obj.y + obj.spriteHeight) {
+                output.push(obj);
+            }
+        }
+        if (output.length > 0) {
+            return output;
+        }
+        else {
+            return [null]; // No object found at the coordinates
+        }
     }
 </script>
