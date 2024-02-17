@@ -3,6 +3,7 @@ import admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 
 import * as socialFunctions from './socialFunctions.js';
+import { createUserProfile } from './userManagement.js';
 
 admin.initializeApp();
 
@@ -77,32 +78,10 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
 
             if (tokenData && tokenData.status === 'complete') {
                 statusComplete = true;
-                db.ref('authTokens/' + state).remove();
-                const userRef = db.ref(`users/${githubUserId}`);
-                await userRef.set({
-                    public: {
-                        uid: githubUserId.toString(),
-                        displayName: githubUsername,
-                        githubUsername: githubUsername,
-                        photoURL: `https://avatars.githubusercontent.com/u/${githubUserId}?v=4`,
-                        githubUserId: githubUserId,
-                        createdAt: token_time,
-                        lastLoginAt: token_time,
-                        lastSeenAt: token_time,
-                        level: 1,
-                        experience: 0,
-                        friends: {}, 
-                        status: "Hey there! I'm using WhatsApp.",
-                    },
-                    private: {
-                        inbox: {}, 
-                        friendRequests: {}, 
-                    },
-                });
-                console.log('User profile created');
             }
         }
         if (statusComplete) {
+            await createUserProfile(githubUserId, githubUsername, token_time);
             response.send('Authentication and user profile creation successful.');
         } else {
             response.status(408).send('Request timed out. User profile not created.');
@@ -142,7 +121,4 @@ const deleteOldTokens = functions
     });
 
 export { handleGitHubRedirect, deleteOldTokens };
-export const searchUsers = socialFunctions.searchUsers;
-export const sendFriendRequest = socialFunctions.sendFriendRequest;
-export const handleFriendRequest = socialFunctions.handleFriendRequest;
-export const removeFriend = socialFunctions.removeFriend;
+export * from './socialFunctions.js';
