@@ -9,7 +9,6 @@
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { generateEmptyMatrix } from './MatrixFunctions.svelte';
     import TextRenderer from './TextRenderer.svelte';
-    import { TreeItemCheckboxState } from 'vscode';
     
 
     export class GeneratedObject {
@@ -17,13 +16,16 @@
             if (!sprites) {
                 console.error(`Sprite matrix not found for object with states: ${states}`);
             }
+            if(!states){
+                states = {default: [0]};
+            }
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
             this.spriteHeight = sprites[0].length;
             this.states = processStates(states);
-            this.currentSpriteIndex = 0;
-            this.currentStateIndex = 0;
             this.state = 'default';
+            this.currentSpriteIndex = this.states[this.state] ? this.states[this.state][0] : 0;
+            this.currentStateIndex = 0;
             this.setCoordinate(x, y, z);
             this.actionOnClick = actionOnClick;
             this.stateQueue = [];
@@ -47,6 +49,8 @@
             this.bounceHeight = 1; // Height of the bounce
             this.children = [];
             this.hoverWithChildren = false;
+            this.renderChildren = true;
+            this.scrollable = false;
         }
         getWidth() {
             return this.spriteWidth;
@@ -67,6 +71,28 @@
         
         getSprite() {
             return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
+        }
+
+        getChildSprites() {
+            let childSprites = [];
+            const accumulateChildSprites = (parent, offsetX = 0, offsetY = 0) => {
+                for (let child of parent.children) {
+                    let childSprite = child.getSprite();
+                    // Apply both the current parent's offset and any accumulated offset from ancestors
+                    childSprite.x += offsetX + parent.x;
+                    childSprite.y += offsetY + parent.y;
+                    childSprites.push(childSprite);
+
+                    // If the child has its own children, recursively accumulate their sprites too
+                    if (child.children.length > 0) {
+                        accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y);
+                    }
+                }
+            };
+
+            // Start the recursive accumulation with the current object as the root
+            accumulateChildSprites(this);
+            return childSprites;
         }
 
         updateState(newState, callback = null) {
@@ -102,9 +128,9 @@
                 const { xOffset, yOffset, zOffset, buttonObject, actionOnClick } = param;
 
                 // Calculate absolute positions by adding offsets to the object's position
-                const buttonX = this.x + xOffset;
-                const buttonY = this.y + yOffset;
-                const buttonZ = this.z + zOffset;
+                const buttonX = xOffset;
+                const buttonY = yOffset;
+                const buttonZ = zOffset;
 
                 buttonObject.action = actionOnClick
                 buttonObject.setCoordinate(buttonX, buttonY, buttonZ);
@@ -538,6 +564,23 @@
             this.spriteHeight = config.spriteHeight;
             this.objectType = objectName;
             this.config = config;
+            this.children = [];
+        }
+        getChildren() {
+            return this.children;
+        }
+        addChild(child) {
+            this.children.push(child);
+        }
+        onHover(){
+            if(this.states["hovered"]){
+                this.updateState("hovered");
+            }
+        }
+        onStopHover(){
+            if(this.states["hovered"]){
+                this.updateState("default");
+            }
         }
     }
 
@@ -598,12 +641,9 @@
         return frames;
     }
 
-    export class objectGrid extends GeneratedObject{
-        //Set columns or rows to 0 to make it infinite
-        //Objects is a list of objects
-        //Set visibleX or visibleY to 0 to make it infinite
-        //Scroll direction can be "horizontal" or "vertical"
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = null, scrollSpeed = 0){
+    export class objectGrid extends GeneratedObject {
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
+            super(generateEmptyMatrix(120, 120), null, x, y, z);
             this.columns = columns > 0 ? columns : objects.length;
             this.columnSpacing = columnSpacing;
             this.rows = rows > 0 ? rows : Math.ceil(objects.length / this.columns);
@@ -612,113 +652,94 @@
             this.y = y;
             this.z = z;
             this.children = objects;
-            this.objectGrid = [];
+            this.visibleX = visibleX;
+            this.visibleY = visibleY;
+            this.scrollDirection = scrollDirection;
+            this.scrollSpeed = scrollSpeed;
+            this.scrollOffsetX = 0;
+            this.scrollOffsetY = 0;
+            this.renderChildren = false;
+            this.scrollable = true;
+            this.spriteWidth = 120;
+            this.spriteHeight = 120;
             this.generateObjectGrid();
         }
 
         getSprite() {
-            return null;
+            let spritesOut = [];
+            if(this.children.length > 0) {
+                this.getChildSprites().forEach((sprite) => {
+                    // console.log("Child sprite: ", sprite)
+                    if (Array.isArray(sprite)) {
+                        spritesOut.push(...sprite);
+                    //if not an array, push sprite
+                    } else {
+                        spritesOut.push(sprite);
+                    }
+                });
+            }
+            return spritesOut;
+        }
+
+
+        onScrollUp() {
+            if (this.scrollDirection === "horizontal") {
+                this.scrollOffsetX -= this.scrollSpeed;
+            } else { // Assuming horizontal scrolling
+                this.scrollOffsetY -= this.scrollSpeed;
+            }
+            this.generateObjectGrid(); // Re-generate grid to reflect new positions
+        }
+
+        onScrollDown() {
+            if (this.scrollDirection === "horizontal") {
+                this.scrollOffsetX += this.scrollSpeed;
+            } else { // Assuming horizontal scrolling
+                this.scrollOffsetY += this.scrollSpeed;
+            }
+            this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
 
         generateObjectGrid() {
-            let currentX = this.x;
-            let currentY = this.y;
-            
+            let currentX = this.x - this.scrollOffsetX;
+            let currentY = this.y - this.scrollOffsetY;
+            const spriteWidth = this.children[0].getWidth();
+            const spriteHeight = this.children[0].getHeight();
+            console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
+
             for (let row = 0; row < this.rows; row++) {
                 for (let column = 0; column < this.columns; column++) {
                     let index = row * this.columns + column;
-                    // Check if the index exceeds the number of children, useful if rows*columns > number of objects
                     if (index >= this.children.length) break;
 
-                    // Calculate position for each object
-                    let objectX = currentX + (column * (this.spriteWidth + this.columnSpacing));
-                    let objectY = currentY + (row * (this.spriteHeight + this.rowSpacing));
-
-                    // Assuming each child has a method to set its position
+                    let objectX = currentX + (column * (spriteWidth + this.columnSpacing));
+                    let objectY = currentY + (row * (spriteHeight + this.rowSpacing));
                     this.children[index].setCoordinate(objectX, objectY, this.z);
-
                 }
             }
         }
     }
-
-    function instantiateObjects(ObjectClass, params) {
-        let objectsArray = [];
-
-        params.forEach(param => {
-            // Destructure the object parameters and child configurations from param
-            const { objectParams, childConfigs } = param;
-            
-            // Instantiate the object with its parameters
-            let object = new ObjectClass(...objectParams);
-            
-            // Optionally handle child objects if specified
-            if (childConfigs && childConfigs.length > 0) {
-                object.children = childConfigs.map(childConfig => {
-                    // Destructure child class and its params
-                    const { ChildClass, childParams } = childConfig;
-
-                    // Create the child object, potentially passing additional parameters or functions
-                    return new ChildClass(...childParams);
-                });
-
-                // If the object has a method to initialize or register these children, call it here
-                if (object.initializeChildren) {
-                    object.initializeChildren();
-                }
+    function constructInventoryObjects(createSlotInstance, items, totalSlots) {
+        let inventoryGrid = [];
+        for(let i = 0; i < totalSlots; i++) {
+            let item = items[i];
+            let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
+            console.log("Slot Instance: ", slotInstance); // Check the instance
+            console.log(slotInstance instanceof GeneratedObject);
+            if(item) {
+                console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
+                slotInstance.addChild(item);
             }
-
-            // Add the instantiated object (with its children) to the array
-            objectsArray.push(object);
-        });
-
-        return objectsArray;
+            inventoryGrid.push(slotInstance);
+        }
+        return inventoryGrid;
     }
 
-    function instantiateFromConfig(config, dynamicData) {
-        const objectsArray = [];
-        
-        config.objects.forEach(objConfig => {
-            if (objConfig.type === "StaticObject") {
-                const ObjectClass = getClassByName(objConfig.class); // Utility function to map class name string to class
-                objectsArray.push(new ObjectClass(...objConfig.params));
-            } else if (objConfig.type === "DynamicList") {
-                const dynamicList = dynamicData[objConfig.iterateOver];
-                const ObjectClass = getClassByName(objConfig.class);
-                
-                dynamicList.forEach((item, index) => {
-                    const params = objConfig.params.map(param => 
-                    // If the param is a string and contains "Action", resolve it to the corresponding action function
-                        param.replace(/\{(\w+)\}/g, (_, key) => item[key] || index)
-                    );
-
-                    const object = new ObjectClass(...params);
-                    
-                    objConfig.children.forEach(childConfig => {
-                        const ChildClass = getClassByName(childConfig.class);
-                        const childParams = resolveParams(childConfig.params, item, index);
-                        const child = new ChildClass(...childParams);
-                        object.addChild(child);
-                    });
-
-                    objectsArray.push(object);
-                });
-            }
-        });
-
-        return objectsArray;
+    export class inventoryGrid extends objectGrid{
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, createItemSlot){
+            let constructedItems = constructInventoryObjects(createItemSlot, items, totalSlots);
+            console.log("Constructed items: ", constructedItems);
+            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
+        }
     }
-
-    function getClassByName(className) {
-        // Map class names to actual classes
-        const classMap = { Button, Pet, Background, NavigationButton, PixelCanvas };
-        return classMap[className];
-    }
-
-    function resolveParams(params, item, index) {
-        return params.map(param => 
-            typeof param === "string" && param.includes("Action") ? actions[param] : param.replace(/\{(\w+)\}/g, (_, key) => item[key] || index)
-        );
-    }
-
 </script>
