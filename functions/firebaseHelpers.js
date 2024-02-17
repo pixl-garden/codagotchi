@@ -1,6 +1,4 @@
-import admin from 'firebase-admin';
-
-const db = admin.database();
+import { admin, db } from './firebaseConfig.js';
 
 const getUserRef = (userId) => db.ref(`users/${userId}`);
 

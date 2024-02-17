@@ -1,6 +1,4 @@
-import admin from 'firebase-admin';
-
-const db = admin.database();
+import { db } from './firebaseConfig.js';
 
 const createUserProfile = async (githubUserId, githubUsername, tokenTime) => {
     const userRef = db.ref(`users/${githubUserId}`);
