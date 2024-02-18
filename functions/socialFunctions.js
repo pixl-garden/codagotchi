@@ -1,146 +1,95 @@
-import admin from 'firebase-admin';
+import { getUserPublicRef, getUserPrivateRef, getUserProtectedInboxRef, pushToRef, handleError, checkAuthenticated } from './firebaseHelpers.js';
 import * as functions from 'firebase-functions';
 
 export const searchUsers = functions.https.onCall(async (data, context) => {
+    checkAuthenticated(context);
     const displayName = data.displayName;
-    const usersRef = admin.database().ref('users');
-    const snapshot = await usersRef.orderByChild('public/displayName').equalTo(displayName).once('value');
+    const snapshot = await getUserPublicRef().orderByChild('displayName').equalTo(displayName).once('value');
     return snapshot.val();
 });
 
 export const sendFriendRequest = functions.https.onCall(async (data, context) => {
+    checkAuthenticated(context);
     const { toUserId, fromUserId, fromUsername } = data;
-
-    // check if it's been send already, if yes, do nothing
-    const friendRequestRef = admin.database().ref(`users/${toUserId}/private/friendRequests`);
+    const friendRequestRef = getUserPrivateRef(toUserId).child('friendRequests');
     const snapshot = await friendRequestRef.orderByChild('fromUserId').equalTo(fromUserId).once('value');
-    if (snapshot.val()) {
-        return { success: true,
-            message: 'Friend request already sent'};
+    if (snapshot.exists()) {
+        return { success: true, message: 'Friend request already sent' };
     }
 
-    // check if they are already friends, if yes, do nothing
-    const friendsRef = admin.database().ref(`users/${toUserId}/public/friends`);
+    const friendsRef = getUserPublicRef(toUserId).child('friends');
     const friendsSnapshot = await friendsRef.once('value');
-    if (friendsSnapshot.val()) {
-        for (const [key, value] of Object.entries(friendsSnapshot.val())) {
-            if (value === fromUserId) {
-                return { success: true,
-                    message: 'You are already friends'};
-            }
-        }
+    if (friendsSnapshot.child(fromUserId).exists()) {
+        return { success: true, message: 'You are already friends' };
     }
 
-    // Generate a new key for the friend request
-    const friendRequestKey = admin.database().ref().child(`users/${toUserId}/private/friendRequests`).push().key;
     const updates = {};
-    updates[`users/${toUserId}/private/friendRequests/${friendRequestKey}`] = { fromUserId, fromUsername };
-
-    // Add a message to the recipient's inbox
-    const inboxKey = admin.database().ref().child(`users/${toUserId}/private/inbox`).push().key;
-    updates[`users/${toUserId}/private/inbox/${inboxKey}`] = { message: `${fromUsername} wants to be your friend`, timestamp: Date.now() };
+    updates[friendRequestRef.push().key] = { fromUserId, fromUsername };
+    updates[getUserProtectedInboxRef(toUserId).push().key] = { message: `${fromUsername} wants to be your friend`, timestamp: Date.now() };
 
     try {
-        await admin.database().ref().update(updates);
+        await friendRequestRef.parent.update(updates);
         return { success: true };
     } catch (error) {
-        console.error('Error sending friend request:', error);
-        throw new functions.https.HttpsError('unknown', 'Failed to send friend request', error);
+        handleError(error, 'Error sending friend request');
     }
 });
 
 export const handleFriendRequest = functions.https.onCall(async (data, context) => {
-    const { action, toUserId, fromUserId } = data; // action: 'accept' or 'reject'
+    checkAuthenticated(context);
+    const { action, toUserId, fromUserId } = data;
 
     if (action === 'accept') {
-        // Add each user to the other's friends list
-        const toUserFriendsKey = admin.database().ref().child(`users/${toUserId}/public/friends`).push().key;
-        const fromUserFriendsKey = admin.database().ref().child(`users/${fromUserId}/public/friends`).push().key;
         const updates = {};
-        updates[`users/${toUserId}/public/friends/${toUserFriendsKey}`] = fromUserId;
-        updates[`users/${fromUserId}/public/friends/${fromUserFriendsKey}`] = toUserId;
-
-        // Update inbox for both users
-        const toUserInboxKey = admin.database().ref().child(`users/${toUserId}/private/inbox`).push().key;
-        const fromUserInboxKey = admin.database().ref().child(`users/${fromUserId}/private/inbox`).push().key;
-        updates[`users/${toUserId}/private/inbox/${toUserInboxKey}`] = { message: `You are now friends with ${fromUserId}`, timestamp: Date.now() };
-        updates[`users/${fromUserId}/private/inbox/${fromUserInboxKey}`] = { message: `You are now friends with ${toUserId}`, timestamp: Date.now() };
+        updates[getUserPublicRef(toUserId).child('friends').push().key] = fromUserId;
+        updates[getUserPublicRef(fromUserId).child('friends').push().key] = toUserId;
+        updates[getUserProtectedInboxRef(toUserId).push().key] = { message: `You are now friends with ${fromUserId}`, timestamp: Date.now() };
+        updates[getUserProtectedInboxRef(fromUserId).push().key] = { message: `You are now friends with ${toUserId}`, timestamp: Date.now() };
 
         try {
-            await admin.database().ref().update(updates);
+            await getUserRef(toUserId).update(updates);
             return { success: true };
         } catch (error) {
-            console.error('Error accepting friend request:', error);
-            throw new functions.https.HttpsError('unknown', 'Failed to accept friend request', error);
+            handleError(error, 'Error accepting friend request');
         }
-    } 
-
-    // Remove the friend request
-    const friendRequestRef = admin.database().ref(`users/${toUserId}/private/friendRequests`);
-    const snapshot = await friendRequestRef.orderByChild('fromUserId').equalTo(fromUserId).once('value');
-    try {
-        snapshot.forEach((childSnapshot) => {
-        childSnapshot.ref.remove();
-    });
-    } catch (error) {
-        console.error('Error rejecting friend request:', error);
-        throw new functions.https.HttpsError('unknown', 'Failed to reject friend request', error);
+    } else if (action === 'reject') {
+        try {
+            const friendRequestRef = getUserPrivateRef(toUserId).child('friendRequests');
+            const snapshot = await friendRequestRef.orderByChild('fromUserId').equalTo(fromUserId).once('value');
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    childSnapshot.ref.remove();
+                });
+            }
+            return { success: true };
+        } catch (error) {
+            handleError(error, 'Error rejecting friend request');
+        }
+    } else {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid action');
     }
-
-
-    return { success: true };
 });
 
 export const removeFriend = functions.https.onCall(async (data, context) => {
+    checkAuthenticated(context);
     const { toUserId, fromUserId } = data;
-
-    // Check if they are friends, if not, do nothing
-    const friendsRef = admin.database().ref(`users/${toUserId}/public/friends`);
+    const friendsRef = getUserPublicRef(toUserId).child('friends');
     const snapshot = await friendsRef.once('value');
-    let areFriends = false;
-    snapshot.forEach((childSnapshot) => {
-        if (childSnapshot.val() === fromUserId) {
-            areFriends = true;
-        }
-    });
-    if (!areFriends) {
-        return { success: true,
-            message: 'You are not friends'};
+    if (!snapshot.child(fromUserId).exists()) {
+        return { success: true, message: 'You are not friends' };
     }
 
-
-    // Remove each user from the other's friends list
     const updates = {};
-    const toUserFriendsRef = admin.database().ref(`users/${toUserId}/public/friends`);
-    const fromUserFriendsRef = admin.database().ref(`users/${fromUserId}/public/friends`);
-    const toUserFriendsSnapshot = await toUserFriendsRef.once('value');
-    const fromUserFriendsSnapshot = await fromUserFriendsRef.once('value');
-    toUserFriendsSnapshot.forEach((childSnapshot) => {
-        if (childSnapshot.val() === fromUserId) {
-            childSnapshot.ref.remove();
-        }
-    });
-    fromUserFriendsSnapshot.forEach((childSnapshot) => {
-        if (childSnapshot.val() === toUserId) {
-            childSnapshot.ref.remove();
-        }
-    });
-
-    // Update inbox for both users
-    const toUserInboxKey = admin.database().ref().child(`users/${toUserId}/private/inbox`).push().key;
-    const fromUserInboxKey = admin.database().ref().child(`users/${fromUserId}/private/inbox`).push().key;
-    updates[`users/${toUserId}/private/inbox/${toUserInboxKey}`] = { message: `You are no longer friends with ${fromUserId}`, timestamp: Date.now() };
-    updates[`users/${fromUserId}/private/inbox/${fromUserInboxKey}`] = {
-        message: `You are no longer friends with ${toUserId}`,
-        timestamp: Date.now(),
-    };
+    updates[`/public/friends/${fromUserId}`] = null;
+    updates[`/public/friends/${toUserId}`] = null;
+    updates[getUserProtectedInboxRef(toUserId).push().key] = { message: `You are no longer friends with ${fromUserId}`, timestamp: Date.now() };
+    updates[getUserProtectedInboxRef(fromUserId).push().key] = { message: `You are no longer friends with ${toUserId}`, timestamp: Date.now() };
 
     try {
-        await admin.database().ref().update(updates);
+        await getUserRef(toUserId).update(updates);
+        await getUserRef(fromUserId).update(updates);
         return { success: true };
-    }
-    catch (error) {
-        console.error('Error removing friend:', error);
-        throw new functions.https.HttpsError('unknown', 'Failed to remove friend', error);
+    } catch (error) {
+        handleError(error, 'Error removing friend');
     }
 });
