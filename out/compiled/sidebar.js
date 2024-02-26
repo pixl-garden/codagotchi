@@ -6178,10 +6178,9 @@ var app = (function () {
     	let $game;
     	component_subscribe($$self, inputValue, $$value => $$invalidate(0, $inputValue = $$value));
     	component_subscribe($$self, shouldFocus, $$value => $$invalidate(1, $shouldFocus = $$value));
-    	component_subscribe($$self, game, $$value => $$invalidate(14, $game = $$value));
+    	component_subscribe($$self, game, $$value => $$invalidate(13, $game = $$value));
     	let screen = [];
     	let currentRoom;
-    	let githubUsername;
     	let canvas, ctx;
 
     	//run once before main loop
@@ -6277,9 +6276,8 @@ var app = (function () {
     					console.log(`Time taken: ${endTime - startTime} milliseconds`);
     					setInterval(main, Math.floor(1000 / FPS));
     				});
-    			} else if (message.type === 'github-username') {
-    				githubUsername = message.username;
-    				console.log("GITHUB USERNAME: " + githubUsername);
+    			} else if (message.type === 'documentSaved') {
+    				console.log("DOCUMENT SAVE RECEIVED IN MAINNNNN TIME: ", message.value);
     			} else if (message.type === 'currentState') {
     				$game.setLocalState(message.value);
     			} else if (message.type === 'resize') {

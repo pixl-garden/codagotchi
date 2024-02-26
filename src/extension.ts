@@ -2,8 +2,10 @@ import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
 const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
 
+let sidebarProvider: SidebarProvider;
+
 export function activate(context: vscode.ExtensionContext) {
-    const sidebarProvider = new SidebarProvider(context.extensionUri, context);
+    sidebarProvider = new SidebarProvider(context.extensionUri, context);
     listenForDocumentSave(context);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
     context.subscriptions.push(vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
@@ -36,11 +38,19 @@ function setLastSaveTime(context: vscode.ExtensionContext, date: Date = new Date
 function listenForDocumentSave(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(() => {
-
             const lastSaveTime = getLastSaveTime(context);
             const lastSaveDate = lastSaveTime ? new Date(lastSaveTime) : undefined; // Restores to original format (date object)
             setLastSaveTime(context); // Sets the global to the current time after retrieved
-            console.log(getElapsedTimeInSeconds(lastSaveDate) + " Seconds");
+            const elapsedTimeInSeconds = getElapsedTimeInSeconds(lastSaveDate);
+            console.log(elapsedTimeInSeconds + " Seconds");
+
+            // Use postMessage to communicate with the webview
+            if (sidebarProvider._view?.webview) {
+                sidebarProvider._view?.webview.postMessage({
+                    type: 'documentSaved',
+                    value: elapsedTimeInSeconds,
+                });
+            }
         }),
     );
 }
