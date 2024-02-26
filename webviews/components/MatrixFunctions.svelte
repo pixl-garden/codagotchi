@@ -232,4 +232,29 @@
         return textInputSprite;
     }
 
+    export function generateTooltipSprite(titleText, borderColor, backgroundColor, rounding, padding, textRenderer) {
+        // Use the textRenderer to get the text sprite matrix for the titleText
+        const textSprite = textRenderer(titleText);
+
+        // Calculate the tooltip background dimensions based on the text dimensions and padding
+        const backgroundWidth = textSprite[0].length + padding * 2 + 1;
+        const backgroundHeight = textSprite.length + padding * 2;
+
+        // Generate the rounded rectangle matrix for the tooltip background
+        const backgroundSprite = generateRoundedRectangleMatrix(backgroundWidth, backgroundHeight, backgroundColor, rounding);
+
+        // Overlay the text sprite onto the background sprite, centered
+        const textXOffset = padding;
+        const textYOffset = padding;
+        const tooltipSprite = overlayMatrix(backgroundSprite, textSprite, 0, 0, textXOffset, textYOffset);
+
+        // Optionally, if you want a border around the tooltip, you can first generate a larger background for the border
+        const borderBackgroundSprite = generateRoundedRectangleMatrix(backgroundWidth + 2, backgroundHeight + 2, borderColor, rounding + 1);
+        // Then overlay the tooltip sprite (background + text) onto this border sprite
+        const finalTooltipSprite = overlayMatrix(borderBackgroundSprite, tooltipSprite, 0, 0, 1, 1);
+
+        return finalTooltipSprite;
+    }
+
+
 </script>

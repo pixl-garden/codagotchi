@@ -7,9 +7,12 @@
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
-    import { generateEmptyMatrix } from './MatrixFunctions.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite } from './MatrixFunctions.svelte';
     import TextRenderer from './TextRenderer.svelte';
+    import itemConfig from './itemConfig.json';
     
+
+    //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
 
     export class GeneratedObject {
         constructor(sprites, states, x, y, z, actionOnClick = null) {
@@ -51,6 +54,10 @@
             this.hoverWithChildren = false;
             this.renderChildren = true;
             this.scrollable = false;
+            this.hoveredChild = null;
+            this.passMouseCoords = false;
+            this.mouseX = null;
+            this.mouseY = null;
         }
         getWidth() {
             return this.spriteWidth;
@@ -123,6 +130,7 @@
             this.buttonParams = buttonParams;
         }
 
+        //TODO: REMOVE THIS FUNCTION (replace with robust child system)
         initializeButtons() {
             this.buttonParams.forEach(param => {
                 const { xOffset, yOffset, zOffset, buttonObject, actionOnClick } = param;
@@ -662,6 +670,10 @@
             this.scrollable = true;
             this.spriteWidth = 120;
             this.spriteHeight = 120;
+            this.hoverWithChildren = true;
+            this.passMouseCoords = true;
+            this.mouseX = null;
+            this.mouseY = null;
             this.generateObjectGrid();
         }
 
@@ -735,11 +747,115 @@
         return inventoryGrid;
     }
 
+    export class toolTip extends GeneratedObject {
+        constructor(borderColor, backgroundColor, roundness, padding, textRenderer){
+            const emptyMatrix = generateEmptyMatrix(1, 1);
+            super([emptyMatrix], { default: [0] }, 10, 90, 20);
+            this.item;
+            this.currentTitle = "";
+            this.currentDescription = "";
+            this.currentSprite;
+            this.borderColor = borderColor;
+            this.backgroundColor = backgroundColor;
+            this.roundness = roundness;
+            this.padding = padding;
+            this.textRenderer = textRenderer;
+        }
+        generateSprite(){
+            this.currentSprite = generateTooltipSprite(this.currentTitle, this.borderColor, this.backgroundColor, this.roundness, this.padding, this.textRenderer);
+        }
+        setItem(item){
+            this.item = item;
+            this.currentTitle = item.getName();
+            this.currentDescription = item.getDescription();
+            this.generateSprite();
+        }
+        getSprite(){
+            return new Sprite(this.currentSprite, this.x, this.y, this.z);
+        }
+    }
+
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, createItemSlot){
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, createItemSlot, toolTip){
             let constructedItems = constructInventoryObjects(createItemSlot, items, totalSlots);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
+            this.toolTip = toolTip;
+            this.toolTip.setCoordinate(0, 100, 30);
+            this.displayToolTip = false;
+            this.children.forEach((itemSlot) => {
+            itemSlot.whileHover = (mouseX, mouseY) => {
+                    console.log("Displaying tooltip");
+                    this.whileHover();
+                    this.displayToolTip = true;
+                }
+            });
+        }
+
+        onHover(){
+            //this is really unintuitive, i honestly don't know why this works but it does
+            if(this.hoveredChild != null){
+                this.displayToolTip = false;
+            }
+        }
+
+        onStopHover(){
+            if(this.hoveredChild != null){
+                //get the item from the hovered item slot
+                let item = this.hoveredChild.children[0];
+                this.toolTip.setItem(item);
+                this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
+                this.displayToolTip = true;
+            }
+        }
+
+        whileHover(){
+            this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
+        }
+
+        
+        getSprite() {
+            let spritesOut = [];
+            if(this.children.length > 0) {
+                this.getChildSprites().forEach((sprite) => {
+                    // console.log("Child sprite: ", sprite)
+                    if (Array.isArray(sprite)) {
+                        spritesOut.push(...sprite);
+                    //if not an array, push sprite
+                    } else {
+                        spritesOut.push(sprite);
+                    }
+                });
+            }
+            if(this.displayToolTip){
+                spritesOut.push(this.toolTip.getSprite());
+            }
+            return spritesOut;
         }
     }
+
+    const ITEMWIDTH = 32;
+
+export class Item extends GeneratedObject {
+    constructor( itemName ){
+        // maybe add an item count parameter?
+        const config = itemConfig[itemName];
+        if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
+        const objState = { default: [config.spriteIndex] }
+        const spriteMatrix = spriteReaderFromStore(ITEMWIDTH, ITEMWIDTH, config.spriteSheet);
+        console.log("spriteMatrix", spriteMatrix, "objState", objState, "config", config, "itemName");
+        super(spriteMatrix, objState, 0, 0, 0);
+        this.spriteHeight = ITEMWIDTH;
+        this.spriteWidth = ITEMWIDTH;
+        this.config = config;
+        this.displayName = config.displayName;
+        this.description = config.description;
+    }
+    getName(){
+        return this.displayName;
+    }
+    getDescription(){
+        return this.description;
+    }
+}
 </script>
