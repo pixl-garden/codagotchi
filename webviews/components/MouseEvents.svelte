@@ -2,9 +2,10 @@
     import { Object, Button, NavigationButton, PixelCanvas } from './Object.svelte';
     import { getPadding, getPixelSize } from "./ScreenManager.svelte";
 
+    //TODO: REFACTOR THIS SHIT
     let mouseExited = false;
     let lastHoveredObject = null;
-    let lastSecondaryHoveredObject = null;
+    let lastHoveredChild = null;
     let isMouseDown = false;
     let activeDragObject = null;
     let hoveredObject = null;
@@ -70,20 +71,22 @@
         const yPixelCoord = Math.ceil(mouseY / pixelSize);
 
         hoveredObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance)[0];
-        //TODO support multiple secondary hovers
-        let secondaryObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance).length > 1 ?
+        //TODO support multiple child hovers (or just return topmost child object in getObjectAt() function?)
+        let childObject = getObjectAt(xPixelCoord, yPixelCoord, gameInstance).length > 1 ?
             getObjectAt(xPixelCoord, yPixelCoord, gameInstance).slice(1) : null;
 
         if (mouseExited && hoveredObject === lastHoveredObject && hoveredObject) {
             // Handle the case when mouse re-enters over the same object
             hoveredObject.onHover();
-            hoverSecondaryObject(secondaryObject);
+            hoverChildObject(childObject);
+            hoveredObject.hoveredChild = childObject;
             mouseExited = false;  // Reset the flag
         }
         // Check if we've moved off an object
         else if (!hoveredObject && lastHoveredObject) {
             lastHoveredObject.onStopHover();
-            stopHoverSecondaryObject(lastSecondaryHoveredObject);
+            stopHoverChildObject(lastHoveredChild);
+            lastHoveredObject.hoveredChild = null;
             event.currentTarget.style.cursor = 'default'; // Reset cursor
             lastHoveredObject = null; // Reset the last hovered object
             return; // Exit early
@@ -117,7 +120,8 @@
             // Call onStopHover on the last hovered object
             if (lastHoveredObject) {
                 lastHoveredObject.onStopHover();
-                stopHoverSecondaryObject(lastSecondaryHoveredObject);
+                stopHoverChildObject(lastHoveredChild);
+                lastHoveredObject.hoveredChild = null;
             }
 
             // Update the cursor based on the new hoveredObject
@@ -129,26 +133,27 @@
 
             if (hoveredObject && hoveredObject.onHover) {
                 hoveredObject.onHover();
-                hoverSecondaryObject(secondaryObject);
+                hoverChildObject(childObject);
+                hoveredObject.hoveredChild = childObject;
             }
 
             lastHoveredObject = hoveredObject;
-            lastSecondaryHoveredObject = secondaryObject;
+            lastHoveredChild = childObject;
         }
     }
 
-    function hoverSecondaryObject(secondaryObject){
-        if(secondaryObject){
-            for (let obj of secondaryObject) {
+    function hoverChildObject(childObject){
+        if(childObject){
+            for (let obj of childObject) {
                 if(obj.onHover){
                     obj.onHover();
                 }
             }
         }
     }
-    function stopHoverSecondaryObject(secondaryObject){
-        if(secondaryObject){
-            for (let obj of secondaryObject) {
+    function stopHoverChildObject(childObject){
+        if(childObject){
+            for (let obj of childObject) {
                 if(obj.onStopHover){
                     obj.onStopHover();
                 }
@@ -157,9 +162,10 @@
     }
 
     export function handleMouseOut(event) {
-        if (lastHoveredObject && lastHoveredObject.onStopHover || lastSecondaryHoveredObject && lastSecondaryHoveredObject.onStopHover) {
+        if (lastHoveredObject && lastHoveredObject.onStopHover || lastHoveredChild && lastHoveredChild.onStopHover) {
             lastHoveredObject.onStopHover();
-            stopHoverSecondaryObject(lastSecondaryHoveredObject);
+            stopHoverChildObject(lastHoveredChild);
+            lastHoveredObject.hoveredChild = null;
             event.currentTarget.style.cursor = 'default';
         }
         mouseExited = true; // Set the flag to true
@@ -198,7 +204,7 @@
         // console.log("SCROLLING, hoveredObjects: ", hoveredObjects);
         hoveredObjects.forEach(obj => {
             if(obj != null && obj.scrollable){
-                console.log("SCROLLING, obj: ", obj)
+                console.log("SCROLLING, obj: ", obj, " HOVERED CHILD: ", obj.hoveredChild)
                 if (scrollAmount < 0) {
                     // User scrolled up
                     obj.onScrollUp();
@@ -224,7 +230,16 @@
                         let childY = obj.y + child.y;
                         
                         if (x >= childX && x <= childX + child.spriteWidth && y >= childY && y <= childY + child.spriteHeight) {
+                            if(obj.passMouseCoords){
+                                obj.mouseX = x;
+                                obj.mouseY = y;
+                            }
+                            if(child.passMouseCoords){
+                                child.mouseX = x;
+                                child.mouseY = y;
+                            }
                             if(obj.hoverWithChildren){
+                                obj.hoveredChild = child;
                                 return [child, obj];
                             }
                             else{
@@ -244,7 +259,7 @@
     function getObjectsAt(x, y, gameInstance) {
         // Get all objects in the current room and sort them by z-axis (descending order)
         let objects = gameInstance.getObjectsOfCurrentRoom();
-        console.log("objects: ", objects)
+        // console.log("objects: ", objects)
         objects.sort((a, b) => b.getZ() - a.getZ()); // Assuming getZ() returns the z-axis value
         let output = [];
 

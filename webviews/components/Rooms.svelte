@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus,  } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, inventoryGrid, Object } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, inventoryGrid, Object, Item, toolTip } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -149,24 +149,27 @@
         function createItemSlot() {
             let output = new Object("itemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
+            output.passMouseCoords = true;
             console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
-        let testItem1 = new Object("testItem", 0, 0, 0);
-        let testItem2 = new Object("testItem3", 0, 0, 0);
-        let testItem3 = new Object("testItem5", 0, 0, 0);
-        let testItem4 = new Object("testItem1", 0, 0, 0);
-        let testItem5 = new Object("testItem2", 0, 0, 0);
-        let testItem6 = new Object("testItem3", 0, 0, 0);
-        let testItem7 = new Object("testItem4", 0, 0, 0);
-        let testItem8 = new Object("testItem5", 0, 0, 0);
-        let testItem9 = new Object("testItem1", 0, 0, 0);
-        let testItem10 = new Object("testItem2", 0, 0, 0);
-        let testItem11 = new Object("testItem4", 0, 0, 0);
+        let testItem1 = new Item("coffee");
+        let testItem2 = new Item("tomatoSoup", 0, 0, 0)
+        let testItem3 = new Item("fishingRod", 0, 0, 0)
+        let testItem4 = new Item("potion", 0, 0, 0)
+        let testItem5 = new Item("redHerring", 0, 0, 0)
+        let testItem6 = new Item("tropicalFish", 0, 0, 0)
+        let testItem7 = new Item("coffee", 0, 0, 0)
+        let testItem8 = new Item("tomatoSoup", 0, 0, 0)
+        let testItem9 = new Item("coffee", 0, 0, 0)
+        let testItem10 = new Item("potion", 0, 0, 0)
+        let testItem11 = new Item("tomatoSoup", 0, 0, 0)
         
+        let testToolTip = new toolTip("black", "white", 3, 2, basic);
         let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
-        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot);
+        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip);
 
+        // testToolTip.setItem(testItem1);
 
         function instantiateFriends(friends, friendTitle, friendButton) {
             let friendArray = [];

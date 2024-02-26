@@ -1,0 +1,55 @@
+{
+    "tomatoSoup":{
+        "displayName": "Tomato Soup",
+        "spriteSheet": "testItems.png",
+        "spriteIndex": 0,
+        "description": "soup",
+        "hunger": 5,
+        "thirst": 1,
+        "energy": 1
+    },
+    "coffee":{
+        "displayName": "Coffee",
+        "spriteSheet": "testItems.png",
+        "spriteIndex": 1,
+        "description": "mmmmm",
+        "hunger": 0,
+        "thirst": 2,
+        "energy": 5
+    },
+    "fishingRod":{
+        "displayName": "Fishing Rod",
+        "spriteSheet": "testItems.png",
+        "spriteIndex": 2,
+        "description": "rod",
+        "hunger": 0,
+        "thirst": 0,
+        "energy": 0
+    },
+    "redHerring":{
+        "displayName": "Red Herring",
+        "spriteSheet": "testItems.png",
+        "spriteIndex": 3,
+        "description": "fish",
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1
+    },
+    "tropicalFish":{
+        "displayName": "Tropical Fish",
+        "spriteSheet": "testItems.png",
+        "spriteIndex": 4,
+        "description": "fish",
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1
+    },
+    "potion":{
+        "displayName": "Potion",
+        "spriteSheet": "testItem.png",
+        "spriteIndex": 0,
+        "description": "potion",
+        "hunger": 0,
+        "thirst": 0,
+        "energy": 0}
+}
