@@ -58,6 +58,13 @@ function getCurrentState(context) {
     // Retrieve and return the global state
     return context.globalState.get('globalInfo', {});
 }
+// export function onSave(context: vscode.ExtensionContext, key: string, value: any): Thenable<void> {
+//     SidebarProvider._view?.webview.postMessage({
+//         type: 'currentState',
+//         value: getCurrentState(this.context),
+//     });
+//     return setCurrentState(context, { [key]: value });
+// }
 class SidebarProvider {
     constructor(_extensionUri, context) {
         this._extensionUri = _extensionUri;
@@ -911,7 +918,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 var app = __webpack_require__(25);
 
 var name = "firebase";
-var version = "10.7.0";
+var version = "10.7.2";
 
 /**
  * @license
@@ -1010,7 +1017,7 @@ function isVersionServiceProvider(provider) {
 }
 
 var name$o = "@firebase/app";
-var version$1 = "0.9.24";
+var version$1 = "0.9.26";
 
 /**
  * @license
@@ -1077,7 +1084,7 @@ var name$2 = "@firebase/firestore";
 var name$1 = "@firebase/firestore-compat";
 
 var name = "firebase";
-var version = "10.7.0";
+var version = "10.7.2";
 
 /**
  * @license
@@ -1623,7 +1630,15 @@ function getDbPromise() {
                 // eslint-disable-next-line default-case
                 switch (oldVersion) {
                     case 0:
-                        db.createObjectStore(STORE_NAME);
+                        try {
+                            db.createObjectStore(STORE_NAME);
+                        }
+                        catch (e) {
+                            // Safari/iOS browsers throw occasional exceptions on
+                            // db.createObjectStore() that may be a bug. Avoid blocking
+                            // the rest of the app functionality.
+                            console.warn(e);
+                        }
                 }
             }
         }).catch(function (e) {
@@ -7089,7 +7104,7 @@ var WebSocketConnection = /** @class */ (function () {
 }());
 
 var name = "@firebase/database";
-var version = "1.0.1";
+var version = "1.0.2";
 
 /**
  * @license
@@ -32070,7 +32085,7 @@ function multiFactor(user) {
 }
 
 var name = "@firebase/auth";
-var version = "1.5.0";
+var version = "1.5.1";
 
 /**
  * @license
@@ -32642,7 +32657,7 @@ exports.useDeviceLanguage = useDeviceLanguage;
 exports.validatePassword = validatePassword;
 exports.verifyBeforeUpdateEmail = verifyBeforeUpdateEmail;
 exports.verifyPasswordResetCode = verifyPasswordResetCode;
-//# sourceMappingURL=totp-58078139.js.map
+//# sourceMappingURL=totp-fe65684a.js.map
 
 
 /***/ }),
@@ -55783,8 +55798,9 @@ exports.deactivate = exports.activate = void 0;
 const vscode = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(2);
 const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60; // cap to 10 min
+let sidebarProvider;
 function activate(context) {
-    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context);
+    sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri, context);
     listenForDocumentSave(context);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
     context.subscriptions.push(vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
@@ -55812,10 +55828,19 @@ function setLastSaveTime(context, date = new Date()) {
 }
 function listenForDocumentSave(context) {
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(() => {
+        var _a, _b;
         const lastSaveTime = getLastSaveTime(context);
         const lastSaveDate = lastSaveTime ? new Date(lastSaveTime) : undefined; // Restores to original format (date object)
         setLastSaveTime(context); // Sets the global to the current time after retrieved
-        console.log(getElapsedTimeInSeconds(lastSaveDate) + " Seconds");
+        const elapsedTimeInSeconds = getElapsedTimeInSeconds(lastSaveDate);
+        console.log(elapsedTimeInSeconds + " Seconds");
+        // Use postMessage to communicate with the webview
+        if ((_a = sidebarProvider._view) === null || _a === void 0 ? void 0 : _a.webview) {
+            (_b = sidebarProvider._view) === null || _b === void 0 ? void 0 : _b.webview.postMessage({
+                type: 'documentSaved',
+                value: elapsedTimeInSeconds,
+            });
+        }
     }));
 }
 // This method is called when your extension is deactivated

@@ -109,9 +109,8 @@
                     setInterval(main, Math.floor(1000 / FPS));
                 });
             }
-            else if (message.type === 'github-username') {
-                githubUsername = message.username;
-                console.log("GITHUB USERNAME: " + githubUsername);
+            else if (message.type === 'documentSaved'){
+                console.log("DOCUMENT SAVE RECEIVED IN MAINNNNN TIME: ", message.value)
             }
             else if (message.type === 'currentState') {
                 $game.setLocalState(message.value);

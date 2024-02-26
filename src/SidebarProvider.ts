@@ -41,6 +41,14 @@ function getCurrentState(context: vscode.ExtensionContext): { [key: string]: any
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }
 
+// export function onSave(context: vscode.ExtensionContext, key: string, value: any): Thenable<void> {
+//     SidebarProvider._view?.webview.postMessage({
+//         type: 'currentState',
+//         value: getCurrentState(this.context),
+//     });
+//     return setCurrentState(context, { [key]: value });
+// }
+
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
