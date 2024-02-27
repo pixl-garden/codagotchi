@@ -54,6 +54,10 @@
 
     export const game = writable(new Game());
 
+    export function handleGitHubLogin() {
+        tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
+    };
+
     export class Room {
         constructor(roomName, enterLogic = false, exitLogic = false, updateLogic = () => {}) {
             this.name = roomName;
