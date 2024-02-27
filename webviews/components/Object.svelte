@@ -693,7 +693,6 @@
             return spritesOut;
         }
 
-
         onScrollUp() {
             if (this.scrollDirection === "horizontal") {
                 this.scrollOffsetX -= this.scrollSpeed;
@@ -713,8 +712,8 @@
         }
 
         generateObjectGrid() {
-            let currentX = this.x - this.scrollOffsetX;
-            let currentY = this.y - this.scrollOffsetY;
+            let currentX = this.scrollOffsetX;
+            let currentY = this.scrollOffsetY;
             const spriteWidth = this.children[0].getWidth();
             const spriteHeight = this.children[0].getHeight();
             console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
@@ -730,21 +729,6 @@
                 }
             }
         }
-    }
-    function constructInventoryObjects(createSlotInstance, items, totalSlots) {
-        let inventoryGrid = [];
-        for(let i = 0; i < totalSlots; i++) {
-            let item = items[i];
-            let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
-            console.log("Slot Instance: ", slotInstance); // Check the instance
-            console.log(slotInstance instanceof GeneratedObject);
-            if(item) {
-                console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
-                slotInstance.addChild(item);
-            }
-            inventoryGrid.push(slotInstance);
-        }
-        return inventoryGrid;
     }
 
     export class toolTip extends GeneratedObject {
@@ -775,13 +759,33 @@
         }
     }
 
+    export class buttonList extends objectGrid {
+        constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
+            let buttons = [];
+            for(let i = 0; i < buttonTexts.length; i++){
+                let button = new buttonConstructor(buttonTexts[i], 0, 0, buttonFunctions[i], buttonWidth, buttonHeight);
+                button.setCoordinate(x, y, z);
+                buttons.push(button);
+            }
+            if(buttonFunctions.length > buttonTexts.length){
+                throw new Error("There are more button functions than button texts");
+            }
+            if(orientation === "horizontal"){
+                super(buttons.length, spacing, 1, 0, x, y, z, buttons, visibleX, visibleY, "horizontal", scrollSpeed);
+            }
+            else{
+                super(1, 0, buttons.length, spacing, x, y, z, buttons, visibleX, visibleY, "vertical", scrollSpeed);
+            }
+        }
+    }
+
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, createItemSlot, toolTip){
-            let constructedItems = constructInventoryObjects(createItemSlot, items, totalSlots);
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip){
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
             this.toolTip = toolTip;
-            this.toolTip.setCoordinate(0, 100, 30);
+            this.toolTip.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
             this.children.forEach((itemSlot) => {
             itemSlot.whileHover = (mouseX, mouseY) => {
@@ -790,6 +794,21 @@
                     this.displayToolTip = true;
                 }
             });
+            function constructInventoryObjects(createSlotInstance, items, totalSlots) {
+                let inventoryGrid = [];
+                for(let i = 0; i < totalSlots; i++) {
+                    let item = items[i];
+                    let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
+                    console.log("Slot Instance: ", slotInstance); // Check the instance
+                    console.log(slotInstance instanceof GeneratedObject);
+                    if(item) {
+                        console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
+                        slotInstance.addChild(item);
+                    }
+                    inventoryGrid.push(slotInstance);
+                }
+                return inventoryGrid;
+            }
         }
 
         onHover(){
