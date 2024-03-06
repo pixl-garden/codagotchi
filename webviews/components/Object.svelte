@@ -36,20 +36,22 @@
             this.callbackQueue = [];
             this.currentStateCallback = null;
             
-            // Movement related properties
-            this.isMoving = false;
-            this.targetX = 0;
-            this.targetY = 0;
-            this.speedFunction = null;
-            this.startX = 0;
-            this.startY = 0;
+            this.previousX = x;
+            this.previousY = y;
+            this.velocityX = 0;
+            this.velocityY = 0;
+
+            // Constants for second-order dynamics
+            this.k1 = 7.0; // Damping ratio
+            this.k2 = .5; // Natural frequency
+            this.k3 = 2.0; // Reference input
+
+            this.targetX = x; // Target position X
+            this.targetY = y; // Target position Y
             this.accumulatedMoveX = 0;
             this.accumulatedMoveY = 0;
+            this.isMoving = false; // Is object currently moving
 
-            this.bouncing = false;
-            this.bounceFrame = 0;
-            this.maxBounceFrames = 3; // Total frames for the bounce
-            this.bounceHeight = 1; // Height of the bounce
             this.children = [];
             this.hoverWithChildren = false;
             this.renderChildren = true;
@@ -58,6 +60,8 @@
             this.passMouseCoords = false;
             this.mouseX = null;
             this.mouseY = null;
+            this.framesPerSecond = 30;
+            this.timeStep = 1 / this.framesPerSecond;
         }
         getWidth() {
             return this.spriteWidth;
@@ -111,13 +115,7 @@
             }
         }
 
-        // Basic movement function (z axis unchanged)
-        move(deltaX, deltaY) {
-            // console.log(`Moving from (${this.x}, ${this.y}) by (${deltaX}, ${deltaY})`);
-            this.x += deltaX;
-            this.y += deltaY;
-            // this.z remains unchanged
-        }
+
         getChildren() {
             return this.children;
         }
@@ -148,77 +146,68 @@
 
 
         // Function to start moving towards a target
-        startMovingTo(targetX, targetY, speedFunction, attachedObjs = []) {
-            this.targetX = targetX;
-            this.targetY = targetY;
-            this.speedFunction = speedFunction;
+        startMovingTo(newTargetX, newTargetY) {
+            this.targetX = newTargetX;
+            this.targetY = newTargetY;
             this.isMoving = true;
-            this.startX = this.x;
-            this.startY = this.y;
-            this.attachedObjs = attachedObjs;
         }
 
-        // Function to handle the movement towards the target
-        moveToTarget() {
-            let diffX = this.targetX - this.x;
-            let diffY = this.targetY - this.y;
-
-            let remainingDistanceX = Math.abs(diffX);
-            let remainingDistanceY = Math.abs(diffY);
-
-            if (remainingDistanceX < 1 && remainingDistanceY < 1 && !this.bouncing) {
-                // Start bouncing
-                this.bouncing = true;
-                this.bounceFrame = 0;
-                this.bounceDirection = Math.sign(diffY); // Determine the direction of the bounce
+        updatePosition() {
+            if (!this.isMoving) {
+                return; // No need to update if the object is not moving
             }
 
-            if (!this.bouncing) {
-                // Normal movement logic
-                let desiredMoveX = Math.sign(diffX) * this.speedFunction(remainingDistanceX, Math.abs(this.targetX - this.startX));
-                let desiredMoveY = Math.sign(diffY) * this.speedFunction(remainingDistanceY, Math.abs(this.targetY - this.startY));
+            // Calculate the estimated velocity
+            let estimatedVelocityX = this.x - this.previousX;
+            let estimatedVelocityY = this.y - this.previousY;
 
-                desiredMoveX = Math.min(Math.abs(desiredMoveX), remainingDistanceX) * Math.sign(desiredMoveX);
-                desiredMoveY = Math.min(Math.abs(desiredMoveY), remainingDistanceY) * Math.sign(desiredMoveY);
+            // Update previous positions
+            this.previousX = this.x;
+            this.previousY = this.y;
 
-                this.accumulatedMoveX += desiredMoveX;
-                this.accumulatedMoveY += desiredMoveY;
+            // Calculate the acceleration based on second-order dynamics
+            let accelerationX = this.k3 * (this.targetX - this.x) - this.k1 * estimatedVelocityX;
+            let accelerationY = this.k3 * (this.targetY - this.y) - this.k1 * estimatedVelocityY;
 
-                let moveX = Math.round(this.accumulatedMoveX);
-                let moveY = Math.round(this.accumulatedMoveY);
+            // Update velocities
+            this.velocityX += accelerationX * this.timeStep;
+            this.velocityY += accelerationY * this.timeStep;
 
-                this.move(moveX, moveY);
+            // Accumulate sub-pixel movements
+            this.accumulatedMoveX += this.velocityX;
+            this.accumulatedMoveY += this.velocityY;
 
-                for(let i = 0; i < this.attachedObjs.length; i++){
-                    this.attachedObjs[i].move(moveX, moveY);
-                }
+            // Update positions by integer values if accumulated movement exceeds 1 pixel
+            let moveX = Math.round(this.accumulatedMoveX);
+            let moveY = Math.round(this.accumulatedMoveY);
 
-                this.accumulatedMoveX -= moveX;
-                this.accumulatedMoveY -= moveY;
-            } else if (this.bounceFrame < this.maxBounceFrames) {
-                // Bounce logic
-                let bounceAmount = Math.round(this.bounceHeight * Math.sin(Math.PI * this.bounceFrame / this.maxBounceFrames));
-                if (this.bounceDirection === 1) {
-                    // Bounce down
-                    this.y = this.targetY + bounceAmount;
-                } else {
-                    // Bounce up
-                    this.y = this.targetY - bounceAmount;
-                }
-                this.bounceFrame++;
-            } else {
-                // End of bounce, settle at the target
-                this.isMoving = false;
-                this.bouncing = false;
+            // Apply the integer movement
+            this.x += moveX;
+            this.y += moveY;
+
+            // Subtract the integer movement from the accumulated movement
+            this.accumulatedMoveX -= moveX;
+            this.accumulatedMoveY -= moveY;
+
+            // Check if the object has reached (or overshot) the target position
+            if ((Math.abs(this.targetX - this.x) < 1) && (Math.abs(this.targetY - this.y) < 1)) {
+                this.x = this.targetX;
                 this.y = this.targetY;
+
+                // Explicitly reset velocities and accumulated movements
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.accumulatedMoveX = 0;
+                this.accumulatedMoveY = 0;
+
+                this.isMoving = false;
             }
         }
 
 
         nextFrame() {
-            if (this.isMoving) {
-                // Continue moving towards the target
-                this.moveToTarget();
+            if(this.isMoving){
+                this.updatePosition();
             }
             // Avoid unneccessary frame update if object has only one state and no queued states
             if(this.state.length <= 1 && this.stateQueue.length == 0){
@@ -812,7 +801,7 @@
         }
 
         onHover(){
-            //this is really unintuitive, i honestly don't know why this works but it does
+            //this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
             if(this.hoveredChild != null){
                 this.displayToolTip = false;
             }

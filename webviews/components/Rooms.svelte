@@ -32,9 +32,10 @@
         
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
-        const backToMain = new Button('backToMain', 0, 0, () => {
+        const backToMain = new smallLetterButton('<', 3, 2, () => {
             get(game).setCurrentRoom('mainRoom');
-        }, 1);
+            petObject.setCoordinate(36, 54, 0)
+        }, 10);
 
     //----------------MAIN ROOM----------------
         //STATUS BAR INSTANTIATION
@@ -99,10 +100,10 @@
         }, 0);
         let customizeUI = new Background('customizeUI', 9, 88, -10, () => {
             if(customizeUI.y < 22){
-                customizeUI.startMovingTo(9, 88, sineWaveSpeed, [leftHatArrow, rightHatArrow, petObject]);
+                customizeUI.startMovingTo(9, 88);
             }
             else{
-                customizeUI.startMovingTo(9, 21, sineWaveSpeed, [leftHatArrow, rightHatArrow, petObject]);
+                customizeUI.startMovingTo(9, 21, sineWaveSpeed);
             }
         });
         //ROOM INSTANTIATION
