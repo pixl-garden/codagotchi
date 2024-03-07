@@ -471,10 +471,12 @@
 
         rotateColor() {
             if( this.color != "transparent" ) {
-                if( this.colorArrayIndex < this.colorArray.length ) {
+                if( this.colorArrayIndex < this.colorArray.length-1 ) {
+                    console.log("COLOR INCREMENT")
                     this.colorArrayIndex++;
                 }
                 else {
+                    console.log("COLOR RESET")
                     this.colorArrayIndex = 0;
                 }
             }
