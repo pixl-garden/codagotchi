@@ -485,11 +485,11 @@
         }
 
         rotateSize() {
-            if( this.brushSize < 10 ) {
-                this.brushSize++;
+            if( this.brushSize < 20 ) {
+                this.brushSize += 2;
             }
             else {
-                this.brushSize = 0;
+                this.brushSize = 2;
             }
         }
 
