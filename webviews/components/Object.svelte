@@ -14,6 +14,8 @@
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
 
+
+    //TODO: MOVEMENT NEEDS WORK, BEHAVES DIFFERENTLY IN DIFFERENT DIRECTIONS
     export class GeneratedObject {
         constructor(sprites, states, x, y, z, actionOnClick = null) {
             if (!sprites) {
@@ -149,6 +151,7 @@
         startMovingTo(newTargetX, newTargetY) {
             this.targetX = newTargetX;
             this.targetY = newTargetY;
+            console.log("MOVING TO: ", this.targetX, this.targetY);
             this.isMoving = true;
         }
 
@@ -188,6 +191,11 @@
             // Subtract the integer movement from the accumulated movement
             this.accumulatedMoveX -= moveX;
             this.accumulatedMoveY -= moveY;
+
+            console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
+            console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
+            console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
+    
 
             // Check if the object has reached (or overshot) the target position
             if ((Math.abs(this.targetX - this.x) < 1) && (Math.abs(this.targetY - this.y) < 1)) {
@@ -684,18 +692,18 @@
 
         onScrollUp() {
             if (this.scrollDirection === "horizontal") {
-                this.scrollOffsetX -= this.scrollSpeed;
+                this.scrollOffsetX += this.scrollSpeed;
             } else { // Assuming horizontal scrolling
-                this.scrollOffsetY -= this.scrollSpeed;
+                this.scrollOffsetY += this.scrollSpeed;
             }
             this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
 
         onScrollDown() {
             if (this.scrollDirection === "horizontal") {
-                this.scrollOffsetX += this.scrollSpeed;
+                this.scrollOffsetX -= this.scrollSpeed;
             } else { // Assuming horizontal scrolling
-                this.scrollOffsetY += this.scrollSpeed;
+                this.scrollOffsetY -= this.scrollSpeed;
             }
             this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
@@ -748,6 +756,7 @@
         }
     }
 
+    //TODO: fix z axis mouse interactions for buttonGrid (i think this would be done in mouseEvents)
     export class buttonList extends objectGrid {
         constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
             let buttons = [];
@@ -768,6 +777,7 @@
         }
     }
 
+    //TODO: fix mouse movement off to the left of the inventory grid
     export class inventoryGrid extends objectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots);
@@ -776,6 +786,7 @@
             this.toolTip = toolTip;
             this.toolTip.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
+            this.hoverWithChildren = true;
             this.children.forEach((itemSlot) => {
             itemSlot.whileHover = (mouseX, mouseY) => {
                     console.log("Displaying tooltip");
@@ -800,7 +811,11 @@
             }
         }
 
+        //TODO: add a onChildHover and onChildStopHover function to the object class to handle hover events for children
+        //also make hover events, hoverWithChildren, hoveredChild work like they should
+
         onHover(){
+            console.log("HOVERING, HOVERED CHILD: ", this.hoveredChild);
             //this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
             if(this.hoveredChild != null){
                 this.displayToolTip = false;
@@ -808,12 +823,16 @@
         }
 
         onStopHover(){
+            console.log("HOVER STOPPED, HOVERED CHILD: ", this.hoveredChild);
             if(this.hoveredChild != null){
                 //get the item from the hovered item slot
                 let item = this.hoveredChild.children[0];
                 this.toolTip.setItem(item);
                 this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
                 this.displayToolTip = true;
+            }
+            if(this.hoveredChild == null){
+                this.displayToolTip = false;
             }
         }
 

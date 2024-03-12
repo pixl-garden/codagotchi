@@ -3644,61 +3644,114 @@ var app = (function () {
     	charmap,
     spriteWidth,
     spriteHeight,
-    backgroundColor = null,
+    backgroundColor,
+    renderColor,
     letterSpacing = 0,
-    charMappingString
+    charMappingString,
+    textShadowColor = null,
+    textShadowXOffset = 0,
+    textShadowYOffset = 0
     ) {
     	let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
-
-    	// Convert charMappingString to an array of characters
     	const charsArray = Array.from(charMappingString);
-
-    	// Create mapping from charsArray
     	const charToSpriteIndex = {};
 
     	for (let i = 0; i < charsArray.length; i++) {
     		charToSpriteIndex[charsArray[i]] = i;
     	}
 
-    	//takes in a string and returns a sprite matrix for the entire text
     	return function renderText(text) {
-    		const matrix = Array(spriteHeight).fill(null).map(() => []);
+    		// Create a larger matrix to accommodate shadows
+    		const matrixWidth = text.length * (spriteWidth + letterSpacing);
 
-    		for (const char of text) {
-    			if (char === '\n') {
-    				// If newline is encountered, this renderer currently does not handle multi-line text
-    				// Therefore, we will reset the matrix, but you may adjust as needed for multi-line support
-    				matrix.forEach(row => row.length = 0);
+    		const matrixHeight = spriteHeight + Math.abs(textShadowYOffset);
+    		const matrix = Array(matrixHeight).fill(null).map(() => Array(matrixWidth).fill(backgroundColor));
 
-    				continue;
-    			}
+    		for (let i = 0; i < text.length; i++) {
+    			const char = text[i];
 
     			if (charToSpriteIndex[char] !== undefined) {
     				const spriteIndex = charToSpriteIndex[char];
+    				const sprite = charSprites[spriteIndex];
 
-    				for (let y = 0; y < spriteHeight; y++) {
-    					matrix[y].push(...charSprites[spriteIndex][y]);
+    				// Render shadow first if enabled
+    				if (textShadowColor !== null) {
+    					for (let y = 0; y < spriteHeight; y++) {
+    						for (let x = 0; x < spriteWidth; x++) {
+    							// Calculate position for shadow
+    							const posX = i * (spriteWidth + letterSpacing) + x + textShadowXOffset;
+
+    							const posY = y + textShadowYOffset;
+
+    							// Apply shadow color if the current pixel is not transparent
+    							if (sprite[y][x] !== backgroundColor) {
+    								matrix[posY][posX] = textShadowColor;
+    							}
+    						}
+    					}
     				}
 
-    				// Apply letterSpacing
-    				if (letterSpacing !== 0) {
-    					for (let y = 0; y < spriteHeight; y++) {
-    						for (let s = 0; s < Math.abs(letterSpacing); s++) {
-    							if (letterSpacing > 0) {
-    								matrix[y].push(backgroundColor); // Add spacing with background color
-    							} else {
-    								matrix[y].pop(); // Remove spacing (ensure not to remove more than the sprite width)
-    							}
+    				// Then render the character itself
+    				for (let y = 0; y < spriteHeight; y++) {
+    					for (let x = 0; x < spriteWidth; x++) {
+    						// Calculate position for character
+    						const posX = i * (spriteWidth + letterSpacing) + x;
+
+    						const posY = y;
+
+    						// Apply character color if the current pixel is not transparent
+    						if (sprite[y][x] !== backgroundColor) {
+    							matrix[posY][posX] = renderColor;
     						}
     					}
     				}
     			}
     		}
 
-    		return backgroundColor
-    		? replaceMatrixColor(matrix, backgroundColor, 'transparent')
-    		: matrix;
+    		// Finally, convert all backgroundColor pixels to 'transparent'
+    		for (let y = 0; y < matrixHeight; y++) {
+    			for (let x = 0; x < matrixWidth; x++) {
+    				if (matrix[y][x] === backgroundColor) {
+    					matrix[y][x] = 'transparent';
+    				}
+    			}
+    		}
+
+    		// Now trim the empty columns from the matrix
+    		let firstNonEmptyColumn = 0;
+
+    		let lastNonEmptyColumn = matrixWidth - 1;
+
+    		// Find the first non-empty column from the left
+    		while (firstNonEmptyColumn < matrixWidth && isColumnEmpty(matrix, firstNonEmptyColumn)) {
+    			firstNonEmptyColumn++;
+    		}
+
+    		// Find the first non-empty column from the right
+    		while (lastNonEmptyColumn >= 0 && isColumnEmpty(matrix, lastNonEmptyColumn)) {
+    			lastNonEmptyColumn--;
+    		}
+
+    		// If there are empty columns on either side, slice the matrix to exclude them
+    		if (firstNonEmptyColumn > 0 || lastNonEmptyColumn < matrixWidth - 1) {
+    			for (let i = 0; i < matrix.length; i++) {
+    				matrix[i] = matrix[i].slice(firstNonEmptyColumn, lastNonEmptyColumn + 1);
+    			}
+    		}
+
+    		return matrix;
     	};
+    }
+
+    // Function to check if a column is empty (transparent)
+    function isColumnEmpty(matrix, columnIndex) {
+    	for (let i = 0; i < matrix.length; i++) {
+    		if (matrix[i][columnIndex] !== 'transparent') {
+    			return false;
+    		}
+    	}
+
+    	return true;
     }
 
     /* webviews\components\SpriteComponent.svelte generated by Svelte v3.59.2 */
@@ -4496,6 +4549,7 @@ var app = (function () {
     	startMovingTo(newTargetX, newTargetY) {
     		this.targetX = newTargetX;
     		this.targetY = newTargetY;
+    		console.log("MOVING TO: ", this.targetX, this.targetY);
     		this.isMoving = true;
     	}
 
@@ -4543,6 +4597,9 @@ var app = (function () {
     		this.accumulatedMoveX -= moveX;
 
     		this.accumulatedMoveY -= moveY;
+    		console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
+    		console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
+    		console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
 
     		// Check if the object has reached (or overshot) the target position
     		if (Math.abs(this.targetX - this.x) < 1 && Math.abs(this.targetY - this.y) < 1) {
@@ -5060,10 +5117,10 @@ var app = (function () {
 
     	onScrollUp() {
     		if (this.scrollDirection === "horizontal") {
-    			this.scrollOffsetX -= this.scrollSpeed;
+    			this.scrollOffsetX += this.scrollSpeed;
     		} else {
     			// Assuming horizontal scrolling
-    			this.scrollOffsetY -= this.scrollSpeed;
+    			this.scrollOffsetY += this.scrollSpeed;
     		}
 
     		this.generateObjectGrid(); // Re-generate grid to reflect new positions
@@ -5071,10 +5128,10 @@ var app = (function () {
 
     	onScrollDown() {
     		if (this.scrollDirection === "horizontal") {
-    			this.scrollOffsetX += this.scrollSpeed;
+    			this.scrollOffsetX -= this.scrollSpeed;
     		} else {
     			// Assuming horizontal scrolling
-    			this.scrollOffsetY += this.scrollSpeed;
+    			this.scrollOffsetY -= this.scrollSpeed;
     		}
 
     		this.generateObjectGrid(); // Re-generate grid to reflect new positions
@@ -5160,6 +5217,7 @@ var app = (function () {
     		this.toolTip = toolTip;
     		this.toolTip.setCoordinate(0, 0, 30);
     		this.displayToolTip = false;
+    		this.hoverWithChildren = true;
 
     		this.children.forEach(itemSlot => {
     			itemSlot.whileHover = (mouseX, mouseY) => {
@@ -5190,7 +5248,11 @@ var app = (function () {
     		}
     	}
 
+    	//TODO: add a onChildHover and onChildStopHover function to the object class to handle hover events for children
+    	//also make hover events, hoverWithChildren, hoveredChild work like they should
     	onHover() {
+    		console.log("HOVERING, HOVERED CHILD: ", this.hoveredChild);
+
     		//this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
     		if (this.hoveredChild != null) {
     			this.displayToolTip = false;
@@ -5198,6 +5260,8 @@ var app = (function () {
     	}
 
     	onStopHover() {
+    		console.log("HOVER STOPPED, HOVERED CHILD: ", this.hoveredChild);
+
     		if (this.hoveredChild != null) {
     			//get the item from the hovered item slot
     			let item = this.hoveredChild.children[0];
@@ -5205,6 +5269,10 @@ var app = (function () {
     			this.toolTip.setItem(item);
     			this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
     			this.displayToolTip = true;
+    		}
+
+    		if (this.hoveredChild == null) {
+    			this.displayToolTip = false;
     		}
     	}
 
@@ -5691,12 +5759,13 @@ var app = (function () {
     	//----------------FONT RENDERERS----------------
     	const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
 
-    	//createTextRenderer(image, charWidth, charHeight, color, letterSpacing, charMap)
-    	let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
+    	//createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
+    	//textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
+    	let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
 
-    	createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
-    	let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
-    	createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", -4, standardCharMap);
+    	createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
+    	let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
+    	createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#000000", -4, standardCharMap);
 
     	//----------------BUTTON CLASS GENERATORS----------------
     	//generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -5720,7 +5789,7 @@ var app = (function () {
     	const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
     	const friendTitle = generateButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
     	const friendButton = generateButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff', '#1b2e43', '#2b4669', "left", 2);
-    	const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
+    	const dropDownButton = new generateButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
     	const paintButton = generateButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89', '#848B97', '#424D64');
 
     	//---------------GENERAL OBJECTS----------------

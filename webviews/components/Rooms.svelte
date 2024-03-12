@@ -10,11 +10,12 @@
     export function preloadObjects(){
     //----------------FONT RENDERERS----------------
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
-        //createTextRenderer(image, charWidth, charHeight, color, letterSpacing, charMap)
-        let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", -1, standardCharMap);
-        let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", -4, standardCharMap);
-        let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", -2, standardCharMap);
-        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", -4, standardCharMap);        
+        //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
+            //textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
+        let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
+        let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
+        let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
+        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#000000", -4, standardCharMap);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -27,7 +28,7 @@
         const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
         const friendTitle = generateButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
         const friendButton = generateButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
-        const dropDownButton = new generateButtonClass(58, 12, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
+        const dropDownButton = new generateButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const paintButton = generateButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
         
     //---------------GENERAL OBJECTS----------------
