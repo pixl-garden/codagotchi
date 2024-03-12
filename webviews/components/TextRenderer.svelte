@@ -4,59 +4,109 @@
 
     //export a function that renders text
     export function createTextRenderer(
-        charmap,
-        spriteWidth,
-        spriteHeight,
-        backgroundColor = null,
-        letterSpacing = 0,
-        charMappingString,
-    ) {
-        let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
-        // Convert charMappingString to an array of characters
-        const charsArray = Array.from(charMappingString);
-        // Create mapping from charsArray
-        const charToSpriteIndex = {};
-        for (let i = 0; i < charsArray.length; i++) {
-            charToSpriteIndex[charsArray[i]] = i;
-        }
+    charmap,
+    spriteWidth,
+    spriteHeight,
+    backgroundColor,
+    renderColor,
+    letterSpacing = 0,
+    charMappingString,
+    textShadowColor = null,
+    textShadowXOffset = 0,
+    textShadowYOffset = 0
+) {
+    let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
+    const charsArray = Array.from(charMappingString);
+    const charToSpriteIndex = {};
+    for (let i = 0; i < charsArray.length; i++) {
+        charToSpriteIndex[charsArray[i]] = i;
+    }
 
-        //takes in a string and returns a sprite matrix for the entire text
-        return function renderText(text) {
-            const matrix = Array(spriteHeight)
-                .fill(null)
-                .map(() => []);
+    return function renderText(text) {
+        // Create a larger matrix to accommodate shadows
+        const matrixWidth = text.length * (spriteWidth + letterSpacing);
+        const matrixHeight = spriteHeight + Math.abs(textShadowYOffset);
+        const matrix = Array(matrixHeight).fill(null).map(() => Array(matrixWidth).fill(backgroundColor));
 
-            for (const char of text) {
-                if (char === '\n') {
-                    // If newline is encountered, this renderer currently does not handle multi-line text
-                    // Therefore, we will reset the matrix, but you may adjust as needed for multi-line support
-                    matrix.forEach((row) => (row.length = 0));
-                    continue;
-                }
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (charToSpriteIndex[char] !== undefined) {
+                const spriteIndex = charToSpriteIndex[char];
+                const sprite = charSprites[spriteIndex];
 
-                if (charToSpriteIndex[char] !== undefined) {
-                    const spriteIndex = charToSpriteIndex[char];
+                // Render shadow first if enabled
+                if (textShadowColor !== null) {
                     for (let y = 0; y < spriteHeight; y++) {
-                        matrix[y].push(...charSprites[spriteIndex][y]);
-                    }
-
-                    // Apply letterSpacing
-                    if (letterSpacing !== 0) {
-                        for (let y = 0; y < spriteHeight; y++) {
-                            for (let s = 0; s < Math.abs(letterSpacing); s++) {
-                                if (letterSpacing > 0) {
-                                    matrix[y].push(backgroundColor); // Add spacing with background color
-                                } else {
-                                    matrix[y].pop(); // Remove spacing (ensure not to remove more than the sprite width)
-                                }
+                        for (let x = 0; x < spriteWidth; x++) {
+                            // Calculate position for shadow
+                            const posX = i * (spriteWidth + letterSpacing) + x + textShadowXOffset;
+                            const posY = y + textShadowYOffset;
+                            // Apply shadow color if the current pixel is not transparent
+                            if (sprite[y][x] !== backgroundColor) {
+                                matrix[posY][posX] = textShadowColor;
                             }
                         }
                     }
                 }
+
+                // Then render the character itself
+                for (let y = 0; y < spriteHeight; y++) {
+                    for (let x = 0; x < spriteWidth; x++) {
+                        // Calculate position for character
+                        const posX = i * (spriteWidth + letterSpacing) + x;
+                        const posY = y;
+                        // Apply character color if the current pixel is not transparent
+                        if (sprite[y][x] !== backgroundColor) {
+                            matrix[posY][posX] = renderColor;
+                        }
+                    }
+                }
             }
-            return backgroundColor ? replaceMatrixColor(matrix, backgroundColor, 'transparent') : matrix;
-        };
+        }
+
+        // Finally, convert all backgroundColor pixels to 'transparent'
+        for (let y = 0; y < matrixHeight; y++) {
+            for (let x = 0; x < matrixWidth; x++) {
+                if (matrix[y][x] === backgroundColor) {
+                    matrix[y][x] = 'transparent';
+                }
+            }
+        }
+
+        // Now trim the empty columns from the matrix
+        let firstNonEmptyColumn = 0;
+        let lastNonEmptyColumn = matrixWidth - 1;
+
+        // Find the first non-empty column from the left
+        while (firstNonEmptyColumn < matrixWidth && isColumnEmpty(matrix, firstNonEmptyColumn)) {
+            firstNonEmptyColumn++;
+        }
+
+        // Find the first non-empty column from the right
+        while (lastNonEmptyColumn >= 0 && isColumnEmpty(matrix, lastNonEmptyColumn)) {
+            lastNonEmptyColumn--;
+        }
+
+        // If there are empty columns on either side, slice the matrix to exclude them
+        if (firstNonEmptyColumn > 0 || lastNonEmptyColumn < matrixWidth - 1) {
+            for (let i = 0; i < matrix.length; i++) {
+                matrix[i] = matrix[i].slice(firstNonEmptyColumn, lastNonEmptyColumn + 1);
+            }
+        }
+
+        return matrix;
+    };
+}
+
+// Function to check if a column is empty (transparent)
+function isColumnEmpty(matrix, columnIndex) {
+    for (let i = 0; i < matrix.length; i++) {
+        if (matrix[i][columnIndex] !== 'transparent') {
+            return false;
+        }
     }
+    return true;
+}
 
     // Example instantiation
     // const renderBasicText = createTextRenderer('basic.png', 8, 8, 'black', -3, ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
