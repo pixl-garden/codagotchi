@@ -479,10 +479,12 @@
 
         rotateColor() {
             if( this.color != "transparent" ) {
-                if( this.colorArrayIndex < this.colorArray.length ) {
+                if( this.colorArrayIndex < this.colorArray.length-1 ) {
+                    console.log("COLOR INCREMENT")
                     this.colorArrayIndex++;
                 }
                 else {
+                    console.log("COLOR RESET")
                     this.colorArrayIndex = 0;
                 }
             }
@@ -491,11 +493,11 @@
         }
 
         rotateSize() {
-            if( this.brushSize < 10 ) {
-                this.brushSize++;
+            if( this.brushSize < 20 ) {
+                this.brushSize += 2;
             }
             else {
-                this.brushSize = 0;
+                this.brushSize = 2;
             }
         }
 
