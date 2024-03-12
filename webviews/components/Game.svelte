@@ -1,5 +1,8 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
+    import { onAuthStateChanged } from 'firebase/auth';
+    import { auth } from '../firebase/firebaseConfig.js';
+    import { listenToUserPublicData } from '../firebase/firebaseClientHelpers.js'; 
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -11,6 +14,7 @@
             this.localState = {};
 
             Game.instance = this;
+            this.initializeUser();
             this.getGlobalState();
         }
 
@@ -50,6 +54,20 @@
         getLocalState () {
             return game.localState
         }
+
+        initializeUser() {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                listenToUserPublicData(user.uid, (userData) => {
+                    this.setLocalState({ ...this.localState, user: userData });
+                    user.set(userData);
+                });
+            } else {
+                this.setLocalState({ ...this.localState, user: null });
+                user.set(null); 
+            }
+        });
+      }
     }
 
     export const game = writable(new Game());

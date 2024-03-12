@@ -1,6 +1,6 @@
 {
     "extends": "@tsconfig/svelte/tsconfig.json",
-    "include": [".//*", ".//.svelte"],
+    "include": [".//*", ".//.svelte", "src/experienceAccumulator.js"],
     "exclude": ["../node_modules/"],
     "compilerOptions": {
         "strict": true,
