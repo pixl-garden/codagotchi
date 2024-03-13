@@ -1,3 +1,4 @@
+
 <script context="module">
     import { Object, Button, NavigationButton, PixelCanvas } from './Object.svelte';
 
@@ -6,7 +7,7 @@
     let lastHoveredChild = null;
     let isMouseDown = false;
     let activeDragObject = null;
-    let hoveredObject = null;
+    let newHoveredObject = null;
     let lastCoordinates = { x: undefined, y: undefined };
     const GRIDWIDTH = 128;
 
@@ -77,10 +78,13 @@
         let foundObjects = [];
         let foundObjectFlag = false;
 
-        const findObjectsRecursively = (obj, parent = null) => {
-            let objX = (parent ? parent.x : 0) + obj.x;
-            let objY = (parent ? parent.y : 0) + obj.y;
+        const findObjectsRecursively = (obj, parent = null, parentX = 0, parentY = 0) => {
+            let objX = parentX + obj.x;
+            let objY = parentY + obj.y;
             let childFound = false;
+            if(parent != null){
+                parent.hoveredChild = obj;
+            }
 
             // Check if the coordinates are within the object's bounds
             if (x >= objX && x <= objX + obj.spriteWidth && 
@@ -111,7 +115,7 @@
                 let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
                 for (let child of children) {
                     // Recursively check each child
-                    if (findObjectsRecursively(child, obj)) {
+                    if (findObjectsRecursively(child, obj, objX, objY)) {
                         childFound = true; // A child (or deeper descendant) is hovered, no need to check further siblings
                         break;
                     }
@@ -136,7 +140,7 @@
     // Simplifying hover logic
     function updateHoverState({ xPixelCoord, yPixelCoord, event, gameInstance }) {
         let foundObjects = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
-        let newHoveredObject = foundObjects.length > 0 ? foundObjects[0] : null;
+        newHoveredObject = foundObjects.length > 0 ? foundObjects[0] : null;
 
         let childObjects = foundObjects.slice(1); // Assuming child objects are returned after the parent
 
@@ -175,7 +179,7 @@
             //     foundObjects[i].mouseX = xPixelCoord;
             //     foundObjects[i].mouseY = yPixelCoord;
             // }
-            console.log(foundObjects[i].mouseX, foundObjects[i].mouseY);
+            // console.log("FOUND OBJECT: ", foundObjects[i], "X: ", foundObjects[i].mouseX, "Y: ", foundObjects[i].mouseY);
         }
     }
 
@@ -210,17 +214,17 @@
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
         if (isMouseDown) {
+            console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
             // Ensures hoveredObject is the one being dragged
-            if (hoveredObject && hoveredObject === activeDragObject) {
+            if (newHoveredObject && newHoveredObject === activeDragObject) {
+                console.log("DRAGGING")
                 // Check if hoveredObject is an instance of PixelCanvas
-                if (hoveredObject instanceof PixelCanvas) {
+                if (newHoveredObject instanceof PixelCanvas) {
+                    console.log("DRAGGING ON CANVS")
                     // For PixelCanvas, we use drawLine to handle dragging
-                    // Adjust coordinates relative to PixelCanvas's offset
-                    const adjustedX = gridX - hoveredObject.offsetX;
-                    const adjustedY = gridY - hoveredObject.offsetY;
                     if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
-                        // Draw line from last coordinates to current, adjusted for PixelCanvas offset
-                        hoveredObject.drawLine(lastCoordinates.x - hoveredObject.offsetX, lastCoordinates.y - hoveredObject.offsetY, adjustedX, adjustedY);
+                        // Draw line from last coordinates to current
+                        newHoveredObject.drawLine(lastCoordinates.x, lastCoordinates.y, gridX, gridY);
                     }
                 } else {
                     // Handle other objects that are not PixelCanvas, if necessary

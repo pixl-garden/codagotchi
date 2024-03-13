@@ -56,7 +56,7 @@
             get(game).getCurrentRoom().removeObject( mainMenu );
             get(game).getCurrentRoom().addObject( mainMenuButton );}
         ]
-        const mainMenu = new buttonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 0);
+        const mainMenu = new buttonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
         //BUTTON TO OPEN MAIN MENU
         const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
@@ -202,7 +202,7 @@
         
     //----------------INVENTORY ROOM----------------
         //ITEM INSTANTIATION (PLACEHOLDER)
-        let testItem1 = new Item("coffee");
+        let testItem1 = new Item("coffee", 0, 0, 0);
         let testItem2 = new Item("tomatoSoup", 0, 0, 0)
         let testItem3 = new Item("fishingRod", 0, 0, 0)
         let testItem4 = new Item("potion", 0, 0, 0)

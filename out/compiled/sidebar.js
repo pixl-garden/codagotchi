@@ -5225,7 +5225,16 @@ var app = (function () {
     			itemSlot.whileHover = (mouseX, mouseY) => {
     				console.log("Displaying tooltip");
     				this.whileHover();
+    			};
+
+    			itemSlot.onHover = () => {
     				this.displayToolTip = true;
+    				itemSlot.updateState("hovered");
+    			};
+
+    			itemSlot.onStopHover = () => {
+    				this.displayToolTip = false;
+    				itemSlot.updateState("default");
     			};
     		});
 
@@ -5254,17 +5263,15 @@ var app = (function () {
     	//also make hover events, hoverWithChildren, hoveredChild work like they should
     	onHover() {
     		console.log("HOVERING, HOVERED CHILD: ", this.hoveredChild);
+    	} //this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
+    	//     this.displayToolTip = false;
 
-    		//this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
-    		if (this.hoveredChild != null) {
-    			this.displayToolTip = false;
-    		}
-    	}
-
+    	// }
+    	// this.displayToolTip = false;
     	onStopHover() {
     		console.log("HOVER STOPPED, HOVERED CHILD: ", this.hoveredChild);
 
-    		if (this.hoveredChild != null) {
+    		if (this.hoveredChild != null && this.hoveredChild.children.length > 0) {
     			//get the item from the hovered item slot
     			let item = this.hoveredChild.children[0];
 
@@ -5337,6 +5344,8 @@ var app = (function () {
     let lastHoveredChild = null;
     let isMouseDown = false;
     let activeDragObject = null;
+    let newHoveredObject = null;
+    let lastCoordinates = { x: undefined, y: undefined };
     const GRIDWIDTH = 128;
 
     // Utility function for repetitive calculations
@@ -5403,10 +5412,14 @@ var app = (function () {
     	let foundObjects = [];
     	let foundObjectFlag = false;
 
-    	const findObjectsRecursively = (obj, parent = null) => {
-    		let objX = (parent ? parent.x : 0) + obj.x;
-    		let objY = (parent ? parent.y : 0) + obj.y;
+    	const findObjectsRecursively = (obj, parent = null, parentX = 0, parentY = 0) => {
+    		let objX = parentX + obj.x;
+    		let objY = parentY + obj.y;
     		let childFound = false;
+
+    		if (parent != null) {
+    			parent.hoveredChild = obj;
+    		}
 
     		// Check if the coordinates are within the object's bounds
     		if (x >= objX && x <= objX + obj.spriteWidth && y >= objY && y <= objY + obj.spriteHeight) {
@@ -5439,7 +5452,7 @@ var app = (function () {
 
     			for (let child of children) {
     				// Recursively check each child
-    				if (findObjectsRecursively(child, obj)) {
+    				if (findObjectsRecursively(child, obj, objX, objY)) {
     					childFound = true; // A child (or deeper descendant) is hovered, no need to check further siblings
     					break;
     				}
@@ -5465,7 +5478,7 @@ var app = (function () {
     // Simplifying hover logic
     function updateHoverState({ xPixelCoord, yPixelCoord, event, gameInstance }) {
     	let foundObjects = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
-    	let newHoveredObject = foundObjects.length > 0 ? foundObjects[0] : null;
+    	newHoveredObject = foundObjects.length > 0 ? foundObjects[0] : null;
     	let childObjects = foundObjects.slice(1); // Assuming child objects are returned after the parent
 
     	// Determine if the new hovered object is different from the last hovered object or if the child object has changed
@@ -5505,13 +5518,11 @@ var app = (function () {
     	console.log(foundObjects);
 
     	for (let i = 0; i < foundObjects.length; i++) {
-    		// if(foundObjects[i].passMouseCoords){
-    		//     foundObjects[i].mouseX = xPixelCoord;
-    		//     foundObjects[i].mouseY = yPixelCoord;
-    		// }
-    		console.log(foundObjects[i].mouseX, foundObjects[i].mouseY);
-    	}
-    }
+    		
+    	} // if(foundObjects[i].passMouseCoords){
+    	//     foundObjects[i].mouseX = xPixelCoord;
+    } //     foundObjects[i].mouseY = yPixelCoord;
+    // }
 
     function handleClick(event, gameInstance) {
     	let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
@@ -5526,12 +5537,14 @@ var app = (function () {
     function handleMouseDown(event, gameInstance) {
     	event.preventDefault();
     	isMouseDown = true;
-    	getEventDetails(event, GRIDWIDTH);
+    	let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+    	lastCoordinates = { x: gridX, y: gridY };
     	handleClick(event, gameInstance); // Initial click handling
     }
 
     function handleMouseUp() {
     	isMouseDown = false;
+    	lastCoordinates = { x: undefined, y: undefined };
     	activeDragObject = null; // Reset drag object
     }
 
@@ -5545,6 +5558,29 @@ var app = (function () {
     		event,
     		gameInstance
     	});
+
+    	if (isMouseDown) {
+    		console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject);
+
+    		// Ensures hoveredObject is the one being dragged
+    		if (newHoveredObject && newHoveredObject === activeDragObject) {
+    			console.log("DRAGGING");
+
+    			// Check if hoveredObject is an instance of PixelCanvas
+    			if (newHoveredObject instanceof PixelCanvas) {
+    				console.log("DRAGGING ON CANVS");
+
+    				// For PixelCanvas, we use drawLine to handle dragging
+    				if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
+    					// Draw line from last coordinates to current
+    					newHoveredObject.drawLine(lastCoordinates.x, lastCoordinates.y, gridX, gridY);
+    				}
+    			} // Handle other objects that are not PixelCanvas, if necessary
+
+    			// Update lastCoordinates with the current grid coordinates
+    			lastCoordinates = { x: gridX, y: gridY };
+    		}
+    	}
     }
 
     function handleMouseOut(event) {
@@ -5808,7 +5844,7 @@ var app = (function () {
     		}
     	];
 
-    	const mainMenu = new buttonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 0);
+    	const mainMenu = new buttonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
 
     	//BUTTON TO OPEN MAIN MENU
     	const mainMenuButton = new Button('mainMenuButton',
@@ -6097,7 +6133,7 @@ var app = (function () {
 
     	//----------------INVENTORY ROOM----------------
     	//ITEM INSTANTIATION (PLACEHOLDER)
-    	let testItem1 = new Item("coffee");
+    	let testItem1 = new Item("coffee", 0, 0, 0);
 
     	let testItem2 = new Item("tomatoSoup", 0, 0, 0);
     	let testItem3 = new Item("fishingRod", 0, 0, 0);
