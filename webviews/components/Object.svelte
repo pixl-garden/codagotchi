@@ -285,7 +285,7 @@
             this.text = text;
         }
         getSprite(){
-            return new Sprite(this.textRenderer(get(inputValue)), this.x, this.y, this.z);
+            return new Sprite(this.textRenderer(this.text), this.x, this.y, this.z);
         }
     }
 
@@ -498,6 +498,18 @@
             }
             else {
                 this.brushSize = 2;
+            }
+        }
+
+        incrementSize() {
+            if( this.brushSize < 20 ) {
+                this.brushSize += 2;
+            }
+        }
+
+        decrementSize() {
+            if( this.brushSize > 2 ) {
+                this.brushSize -= 2;
             }
         }
 

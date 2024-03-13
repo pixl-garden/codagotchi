@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, inventoryGrid, Object, Item, toolTip, buttonList } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, inventoryGrid, Object, Item, toolTip, buttonList, activeTextRenderer } from './Object.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -30,7 +30,7 @@
         const friendButton = generateButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
         const dropDownButton = new generateButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const paintButton = generateButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
-        const brushSizeButton = generateButtonClass(10, 7, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
+        const brushSizeButton = generateButtonClass(10, 10, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
         
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
@@ -143,10 +143,21 @@
         }, 5);
         //PAINT CANVAS INSTANTIATION
         let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
+        let sizeNumber = new activeTextRenderer(basic, 12, 105, 5);
+        sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+        let brushSizeDown = new brushSizeButton('<', 0, 105, ()=>{
+            paintCanvas.decrementSize();
+            sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+        }, 5);
+        let brushSizeUp = new brushSizeButton('>', 20, 105, ()=>{
+            paintCanvas.incrementSize();
+            sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+        }, 5);
+
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
-                            shapeButton, sizeButton, clearButton);
+                            shapeButton, sizeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
