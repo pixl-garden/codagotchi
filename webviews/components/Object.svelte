@@ -790,10 +790,17 @@
             this.displayToolTip = false;
             this.hoverWithChildren = true;
             this.children.forEach((itemSlot) => {
-            itemSlot.whileHover = (mouseX, mouseY) => {
+                itemSlot.whileHover = (mouseX, mouseY) => {
                     console.log("Displaying tooltip");
                     this.whileHover();
+                }
+                itemSlot.onHover = () => {
                     this.displayToolTip = true;
+                    itemSlot.updateState("hovered");
+                }
+                itemSlot.onStopHover = () => {
+                    this.displayToolTip = false;
+                    itemSlot.updateState("default");
                 }
             });
             function constructInventoryObjects(createSlotInstance, items, totalSlots) {
@@ -819,14 +826,15 @@
         onHover(){
             console.log("HOVERING, HOVERED CHILD: ", this.hoveredChild);
             //this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
-            if(this.hoveredChild != null){
-                this.displayToolTip = false;
-            }
+            // if(this.hoveredChild != null){
+            //     this.displayToolTip = false;
+            // }
+            // this.displayToolTip = false;
         }
 
         onStopHover(){
             console.log("HOVER STOPPED, HOVERED CHILD: ", this.hoveredChild);
-            if(this.hoveredChild != null){
+            if(this.hoveredChild != null && this.hoveredChild.children.length > 0){
                 //get the item from the hovered item slot
                 let item = this.hoveredChild.children[0];
                 this.toolTip.setItem(item);
@@ -842,7 +850,6 @@
             this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
         }
 
-        
         getSprite() {
             let spritesOut = [];
             if(this.children.length > 0) {
