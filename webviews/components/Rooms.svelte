@@ -1,6 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, inventoryGrid, Object, Item, toolTip, buttonList, activeTextRenderer } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer } from './Object.svelte';
+    import { Item, inventoryGrid, setItem, removeItem } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';

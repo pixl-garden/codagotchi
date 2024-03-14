@@ -81,7 +81,7 @@
     }
 
     onMount(async () => {
-        //current load times: 2.4, 1.9, 2.6, 2.5
+        //current load time ~3.9 seconds (BAD!)
         let startTime, endTime;
 
         canvas = document.getElementsByClassName('pixel-grid')[0];
