@@ -1,15 +1,13 @@
 <script context="module">
     import { Sprite } from './Codagotchi.svelte';
-    import { spriteReader, spriteReaderFromStore } from './SpriteReader.svelte';
+    import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
-    import { game, inputValue } from './Game.svelte';
+    import { game } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { generateEmptyMatrix, generateTooltipSprite } from './MatrixFunctions.svelte';
-    import TextRenderer from './TextRenderer.svelte';
-    import itemConfig from './itemConfig.json';
+
     
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
@@ -462,12 +460,12 @@
         }
 
         setBrushShape(shape) {
-        if (['square', 'circle'].includes(shape)) {
-            this.brushShape = shape;
-        } else {
-            console.error('Invalid brush shape:', shape);
+            if (['square', 'circle'].includes(shape)) {
+                this.brushShape = shape;
+            } else {
+                console.error('Invalid brush shape:', shape);
+            }
         }
-    }
 
         setEraser() {
             this.setColor("transparent");
@@ -480,11 +478,9 @@
         rotateColor() {
             if( this.color != "transparent" ) {
                 if( this.colorArrayIndex < this.colorArray.length-1 ) {
-                    console.log("COLOR INCREMENT")
                     this.colorArrayIndex++;
                 }
                 else {
-                    console.log("COLOR RESET")
                     this.colorArrayIndex = 0;
                 }
             }
@@ -531,7 +527,6 @@
         }
 
         getIntermediatePoints(x0, y0, x1, y1) {
-            // console.log(`Getting intermediate points between (${x0}, ${y0}) and (${x1}, ${y1})`);
             let points = [];
             const dx = Math.abs(x1 - x0);
             const dy = Math.abs(y1 - y0);
@@ -547,7 +542,6 @@
                 if (e2 > -dy) { err -= dy; x0 += sx; }
                 if (e2 < dx) { err += dx; y0 += sy; }
             }
-            // console.log(points)
             return points;
         }
 
@@ -557,11 +551,6 @@
                 this.paintPixel(point.x, point.y);
             });
         }
-        // clickAction() {
-        //     this.actionOnClick();
-        // }
-
-        // Other methods as needed (e.g., save, load)
     }
 
     export class Object extends GeneratedObject {
@@ -645,11 +634,11 @@
     }
 
     function processStates(states) {
-            for (const key in states) {
-                states[key] = processStateFrames(states[key]);
-            }
-            return states;
+        for (const key in states) {
+            states[key] = processStateFrames(states[key]);
         }
+        return states;
+    }
 
     function processStateFrames(frames) {
         if (frames.length === 3 && frames[1] === '...') {
@@ -770,7 +759,6 @@
         }
     }
 
-    //TODO: fix z axis mouse interactions for buttonGrid (i think this would be done in mouseEvents)
     export class buttonList extends objectGrid {
         constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
             let buttons = [];
@@ -790,120 +778,4 @@
             }
         }
     }
-
-    //TODO: fix mouse movement off to the left of the inventory grid
-    export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip){
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots);
-            console.log("Constructed items: ", constructedItems);
-            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
-            this.toolTip = toolTip;
-            this.toolTip.setCoordinate(0, 0, 30);
-            this.displayToolTip = false;
-            this.hoverWithChildren = true;
-            this.children.forEach((itemSlot) => {
-                itemSlot.whileHover = (mouseX, mouseY) => {
-                    console.log("Displaying tooltip");
-                    this.whileHover();
-                }
-                itemSlot.onHover = () => {
-                    this.displayToolTip = true;
-                    itemSlot.updateState("hovered");
-                }
-                itemSlot.onStopHover = () => {
-                    this.displayToolTip = false;
-                    itemSlot.updateState("default");
-                }
-            });
-            function constructInventoryObjects(createSlotInstance, items, totalSlots) {
-                let inventoryGrid = [];
-                for(let i = 0; i < totalSlots; i++) {
-                    let item = items[i];
-                    let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
-                    console.log("Slot Instance: ", slotInstance); // Check the instance
-                    console.log(slotInstance instanceof GeneratedObject);
-                    if(item) {
-                        console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
-                        slotInstance.addChild(item);
-                    }
-                    inventoryGrid.push(slotInstance);
-                }
-                return inventoryGrid;
-            }
-        }
-
-        //TODO: add a onChildHover and onChildStopHover function to the object class to handle hover events for children
-        //also make hover events, hoverWithChildren, hoveredChild work like they should
-
-        onHover(){
-            console.log("HOVERING, HOVERED CHILD: ", this.hoveredChild);
-            //this seems unintuitive but the inventory object is hovered when off of the item slot and stopped when item slot is hovered
-            // if(this.hoveredChild != null){
-            //     this.displayToolTip = false;
-            // }
-            // this.displayToolTip = false;
-        }
-
-        onStopHover(){
-            console.log("HOVER STOPPED, HOVERED CHILD: ", this.hoveredChild);
-            if(this.hoveredChild != null && this.hoveredChild.children.length > 0){
-                //get the item from the hovered item slot
-                let item = this.hoveredChild.children[0];
-                this.toolTip.setItem(item);
-                this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
-                this.displayToolTip = true;
-            }
-            if(this.hoveredChild == null){
-                this.displayToolTip = false;
-            }
-        }
-
-        whileHover(){
-            this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
-        }
-
-        getSprite() {
-            let spritesOut = [];
-            if(this.children.length > 0) {
-                this.getChildSprites().forEach((sprite) => {
-                    // console.log("Child sprite: ", sprite)
-                    if (Array.isArray(sprite)) {
-                        spritesOut.push(...sprite);
-                    //if not an array, push sprite
-                    } else {
-                        spritesOut.push(sprite);
-                    }
-                });
-            }
-            if(this.displayToolTip){
-                spritesOut.push(this.toolTip.getSprite());
-            }
-            return spritesOut;
-        }
-    }
-
-    const ITEMWIDTH = 32;
-
-export class Item extends GeneratedObject {
-    constructor( itemName ){
-        // maybe add an item count parameter?
-        const config = itemConfig[itemName];
-        if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
-        const objState = { default: [config.spriteIndex] }
-        const spriteMatrix = spriteReaderFromStore(ITEMWIDTH, ITEMWIDTH, config.spriteSheet);
-        console.log("spriteMatrix", spriteMatrix, "objState", objState, "config", config, "itemName");
-        super(spriteMatrix, objState, 0, 0, 0);
-        this.spriteHeight = ITEMWIDTH;
-        this.spriteWidth = ITEMWIDTH;
-        this.config = config;
-        this.displayName = config.displayName;
-        this.description = config.description;
-    }
-    getName(){
-        return this.displayName;
-    }
-    getDescription(){
-        return this.description;
-    }
-}
 </script>

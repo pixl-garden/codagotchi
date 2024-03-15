@@ -1,5 +1,6 @@
 {
     "tomatoSoup":{
+        "type": "food",
         "displayName": "Tomato Soup",
         "spriteSheet": "testItems.png",
         "spriteIndex": 0,
@@ -9,6 +10,7 @@
         "energy": 1
     },
     "coffee":{
+        "type": "food",
         "displayName": "Coffee",
         "spriteSheet": "testItems.png",
         "spriteIndex": 1,
@@ -18,6 +20,7 @@
         "energy": 5
     },
     "fishingRod":{
+        "type": "tool",
         "displayName": "Fishing Rod",
         "spriteSheet": "testItems.png",
         "spriteIndex": 2,
@@ -27,6 +30,7 @@
         "energy": 0
     },
     "redHerring":{
+        "type": "food",
         "displayName": "Red Herring",
         "spriteSheet": "testItems.png",
         "spriteIndex": 3,
@@ -36,6 +40,7 @@
         "energy": 1
     },
     "tropicalFish":{
+        "type": "food",
         "displayName": "Tropical Fish",
         "spriteSheet": "testItems.png",
         "spriteIndex": 4,
@@ -45,6 +50,7 @@
         "energy": 1
     },
     "potion":{
+        "type": "food",
         "displayName": "Potion",
         "spriteSheet": "testItem.png",
         "spriteIndex": 0,
