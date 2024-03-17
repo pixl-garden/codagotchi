@@ -1,5 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
+    import { Inventory } from './Inventory.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -10,8 +11,25 @@
             this.currentRoom = null;
             this.localState = {};
 
+            //singleton pattern
             Game.instance = this;
+            
+            //sync local state with global state
             this.getGlobalState();
+        }
+
+        initializeInventory() {
+            this.inventory = new Inventory();
+            const localState = this.getLocalState();
+            if (localState && localState.inventory) {
+                // Parse and reconstruct inventory from saved data
+                const inventoryData = JSON.parse(localState.inventory);
+                this.inventory = createInventoryFromSave(inventoryData);
+            } 
+            else {
+                // Initialize with default inventory
+                this.setGlobalState({ inventory: this.inventory.serialize() });
+            }
         }
 
         updateRooms(roomName, roomObj) {
@@ -35,6 +53,7 @@
             return this.rooms[this.currentRoomName].getObjects();
         }
 
+        //retrieves global state from vscode and syncs local state with it (by calling setLocalState)
         getGlobalState() {
             tsvscode.postMessage({ type: 'getGlobalState'});
         };

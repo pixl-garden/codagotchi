@@ -5,23 +5,18 @@
     import { Room, game, shouldFocus, inputValue } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { getPixelSize } from './ScreenManager.svelte';
     import { get } from 'svelte/store';
 
-    const FPS = 16; //frames per second
-    let screen = [];
-    let hasMainLoopStarted = false;
-    let currentRoom;
-    let githubUsername;
-    let canvas, ctx;
+    const FPS = 16;
+    let ctx;
     let screenWidth = 128;
 
     //run once before main loop
     function pre() {
         // setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
-        getGlobalState( {} );
+        get(game).getGlobalState( {} );
         handleResize();
         preloadObjects();
         //prettier-ignore
@@ -35,8 +30,7 @@
         roomMain();
         
         // Get the current room from the game object
-        currentRoom = $game.getCurrentRoom();
-        hasMainLoopStarted = true;
+        let currentRoom = $game.getCurrentRoom();
         
         // Render objects in the current room
         for (let obj of currentRoom.getObjects()) {
@@ -62,7 +56,7 @@
             }
         }
         
-        screen = generateScreen(sprites, screenWidth, screenWidth);
+        let screen = generateScreen(sprites, screenWidth, screenWidth);
         renderScreen(screen);
     }
 
@@ -84,7 +78,7 @@
         //current load time ~3.9 seconds (BAD!)
         let startTime, endTime;
 
-        canvas = document.getElementsByClassName('pixel-grid')[0];
+        let canvas = document.getElementsByClassName('pixel-grid')[0];
         let screenSize = window.innerWidth;
         canvas.width = screenSize;
         canvas.height = screenSize;

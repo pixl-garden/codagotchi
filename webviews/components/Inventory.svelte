@@ -2,7 +2,8 @@
     import { GeneratedObject, objectGrid } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
-    import { setGlobalState, getLocalState } from "./localSave.svelte";
+    import { game } from "./Game.svelte";
+    import { get } from 'svelte/store';
     const ITEMWIDTH = 32;
 
     export class Item extends GeneratedObject {
@@ -12,7 +13,7 @@
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
             const objState = { default: [config.spriteIndex] }
             const spriteMatrix = spriteReaderFromStore(ITEMWIDTH, ITEMWIDTH, config.spriteSheet);
-            console.log("spriteMatrix", spriteMatrix, "objState", objState, "config", config, "itemName");
+            // console.log("spriteMatrix", spriteMatrix, "objState", objState, "config", config, "itemName");
             super(spriteMatrix, objState, 0, 0, 0);
             this.itemName = itemName;
             this.stackable = false;
@@ -69,30 +70,29 @@
 
     export class Inventory {
         constructor() {
-            this.items = []; // Stores instances of non-stackable items or stackable items with unique properties
-            this.itemCounts = new Map(); // Stores counts for simple stackable items without unique properties
+            this.stackableItems = new Map(); // Stores counts for stackable items
+            this.unstackableItems = []; // Stores instances of non-stackable items with unique properties
         }
 
         addItem(item) {
             if (item.stackable) {
-                const count = this.itemCounts.get(item.name) || 0;
-                this.itemCounts.set(item.name, count + 1);
+                const count = this.stackableItems.get(item.itemName) || 0;
+                this.stackableItems.set(item.itemName, count + 1);
             } else {
-                this.items.push(item);
+                this.unstackableItems.push(item);
             }
         }
 
         serialize() {
-            // Serialize non-stackable items or stackable items with unique properties
-            const serializedItems = this.items.map(item => item.serialize());
-
-            // Serialize counts for simple stackable items
-            const serializedCounts = Array.from(this.itemCounts.entries()).map(([name, count]) => ({
-                name,
-                itemCount: count
+            // Serialize stackable and unstackable items separately
+            const serializedStackableItems = Array.from(this.stackableItems.entries()).map(([itemName, itemCount]) => ({
+                itemName,
+                itemCount
             }));
 
-            return JSON.stringify({ items: serializedItems, counts: serializedCounts });
+            const serializedUnstackableItems = this.unstackableItems.map(item => item.serialize());
+
+            return JSON.stringify({ stackableItems: serializedStackableItems, unstackableItems: serializedUnstackableItems });
         }
     }
 
@@ -110,22 +110,24 @@
         }
     }
 
-    export function createInventoryFromSave(savedData) {
+    export function createInventoryFromSave(data) {
         const inventory = new Inventory();
-        const data = JSON.parse(savedData);
 
-        // Reconstruct items with unique properties
-        if (data.items) {
-            for (const itemData of data.items) {
-                const item = reconstructItem(itemData);
-                inventory.items.push(item); // Directly push reconstructed items
+        // Reconstruct stackable items
+        if (data.stackableItems) {
+            for (const { itemName, itemCount } of data.stackableItems) {
+                for (let i = 0; i < itemCount; i++) {
+                    const item = reconstructItem({ itemName });
+                    inventory.addItem(item);
+                }
             }
         }
 
-        // Reconstruct simple stackable items' counts
-        if (data.counts) {
-            for (const { name, itemCount } of data.counts) {
-                inventory.itemCounts.set(name, itemCount);
+        // Reconstruct unstackable items
+        if (data.unstackableItems) {
+            for (const itemData of data.unstackableItems) {
+                const item = reconstructItem(itemData);
+                inventory.unstackableItems.push(item); // Directly push reconstructed items
             }
         }
 
@@ -133,7 +135,7 @@
     }
 
     export function setItem(serializedItem) {
-        let currentState = getLocalState();
+        let currentState = get(game).getLocalState();
         let inventory = currentState.inventory || [];
         const itemIndex = inventory.findIndex(item => item.itemName === serializedItem.itemName);
 
@@ -145,24 +147,24 @@
             inventory.push(serializedItem);
         }
 
-        setGlobalState({ "inventory": inventory });
-        getLocalState();
+        get(game).setGlobalState({ "inventory": inventory });
+        get(game).getLocalState();
     }
 
     export function removeItem(itemName){
-        let currentState = getLocalState();
+        let currentState = get(game).getLocalState();
         let inventory = currentState.inventory || [];
         inventory = inventory.filter(item => item.itemName !== itemName);
 
-        setGlobalState(context, { ...currentState, inventory });
-        getLocalState();
+        get(game).setGlobalState({ "inventory": inventory });
+        get(game).getLocalState();
     }
 
 
     export class inventoryGrid extends objectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots);
-            console.log("Constructed items: ", constructedItems);
+            // console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
             this.toolTip = toolTip;
             this.toolTip.setCoordinate(0, 0, 30);
@@ -194,7 +196,7 @@
                     let item = items[i];
                     let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
                     // console.log("Slot Instance: ", slotInstance); // Check the instance
-                    console.log(slotInstance instanceof GeneratedObject);
+                    // console.log(slotInstance instanceof GeneratedObject);
                     if(item) {
                         // console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
                         slotInstance.addChild(item);

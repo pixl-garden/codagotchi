@@ -1,7 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer } from './Object.svelte';
-    import { Item, inventoryGrid, setItem, removeItem } from './Inventory.svelte';
+    import { Inventory, Item, Food, Tool, inventoryGrid, setItem, removeItem, createInventoryFromSave } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -213,19 +213,33 @@
         socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
         
     //----------------INVENTORY ROOM----------------
+
+        // let inventory = createInventoryFromSave(get(game).getLocalState().inventory);
+        // console.log("Inventory: ", inventory);
         //ITEM INSTANTIATION (PLACEHOLDER)
-        let testItem1 = new Item("coffee", 0, 0, 0);
-        let testItem2 = new Item("tomatoSoup", 0, 0, 0)
-        let testItem3 = new Item("fishingRod", 0, 0, 0)
-        let testItem4 = new Item("potion", 0, 0, 0)
-        let testItem5 = new Item("redHerring", 0, 0, 0)
-        let testItem6 = new Item("tropicalFish", 0, 0, 0)
-        let testItem7 = new Item("coffee", 0, 0, 0)
-        let testItem8 = new Item("tomatoSoup", 0, 0, 0)
-        let testItem9 = new Item("coffee", 0, 0, 0)
-        let testItem10 = new Item("potion", 0, 0, 0)
-        let testItem11 = new Item("tomatoSoup", 0, 0, 0)
+        let testItem1 = new Food("coffee", 1);
+        // removeItem("coffee");
+
+        let testItem2 = new Food("tomatoSoup", 1);
+        let testItem3 = new Tool("fishingRod");
+        let testItem4 = new Food("potion", 1);
+        let testItem5 = new Food("redHerring", 1);
+        let testItem6 = new Food("tropicalFish", 1);
+        let testItem7 = new Food("coffee", 1);
+        let testItem8 = new Food("tomatoSoup", 1);
+        let testItem9 = new Food("coffee", 1);
+        let testItem10 = new Food("potion", 1);
+        let testItem11 = new Food("tomatoSoup", 1);
         let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
+        
+        let inventory = new Inventory;
+        inventory.addItem(testItem1);
+        inventory.addItem(testItem3);
+        get(game).setGlobalState({ "inventory": inventory });
+        get(game).getLocalState();
+        console.log("Local State: ", get(game).getLocalState());
+        console.log("Inventory Test: ", get(game).getLocalState().inventory);
+        
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
             let output = new Object("itemSlot", 0, 0, 0);
