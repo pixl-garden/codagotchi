@@ -89,10 +89,13 @@
             const accumulateChildSprites = (parent, offsetX = 0, offsetY = 0) => {
                 for (let child of parent.children) {
                     let childSprite = child.getSprite();
-                    // Apply both the current parent's offset and any accumulated offset from ancestors
-                    childSprite.x += offsetX + parent.x;
-                    childSprite.y += offsetY + parent.y;
-                    childSprites.push(childSprite);
+                    if(childSprite != null){
+                        // Apply both the current parent's offset and any accumulated offset from ancestors
+                        childSprite.x += offsetX + parent.x;
+                        childSprite.y += offsetY + parent.y;
+                        childSprites.push(childSprite);
+                    }
+
 
                     // If the child has its own children, recursively accumulate their sprites too
                     if (child.children.length > 0) {
@@ -676,24 +679,29 @@
             this.passMouseCoords = true;
             this.mouseX = null;
             this.mouseY = null;
+            this.renderChildren = true;
             this.generateObjectGrid();
         }
 
-        getSprite() {
-            let spritesOut = [];
-            if(this.children.length > 0) {
-                this.getChildSprites().forEach((sprite) => {
-                    // console.log("Child sprite: ", sprite)
-                    if (Array.isArray(sprite)) {
-                        spritesOut.push(...sprite);
-                    //if not an array, push sprite
-                    } else {
-                        spritesOut.push(sprite);
-                    }
-                });
-            }
-            return spritesOut;
+        getSprite(){
+
         }
+
+        // getSprite() {
+        //     let spritesOut = [];
+        //     if(this.children.length > 0) {
+        //         this.getChildSprites().forEach((sprite) => {
+        //             // console.log("Child sprite: ", sprite)
+        //             if (Array.isArray(sprite)) {
+        //                 spritesOut.push(...sprite);
+        //             //if not an array, push sprite
+        //             } else {
+        //                 spritesOut.push(sprite);
+        //             }
+        //         });
+        //     }
+        //     return spritesOut;
+        // }
 
         onScrollUp() {
             if (this.scrollDirection === "horizontal") {
@@ -730,6 +738,8 @@
                     this.children[index].setCoordinate(objectX, objectY, this.z);
                 }
             }
+            this.spriteWidth = (spriteWidth + this.columnSpacing) * this.columns;
+            this.spriteHeight = (spriteHeight + this.rowSpacing) * this.rows;
         }
     }
 
@@ -855,7 +865,7 @@
         }
         //constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
         generateColorGrid(){
-            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, this.x, this.y, 10, this.buttons, 0, 0, "horizontal", 0);
+            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 3, 3, 10, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
         }
 
