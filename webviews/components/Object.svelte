@@ -6,7 +6,7 @@
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite } from './MatrixFunctions.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix } from './MatrixFunctions.svelte';
 
     
 
@@ -519,7 +519,9 @@
         }
 
         setColor(color) {
+            console.log("set color called: ", color)
             this.color = color;
+            console.log(this.color)
         }
 
         clearCanvas() {
@@ -778,4 +780,100 @@
             }
         }
     }
+
+    export class Menu extends GeneratedObject {
+        constructor(x, y, z, width, height, borderColor, backgroundColor, roundness){
+            const backgroundMatrix = generateStatusBarSprite(width, height, borderColor, backgroundColor, '#000000', 0, roundness);
+            super([backgroundMatrix], { default: [0] }, x, y, z);
+            this.width = width;
+            this.height = height;
+        }
+    }
+
+    // export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
+    //     topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
+    //         return class Button extends GeneratedObject {
+    //             constructor(text, x, y, actionOnClick, z) {
+    //                 const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer(text), topShadow, bottomShadow, layout, offset);
+                    // const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer(text), topShadowHover, bottomShadowHover, layout, offset );
+
+    //                 // State management: 0 for default sprite and 1 for hover sprite
+    //                 super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+    //             }
+
+    //             onHover() {
+    //                 super.onHover(); // Call parent's hover function
+    //                 this.updateState('hovered');
+    //             }
+
+    //             onStopHover() {
+    //                 super.onStopHover(); // Call parent's stop hover function
+    //                 this.updateState('default');
+    //             }
+    //         };
+    //     }
+
+    export class ColorButton extends GeneratedObject {
+        constructor(color, x, y, z, actionOnClick, width, height){
+            const defaultSprite = generateRectangleMatrix(width, height, color);
+            const hoverSprite = generateRectangleMatrix(width, height, color);
+            super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+            this.color = color;
+            this.width = width;
+            this.height = height;
+            console.log("color button created")
+        }
+    }
+    
+    //    export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
+    //topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
+    export class ColorMenu extends Menu {
+        constructor(x, y, z, width, height, borderColor, backgroundColor, roundness, colorSize, colorSpacing, columns, rows, colorArray, colorFunction){
+            super(x, y, z, width, height, borderColor, backgroundColor, roundness);
+            this.colorSize = colorSize;
+            this.colorArray = colorArray;
+            this.colorFunction = colorFunction;
+            this.colorSpacing = colorSpacing;
+            this.columns = columns;
+            this.rows = rows;
+            this.buttons = [];
+            this.children = [];
+            this.generateColorButtons();
+            this.generateColorGrid();
+            console.log("ColorMenu created")
+        }
+        generateColorButtons(){
+            for(let i = 0; i < this.colorArray.length; i++){
+                let color = this.colorArray[i]; // Store the current color in a variable to avoid issues with closures in loops
+                let button = new ColorButton(color, 0, 0, 0, () => {
+                    console.log("Color button clicked: ", color);
+                    this.colorFunction(color);
+                }, this.colorSize, this.colorSize);
+                // button.setCoordinate(this.x, this.y, this.z);
+                this.buttons.push(button);
+            }
+        }
+        //constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
+        generateColorGrid(){
+            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, this.x, this.y, 10, this.buttons, 0, 0, "horizontal", 0);
+            this.children.push(colorGrid);
+        }
+
+        // getSprite() {
+        //     let spritesOut = [];
+        //     if(this.children.length > 0) {
+        //         this.getChildSprites().forEach((sprite) => {
+        //             // console.log("Child sprite: ", sprite)
+        //             if (Array.isArray(sprite)) {
+        //                 spritesOut.push(...sprite);
+        //             //if not an array, push sprite
+        //             } else {
+        //                 spritesOut.push(sprite);
+        //             }
+        //         });
+        //     }
+        //     return spritesOut;
+        // }
+    }
+
 </script>

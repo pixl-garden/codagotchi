@@ -255,6 +255,5 @@
 
         return finalTooltipSprite;
     }
-
-
+    
 </script>
