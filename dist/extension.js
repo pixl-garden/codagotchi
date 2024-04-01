@@ -918,7 +918,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 var app = __webpack_require__(25);
 
 var name = "firebase";
-var version = "10.7.0";
+var version = "10.7.1";
 
 /**
  * @license
@@ -1017,7 +1017,7 @@ function isVersionServiceProvider(provider) {
 }
 
 var name$o = "@firebase/app";
-var version$1 = "0.9.24";
+var version$1 = "0.9.25";
 
 /**
  * @license
@@ -1084,7 +1084,7 @@ var name$2 = "@firebase/firestore";
 var name$1 = "@firebase/firestore-compat";
 
 var name = "firebase";
-var version = "10.7.0";
+var version = "10.7.1";
 
 /**
  * @license
@@ -7096,7 +7096,7 @@ var WebSocketConnection = /** @class */ (function () {
 }());
 
 var name = "@firebase/database";
-var version = "1.0.1";
+var version = "1.0.2";
 
 /**
  * @license
@@ -32077,7 +32077,7 @@ function multiFactor(user) {
 }
 
 var name = "@firebase/auth";
-var version = "1.5.0";
+var version = "1.5.1";
 
 /**
  * @license
@@ -32649,7 +32649,7 @@ exports.useDeviceLanguage = useDeviceLanguage;
 exports.validatePassword = validatePassword;
 exports.verifyBeforeUpdateEmail = verifyBeforeUpdateEmail;
 exports.verifyPasswordResetCode = verifyPasswordResetCode;
-//# sourceMappingURL=totp-58078139.js.map
+//# sourceMappingURL=totp-fe65684a.js.map
 
 
 /***/ }),

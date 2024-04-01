@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu } from './Object.svelte';
     import { Item, inventoryGrid, setItem, removeItem } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
@@ -155,10 +155,13 @@
             sizeNumber.setText((paintCanvas.brushSize / 2).toString());
         }, 5);
 
+        let colorMenuTest = new ColorMenu(25, 25, 5, 50, 35, "black", "white", 3, 4, 1, 4, 4, ["red", "green", "blue", "white", "magenta", "black", "red", "red", "red", "red", "red", "red", "red", "red", "red", "red"], (color) => { paintCanvas.setColor(color); });
+        // let colorMenuTest = new ColorMenu(50, 50, 5, 50, 35, "black", "white", 3, 4, 1, 4, 4, ["red", "green", "blue", "white", "magenta", "black", "red", "red", "red", "red", "red", "red", "red", "red", "red", "red"], paintCanvas.rotateColor);
+
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
-                            shapeButton, sizeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber);
+                            shapeButton, sizeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, colorMenuTest);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
