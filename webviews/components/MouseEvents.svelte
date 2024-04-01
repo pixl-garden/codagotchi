@@ -134,6 +134,7 @@
         foundObjects = foundObjects.sort((a, b) => b.getZ() - a.getZ());
 
         // Return based on the returnMultiple flag
+        console.log("FOUND OBJECTS: ", foundObjects)
         return foundObjects;
     }
 
