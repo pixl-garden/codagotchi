@@ -20,7 +20,7 @@
 
     //run once before main loop
     function pre() {
-        // setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
+        setGlobalState( {"test": "hey", "test2": "yeo", "test3": "bruh"} );
         getGlobalState( {} );
         handleResize();
         preloadObjects();
@@ -28,6 +28,7 @@
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
+        $game.constructInventory();
     }
     //main loop
     function main() {
@@ -125,7 +126,7 @@
     });
 
     $: if ($shouldFocus) {
-        console.log('Input is focused');
+        // console.log('Input is focused');
     }
     $: console.log('Input Value:', $inputValue);
 </script>

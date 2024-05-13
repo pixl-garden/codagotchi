@@ -144,14 +144,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                 case 'openOAuthURL': {
                     vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
-                    console.log('openOAuthUrl');
+                    // console.log('openOAuthUrl');
 
                     const tokenRef = ref(database, 'authTokens/' + state);
                     const tokenListener = onValue(
                         tokenRef,
                         (snapshot) => {
                             const data = snapshot.val();
-                            console.log(`Snapshot received for state ${state}:`, data);
+                            // console.log(`Snapshot received for state ${state}:`, data);
 
                             if (data && data.status === 'ready') {
                                 const firebaseToken = data.token;

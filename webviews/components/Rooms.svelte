@@ -241,7 +241,7 @@
             let output = new Object("itemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
-            console.log("createItemSlot instance:", output); // Check the instance
+            // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
         //TOOLTIP INSTANTIATION

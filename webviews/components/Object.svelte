@@ -11,7 +11,7 @@
     
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
-
+    // or maybe do the other way around, create setAbsoluteCoordinate function and leave setCoordinate as is
 
     //TODO: MOVEMENT NEEDS WORK, BEHAVES DIFFERENTLY IN DIFFERENT DIRECTIONS
     export class GeneratedObject {
@@ -22,54 +22,70 @@
             if(!states){
                 states = {default: [0]};
             }
+            this.setCoordinate(x, y, z);
+            this.actionOnClick = actionOnClick;
+            this.scrollable = false;
+
+            // State and Sprite management variables
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
             this.spriteHeight = sprites[0].length;
             this.states = processStates(states);
             this.state = 'default';
-            this.currentSpriteIndex = this.states[this.state] ? this.states[this.state][0] : 0;
             this.currentStateIndex = 0;
-            this.setCoordinate(x, y, z);
-            this.actionOnClick = actionOnClick;
+            this.currentSpriteIndex = this.states[this.state] ? this.states[this.state][0] : 0;
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.callbackQueue = [];
             this.currentStateCallback = null;
             
-            this.previousX = x;
-            this.previousY = y;
-            this.velocityX = 0;
-            this.velocityY = 0;
 
             // Constants for second-order dynamics
             this.k1 = 7.0; // Damping ratio
             this.k2 = .5; // Natural frequency
             this.k3 = 2.0; // Reference input
 
+            // Variables for second-order dynamics
+            this.previousX = x;
+            this.previousY = y;
+            this.velocityX = 0;
+            this.velocityY = 0;
             this.targetX = x; // Target position X
             this.targetY = y; // Target position Y
             this.accumulatedMoveX = 0;
             this.accumulatedMoveY = 0;
-            this.isMoving = false; // Is object currently moving
+            this.isMoving = false;
+            this.framesPerSecond = 30; //this should probably be abstracted to a global variable
+            this.timeStep = 1 / this.framesPerSecond;
 
+            //Child object management variables
             this.children = [];
-            this.hoverWithChildren = false;
-            this.renderChildren = true;
-            this.scrollable = false;
+            this.hoverWithChildren = false; // If true, parent object will hover when children are hovered
+            this.renderChildren = true; // If true, parent object will render children, otherwise only parent will render
             this.hoveredChild = null;
+
+            // Variables for passing mouse coordinates to object if needed
             this.passMouseCoords = false;
             this.mouseX = null;
             this.mouseY = null;
-            this.framesPerSecond = 30;
-            this.timeStep = 1 / this.framesPerSecond;
         }
+
+        onHover() {}
+
+        onStopHover() {}
+
+        whileHover() {}
+
+        clickAction(gridX, gridY) {
+            this.actionOnClick(gridX, gridY);
+        }
+
         getWidth() {
             return this.spriteWidth;
         }
         getHeight() {
             return this.spriteHeight;
         }
-
         getZ() {
             return this.z;
         }
@@ -109,6 +125,8 @@
             return childSprites;
         }
 
+        // Method to update the object's state
+        // callback is an optional function to be called when the state is completed
         updateState(newState, callback = null) {
             if (this.states[newState]) {
                 this.state = newState;
@@ -127,6 +145,7 @@
         }
 
         // Method to register button parameters
+        // TODO: REMOVE THIS FUNCTION (replace with robust child system)
         registerButtonParams(buttonParams) {
             this.buttonParams = buttonParams;
         }
@@ -152,7 +171,7 @@
         startMovingTo(newTargetX, newTargetY) {
             this.targetX = newTargetX;
             this.targetY = newTargetY;
-            console.log("MOVING TO: ", this.targetX, this.targetY);
+            // console.log("MOVING TO: ", this.targetX, this.targetY);
             this.isMoving = true;
         }
 
@@ -259,16 +278,6 @@
                 this.currentStateCallback();
                 this.currentStateCallback = null; // Reset the callback
             }
-        }
-
-        onHover() {}
-
-        onStopHover() {}
-
-        whileHover() {}
-
-        clickAction(gridX, gridY) {
-            this.actionOnClick(gridX, gridY);
         }
     }
 
@@ -394,6 +403,7 @@
         }
     }
 
+    //TODO: move paint objects to separate file
     export class PixelCanvas extends GeneratedObject {
         constructor(x, y, z, width, height) {
             const emptyMatrix = generateEmptyMatrix(width, height);
@@ -408,11 +418,8 @@
             this.lastY = null;
             this.offsetX = x;
             this.offsetY = y;
-            this.colorArray = ["white", "red", "blue", "green"];
-            this.colorArrayIndex = 0;
             this.brushSize = 10;
             this.brushShape = "circle";
-            
         }
         setBrushSize(size) {
         this.brushSize = size;
@@ -478,19 +485,6 @@
             return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
         }
 
-        rotateColor() {
-            if( this.color != "transparent" ) {
-                if( this.colorArrayIndex < this.colorArray.length-1 ) {
-                    this.colorArrayIndex++;
-                }
-                else {
-                    this.colorArrayIndex = 0;
-                }
-            }
-            
-            this.setColor(this.colorArray[this.colorArrayIndex]);
-        }
-
         rotateSize() {
             if( this.brushSize < 20 ) {
                 this.brushSize += 2;
@@ -522,9 +516,7 @@
         }
 
         setColor(color) {
-            console.log("set color called: ", color)
             this.color = color;
-            console.log(this.color)
         }
 
         clearCanvas() {
@@ -726,7 +718,7 @@
             let currentY = this.scrollOffsetY;
             const spriteWidth = this.children[0].getWidth();
             const spriteHeight = this.children[0].getHeight();
-            console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
+            // console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
 
             for (let row = 0; row < this.rows; row++) {
                 for (let column = 0; column < this.columns; column++) {
@@ -800,29 +792,6 @@
         }
     }
 
-    // export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
-    //     topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
-    //         return class Button extends GeneratedObject {
-    //             constructor(text, x, y, actionOnClick, z) {
-    //                 const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer(text), topShadow, bottomShadow, layout, offset);
-                    // const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer(text), topShadowHover, bottomShadowHover, layout, offset );
-
-    //                 // State management: 0 for default sprite and 1 for hover sprite
-    //                 super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
-    //             }
-
-    //             onHover() {
-    //                 super.onHover(); // Call parent's hover function
-    //                 this.updateState('hovered');
-    //             }
-
-    //             onStopHover() {
-    //                 super.onStopHover(); // Call parent's stop hover function
-    //                 this.updateState('default');
-    //             }
-    //         };
-    //     }
-
     export class ColorButton extends GeneratedObject {
         constructor(color, x, y, z, actionOnClick, width, height){
             const defaultSprite = generateRectangleMatrix(width, height, color);
@@ -831,7 +800,6 @@
             this.color = color;
             this.width = width;
             this.height = height;
-            console.log("color button created")
         }
     }
     
@@ -850,13 +818,11 @@
             this.children = [];
             this.generateColorButtons();
             this.generateColorGrid();
-            console.log("ColorMenu created")
         }
         generateColorButtons(){
             for(let i = 0; i < this.colorArray.length; i++){
                 let color = this.colorArray[i]; // Store the current color in a variable to avoid issues with closures in loops
                 let button = new ColorButton(color, 0, 0, 0, () => {
-                    console.log("Color button clicked: ", color);
                     this.colorFunction(color);
                 }, this.colorSize, this.colorSize);
                 // button.setCoordinate(this.x, this.y, this.z);

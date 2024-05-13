@@ -1,5 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
+    import { Inventory, Food, setItem, removeItem } from './Inventory.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -12,6 +13,7 @@
 
             Game.instance = this;
             this.getGlobalState();
+            this.inventory;
         }
 
         updateRooms(roomName, roomObj) {
@@ -27,6 +29,11 @@
             }
         }
 
+        constructInventory() {
+            this.inventory = new Inventory();
+            
+        }
+
         getCurrentRoom() {
             return this.currentRoom;
         }
@@ -40,10 +47,12 @@
         };
 
         setGlobalState( stateInfo ) {
+            
             tsvscode.postMessage({ type: 'setGlobalState', value: stateInfo });
         };
 
         setLocalState( stateInfo ) {
+            console.log("Setting local state: ", stateInfo)
             game.localState = stateInfo
         }
 
