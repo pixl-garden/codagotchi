@@ -342,7 +342,7 @@
             this.hatSprite = spriteReaderFromStore(this.hatConfig.spriteWidth, this.hatConfig.spriteHeight, this.hatConfig.spriteSheet)[this.currentHatConfig.spriteIndex]
             this.hatAnchorX = this.currentHatConfig.anchorX
             this.hatAnchorY = this.currentHatConfig.anchorY
-            get(game).setGlobalState({"hat": this.hat})
+            get(game).pushToGlobalState({"hat": this.hat})
         }
 
         getHat() {

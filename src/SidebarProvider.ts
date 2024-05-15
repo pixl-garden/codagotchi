@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { merge } from 'lodash';
 import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -17,23 +18,51 @@ const state = uuidv4();
 
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
 
-function printJsonObject(jsonObject: { [key: string]: any }): void {
-    for (const key in jsonObject) {
-        if (jsonObject.hasOwnProperty(key)) {
-            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
-        }
-    }
-}
+// Set the Global State (with merging)
+// ---- Example usage: ----
+// setCurrentState(context, {
+//     inventory: {
+//         apple: { quantity: 7 }
+//     }
+// });
+// if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity 
+// and will not delete other keys in the inventory object
 
 function setCurrentState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 
-    // Merge the partial update with the existing state
-    const updatedGlobalState = { ...currentGlobalState, ...partialUpdate };
+    // Loop through the keys in the partial update
+    for (const key of Object.keys(partialUpdate)) {
+        if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
+            // If the current value is an object, merge it with the new value
+            currentGlobalState[key] = merge(currentGlobalState[key], partialUpdate[key]);
+        } else {
+            // If the current value is not a mergable object, just replace it
+            currentGlobalState[key] = partialUpdate[key];
+        }
+    }
 
-    // Update the global state with the merged result
-    return context.globalState.update('globalInfo', updatedGlobalState);
+    // Update the global state with the modified result
+    return context.globalState.update('globalInfo', currentGlobalState);
+}
+
+// Remove an item from the Global State
+// ---- Example usage: ----
+// removeItemFromState(context, 'inventory', 'apple');
+
+function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
+    // Retrieve the existing global state
+    const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
+
+    // Check if the key exists and is an object
+    if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
+        // Remove the specified item from the object
+        delete currentGlobalState[key][itemToRemove];
+    }
+
+    // Update the global state with the modified result
+    return context.globalState.update('globalInfo', currentGlobalState);
 }
 
 function getCurrentState(context: vscode.ExtensionContext): { [key: string]: any } {
@@ -41,14 +70,18 @@ function getCurrentState(context: vscode.ExtensionContext): { [key: string]: any
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }
 
-// export function onSave(context: vscode.ExtensionContext, key: string, value: any): Thenable<void> {
-//     SidebarProvider._view?.webview.postMessage({
-//         type: 'currentState',
-//         value: getCurrentState(this.context),
-//     });
-//     return setCurrentState(context, { [key]: value });
-// }
+function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
+    // Clear the global state by setting it to an empty object
+    return context.globalState.update('globalInfo', {});
+}
 
+function printJsonObject(jsonObject: { [key: string]: any }): void {
+    for (const key in jsonObject) {
+        if (jsonObject.hasOwnProperty(key)) {
+            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+        }
+    }
+}
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -109,8 +142,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
+
+                // send the image URIs to the webview
                 case 'webview-ready': {
-                    // Convert the URIs using webview.asWebviewUri
+                    // Convert the image URIs using webview.asWebviewUri
                     const imageUris = this.getImageUris();
                     const webviewImageUris: { [key: string]: string } = {};
                     for (const key in imageUris) {
@@ -135,10 +170,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
 
-                case 'setGlobalState': {
+                case 'pushToGlobalState': {
                     console.log('****Setting globalState****');
                     // printJsonObject(data.value)
                     setCurrentState(this.context, data.value);
+                    break;
+                }
+
+                case 'removeItemFromState': {
+                    console.log('****Removing item from globalState****');
+                    // printJsonObject(data.value)
+                    removeItemFromState(this.context, data.key, data.itemToRemove);
+                    break;
+                }
+
+                case 'clearGlobalState': {
+                    console.log('****Clearing globalState****');
+                    clearGlobalState(this.context);
                     break;
                 }
 

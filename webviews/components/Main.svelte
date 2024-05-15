@@ -5,7 +5,6 @@
     import { Room, game, shouldFocus, inputValue } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { getPixelSize } from './ScreenManager.svelte';
     import { get } from 'svelte/store';
@@ -20,15 +19,16 @@
 
     //run once before main loop
     function pre() {
-        setGlobalState( {"test": "hey", "test2": "yeo", "test3": "bruh"} );
-        getGlobalState( {} );
+        // $game.pushToGlobalState( {"test": "whattup", "test2": "yeo", "test3": "bruh"} );
+        // $game.clearGlobalState();
+        $game.constructInventory();
+        $game.syncLocalToGlobalState( {} );
         handleResize();
         preloadObjects();
         //prettier-ignore
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
-        $game.constructInventory();
     }
     //main loop
     function main() {

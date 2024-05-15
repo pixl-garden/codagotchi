@@ -2,7 +2,6 @@
     import { GeneratedObject, objectGrid } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
-    import { setGlobalState, getLocalState } from "./localSave.svelte";
     const ITEMWIDTH = 32;
 
     export class Item extends GeneratedObject {
@@ -22,6 +21,8 @@
             this.config = config;
             this.displayName = config.displayName;
             this.description = config.description;
+            this.itemType = config.type;
+            this.inventoryId;
         }
         getName(){
             return this.displayName;
@@ -29,199 +30,130 @@
         getDescription(){
             return this.description;
         }
+        getInventoryId(){
+            return this.inventoryId;
+        }
         //base serialization for backend
-        serialize(){
+        serialize() {
             return { 
-                itemName: this.itemName
-            };
-        }
-    }
-
-    export class Tool extends Item {
-        constructor(itemName, enchantments = []) {
-            super(itemName);
-            this.enchantments = enchantments;
-            this.stackable = false;
-        }
-
-        serialize() {
-            return {
                 itemName: this.itemName,
-                itemType: 'tool',
-                enchantments: this.enchantments,
-            };
-        }
-    }
-
-    export class Food extends Item {
-        constructor(name, itemCount = 1) {
-            super(name);
-            this.stackable = true;
-            this.itemCount = itemCount;
-        }
-
-        serialize() {
-            return {
-                itemName: this.itemName,
-                itemType: 'food',
-                itemCount: this.itemCount
+                inventoryId: this.inventoryId,
+                itemCount: this.itemCount,
+                properties: this.properties
             };
         }
     }
 
     export class Inventory {
         constructor() {
-            this.items = new Map(); // Stores item name -> { count: Number, instances: Array }
+            this.items = new Map(); // Stores inventoryId -> item instance
+            // stackable items is redundant but is used for quick access to stackable items
+            this.stackableItems = new Map(); // Stores itemIdString -> inventoryId for stackable items
         }
 
-        addItem(item) {
-            if (!this.items.has(item.itemName)) {
-                this.items.set(item.itemName, { count: 0, instances: [] });
+        // Get the first available ID for a new item
+        // could be optimized by storing the last used ID or using a seperate set
+        // or could keep track of free IDs and process them during low load times
+        getFirstAvailableId() {
+            let id = 0;
+            while (this.items.has(id)) {
+                id++;
             }
-            const entry = this.items.get(item.itemName);
+            return id;
+        }
 
-            if (item.stackable) {
-                entry.count += item.itemCount || 1;
+        addStackableItemToInstance(itemIdString, quantity = 1) {
+            let item;
+            if (this.stackableItems.has(itemIdString)) {
+                const inventoryId = this.stackableItems.get(itemIdString);
+                item = this.items.get(inventoryId);
+                item.itemCount += quantity;
             } else {
-                // Determine the first available ID for this item type
-                const ids = entry.instances.map(inst => inst.id).sort((a, b) => a - b);
-                let newId = 0;
-                for (let i = 0; i < ids.length; i++) {
-                    if (ids[i] > i) {
-                        newId = i;
-                        break;
+                const newId = this.getFirstAvailableId();
+                item = new Item(itemIdString);
+                item.inventoryId = newId; // Assign the first available inventory ID
+                item.itemCount = quantity;
+                item.stackable = true;
+
+                this.items.set(newId, item);
+                this.stackableItems.set(itemIdString, newId);
+            }
+            return item;
+        }
+
+        addUnstackableItemToInstance(itemIdString, properties) {
+            const newId = this.getFirstAvailableId();
+            const newItem = new Item(itemIdString, properties);
+            newItem.inventoryId = newId; // Assign the first available inventory ID
+            newItem.itemCount = 1;
+            newItem.stackable = false;
+
+            this.items.set(newId, newItem);
+        }
+
+        removeItemByIdFromInstance(inventoryId) {
+            if (this.items.has(inventoryId)) {
+                const item = this.items.get(inventoryId);
+
+                if (item.stackable) {
+                    item.itemCount--;
+                    if (item.itemCount <= 0) {
+                        this.stackableItems.delete(item.itemName);
+                        this.items.delete(inventoryId);
                     }
-                    newId = i + 1; // Continue to next possible ID
+                } else {
+                    this.items.delete(inventoryId);
                 }
-                item.id = newId; // Assign the first available ID
-                // Insert the item at the correct position based on its ID
-                entry.instances.splice(newId, 0, item);
-            }
-        }
 
-        //Attempt to remove an item from the inventory
-        removeItem(itemName, quantity = 1) {
-            if (this.items.has(itemName)) {
-                let entry = this.items.get(itemName);
-                if (entry.count >= quantity) {
-                    entry.count -= quantity;
-                    if (entry.count === 0 && entry.instances.length === 0) {
-                        this.items.delete(itemName);
-                    }
-                    return true;
-                }
-            }
-            return false; // Item not found or insufficient quantity
-        }
-
-        // Attempt to remove a set of items (for crafting, etc.)
-        // Returns true and removes items if all are available, otherwise returns false
-        removeItems(itemList) {
-            // Check availability first
-            for (const { itemName, quantity } of itemList) {
-                if (!this.hasItem(itemName, quantity)) {
-                    return false; // Early return if any item is not available in required quantity
-                }
-            }
-            // If all items are available, remove them
-            itemList.forEach(({ itemName, quantity }) => this.removeItem(itemName, quantity));
-            return true;
-        }
-
-        removeNonStackableItemById(itemName, itemId) {
-            if (this.items.has(itemName)) {
-                const entry = this.items.get(itemName);
-                const index = entry.instances.findIndex(item => item.id === itemId);
-                if (index > -1) {
-                    entry.instances.splice(index, 1);
-                    return true; // Item found and removed
-                }
+                return true; // Item found and removed
             }
             return false; // Item not found
         }
 
-        hasItem(itemName, quantity = 1) {
-            if (this.items.has(itemName)) {
-                let entry = this.items.get(itemName);
-                return entry.count >= quantity || entry.instances.length >= quantity;
+        hasStackableItemsInInstance(itemIdString, quantity = 1) {
+            if (this.stackableItems.has(itemIdString)) {
+                const inventoryId = this.stackableItems.get(itemIdString);
+                const item = this.items.get(inventoryId);
+                return item.itemCount >= quantity;
             }
             return false;
         }
 
-        serialize() {
+        serializedInventory() {
             let serializedInventory = {};
-            this.items.forEach((entry, itemName) => {
-                serializedInventory[itemName] = {
-                    count: entry.count,
-                    instances: entry.instances.map(instance => instance.serialize())
-                };
+            this.items.forEach((item, inventoryId) => {
+                serializedInventory[inventoryId] = item.serialize();
             });
             return JSON.stringify(serializedInventory);
         }
     }
 
+    // Function to reconstruct items from serialized data
     function reconstructItem(itemData) {
         const config = itemConfig[itemData.itemName];
-        if (!config) throw new Error(`Configuration for item ${itemData.name} not found`);
+        if (!config) throw new Error(`Configuration for item ${itemData.itemName} not found`);
 
-        switch (config.type) {
-            case 'tool':
-                return new Tool(itemData.itemName, itemData.enchantments);
-            case 'food':
-                return new Food(itemData.itemName, itemData.itemCount);
-            default:
-                throw new Error(`Unknown item type for ${itemData.name}`);
-        }
+        const item = new Item(itemData.itemName, itemData.properties);
+        item.inventoryId = itemData.inventoryId;
+        item.itemCount = itemData.itemCount || 1;
+
+        return item;
     }
 
     export function createInventoryFromSave(savedData) {
         const inventory = new Inventory();
         const data = JSON.parse(savedData);
 
-        // Reconstruct items with unique properties
-        if (data.items) {
-            for (const itemData of data.items) {
-                const item = reconstructItem(itemData);
-                inventory.items.push(item); // Directly push reconstructed items
+        Object.values(data).forEach(itemData => {
+            const item = reconstructItem(itemData);
+            inventory.items.set(item.inventoryId, item);
+            if (item.stackable) {
+                inventory.stackableItems.set(item.itemName, item.inventoryId);
             }
-        }
-
-        // Reconstruct simple stackable items' counts
-        if (data.counts) {
-            for (const { name, itemCount } of data.counts) {
-                inventory.itemCounts.set(name, itemCount);
-            }
-        }
+        });
 
         return inventory;
     }
-
-    export function setItem(serializedItem) {
-        let currentState = getLocalState();
-        let inventory = currentState.inventory || [];
-        const itemIndex = inventory.findIndex(item => item.itemName === serializedItem.itemName);
-
-        if (itemIndex > -1) {
-            // Update existing item
-            inventory[itemIndex] = serializedItem;
-        } else {
-            // Add new item
-            inventory.push(serializedItem);
-        }
-
-        setGlobalState({ "inventory": inventory });
-        getLocalState();
-    }
-
-    export function removeItem(itemName){
-        let currentState = getLocalState();
-        let inventory = currentState.inventory || [];
-        inventory = inventory.filter(item => item.itemName !== itemName);
-
-        setGlobalState({ ...currentState, inventory });
-        getLocalState();
-    }
-
 
     export class inventoryGrid extends objectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip){
