@@ -170,7 +170,7 @@ class SidebarProvider {
                 case 'removeItemFromState': {
                     console.log('****Removing item from globalState****');
                     // printJsonObject(data.value)
-                    removeItemFromState(this.context, data.key, data.itemToRemove);
+                    removeItemFromState(this.context, data.key, data.itemIdToRemove);
                     break;
                 }
                 case 'clearGlobalState': {

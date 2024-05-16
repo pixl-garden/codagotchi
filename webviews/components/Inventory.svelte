@@ -84,17 +84,18 @@
         }
 
         subtractStackableItemFromInstance(itemIdString, quantity = 1) {
+            let item;
             if (this.stackableItems.has(itemIdString)) {
                 const inventoryId = this.stackableItems.get(itemIdString);
-                const item = this.items.get(inventoryId);
+                item = this.items.get(inventoryId);
                 item.itemCount -= quantity;
                 if (item.itemCount <= 0) {
-                    this.stackableItems.delete(itemIdString);
-                    this.items.delete(inventoryId);
+                    item.itemCount = 0;
                 }
-                return true; // Item found and removed
+            } else{
+                throw new Error(`Item ${itemIdString} not found in inventory`);
             }
-            return false; // Item not found
+            return item;
         }
 
         addUnstackableItemToInstance(itemIdString, properties) {
@@ -124,6 +125,10 @@
                 return true; // Item found and removed
             }
             return false; // Item not found
+        }
+
+        hasItemInInstance(itemIdString) {
+            return this.items.has(itemIdString);
         }
 
         hasStackableItemsInInstance(itemIdString, quantity = 1) {

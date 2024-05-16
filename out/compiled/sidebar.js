@@ -5285,20 +5285,21 @@ var app = (function () {
     	}
 
     	subtractStackableItemFromInstance(itemIdString, quantity = 1) {
+    		let item;
+
     		if (this.stackableItems.has(itemIdString)) {
     			const inventoryId = this.stackableItems.get(itemIdString);
-    			const item = this.items.get(inventoryId);
+    			item = this.items.get(inventoryId);
     			item.itemCount -= quantity;
 
     			if (item.itemCount <= 0) {
-    				this.stackableItems.delete(itemIdString);
-    				this.items.delete(inventoryId);
+    				item.itemCount = 0;
     			}
-
-    			return true; // Item found and removed
+    		} else {
+    			throw new Error(`Item ${itemIdString} not found in inventory`);
     		}
 
-    		return false; // Item not found
+    		return item;
     	}
 
     	addUnstackableItemToInstance(itemIdString, properties) {
@@ -5329,6 +5330,10 @@ var app = (function () {
     		}
 
     		return false; // Item not found
+    	}
+
+    	hasItemInInstance(itemIdString) {
+    		return this.items.has(itemIdString);
     	}
 
     	hasStackableItemsInInstance(itemIdString, quantity = 1) {
@@ -5537,6 +5542,20 @@ var app = (function () {
     		tsvscode.postMessage({ type: 'clearGlobalState' });
     	}
 
+    	removeItemFromGlobalState(key, itemIdToRemove) {
+    		console.log("Removing item from global state: ", itemIdToRemove);
+
+    		if (this.inventory.hasItemInInstance(itemIdToRemove)) {
+    			this.inventory.removeItemByIdFromInstance(itemIdToRemove);
+
+    			tsvscode.postMessage({
+    				type: 'removeItemFromState',
+    				key,
+    				itemIdToRemove
+    			});
+    		}
+    	}
+
     	// push new data to global state and synchronize local and global states
     	pushToSaveData(stateInfo) {
     		this.pushToGlobalState(stateInfo);
@@ -5571,6 +5590,22 @@ var app = (function () {
 
     	hasStackableItems(itemIdString, quantity = 1) {
     		return this.inventory.hasStackableItemsInInstance(itemIdString, quantity);
+    	}
+
+    	subtractStackableItem(itemIdString, quantity = 1) {
+    		let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
+
+    		if (itemInstance) {
+    			console.log("subtracted item count: ", itemInstance.itemCount);
+
+    			if (itemInstance.itemCount <= 0) {
+    				this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
+    			} else {
+    				this.pushToSaveData({ "inventory": itemInstance.serialize() });
+    			}
+    		} else {
+    			console.error("subtractStackableItem: Item not found in inventory: ", itemIdString);
+    		}
     	}
     }
 
@@ -6458,6 +6493,7 @@ var app = (function () {
     	// get(game).addStackableItem("tomatoSoup", 3);
     	// get(game).addStackableItem("coffee", 5);
     	// get(game).addStackableItem("potion", 2);
+    	// get(game).subtractStackableItem("tomatoSoup", 12);
     	let itemArray = get_store_value(game).inventory.getItemsArray();
 
     	//ITEMSLOT FACTORY FUNCTION

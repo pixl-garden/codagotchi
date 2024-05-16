@@ -51,6 +51,18 @@
             tsvscode.postMessage({ type: 'clearGlobalState' });
         }
 
+        removeItemFromGlobalState(key, itemIdToRemove) {
+            console.log("Removing item from global state: ", itemIdToRemove)
+            if(this.inventory.hasItemInInstance(itemIdToRemove)){
+                this.inventory.removeItemByIdFromInstance(itemIdToRemove);
+                tsvscode.postMessage({
+                    type: 'removeItemFromState',
+                    key: key,
+                    itemIdToRemove: itemIdToRemove
+                });
+            }
+        }
+
         // push new data to global state and synchronize local and global states
         pushToSaveData( stateInfo ){
             this.pushToGlobalState( stateInfo )
@@ -86,6 +98,23 @@
 
         hasStackableItems(itemIdString, quantity = 1) {
             return this.inventory.hasStackableItemsInInstance(itemIdString, quantity);
+        }
+
+        subtractStackableItem(itemIdString, quantity = 1) {
+            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity)
+            if(itemInstance) {
+                console.log("subtracted item count: ", itemInstance.itemCount)
+                if(itemInstance.itemCount <= 0){
+                    this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
+                } else {
+                    this.pushToSaveData({ 
+                        "inventory": itemInstance.serialize()
+                    });
+                }
+            }
+            else{
+                console.error("subtractStackableItem: Item not found in inventory: ", itemIdString);
+            }
         }
 
     }
