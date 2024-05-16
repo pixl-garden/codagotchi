@@ -57,6 +57,7 @@
             this.isMoving = false;
             this.framesPerSecond = 30; //this should probably be abstracted to a global variable
             this.timeStep = 1 / this.framesPerSecond;
+            this.velocityThreshold = 0.2;
 
             //Child object management variables
             this.children = [];
@@ -68,6 +69,101 @@
             this.passMouseCoords = false;
             this.mouseX = null;
             this.mouseY = null;
+        }
+
+        // Function to start moving towards a target
+        startMovingTo(newTargetX, newTargetY) {
+            this.targetX = newTargetX;
+            this.targetY = newTargetY;
+            console.log()
+            // console.log("MOVING TO: ", this.targetX, this.targetY);
+            this.isMoving = true;
+        }
+
+        updatePosition() {
+            if (!this.isMoving) {
+                return; // No need to update if the object is not moving
+            }
+
+            // Calculate the estimated velocity
+            let estimatedVelocityX = this.x - this.previousX;
+            let estimatedVelocityY = this.y - this.previousY;
+
+            // Update previous positions
+            this.previousX = this.x;
+            this.previousY = this.y;
+
+            // Calculate the acceleration based on second-order dynamics
+            let accelerationX = this.k3 * (this.targetX - this.x) - this.k1 * estimatedVelocityX;
+            let accelerationY = this.k3 * (this.targetY - this.y) - this.k1 * estimatedVelocityY;
+
+            // Update velocities
+            this.velocityX += accelerationX * this.timeStep;
+            this.velocityY += accelerationY * this.timeStep;
+
+            // Accumulate sub-pixel movements
+            this.accumulatedMoveX += this.velocityX;
+            this.accumulatedMoveY += this.velocityY;
+
+            // Update positions by integer values if accumulated movement exceeds 1 pixel
+            let moveX = Math.round(this.accumulatedMoveX);
+            let moveY = Math.round(this.accumulatedMoveY);
+
+            // Apply the integer movement
+            this.x += moveX;
+            this.y += moveY;
+
+            // Subtract the integer movement from the accumulated movement
+            this.accumulatedMoveX -= moveX;
+            this.accumulatedMoveY -= moveY;
+
+            console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
+            console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
+            console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
+    
+
+            // Check if the object has reached (or overshot) the target position
+            if ((Math.abs(this.targetX - this.x) < 1 && Math.abs(this.velocityX) < this.velocityThreshold) &&
+                (Math.abs(this.targetY - this.y) < 1 && Math.abs(this.velocityY) < this.velocityThreshold)) {
+                console.log("REACHED TARGET");
+                this.x = this.targetX;
+                this.y = this.targetY;
+
+                // Explicitly reset velocities and accumulated movements
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.accumulatedMoveX = 0;
+                this.accumulatedMoveY = 0;
+
+                this.isMoving = false;
+            }
+        }
+
+
+        nextFrame() {
+            if(this.isMoving){
+                this.updatePosition();
+            }
+            // Avoid unneccessary frame update if object has only one state and no queued states
+            if(this.state.length <= 1 && this.stateQueue.length == 0){
+                return;
+            }
+
+            // Define sprites for current state
+            const stateSprites = this.config.states[this.state];
+
+            // If the state index exceeds the state length, reset to first sprite in state
+            if (this.currentStateIndex >= stateSprites.length) {
+                this.currentSpriteIndex = stateSprites[0];
+                this.currentStateIndex = 0;
+                this.isStateCompleted = true;
+                this.executeCurrentStateCallback();
+                this.nextState();
+            }
+            // Otherwise, set the current sprite to the next sprite in the state
+            else{
+                this.currentSpriteIndex = stateSprites[this.currentStateIndex++];
+            }
         }
 
         onHover() {}
@@ -164,99 +260,6 @@
                 buttonObject.setCoordinate(buttonX, buttonY, buttonZ);
                 this.children.push(buttonObject);
             });
-        }
-
-
-        // Function to start moving towards a target
-        startMovingTo(newTargetX, newTargetY) {
-            this.targetX = newTargetX;
-            this.targetY = newTargetY;
-            // console.log("MOVING TO: ", this.targetX, this.targetY);
-            this.isMoving = true;
-        }
-
-        updatePosition() {
-            if (!this.isMoving) {
-                return; // No need to update if the object is not moving
-            }
-
-            // Calculate the estimated velocity
-            let estimatedVelocityX = this.x - this.previousX;
-            let estimatedVelocityY = this.y - this.previousY;
-
-            // Update previous positions
-            this.previousX = this.x;
-            this.previousY = this.y;
-
-            // Calculate the acceleration based on second-order dynamics
-            let accelerationX = this.k3 * (this.targetX - this.x) - this.k1 * estimatedVelocityX;
-            let accelerationY = this.k3 * (this.targetY - this.y) - this.k1 * estimatedVelocityY;
-
-            // Update velocities
-            this.velocityX += accelerationX * this.timeStep;
-            this.velocityY += accelerationY * this.timeStep;
-
-            // Accumulate sub-pixel movements
-            this.accumulatedMoveX += this.velocityX;
-            this.accumulatedMoveY += this.velocityY;
-
-            // Update positions by integer values if accumulated movement exceeds 1 pixel
-            let moveX = Math.round(this.accumulatedMoveX);
-            let moveY = Math.round(this.accumulatedMoveY);
-
-            // Apply the integer movement
-            this.x += moveX;
-            this.y += moveY;
-
-            // Subtract the integer movement from the accumulated movement
-            this.accumulatedMoveX -= moveX;
-            this.accumulatedMoveY -= moveY;
-
-            console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
-            console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
-            console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
-    
-
-            // Check if the object has reached (or overshot) the target position
-            if ((Math.abs(this.targetX - this.x) < 1) && (Math.abs(this.targetY - this.y) < 1)) {
-                this.x = this.targetX;
-                this.y = this.targetY;
-
-                // Explicitly reset velocities and accumulated movements
-                this.velocityX = 0;
-                this.velocityY = 0;
-                this.accumulatedMoveX = 0;
-                this.accumulatedMoveY = 0;
-
-                this.isMoving = false;
-            }
-        }
-
-
-        nextFrame() {
-            if(this.isMoving){
-                this.updatePosition();
-            }
-            // Avoid unneccessary frame update if object has only one state and no queued states
-            if(this.state.length <= 1 && this.stateQueue.length == 0){
-                return;
-            }
-
-            // Define sprites for current state
-            const stateSprites = this.config.states[this.state];
-
-            // If the state index exceeds the state length, reset to first sprite in state
-            if (this.currentStateIndex >= stateSprites.length) {
-                this.currentSpriteIndex = stateSprites[0];
-                this.currentStateIndex = 0;
-                this.isStateCompleted = true;
-                this.executeCurrentStateCallback();
-                this.nextState();
-            }
-            // Otherwise, set the current sprite to the next sprite in the state
-            else{
-                this.currentSpriteIndex = stateSprites[this.currentStateIndex++];
-            }
         }
 
         queueState(state, callback = null) {

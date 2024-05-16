@@ -237,7 +237,7 @@
         // get(game).addStackableItem("tomatoSoup", 3);
         // get(game).addStackableItem("coffee", 5);
         // get(game).addStackableItem("potion", 2);
-        // get(game).subtractStackableItem("tomatoSoup", 12);
+        // get(game).subtractStackableItem("tomatoSoup", 3);
         let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
