@@ -21,8 +21,8 @@
     function pre() {
         // $game.pushToGlobalState( {"test": "whattup", "test2": "yeo", "test3": "bruh"} );
         // $game.clearGlobalState();
-        $game.constructInventory();
         $game.syncLocalToGlobalState( {} );
+        $game.constructInventory();
         handleResize();
         preloadObjects();
         //prettier-ignore

@@ -23,6 +23,9 @@
     }
 
     return function renderText(text) {
+        if(typeof text !== 'string') {
+            throw new Error('renderText: Text must be a string');
+        }
         // Create a larger matrix to accommodate shadows
         const matrixWidth = text.length * (spriteWidth + letterSpacing);
         const matrixHeight = spriteHeight + Math.abs(textShadowYOffset);

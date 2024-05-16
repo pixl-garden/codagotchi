@@ -1,8 +1,9 @@
 <script context="module">
-    import { GeneratedObject, objectGrid } from "./Object.svelte";
+    import { GeneratedObject, objectGrid, activeTextRenderer } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
     const ITEMWIDTH = 32;
+    const stackableTypes = ["food"]
 
     export class Item extends GeneratedObject {
         constructor( itemName ){
@@ -11,7 +12,6 @@
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
             const objState = { default: [config.spriteIndex] }
             const spriteMatrix = spriteReaderFromStore(ITEMWIDTH, ITEMWIDTH, config.spriteSheet);
-            console.log("spriteMatrix", spriteMatrix, "objState", objState, "config", config, "itemName");
             super(spriteMatrix, objState, 0, 0, 0);
             this.itemName = itemName;
             this.stackable = false;
@@ -23,6 +23,7 @@
             this.description = config.description;
             this.itemType = config.type;
             this.inventoryId;
+            this.properties = {};
         }
         getName(){
             return this.displayName;
@@ -35,11 +36,12 @@
         }
         //base serialization for backend
         serialize() {
-            return { 
-                itemName: this.itemName,
-                inventoryId: this.inventoryId,
-                itemCount: this.itemCount,
-                properties: this.properties
+            return {
+                [this.inventoryId]: {
+                    itemName: this.itemName,
+                    itemCount: this.itemCount,
+                    properties: this.properties
+                }
             };
         }
     }
@@ -79,6 +81,20 @@
                 this.stackableItems.set(itemIdString, newId);
             }
             return item;
+        }
+
+        subtractStackableItemFromInstance(itemIdString, quantity = 1) {
+            if (this.stackableItems.has(itemIdString)) {
+                const inventoryId = this.stackableItems.get(itemIdString);
+                const item = this.items.get(inventoryId);
+                item.itemCount -= quantity;
+                if (item.itemCount <= 0) {
+                    this.stackableItems.delete(itemIdString);
+                    this.items.delete(inventoryId);
+                }
+                return true; // Item found and removed
+            }
+            return false; // Item not found
         }
 
         addUnstackableItemToInstance(itemIdString, properties) {
@@ -126,38 +142,48 @@
             });
             return JSON.stringify(serializedInventory);
         }
+
+        getItemsArray() {
+            // Convert the Map values to an array
+            return Array.from(this.items.values());
+        }
     }
 
     // Function to reconstruct items from serialized data
     function reconstructItem(itemData) {
+        console.log("Item Data: ", itemData);
         const config = itemConfig[itemData.itemName];
         if (!config) throw new Error(`Configuration for item ${itemData.itemName} not found`);
 
         const item = new Item(itemData.itemName, itemData.properties);
         item.inventoryId = itemData.inventoryId;
         item.itemCount = itemData.itemCount || 1;
+        item.properties = itemData.properties || {};
+        item.itemType = config.type;
 
         return item;
     }
 
     export function createInventoryFromSave(savedData) {
         const inventory = new Inventory();
-        const data = JSON.parse(savedData);
 
-        Object.values(data).forEach(itemData => {
+        // Iterate over each key in savedData, which are inventoryIds
+        Object.keys(savedData).forEach(inventoryId => {
+            const itemData = savedData[inventoryId];
             const item = reconstructItem(itemData);
+            item.inventoryId = parseInt(inventoryId); // Ensure the inventoryId is treated as a number if needed
+
             inventory.items.set(item.inventoryId, item);
-            if (item.stackable) {
+            if (stackableTypes.includes(item.itemType)) {
                 inventory.stackableItems.set(item.itemName, item.inventoryId);
             }
         });
 
         return inventory;
     }
-
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip){
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots);
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer){
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
             this.toolTip = toolTip;
@@ -184,16 +210,19 @@
                     itemSlot.updateState("default");
                 }
             });
-            function constructInventoryObjects(createSlotInstance, items, totalSlots) {
+            function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer) {
                 let inventoryGrid = [];
                 for(let i = 0; i < totalSlots; i++) {
                     let item = items[i];
                     let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
                     // console.log("Slot Instance: ", slotInstance); // Check the instance
-                    console.log(slotInstance instanceof GeneratedObject);
+                    // console.log(slotInstance instanceof GeneratedObject);
                     if(item) {
                         // console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
+                        let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
+                        numberRenderer.setText(item.itemCount.toString());
                         slotInstance.addChild(item);
+                        slotInstance.addChild(numberRenderer);
                     }
                     inventoryGrid.push(slotInstance);
                 }

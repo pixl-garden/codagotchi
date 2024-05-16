@@ -1,6 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
-    import { Inventory } from './Inventory.svelte';
+    import { Inventory, createInventoryFromSave } from './Inventory.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -68,7 +68,8 @@
         }
 
         constructInventory() {
-            this.inventory = new Inventory();
+            this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
+            // console.log("Constructed inventory: ", this.inventory);
         }
 
         addStackableItem(itemIdString, quantity = 1) {

@@ -16,7 +16,7 @@
         let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
         let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
         let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
-        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#000000", -4, standardCharMap);
+        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -222,19 +222,22 @@
         
     //----------------INVENTORY ROOM----------------
         //ITEM INSTANTIATION (PLACEHOLDER)
-        let testItem1 = new Item("coffee", 0, 0, 0);
-        let testItem2 = new Item("tomatoSoup", 0, 0, 0)
-        let testItem3 = new Item("fishingRod", 0, 0, 0)
-        let testItem4 = new Item("potion", 0, 0, 0)
-        let testItem5 = new Item("redHerring", 0, 0, 0)
-        let testItem6 = new Item("tropicalFish", 0, 0, 0)
-        let testItem7 = new Item("coffee", 0, 0, 0)
-        let testItem8 = new Item("tomatoSoup", 0, 0, 0)
-        let testItem9 = new Item("coffee", 0, 0, 0)
-        let testItem10 = new Item("potion", 0, 0, 0)
-        let testItem11 = new Item("tomatoSoup", 0, 0, 0)
-        let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
-        get(game).addStackableItem("tomatoSoup", 3);
+        // let testItem1 = new Item("coffee", 0, 0, 0);
+        // let testItem2 = new Item("tomatoSoup", 0, 0, 0)
+        // let testItem3 = new Item("fishingRod", 0, 0, 0)
+        // let testItem4 = new Item("potion", 0, 0, 0)
+        // let testItem5 = new Item("redHerring", 0, 0, 0)
+        // let testItem6 = new Item("tropicalFish", 0, 0, 0)
+        // let testItem7 = new Item("coffee", 0, 0, 0)
+        // let testItem8 = new Item("tomatoSoup", 0, 0, 0)
+        // let testItem9 = new Item("coffee", 0, 0, 0)
+        // let testItem10 = new Item("potion", 0, 0, 0)
+        // let testItem11 = new Item("tomatoSoup", 0, 0, 0)
+        // let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
+        // get(game).addStackableItem("tomatoSoup", 3);
+        // get(game).addStackableItem("coffee", 5);
+        // get(game).addStackableItem("potion", 2);
+        let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
             let output = new Object("itemSlot", 0, 0, 0);
@@ -246,7 +249,7 @@
         //TOOLTIP INSTANTIATION
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip);
+        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tiny);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom');
         inventoryRoom.addObject(backToMain, inventoryGridTest);
