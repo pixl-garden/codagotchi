@@ -1,5 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
+    import { Inventory, createInventoryFromSave } from './Inventory.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -11,7 +12,8 @@
             this.localState = {};
 
             Game.instance = this;
-            this.getGlobalState();
+            this.syncLocalToGlobalState();
+            this.inventory;
         }
 
         updateRooms(roomName, roomObj) {
@@ -35,22 +37,113 @@
             return this.rooms[this.currentRoomName].getObjects();
         }
 
-        getGlobalState() {
+        // synchronizes local state (game.localState) with global state (vscode API)
+        syncLocalToGlobalState() {
             tsvscode.postMessage({ type: 'getGlobalState'});
         };
-
-        setGlobalState( stateInfo ) {
-            tsvscode.postMessage({ type: 'setGlobalState', value: stateInfo });
+        
+        // pushes new state info to global state (vscode API)
+        pushToGlobalState( stateInfo ) {
+            tsvscode.postMessage({ type: 'pushToGlobalState', value: stateInfo });
         };
 
+        clearGlobalState() {
+            tsvscode.postMessage({ type: 'clearGlobalState' });
+        }
+
+        removeItemFromGlobalState(key, itemIdToRemove) {
+            console.log("Removing item from global state: ", itemIdToRemove)
+            if(this.inventory.hasItemInInstance(itemIdToRemove)){
+                this.inventory.removeItemByIdFromInstance(itemIdToRemove);
+                tsvscode.postMessage({
+                    type: 'removeItemFromState',
+                    key: key,
+                    itemIdToRemove: itemIdToRemove
+                });
+            }
+        }
+
+        // push new data to global state and synchronize local and global states
+        pushToSaveData( stateInfo ){
+            this.pushToGlobalState( stateInfo )
+            this.syncLocalToGlobalState();
+        }
+
+        // sets local state (game.localState) to the state info (called when syncLocalToGlobalState is called)
         setLocalState( stateInfo ) {
+            console.log("Setting local state: ", stateInfo)
             game.localState = stateInfo
         }
 
         getLocalState () {
             return game.localState
         }
+
+        constructInventory() {
+            this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
+            // console.log("Constructed inventory: ", this.inventory);
+        }
+
+        addStackableItem(itemIdString, quantity = 1) {
+            this.pushToSaveData({ 
+                "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
+            });
+        }
+
+        addUnstackableItem(itemIdString, properties) {
+            this.pushToSaveData({ 
+                "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
+            });
+        }
+
+        hasStackableItems(itemIdString, quantity = 1) {
+            return this.inventory.hasStackableItemsInInstance(itemIdString, quantity);
+        }
+
+        subtractStackableItem(itemIdString, quantity = 1) {
+            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity)
+            if(itemInstance) {
+                console.log("subtracted item count: ", itemInstance.itemCount)
+                if(itemInstance.itemCount <= 0){
+                    this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
+                } else {
+                    this.pushToSaveData({ 
+                        "inventory": itemInstance.serialize()
+                    });
+                }
+            }
+            else{
+                console.error("subtractStackableItem: Item not found in inventory: ", itemIdString);
+            }
+        }
+
     }
+
+    // export function setItem(serializedItem) {
+    //     let currentState = getLocalState();
+    //     let inventory = currentState.inventory || [];
+    //     const itemIndex = inventory.findIndex(item => item.itemName === serializedItem.itemName);
+
+    //     if (itemIndex > -1) {
+    //         // Update existing item
+    //         inventory[itemIndex] = serializedItem;
+    //     } else {
+    //         // Add new item
+    //         inventory.push(serializedItem);
+    //     }
+
+    //     setGlobalState({ "inventory": inventory });
+    //     getLocalState();
+    // }
+
+    // export function removeItem(itemName){
+    //     let currentState = getLocalState();
+    //     let inventory = currentState.inventory || [];
+    //     inventory = inventory.filter(item => item.itemName !== itemName);
+
+    //     setGlobalState({ ...currentState, inventory });
+    //     getLocalState();
+    // }
 
     export const game = writable(new Game());
 

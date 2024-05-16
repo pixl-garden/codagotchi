@@ -20,60 +20,9 @@
         return { gridX, gridY, pixelSize };
     }
 
-    // maybe switch to a hashmap for faster object lookup
-    // Abstracting object retrieval logic
-    // function getObjectAt(x, y, gameInstance, returnMultiple = false) {
-    //     let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
-    //     let foundObjects = [];
-
-    //     //loop through all objects and check if the x and y coordinates are within the object's bounds
-    //     objects.forEach(obj => {
-    //         if (obj.getChildren().length > 0) {
-    //             obj.getChildren().forEach(child => {
-    //                 let childX = obj.x + child.x
-    //                 let childY = obj.y + child.y;
-    //                 if (x >= childX && x <= childX + child.spriteWidth && 
-    //                     y >= childY && y <= childY + child.spriteHeight) {
-    //                     if(obj.passMouseCoords){
-    //                         obj.mouseX = x;
-    //                         obj.mouseY = y;
-    //                     }
-    //                     if(child.passMouseCoords){
-    //                         child.mouseX = x;
-    //                         child.mouseY = y;
-    //                     }   
-    //                     if (obj.hoverWithChildren){
-    //                         obj.hoveredChild = child;
-    //                         foundObjects.push(...[child, obj]);
-    //                         if(!returnMultiple){
-    //                             return foundObjects;
-    //                         }
-    //                     } 
-    //                     else{
-    //                         foundObjects.push(child);
-    //                         if(!returnMultiple){
-    //                             return foundObjects;
-    //                         }
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //         if (x >= obj.x && x <= obj.x + obj.spriteWidth && 
-    //            y >= obj.y && y <= obj.y + obj.spriteHeight) {
-    //             foundObjects.push(obj);
-    //             if(!returnMultiple){
-    //                 return foundObjects;
-    //             }
-    //         }
-    //     });
-    //     console.log(foundObjects);
-
-    //     // return returnMultiple ? foundObjects : foundObjects.slice(0, 1);
-    //     return foundObjects;
-    // }
-
-    // TODO: fix multiple hovering of children on the same level (children of the same parent) and the tool tip doesnt work and the painting doesnt work and fuck
+    // Get the object at the given coordinates
     function getObjectAt(x, y, gameInstance) {
+        // maybe switch to a hashmap for faster object lookup
         let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
         let foundObjects = [];
         let foundObjectFlag = false;
@@ -132,9 +81,9 @@
         }
 
         foundObjects = foundObjects.sort((a, b) => b.getZ() - a.getZ());
+        // console.log("FOUND OBJECTS: ", foundObjects)
 
         // Return based on the returnMultiple flag
-        console.log("FOUND OBJECTS: ", foundObjects)
         return foundObjects;
     }
 
@@ -174,7 +123,7 @@
             }
         }
 
-        console.log(foundObjects);
+        // console.log(foundObjects);
         for(let i = 0; i < foundObjects.length; i++){
             // if(foundObjects[i].passMouseCoords){
             //     foundObjects[i].mouseX = xPixelCoord;
@@ -215,13 +164,13 @@
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
         if (isMouseDown) {
-            console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
+            // console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
             // Ensures hoveredObject is the one being dragged
             if (newHoveredObject && newHoveredObject === activeDragObject) {
-                console.log("DRAGGING")
+                // console.log("DRAGGING")
                 // Check if hoveredObject is an instance of PixelCanvas
                 if (newHoveredObject instanceof PixelCanvas) {
-                    console.log("DRAGGING ON CANVS")
+                    // console.log("DRAGGING ON CANVS")
                     // For PixelCanvas, we use drawLine to handle dragging
                     if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
                         // Draw line from last coordinates to current

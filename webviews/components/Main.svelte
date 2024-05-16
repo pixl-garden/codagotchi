@@ -5,7 +5,6 @@
     import { Room, game, shouldFocus, inputValue } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { preloadAllSpriteSheets } from './SpriteReader.svelte';
-    import { getGlobalState, getLocalState, setGlobalState, setLocalState } from './localSave.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { getPixelSize } from './ScreenManager.svelte';
     import { get } from 'svelte/store';
@@ -20,8 +19,10 @@
 
     //run once before main loop
     function pre() {
-        // setGlobalState( {"test": "hey", "test2": "hello noah", "test3": "whats up"} );
-        getGlobalState( {} );
+        // $game.pushToGlobalState( {"test": "whattup", "test2": "yeo", "test3": "bruh"} );
+        // $game.clearGlobalState();
+        $game.syncLocalToGlobalState( {} );
+        $game.constructInventory();
         handleResize();
         preloadObjects();
         //prettier-ignore
@@ -125,7 +126,7 @@
     });
 
     $: if ($shouldFocus) {
-        console.log('Input is focused');
+        // console.log('Input is focused');
     }
     $: console.log('Input Value:', $inputValue);
 </script>

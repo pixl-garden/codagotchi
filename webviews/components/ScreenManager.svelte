@@ -60,7 +60,7 @@
         // pixelSize = Math.min(width / GRIDWIDTH, height / GRIDWIDTH);
         // screenWidth = Math.floor(GRIDWIDTH * pixelSize);
         screenWidth = width;
-        console.log("width: " + width + " height: " + height + " pixelSize: " + pixelSize + " screenWidth: " + screenWidth);
+        // console.log("width: " + width + " height: " + height + " pixelSize: " + pixelSize + " screenWidth: " + screenWidth);
     }
 
     function updateStyles() {

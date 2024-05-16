@@ -1,7 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu } from './Object.svelte';
-    import { Item, inventoryGrid, setItem, removeItem } from './Inventory.svelte';
+    import { Item, inventoryGrid } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
@@ -16,7 +16,7 @@
         let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
         let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
         let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
-        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#000000", -4, standardCharMap);
+        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -95,10 +95,10 @@
         });
         //CUSTOMIZATION UI INSTANTIATION
         let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
-        const leftHatArrow = new singleLetterButton('<', 20, 144, () => {
+        const leftHatArrow = new singleLetterButton('<', 20, 100, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
         }, 0);
-        const rightHatArrow = new singleLetterButton('>', 60, 144, () => {
+        const rightHatArrow = new singleLetterButton('>', 60, 100, () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
         }, 0);
         let customizeUI = new Background('customizeUI', 9, 88, -10, () => {
@@ -127,15 +127,15 @@
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
-        let colorMenuTest = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
+        let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
         ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
-         (color) => { paintCanvas.setColor(color); paintRoom.removeObject(colorMenuTest); });
+         (color) => { paintCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
         let paintButton1 = new paintButton('col', 8, 0, ()=>{
-            if(paintRoom.objects.includes(colorMenuTest)){
-                paintRoom.removeObject(colorMenuTest);
+            if(paintRoom.objects.includes(colorMenuObj)){
+                paintRoom.removeObject(colorMenuObj);
             }
             else{
-                paintRoom.addObject(colorMenuTest);
+                paintRoom.addObject(colorMenuObj);
             }
         }, 5);
         let eraserButton = new paintButton('ers', 32, 0, ()=>{
@@ -162,8 +162,6 @@
             paintCanvas.incrementSize();
             sizeNumber.setText((paintCanvas.brushSize / 2).toString());
         }, 5);
-
-        // let colorMenuTest = new ColorMenu(50, 50, 5, 50, 35, "black", "white", 3, 4, 1, 4, 4, ["red", "green", "blue", "white", "magenta", "black", "red", "red", "red", "red", "red", "red", "red", "red", "red", "red"], paintCanvas.rotateColor);
 
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
@@ -224,30 +222,35 @@
         
     //----------------INVENTORY ROOM----------------
         //ITEM INSTANTIATION (PLACEHOLDER)
-        let testItem1 = new Item("coffee", 0, 0, 0);
-        let testItem2 = new Item("tomatoSoup", 0, 0, 0)
-        let testItem3 = new Item("fishingRod", 0, 0, 0)
-        let testItem4 = new Item("potion", 0, 0, 0)
-        let testItem5 = new Item("redHerring", 0, 0, 0)
-        let testItem6 = new Item("tropicalFish", 0, 0, 0)
-        let testItem7 = new Item("coffee", 0, 0, 0)
-        let testItem8 = new Item("tomatoSoup", 0, 0, 0)
-        let testItem9 = new Item("coffee", 0, 0, 0)
-        let testItem10 = new Item("potion", 0, 0, 0)
-        let testItem11 = new Item("tomatoSoup", 0, 0, 0)
-        let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
+        // let testItem1 = new Item("coffee", 0, 0, 0);
+        // let testItem2 = new Item("tomatoSoup", 0, 0, 0)
+        // let testItem3 = new Item("fishingRod", 0, 0, 0)
+        // let testItem4 = new Item("potion", 0, 0, 0)
+        // let testItem5 = new Item("redHerring", 0, 0, 0)
+        // let testItem6 = new Item("tropicalFish", 0, 0, 0)
+        // let testItem7 = new Item("coffee", 0, 0, 0)
+        // let testItem8 = new Item("tomatoSoup", 0, 0, 0)
+        // let testItem9 = new Item("coffee", 0, 0, 0)
+        // let testItem10 = new Item("potion", 0, 0, 0)
+        // let testItem11 = new Item("tomatoSoup", 0, 0, 0)
+        // let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
+        // get(game).addStackableItem("tomatoSoup", 3);
+        // get(game).addStackableItem("coffee", 5);
+        // get(game).addStackableItem("potion", 2);
+        // get(game).subtractStackableItem("tomatoSoup", 12);
+        let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
             let output = new Object("itemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
-            console.log("createItemSlot instance:", output); // Check the instance
+            // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
         //TOOLTIP INSTANTIATION
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip);
+        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tiny);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom');
         inventoryRoom.addObject(backToMain, inventoryGridTest);
