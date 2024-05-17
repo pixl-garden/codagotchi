@@ -18,7 +18,6 @@
         let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
         let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
         let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
-        
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
         //   topShadowColor, bottomShadowColor, topHoverShadowColor, bottomHoverShadowColor,
@@ -156,7 +155,9 @@
             shapeButtonSquare.onHover();
             paintRoom.removeObject(shapeButtonCircle);
         }, 5);
-        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[5], 104, 0, ()=>{
+        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 104, 0, ()=>{
+            paintCanvas.clearCanvas();
+        }, 5);
         let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
             paintCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonCircle);
@@ -301,10 +302,10 @@
             return Math.max(speed, 0.6);
         }
 
-        function linearSpeed(currentDistance, totalDistance) {
-            const speed = 1; // You can adjust this value for faster or slower speed
-            return speed;
-        }
+        // function linearSpeed(currentDistance, totalDistance) {
+        //     const speed = 1; // You can adjust this value for faster or slower speed
+        //     return speed;
+        // }
 
     }
 
