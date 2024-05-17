@@ -4738,6 +4738,7 @@ var app = (function () {
     		this.canvasHeight = height;
     		this.pixelMatrix = emptyMatrix;
     		this.color = 'white';
+    		this.pencilColor = 'white';
     		this.lastX = null;
     		this.lastY = null;
     		this.offsetX = x;
@@ -4847,6 +4848,15 @@ var app = (function () {
 
     	setColor(color) {
     		this.color = color;
+
+    		if (this.color != 'transparent') {
+    			console.log("changing from", this.pencilColor, "to", color);
+    			this.pencilColor = color;
+    		}
+    	}
+
+    	setToPencilColor() {
+    		this.color = this.pencilColor;
     	}
 
     	clearCanvas() {
@@ -6352,7 +6362,6 @@ var app = (function () {
     	() => {
     			
     		});
-
     	let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
 
     	//ROOM INSTANTIATION
@@ -6451,6 +6460,15 @@ var app = (function () {
     		},
     	5);
 
+    	let pencilButton = new paintButtonIcon(paintButtonSprites[0],
+    	paintButtonSprites[0],
+    	0,
+    	107,
+    	() => {
+    			paintCanvas.setToPencilColor();
+    		},
+    	5);
+
     	//PAINT CANVAS INSTANTIATION
     	let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
 
@@ -6490,6 +6508,7 @@ var app = (function () {
     			paintCanvas.retrieveFutureCanvas();
     		},
     	5);
+
 
     	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
 

@@ -127,7 +127,7 @@
     //----------------PAINT ROOM----------------
         //BACKGROUND INSTANTIATION
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
-        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
+        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
@@ -149,20 +149,22 @@
         let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 32, 0, ()=>{
             paintCanvas.setEraser();
         }, 5);
+
         let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 56, 0, ()=>{
             paintCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonSquare);
             shapeButtonSquare.onHover();
             paintRoom.removeObject(shapeButtonCircle);
         }, 5);
+        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[5], 104, 0, ()=>{
         let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
             paintCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonCircle);
             shapeButtonCircle.onHover();
             paintRoom.removeObject(shapeButtonSquare);
         }, 5);
-        let clearButton = new paintButtonIcon(paintButtonSprites[1], paintButtonSprites[1], 104, 0, ()=>{
-            paintCanvas.clearCanvas();
+        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 107, ()=>{
+            paintCanvas.setToPencilColor()
         }, 5);
         //PAINT CANVAS INSTANTIATION
         let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
@@ -183,7 +185,7 @@
             paintCanvas.retrieveFutureCanvas();
         }, 5);
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
-                            shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
