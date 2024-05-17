@@ -418,6 +418,7 @@
             this.canvasHeight = height;
             this.pixelMatrix = emptyMatrix;
             this.color = 'white';
+            this.pencilColor = 'white';
             this.lastX = null;
             this.lastY = null;
             this.offsetX = x;
@@ -523,6 +524,15 @@
 
         setColor(color) {
             this.color = color;
+            if( this.color != 'transparent') {
+                console.log("changing from", this.pencilColor, "to", color);
+                this.pencilColor = color;
+
+            }
+        }
+
+        setToPencilColor() {
+            this.color = this.pencilColor;
         }
 
         clearCanvas() {

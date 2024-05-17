@@ -127,7 +127,7 @@
     //----------------PAINT ROOM----------------
         //BACKGROUND INSTANTIATION
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
-        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
+        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         console.log(paintButtonSprites);
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
@@ -145,11 +145,14 @@
         let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 32, 0, ()=>{
             paintCanvas.setEraser();
         }, 5);
-        let shapeButton = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
+        let shapeButton = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 56, 0, ()=>{
             paintCanvas.rotateBrushShape();
         }, 5);
-        let clearButton = new paintButtonText('clr', 104, 0, ()=>{
+        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[5], 104, 0, ()=>{
             paintCanvas.clearCanvas();
+        }, 5);
+        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 107, ()=>{
+            paintCanvas.setToPencilColor()
         }, 5);
         //PAINT CANVAS INSTANTIATION
         let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
@@ -173,7 +176,8 @@
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
-                            shapeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
+                            shapeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, 
+                            redoButton, pencilButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION

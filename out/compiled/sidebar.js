@@ -4738,6 +4738,7 @@ var app = (function () {
     		this.canvasHeight = height;
     		this.pixelMatrix = emptyMatrix;
     		this.color = 'white';
+    		this.pencilColor = 'white';
     		this.lastX = null;
     		this.lastY = null;
     		this.offsetX = x;
@@ -4847,6 +4848,15 @@ var app = (function () {
 
     	setColor(color) {
     		this.color = color;
+
+    		if (this.color != 'transparent') {
+    			console.log("changing from", this.pencilColor, "to", color);
+    			this.pencilColor = color;
+    		}
+    	}
+
+    	setToPencilColor() {
+    		this.color = this.pencilColor;
     	}
 
     	clearCanvas() {
@@ -6353,7 +6363,7 @@ var app = (function () {
     			
     		});
 
-    	let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
+    	let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
     	console.log(paintButtonSprites);
 
     	//PAINT BUTTONS INSTANTIATION
@@ -6414,8 +6424,8 @@ var app = (function () {
     		},
     	5);
 
-    	let shapeButton = new paintButtonIcon(paintButtonSprites[3],
-    	paintButtonSprites[3],
+    	let shapeButton = new paintButtonIcon(paintButtonSprites[2],
+    	paintButtonSprites[2],
     	56,
     	0,
     	() => {
@@ -6423,11 +6433,21 @@ var app = (function () {
     		},
     	5);
 
-    	let clearButton = new paintButtonText('clr',
+    	let clearButton = new paintButtonIcon(paintButtonSprites[5],
+    	paintButtonSprites[5],
     	104,
     	0,
     	() => {
     			paintCanvas.clearCanvas();
+    		},
+    	5);
+
+    	let pencilButton = new paintButtonIcon(paintButtonSprites[0],
+    	paintButtonSprites[0],
+    	0,
+    	107,
+    	() => {
+    			paintCanvas.setToPencilColor();
     		},
     	5);
 
@@ -6474,7 +6494,7 @@ var app = (function () {
     	//ROOM INSTANTIATION
     	let paintRoom = new Room('paintRoom');
 
-    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
+    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
 
     	//----------------SOCIAL ROOM----------------
     	//TEXT INPUT BAR INSTANTIATION
