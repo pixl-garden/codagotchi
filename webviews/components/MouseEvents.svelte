@@ -145,6 +145,10 @@
     }
 
     export function handleMouseDown(event, gameInstance) {
+        if (newHoveredObject instanceof PixelCanvas) {
+            newHoveredObject.saveCurrentCanvas();
+            // console.log()
+        }
         event.preventDefault();
         isMouseDown = true;
         let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);

@@ -120,7 +120,7 @@
         return outputMatrix;
     }
 
-    export function generateButtonMatrix( width, height, bgColor, borderColor, textSprite, bottomShadowColor = null, topShadowColor = null, layout = "center", offset = 0 ) {
+    export function generateButtonMatrix( width, height, bgColor, borderColor, displaySprite, bottomShadowColor = null, topShadowColor = null, layout = "center", offset = 0 ) {
         const outerSprite = generateRectangleMatrix(width, height, borderColor);
         const innerWidth = width - 2;
         const innerHeight = height - 2;
@@ -144,28 +144,27 @@
             buttonSprite = overlayMatrix(buttonSprite, bottomShadowHorizontal, 0, 0, 1, height - 2);
             buttonSprite = overlayMatrix(buttonSprite, bottomShadowVertical, 0, 0, width - 2, 1);
         }
-        let textX;
+        let displaySpriteX;
         if(layout === "center"){
-            textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
+            displaySpriteX = Math.floor((innerWidth - displaySprite[0].length) / 2) + 1;
         }
         else if(layout === "left"){
-            textX = 1 + offset;
+            displaySpriteX = 1 + offset;
         }
         else if(layout === "right"){
-            textX = innerWidth - textSprite[0].length - offset;
+            displaySpriteX = innerWidth - displaySprite[0].length - offset;
         }
         else{
-            textX = Math.floor((innerWidth - textSprite[0].length) / 2) + 1;
+            displaySpriteX = Math.floor((innerWidth - displaySprite[0].length) / 2) + 1;
         }
         
-        let textY = Math.floor((innerHeight - textSprite.length) / 2) + 1;
+        let displaySpriteY = Math.floor((innerHeight - displaySprite.length) / 2) + 1;
 
-        // Overlay the text sprite in the center of the button
-        const finalButtonSprite = overlayMatrix(buttonSprite, textSprite, 0, 0, textX, textY);
+        // Overlay the sprite in the center of the button
+        const finalButtonSprite = overlayMatrix(buttonSprite, displaySprite, 0, 0, displaySpriteX, displaySpriteY);
 
         return finalButtonSprite;
     }
-
 
     export function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
         const backgroundSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
