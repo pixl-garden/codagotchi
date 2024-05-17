@@ -411,6 +411,7 @@
         constructor(x, y, z, width, height) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
+                this.savedFutureCanvas = [];
                 this.paintPixel(gridX, gridY);
             });
             this.canvasWidth = width;
@@ -423,9 +424,11 @@
             this.offsetY = y;
             this.brushSize = 10;
             this.brushShape = "circle";
+            this.savedPastCanvas = [];
+            this.savedFutureCanvas = [];
         }
         setBrushSize(size) {
-        this.brushSize = size;
+            this.brushSize = size;
         }
 
         paintPixel(x, y) {
@@ -523,7 +526,11 @@
         }
 
         clearCanvas() {
-            this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
+            if(this.pixelMatrix.some(row => row.some(pixel => pixel !== 'transparent'))) {
+                console.log('cleared');
+                this.saveCurrentCanvas();
+                this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
+            }
         }
 
         getIntermediatePoints(x0, y0, x1, y1) {
@@ -550,6 +557,36 @@
             points.forEach(point => {
                 this.paintPixel(point.x, point.y);
             });
+        }
+
+        saveCurrentCanvas() {
+            console.log("SAVING CANVAS")
+            let deepCopy = this.pixelMatrix.map(row => row.slice());
+            this.savedPastCanvas.push(deepCopy);
+        }
+
+        retrievePastCanvas() {
+            if (this.savedPastCanvas.length > 0) {
+                this.saveFutureCanvas();
+                let lastCanvas = this.savedPastCanvas.pop();
+                console.log("LAST CANVAS: ", lastCanvas);
+                this.pixelMatrix = lastCanvas;
+            }
+        }
+
+        saveFutureCanvas() {
+            console.log("SAVING FUTURE CANVAS")
+            let deepCopy = this.pixelMatrix.map(row => row.slice());
+            this.savedFutureCanvas.push(deepCopy);
+        }
+
+        retrieveFutureCanvas() {
+            if (this.savedFutureCanvas.length > 0) {
+                this.saveCurrentCanvas();
+                let lastCanvas = this.savedFutureCanvas.pop();
+                console.log("NEXT CANVAS: ", lastCanvas);
+                this.pixelMatrix = lastCanvas;
+            }
         }
     }
 
@@ -590,6 +627,8 @@
                 this.updateState("default");
             }
         }
+
+        
     }
 
     export class Button extends Object {
@@ -610,6 +649,8 @@
             this.updateState('default');
             // Reset any button-specific hover effects here
         }
+
+
     }
 
     export class Background extends Object {

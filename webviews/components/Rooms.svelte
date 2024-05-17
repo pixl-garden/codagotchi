@@ -3,9 +3,10 @@
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
-    import { generateButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
+    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
+    import { spriteReaderFromStore } from './SpriteReader.svelte';
 
     
     export function preloadObjects(){
@@ -23,15 +24,16 @@
         //   topShadowColor, bottomShadowColor, topHoverShadowColor, bottomHoverShadowColor,
         //   textAlign ("center" "left" or "right"), margin (only for left or right align))
         const defaultButtonParams = ['#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9"]
-        const settingsMenuButton = generateButtonClass(128, 17, ...defaultButtonParams);
-        const singleLetterButton = generateButtonClass(16, 16, ...defaultButtonParams);
-        const smallLetterButton = generateButtonClass(10, 10, ...defaultButtonParams);
-        const settingsTitleButton = generateButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const friendTitle = generateButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const friendButton = generateButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
-        const dropDownButton = new generateButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
-        const paintButton = generateButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
-        const brushSizeButton = generateButtonClass(10, 16, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#BEC8DA', '#5B6A89','#848B97', '#424D64');
+        const settingsMenuButton = generateTextButtonClass(128, 17, ...defaultButtonParams);
+        const singleLetterButton = generateTextButtonClass(16, 16, ...defaultButtonParams);
+        const smallLetterButton = generateTextButtonClass(10, 10, ...defaultButtonParams);
+        const settingsTitleButton = generateTextButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
+        const friendTitle = generateTextButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
+        const friendButton = generateTextButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
+        const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
+        const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const brushSizeButton = generateTextButtonClass(10, 16, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
@@ -125,12 +127,14 @@
     //----------------PAINT ROOM----------------
         //BACKGROUND INSTANTIATION
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
+        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
+        console.log(paintButtonSprites);
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
         let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
-        ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
+        ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greghtenyellow", "indianred", "licoral", "white", "black"],
          (color) => { paintCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
-        let paintButton1 = new paintButton('col', 8, 0, ()=>{
+        let paintButton1 = new paintButtonText('col', 8, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 paintRoom.removeObject(colorMenuObj);
             }
@@ -138,16 +142,13 @@
                 paintRoom.addObject(colorMenuObj);
             }
         }, 5);
-        let eraserButton = new paintButton('ers', 32, 0, ()=>{
+        let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 32, 0, ()=>{
             paintCanvas.setEraser();
         }, 5);
-        let shapeButton = new paintButton('shp', 56, 0, ()=>{
+        let shapeButton = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
             paintCanvas.rotateBrushShape();
         }, 5);
-        let sizeButton = new paintButton('sz', 80, 0, ()=>{
-            paintCanvas.rotateSize();
-        }, 5);
-        let clearButton = new paintButton('clr', 104, 0, ()=>{
+        let clearButton = new paintButtonText('clr', 104, 0, ()=>{
             paintCanvas.clearCanvas();
         }, 5);
         //PAINT CANVAS INSTANTIATION
@@ -162,11 +163,17 @@
             paintCanvas.incrementSize();
             sizeNumber.setText((paintCanvas.brushSize / 2).toString());
         }, 5);
+        let undoButton = new paintButtonText('U', 50, 107, ()=>{
+            paintCanvas.retrievePastCanvas();
+        }, 5);
+        let redoButton = new paintButtonText('R', 70, 107, ()=>{
+            paintCanvas.retrieveFutureCanvas();
+        }, 5);
 
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
-                            shapeButton, sizeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber);
+                            shapeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
