@@ -6362,7 +6362,8 @@ var app = (function () {
     	() => {
     			
     		});
-    	let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
+
+    	let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
 
     	//ROOM INSTANTIATION
     	let paintRoom = new Room('paintRoom');
@@ -6439,6 +6440,15 @@ var app = (function () {
     		},
     	5);
 
+    	let clearButton = new paintButtonIcon(paintButtonSprites[5],
+    	paintButtonSprites[1],
+    	104,
+    	0,
+    	() => {
+    			paintCanvas.clearCanvas();
+    		},
+    	5);
+
     	let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3],
     	paintButtonSprites[3],
     	56,
@@ -6448,15 +6458,6 @@ var app = (function () {
     			paintRoom.addObject(shapeButtonCircle);
     			shapeButtonCircle.onHover();
     			paintRoom.removeObject(shapeButtonSquare);
-    		},
-    	5);
-
-    	let clearButton = new paintButtonIcon(paintButtonSprites[1],
-    	paintButtonSprites[1],
-    	104,
-    	0,
-    	() => {
-    			paintCanvas.clearCanvas();
     		},
     	5);
 
@@ -6509,8 +6510,7 @@ var app = (function () {
     		},
     	5);
 
-
-    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
+    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
 
     	//----------------SOCIAL ROOM----------------
     	//TEXT INPUT BAR INSTANTIATION
@@ -6668,7 +6668,8 @@ var app = (function () {
     		// Ensure a minimum speed to avoid being stuck
     		return Math.max(speed, 0.6);
     	}
-    }
+    } // function linearSpeed(currentDistance, totalDistance) {
+    //     const speed = 1; // You can adjust this value for faster or slower speed
 
     function roomMain() {
     	get_store_value(game).getCurrentRoom().update();
