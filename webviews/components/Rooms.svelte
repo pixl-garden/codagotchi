@@ -128,11 +128,15 @@
         //BACKGROUND INSTANTIATION
         let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons.png');
+        
+        //ROOM INSTANTIATION
+        let paintRoom = new Room('paintRoom');
+
         console.log(paintButtonSprites);
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
         let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
-        ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greghtenyellow", "indianred", "licoral", "white", "black"],
+        ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
          (color) => { paintCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
         let paintButton1 = new paintButtonText('col', 8, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
@@ -145,10 +149,19 @@
         let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 32, 0, ()=>{
             paintCanvas.setEraser();
         }, 5);
-        let shapeButton = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
+        let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 56, 0, ()=>{
             paintCanvas.rotateBrushShape();
+            paintRoom.addObject(shapeButtonSquare);
+            shapeButtonSquare.onHover();
+            paintRoom.removeObject(shapeButtonCircle);
         }, 5);
-        let clearButton = new paintButtonText('clr', 104, 0, ()=>{
+        let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
+            paintCanvas.rotateBrushShape();
+            paintRoom.addObject(shapeButtonCircle);
+            shapeButtonCircle.onHover();
+            paintRoom.removeObject(shapeButtonSquare);
+        }, 5);
+        let clearButton = new paintButtonIcon(paintButtonSprites[1], paintButtonSprites[1], 104, 0, ()=>{
             paintCanvas.clearCanvas();
         }, 5);
         //PAINT CANVAS INSTANTIATION
@@ -169,11 +182,8 @@
         let redoButton = new paintButtonText('R', 70, 107, ()=>{
             paintCanvas.retrieveFutureCanvas();
         }, 5);
-
-        //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom');
         paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
-                            shapeButton, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
+                            shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
