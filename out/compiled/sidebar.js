@@ -4200,7 +4200,7 @@ var app = (function () {
     var paintBackground = {
     	spriteWidth: 128,
     	spriteHeight: 128,
-    	spriteSheet: "paintBackround.png",
+    	spriteSheet: "paintBackground.png",
     	states: {
     		"default": [
     			0
