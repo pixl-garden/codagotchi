@@ -4736,8 +4736,36 @@ var app = (function () {
     	}
     }
 
+    class postcardRenderer extends GeneratedObject {
+    	constructor(x, y, z, width, height, postcardWidth, postcardHeight) {
+    		const emptyMatrix = generateEmptyMatrix(width, height);
+    		super([emptyMatrix], { default: [0] }, x, y, z);
+
+    		// this.postcardItem = postcardItem;
+    		// this.postcardWidth = postcardItem.getWidth(); //might need to change this array length access
+    		// this.postcardHeight = postcardItem.getHeight();
+    		this.postcardWidth = postcardWidth;
+
+    		this.postcardHeight = postcardHeight;
+    		this.width = width;
+    		this.height = height;
+    		this.postCardXOffset = (width - this.postcardWidth) / 2;
+    		this.postCardYOffset = (height - this.postcardHeight) / 2;
+    		this.pixelCanvas = new PixelCanvas(0, 0, 10, this.postcardWidth, this.postcardHeight, x, y); // might need to change z
+    		this.children.push(this.pixelCanvas);
+    		this.stateQueue = [];
+    		this.isStateCompleted = false;
+    		this.renderChildren = false;
+    		this.updateState("default");
+    	}
+
+    	getSprite() {
+    		return new Sprite(this.pixelCanvas.externalRender(), this.x, this.y, this.z);
+    	}
+    }
+
     class PixelCanvas extends GeneratedObject {
-    	constructor(x, y, z, width, height) {
+    	constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
     		const emptyMatrix = generateEmptyMatrix(width, height);
 
     		super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
@@ -4752,8 +4780,8 @@ var app = (function () {
     		this.pencilColor = 'white';
     		this.lastX = null;
     		this.lastY = null;
-    		this.offsetX = x;
-    		this.offsetY = y;
+    		this.offsetX = offsetX == null ? x : offsetX;
+    		this.offsetY = offsetY == null ? y : offsetY;
     		this.brushSize = 10;
     		this.brushShape = "circle";
     		this.savedPastCanvas = [];
@@ -4827,6 +4855,10 @@ var app = (function () {
 
     	getSprite() {
     		return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+    	}
+
+    	externalRender() {
+    		return this.pixelMatrix;
     	}
 
     	rotateSize() {
@@ -5912,7 +5944,8 @@ var app = (function () {
     	});
 
     	if (isMouseDown) {
-    		// console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
+    		console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject);
+
     		// Ensures hoveredObject is the one being dragged
     		if (newHoveredObject && newHoveredObject === activeDragObject) {
     			// console.log("DRAGGING")
@@ -6183,7 +6216,7 @@ var app = (function () {
     	const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
     	const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
     	const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
-    	const brushSizeButton = generateTextButtonClass(10, 16, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
+    	const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
 
     	//---------------GENERAL OBJECTS----------------
     	//BUTTON TO RETURN TO MAIN ROOM
@@ -6380,6 +6413,10 @@ var app = (function () {
     	//ROOM INSTANTIATION
     	let paintRoom = new Room('paintRoom');
 
+    	//PAINT CANVAS INSTANTIATION
+    	let postcardRendering = new postcardRenderer(4, 19, 0, 120, 80, 120, 80);
+
+    	// let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
     	console.log(paintButtonSprites);
 
     	//PAINT BUTTONS INSTANTIATION
@@ -6415,7 +6452,7 @@ var app = (function () {
     			"black"
     		],
     	color => {
-    			paintCanvas.setColor(color);
+    			postcardRendering.pixelCanvas.setColor(color);
     			paintRoom.removeObject(colorMenuObj);
     		});
 
@@ -6436,7 +6473,7 @@ var app = (function () {
     	32,
     	0,
     	() => {
-    			paintCanvas.setEraser();
+    			postcardRendering.pixelCanvas.setEraser();
     		},
     	5);
 
@@ -6445,7 +6482,7 @@ var app = (function () {
     	56,
     	0,
     	() => {
-    			paintCanvas.rotateBrushShape();
+    			postcardRendering.pixelCanvas.rotateBrushShape();
     			paintRoom.addObject(shapeButtonSquare);
     			shapeButtonSquare.onHover();
     			paintRoom.removeObject(shapeButtonCircle);
@@ -6457,7 +6494,7 @@ var app = (function () {
     	104,
     	0,
     	() => {
-    			paintCanvas.clearCanvas();
+    			postcardRendering.pixelCanvas.clearCanvas();
     		},
     	5);
 
@@ -6466,7 +6503,7 @@ var app = (function () {
     	56,
     	0,
     	() => {
-    			paintCanvas.rotateBrushShape();
+    			postcardRendering.pixelCanvas.rotateBrushShape();
     			paintRoom.addObject(shapeButtonCircle);
     			shapeButtonCircle.onHover();
     			paintRoom.removeObject(shapeButtonSquare);
@@ -6476,53 +6513,50 @@ var app = (function () {
     	let pencilButton = new paintButtonIcon(paintButtonSprites[0],
     	paintButtonSprites[0],
     	0,
-    	107,
+    	113,
     	() => {
-    			paintCanvas.setToPencilColor();
+    			postcardRendering.pixelCanvas.setToPencilColor();
     		},
     	5);
 
-    	//PAINT CANVAS INSTANTIATION
-    	let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
-
-    	let sizeNumber = new activeTextRenderer(basic, 109, 110, 5);
-    	sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+    	let sizeNumber = new activeTextRenderer(basic, 109, 116, 5);
+    	sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
 
     	let brushSizeDown = new brushSizeButton('<',
     	97,
-    	107,
+    	113,
     	() => {
-    			paintCanvas.decrementSize();
-    			sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+    			postcardRendering.pixelCanvas.decrementSize();
+    			sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
     		},
     	5);
 
     	let brushSizeUp = new brushSizeButton('>',
     	116,
-    	107,
+    	113,
     	() => {
-    			paintCanvas.incrementSize();
-    			sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+    			postcardRendering.pixelCanvas.incrementSize();
+    			sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
     		},
     	5);
 
     	let undoButton = new paintButtonText('U',
     	50,
-    	107,
+    	113,
     	() => {
-    			paintCanvas.retrievePastCanvas();
+    			postcardRendering.pixelCanvas.retrievePastCanvas();
     		},
     	5);
 
     	let redoButton = new paintButtonText('R',
     	70,
-    	107,
+    	113,
     	() => {
-    			paintCanvas.retrieveFutureCanvas();
+    			postcardRendering.pixelCanvas.retrieveFutureCanvas();
     		},
     	5);
 
-    	paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
+    	paintRoom.addObject(backToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
 
     	//----------------SOCIAL ROOM----------------
     	//TEXT INPUT BAR INSTANTIATION

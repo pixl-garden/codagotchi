@@ -406,9 +406,34 @@
         }
     }
 
+    export class postcardRenderer extends GeneratedObject {
+        constructor(x, y, z, width, height, postcardWidth, postcardHeight){
+            const emptyMatrix = generateEmptyMatrix(width, height);
+            super([emptyMatrix], { default: [0] }, x, y, z);
+            // this.postcardItem = postcardItem;
+            // this.postcardWidth = postcardItem.getWidth(); //might need to change this array length access
+            // this.postcardHeight = postcardItem.getHeight();
+            this.postcardWidth = postcardWidth;
+            this.postcardHeight = postcardHeight;
+            this.width = width;
+            this.height = height;
+            this.postCardXOffset = (width - this.postcardWidth) / 2;
+            this.postCardYOffset = (height - this.postcardHeight) / 2;
+            this.pixelCanvas = new PixelCanvas(0, 0, 10, this.postcardWidth, this.postcardHeight, x, y); // might need to change z
+            this.children.push(this.pixelCanvas);
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.renderChildren = false;
+            this.updateState("default");
+        }
+        getSprite(){
+            return new Sprite(this.pixelCanvas.externalRender(), this.x, this.y, this.z);
+        }
+    }
+
     //TODO: move paint objects to separate file
     export class PixelCanvas extends GeneratedObject {
-        constructor(x, y, z, width, height) {
+        constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
                 this.savedFutureCanvas = [];
@@ -421,8 +446,8 @@
             this.pencilColor = 'white';
             this.lastX = null;
             this.lastY = null;
-            this.offsetX = x;
-            this.offsetY = y;
+            this.offsetX = offsetX == null ? x : offsetX;
+            this.offsetY = offsetY == null ? y : offsetY;
             this.brushSize = 10;
             this.brushShape = "circle";
             this.savedPastCanvas = [];
@@ -490,6 +515,10 @@
 
         getSprite() {
             return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+        }
+
+        externalRender(){
+            return this.pixelMatrix;
         }
 
         rotateSize() {

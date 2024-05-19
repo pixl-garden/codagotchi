@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
@@ -32,7 +32,7 @@
         const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        const brushSizeButton = generateTextButtonClass(10, 16, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
@@ -132,12 +132,16 @@
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom');
 
+        //PAINT CANVAS INSTANTIATION
+        let postcardRendering = new postcardRenderer(4, 19, 0, 120, 80, 120, 80);
+        // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
+
         console.log(paintButtonSprites);
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
         let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
         ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
-         (color) => { paintCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
+         (color) => { postcardRendering.pixelCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
         let paintButton1 = new paintButtonText('col', 8, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 paintRoom.removeObject(colorMenuObj);
@@ -147,46 +151,45 @@
             }
         }, 5);
         let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 32, 0, ()=>{
-            paintCanvas.setEraser();
+            postcardRendering.pixelCanvas.setEraser();
         }, 5);
 
         let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 56, 0, ()=>{
-            paintCanvas.rotateBrushShape();
+            postcardRendering.pixelCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonSquare);
             shapeButtonSquare.onHover();
             paintRoom.removeObject(shapeButtonCircle);
         }, 5);
         let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 104, 0, ()=>{
-            paintCanvas.clearCanvas();
+            postcardRendering.pixelCanvas.clearCanvas();
         }, 5);
         let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
-            paintCanvas.rotateBrushShape();
+            postcardRendering.pixelCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonCircle);
             shapeButtonCircle.onHover();
             paintRoom.removeObject(shapeButtonSquare);
         }, 5);
-        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 107, ()=>{
-            paintCanvas.setToPencilColor()
+        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 113, ()=>{
+            postcardRendering.pixelCanvas.setToPencilColor()
         }, 5);
-        //PAINT CANVAS INSTANTIATION
-        let paintCanvas = new PixelCanvas(4, 19, 0, 120, 80);
-        let sizeNumber = new activeTextRenderer(basic, 109, 110, 5);
-        sizeNumber.setText((paintCanvas.brushSize / 2).toString());
-        let brushSizeDown = new brushSizeButton('<', 97, 107, ()=>{
-            paintCanvas.decrementSize();
-            sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+
+        let sizeNumber = new activeTextRenderer(basic, 109, 116, 5);
+        sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+        let brushSizeDown = new brushSizeButton('<', 97, 113, ()=>{
+            postcardRendering.pixelCanvas.decrementSize();
+            sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
         }, 5);
-        let brushSizeUp = new brushSizeButton('>', 116, 107, ()=>{
-            paintCanvas.incrementSize();
-            sizeNumber.setText((paintCanvas.brushSize / 2).toString());
+        let brushSizeUp = new brushSizeButton('>', 116, 113, ()=>{
+            postcardRendering.pixelCanvas.incrementSize();
+            sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
         }, 5);
-        let undoButton = new paintButtonText('U', 50, 107, ()=>{
-            paintCanvas.retrievePastCanvas();
+        let undoButton = new paintButtonText('U', 50, 113, ()=>{
+            postcardRendering.pixelCanvas.retrievePastCanvas();
         }, 5);
-        let redoButton = new paintButtonText('R', 70, 107, ()=>{
-            paintCanvas.retrieveFutureCanvas();
+        let redoButton = new paintButtonText('R', 70, 113, ()=>{
+            postcardRendering.pixelCanvas.retrieveFutureCanvas();
         }, 5);
-        paintRoom.addObject(backToMain, paintCanvas, postcardBackground, paintButton1, eraserButton, 
+        paintRoom.addObject(backToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
                shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
 
     //----------------SOCIAL ROOM----------------
