@@ -105,6 +105,14 @@
             "default": [0]
         }
     },
+    "paintBackground": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "paintBackround.png",
+        "states": {
+            "default": [0]
+        }
+    },
     "itemSlot":{
         "spriteWidth": 32,
         "spriteHeight": 32,

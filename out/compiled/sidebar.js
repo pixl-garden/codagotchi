@@ -4197,6 +4197,16 @@ var app = (function () {
     		]
     	}
     };
+    var paintBackground = {
+    	spriteWidth: 128,
+    	spriteHeight: 128,
+    	spriteSheet: "paintBackround.png",
+    	states: {
+    		"default": [
+    			0
+    		]
+    	}
+    };
     var itemSlot = {
     	spriteWidth: 32,
     	spriteHeight: 32,
@@ -4283,6 +4293,7 @@ var app = (function () {
     	customizeUI: customizeUI,
     	vendingBackground: vendingBackground,
     	postcardBackground: postcardBackground,
+    	paintBackground: paintBackground,
     	itemSlot: itemSlot,
     	testItem: testItem,
     	testItem1: testItem1,
@@ -6355,7 +6366,8 @@ var app = (function () {
 
     	//----------------PAINT ROOM----------------
     	//BACKGROUND INSTANTIATION
-    	let postcardBackground = new Background('postcardBackground',
+    	// let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
+    	let postcardBackground = new Background('paintBackground',
     	0,
     	0,
     	-20,

@@ -125,7 +125,8 @@
 
     //----------------PAINT ROOM----------------
         //BACKGROUND INSTANTIATION
-        let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
+        // let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
+        let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         
         //ROOM INSTANTIATION
