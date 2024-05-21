@@ -417,17 +417,109 @@
             this.postcardHeight = postcardHeight;
             this.width = width;
             this.height = height;
-            this.postCardXOffset = (width - this.postcardWidth) / 2;
-            this.postCardYOffset = (height - this.postcardHeight) / 2;
-            this.pixelCanvas = new PixelCanvas(0, 0, 10, this.postcardWidth, this.postcardHeight, x, y); // might need to change z
+            this.postcardXOffset = x + (width - this.postcardWidth) / 2;
+            this.postcardYOffset = y + (height - this.postcardHeight) / 2;
+            this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
+            this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
+            this.pixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
             this.children.push(this.pixelCanvas);
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.renderChildren = false;
+            this.progressTracker = 0;
             this.updateState("default");
         }
+        flipPostcard(){
+            console.log("Flip called")
+            this.state = "flip";
+        }
+        nextFrame(){
+            console.log("next frame, state: ", this.state)
+            if(this.state == "flip"){
+                console.log("flip state")
+                this.progressTracker += 0.05;
+                if(this.progressTracker >= 1){
+                    this.updateState("default");
+                    this.progressTracker = 0;
+                    this.state = "default";
+                }
+            }
+        }
         getSprite(){
-            return new Sprite(this.pixelCanvas.externalRender(), this.x, this.y, this.z);
+            // const renderedPostcardFront = new Sprite(this.postcardFront.getSprite().matrix, this.postcardXOffset, this.postcardYOffset, this.z);
+            const renderedPostcardFront = new Sprite(
+                this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker),
+                this.x, this.y, this.z
+            )
+            const renderedPixelCanvas = new Sprite(this.pixelCanvas.externalRender(), this.postcardXOffset, this.postcardYOffset, this.z);
+            return [renderedPostcardFront, renderedPixelCanvas];
+        }
+
+        // applyPerspectiveDistortion(pixels, progress, variation = 16) {
+        //     let newPixels = generateEmptyMatrix(this.width, this.height);
+        //     let inputHeight = pixels.length;
+        //     let inputWidth = pixels[0].length;
+        //     let rotation = Math.PI * progress;
+        //     let xScale = Math.cos(rotation/4);
+        //     let minPerspective = inputHeight - variation;
+        //     let maxPerspective = inputHeight + variation;
+        //     let lowPerspective = minPerspective + (inputHeight - minPerspective) * xScale;
+        //     let highPerspective = maxPerspective - (inputHeight - maxPerspective) * xScale;
+        //     let startingX = Math.floor((this.width - inputWidth) / 2);
+
+        //     for(let y = 0; y < this.height; y++){
+        //         let cardLength = inputWidth * xScale;
+        //         let currStartingX = startingX + (inputWidth - cardLength) / 2;
+        //         for(let x = 0; x < this.width; x++){
+        //             if(x >= currStartingX && x < currStartingX + cardLength){
+
+        //             }
+        //         }
+        //     }
+
+        //     return newPixels;
+        // }
+        applyPerspectiveDistortion(pixels, progress, variation = 16) {
+            let newPixels = generateEmptyMatrix(this.width, this.height);
+            let inputHeight = pixels.length;
+            let inputWidth = pixels[0].length;
+
+            // Full PI rotation over progress to simulate 180-degree flip
+            let rotation = Math.PI * progress;
+            // Horizontal scale reflecting the visible width of the card
+            let xScale = Math.cos(rotation); 
+
+            // Center the horizontally scaled image
+            let cardLength = Math.floor(inputWidth * Math.abs(xScale));
+            let currStartingX = (this.width - cardLength) / 2;
+
+            // Base and extended scale factors for the top and bottom y scaling
+            let baseScale = 1 - variation / inputHeight;  // Smaller side
+            let extendedScale = 1 + variation / inputHeight;  // Larger side
+            let lowPerspective = progress < 0.5 ? baseScale : extendedScale;
+            let highPerspective = progress < 0.5 ? extendedScale : baseScale;
+
+            for (let y = 0; y < this.height; y++) {
+                // Linear interpolation between lowPerspective and highPerspective based on y position
+                let yRatio = y / this.height;
+                let yScale = lowPerspective + (highPerspective - lowPerspective) * yRatio;
+
+                // Map y to its original position using yScale
+                let origY = Math.floor((y / yScale) * (inputHeight / this.height));
+                if (origY < 0 || origY >= inputHeight) continue;  // Skip if outside original bounds
+
+                for (let x = 0; x < this.width; x++) {
+                    if (x >= currStartingX && x < currStartingX + cardLength) {
+                        // Convert the current x to the original x in the source pixels based on xScale
+                        let origX = Math.floor((x - currStartingX) / Math.abs(xScale));
+                        if (origX >= 0 && origX < inputWidth) {
+                            newPixels[y][x] = pixels[origY][origX];
+                        }
+                    }
+                }
+            }
+
+            return newPixels;
         }
     }
 

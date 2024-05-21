@@ -130,10 +130,12 @@
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         
         //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom');
+        let paintRoom = new Room('paintRoom', false, false, () => {
+            postcardRendering.nextFrame();
+        });
 
         //PAINT CANVAS INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 19, 0, 120, 80, 120, 80);
+        let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80);
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
 
         console.log(paintButtonSprites);
@@ -189,8 +191,11 @@
         let redoButton = new paintButtonText('R', 70, 113, ()=>{
             postcardRendering.pixelCanvas.retrieveFutureCanvas();
         }, 5);
+        let flipButton = new paintButtonText('F', 30, 113, ()=>{
+            postcardRendering.flipPostcard();
+        }, 5);
         paintRoom.addObject(backToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
-               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton);
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
