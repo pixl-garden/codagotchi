@@ -406,9 +406,132 @@
         }
     }
 
-    //TODO: move paint objects to separate file
+    export class postcardRenderer extends GeneratedObject {
+        constructor(x, y, z, width, height, postcardWidth, postcardHeight){
+            const emptyMatrix = generateEmptyMatrix(width, height);
+            super([emptyMatrix], { default: [0] }, x, y, z);
+            this.postcardWidth = postcardWidth;
+            this.postcardHeight = postcardHeight;
+            this.width = width;
+            this.height = height;
+            this.postcardXOffset = x + (width - this.postcardWidth) / 2;
+            this.postcardYOffset = y + (height - this.postcardHeight) / 2;
+            this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
+            this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
+            this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
+            this.backPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); 
+            this.currentCanvas = this.frontPixelCanvas;
+            this.children.push(this.currentCanvas);
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.renderChildren = false;
+            this.progressTracker = 0;
+            this.state = "front";
+        }
+
+        flipPostcard(){
+            if(this.state == "front"){
+                this.state = "flipToBack";
+            }
+            else if (this.state == "back"){
+                this.state = "flipToFront";
+            }
+        }
+
+        nextFrame(){
+            if(this.state == "flipToBack"){
+                console.log("flip state")
+                this.progressTracker += 0.05;
+                //once rotation is halfway, switch the canvas 
+                if(this.progressTracker >= .5){
+                    this.currentCanvas = this.backPixelCanvas;
+                    this.children.pop();
+                    this.children.push(this.currentCanvas); //pop and repush to update the object instance
+                }
+                //once rotation is complete, switch the state
+                if(this.progressTracker >= 1){
+                    this.state = "back";
+                    this.progressTracker = 1;
+                }
+            }
+            else if(this.state == "flipToFront"){
+                this.progressTracker -= 0.05;
+                //once rotation is halfway, switch the canvas
+                if(this.progressTracker <= .5){
+                    this.currentCanvas = this.frontPixelCanvas;
+                    this.children.pop();
+                    this.children.push(this.currentCanvas); //pop and repush to update the object instance
+                }
+                //once rotation is complete, switch the state
+                if(this.progressTracker <= 0){
+                    this.state = "front";
+                    this.progressTracker = 0;
+                }
+            }
+        }
+
+        getSprite(){
+            // postcard rendering (blank postcard)
+            const renderedPostcard = new Sprite(
+                this.progressTracker < .5 ? 
+                // when progress is less than .5, render the front of the postcard
+                this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker) :
+                // when progress is greater than .5, render the back of the postcard with progress (rotation) inversed
+                this.applyPerspectiveDistortion(this.postcardBack.getSprite().matrix, 1 - this.progressTracker),
+                this.x, this.y, this.z
+            )
+            // pixel canvas rendering (user drawing)
+            const renderedPixelCanvas = new Sprite(
+                this.progressTracker < .5 ?
+                // when progress is less than .5, render with normal progress value (rotation)
+                this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), this.progressTracker) :
+                // when progress is greater than .5, render with progress (rotation) inversed
+                this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), 1 - this.progressTracker),
+                this.x, this.y, this.z);
+            return [renderedPostcard, renderedPixelCanvas];
+        }
+
+        // Used to render the postcard squished to smaller width to give illusion of rotation
+        applyPerspectiveDistortion(pixels, progress) {
+            let newPixels = generateEmptyMatrix(this.width, this.height);
+            let inputHeight = pixels.length;
+            let inputWidth = pixels[0].length;
+            let startingY = Math.floor((this.height - inputHeight) / 2);
+
+            // Full PI rotation over progress to simulate 180-degree flip
+            let rotation = Math.PI * progress;
+            // Horizontal scale reflecting the visible width of the card
+            let xScale = Math.cos(rotation); 
+
+            // Center the horizontally scaled image
+            let cardLength = Math.floor(inputWidth * Math.abs(xScale));
+            let currStartingX = (this.width - cardLength) / 2;
+
+            for (let y = 0; y < this.height; y++) {
+                if(y >= startingY && y < startingY + inputHeight){
+                    let inputY = Math.floor(y - startingY);
+                    for (let x = 0; x < this.width; x++) {
+                        if (x >= currStartingX && x < currStartingX + cardLength) {
+                            let origX;
+                            if (xScale > 0) {
+                                origX = Math.floor((x - currStartingX) / xScale);
+                            } else {
+                                origX = inputWidth - 1 - Math.floor((x - currStartingX) / -xScale);
+                            }
+                            if (origX >= 0 && origX < inputWidth) {
+                                newPixels[y][x] = pixels[inputY][origX];
+                            }
+                        }
+                    }
+                }
+            }
+            return newPixels;
+        }
+
+    }
+
     export class PixelCanvas extends GeneratedObject {
-        constructor(x, y, z, width, height) {
+        constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
                 this.savedFutureCanvas = [];
@@ -421,8 +544,8 @@
             this.pencilColor = 'white';
             this.lastX = null;
             this.lastY = null;
-            this.offsetX = x;
-            this.offsetY = y;
+            this.offsetX = offsetX == null ? x : offsetX;
+            this.offsetY = offsetY == null ? y : offsetY;
             this.brushSize = 10;
             this.brushShape = "circle";
             this.savedPastCanvas = [];
@@ -490,6 +613,11 @@
 
         getSprite() {
             return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+        }
+
+        //used to render the pixel canvas through another object (postcardRenderer)
+        externalRender(){
+            return this.pixelMatrix;
         }
 
         rotateSize() {

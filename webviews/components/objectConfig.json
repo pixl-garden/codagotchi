@@ -105,6 +105,30 @@
             "default": [0]
         }
     },
+    "postcardFront": {
+        "spriteWidth": 120,
+        "spriteHeight": 80,
+        "spriteSheet": "postcardFront.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "postcardBack": {
+        "spriteWidth": 120,
+        "spriteHeight": 80,
+        "spriteSheet": "postcardBack.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "paintBackground": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "cloudBackground.png",
+        "states": {
+            "default": [0]
+        }
+    },
     "itemSlot":{
         "spriteWidth": 32,
         "spriteHeight": 32,
