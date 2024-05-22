@@ -4762,12 +4762,7 @@ var app = (function () {
     	constructor(x, y, z, width, height, postcardWidth, postcardHeight) {
     		const emptyMatrix = generateEmptyMatrix(width, height);
     		super([emptyMatrix], { default: [0] }, x, y, z);
-
-    		// this.postcardItem = postcardItem;
-    		// this.postcardWidth = postcardItem.getWidth(); //might need to change this array length access
-    		// this.postcardHeight = postcardItem.getHeight();
     		this.postcardWidth = postcardWidth;
-
     		this.postcardHeight = postcardHeight;
     		this.width = width;
     		this.height = height;
@@ -4814,12 +4809,14 @@ var app = (function () {
     			console.log("flip state");
     			this.progressTracker += 0.05;
 
+    			//once rotation is halfway, switch the canvas 
     			if (this.progressTracker >= .5) {
     				this.currentCanvas = this.backPixelCanvas;
     				this.children.pop();
-    				this.children.push(this.currentCanvas);
+    				this.children.push(this.currentCanvas); //pop and repush to update the object instance
     			}
 
+    			//once rotation is complete, switch the state
     			if (this.progressTracker >= 1) {
     				this.state = "back";
     				this.progressTracker = 1;
@@ -4827,12 +4824,14 @@ var app = (function () {
     		} else if (this.state == "flipToFront") {
     			this.progressTracker -= 0.05;
 
+    			//once rotation is halfway, switch the canvas
     			if (this.progressTracker <= .5) {
     				this.currentCanvas = this.frontPixelCanvas;
     				this.children.pop();
-    				this.children.push(this.currentCanvas);
+    				this.children.push(this.currentCanvas); //pop and repush to update the object instance
     			}
 
+    			//once rotation is complete, switch the state
     			if (this.progressTracker <= 0) {
     				this.state = "front";
     				this.progressTracker = 0;
@@ -4841,47 +4840,31 @@ var app = (function () {
     	}
 
     	getSprite() {
-    		// const renderedPostcardFront = new Sprite(this.postcardFront.getSprite().matrix, this.postcardXOffset, this.postcardYOffset, this.z);
-    		const renderedPostcardFront = new Sprite(this.progressTracker < .5
-    			? this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker)
-    			: this.applyPerspectiveDistortion(this.postcardBack.getSprite().matrix, 1 - this.progressTracker),
+    		// postcard rendering (blank postcard)
+    		const renderedPostcard = new Sprite(this.progressTracker < .5
+    			? // when progress is less than .5, render the front of the postcard
+    				this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker)
+    			: // when progress is greater than .5, render the back of the postcard with progress (rotation) inversed
+    				this.applyPerspectiveDistortion(this.postcardBack.getSprite().matrix, 1 - this.progressTracker),
     		this.x,
     		this.y,
     		this.z);
 
+    		// pixel canvas rendering (user drawing)
     		const renderedPixelCanvas = new Sprite(this.progressTracker < .5
-    			? this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), this.progressTracker)
-    			: this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), 1 - this.progressTracker),
-    		// this.frontPixelCanvas.externalRender(),
-    			this.x,
+    			? // when progress is less than .5, render with normal progress value (rotation)
+    				this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), this.progressTracker)
+    			: // when progress is greater than .5, render with progress (rotation) inversed
+    				this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), 1 - this.progressTracker),
+    		this.x,
     		this.y,
     		this.z);
 
-    		return [renderedPostcardFront, renderedPixelCanvas];
+    		return [renderedPostcard, renderedPixelCanvas];
     	}
 
-    	// applyPerspectiveDistortion(pixels, progress, variation = 16) {
-    	//     let newPixels = generateEmptyMatrix(this.width, this.height);
-    	//     let inputHeight = pixels.length;
-    	//     let inputWidth = pixels[0].length;
-    	//     let rotation = Math.PI * progress;
-    	//     let xScale = Math.cos(rotation/4);
-    	//     let minPerspective = inputHeight - variation;
-    	//     let maxPerspective = inputHeight + variation;
-    	//     let lowPerspective = minPerspective + (inputHeight - minPerspective) * xScale;
-    	//     let highPerspective = maxPerspective - (inputHeight - maxPerspective) * xScale;
-    	//     let startingX = Math.floor((this.width - inputWidth) / 2);
-    	//     for(let y = 0; y < this.height; y++){
-    	//         let cardLength = inputWidth * xScale;
-    	//         let currStartingX = startingX + (inputWidth - cardLength) / 2;
-    	//         for(let x = 0; x < this.width; x++){
-    	//             if(x >= currStartingX && x < currStartingX + cardLength){
-    	//             }
-    	//         }
-    	//     }
-    	//     return newPixels;
-    	// }
-    	applyPerspectiveDistortion(pixels, progress, variation = 16) {
+    	// Used to render the postcard squished to smaller width to give illusion of rotation
+    	applyPerspectiveDistortion(pixels, progress) {
     		let newPixels = generateEmptyMatrix(this.width, this.height);
     		let inputHeight = pixels.length;
     		let inputWidth = pixels[0].length;
@@ -5017,6 +5000,7 @@ var app = (function () {
     		return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
     	}
 
+    	//used to render the pixel canvas through another object (postcardRenderer)
     	externalRender() {
     		return this.pixelMatrix;
     	}
