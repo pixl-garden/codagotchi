@@ -4790,40 +4790,73 @@ var app = (function () {
     				
     			});
 
-    		this.pixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-    		this.children.push(this.pixelCanvas);
+    		this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
+    		this.backPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset);
+    		this.currentCanvas = this.frontPixelCanvas;
+    		this.children.push(this.currentCanvas);
     		this.stateQueue = [];
     		this.isStateCompleted = false;
     		this.renderChildren = false;
     		this.progressTracker = 0;
-    		this.updateState("default");
+    		this.state = "front";
     	}
 
     	flipPostcard() {
-    		console.log("Flip called");
-    		this.state = "flip";
+    		if (this.state == "front") {
+    			this.state = "flipToBack";
+    		} else if (this.state == "back") {
+    			this.state = "flipToFront";
+    		}
     	}
 
     	nextFrame() {
-    		console.log("next frame, state: ", this.state);
-
-    		if (this.state == "flip") {
+    		if (this.state == "flipToBack") {
     			console.log("flip state");
     			this.progressTracker += 0.05;
 
+    			if (this.progressTracker >= .5) {
+    				this.currentCanvas = this.backPixelCanvas;
+    				this.children.pop();
+    				this.children.push(this.currentCanvas);
+    			}
+
     			if (this.progressTracker >= 1) {
-    				this.updateState("default");
+    				this.state = "back";
+    				this.progressTracker = 1;
+    			}
+    		} else if (this.state == "flipToFront") {
+    			this.progressTracker -= 0.05;
+
+    			if (this.progressTracker <= .5) {
+    				this.currentCanvas = this.frontPixelCanvas;
+    				this.children.pop();
+    				this.children.push(this.currentCanvas);
+    			}
+
+    			if (this.progressTracker <= 0) {
+    				this.state = "front";
     				this.progressTracker = 0;
-    				this.state = "default";
     			}
     		}
     	}
 
     	getSprite() {
     		// const renderedPostcardFront = new Sprite(this.postcardFront.getSprite().matrix, this.postcardXOffset, this.postcardYOffset, this.z);
-    		const renderedPostcardFront = new Sprite(this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker), this.x, this.y, this.z);
+    		const renderedPostcardFront = new Sprite(this.progressTracker < .5
+    			? this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker)
+    			: this.applyPerspectiveDistortion(this.postcardBack.getSprite().matrix, 1 - this.progressTracker),
+    		this.x,
+    		this.y,
+    		this.z);
 
-    		const renderedPixelCanvas = new Sprite(this.pixelCanvas.externalRender(), this.postcardXOffset, this.postcardYOffset, this.z);
+    		const renderedPixelCanvas = new Sprite(this.progressTracker < .5
+    			? this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), this.progressTracker)
+    			: this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), 1 - this.progressTracker),
+    		// this.frontPixelCanvas.externalRender(),
+    			this.x,
+    		this.y,
+    		this.z);
+
     		return [renderedPostcardFront, renderedPixelCanvas];
     	}
 
@@ -4852,6 +4885,7 @@ var app = (function () {
     		let newPixels = generateEmptyMatrix(this.width, this.height);
     		let inputHeight = pixels.length;
     		let inputWidth = pixels[0].length;
+    		let startingY = Math.floor((this.height - inputHeight) / 2);
 
     		// Full PI rotation over progress to simulate 180-degree flip
     		let rotation = Math.PI * progress;
@@ -4864,31 +4898,23 @@ var app = (function () {
 
     		let currStartingX = (this.width - cardLength) / 2;
 
-    		// Base and extended scale factors for the top and bottom y scaling
-    		let baseScale = 1 - variation / inputHeight; // Smaller side
-
-    		let extendedScale = 1 + variation / inputHeight; // Larger side
-    		let lowPerspective = progress < 0.5 ? baseScale : extendedScale;
-    		let highPerspective = progress < 0.5 ? extendedScale : baseScale;
-
     		for (let y = 0; y < this.height; y++) {
-    			// Linear interpolation between lowPerspective and highPerspective based on y position
-    			let yRatio = y / this.height;
+    			if (y >= startingY && y < startingY + inputHeight) {
+    				let inputY = Math.floor(y - startingY);
 
-    			let yScale = lowPerspective + (highPerspective - lowPerspective) * yRatio;
+    				for (let x = 0; x < this.width; x++) {
+    					if (x >= currStartingX && x < currStartingX + cardLength) {
+    						let origX;
 
-    			// Map y to its original position using yScale
-    			let origY = Math.floor(y / yScale * (inputHeight / this.height));
+    						if (xScale > 0) {
+    							origX = Math.floor((x - currStartingX) / xScale);
+    						} else {
+    							origX = inputWidth - 1 - Math.floor((x - currStartingX) / -xScale);
+    						}
 
-    			if (origY < 0 || origY >= inputHeight) continue; // Skip if outside original bounds
-
-    			for (let x = 0; x < this.width; x++) {
-    				if (x >= currStartingX && x < currStartingX + cardLength) {
-    					// Convert the current x to the original x in the source pixels based on xScale
-    					let origX = Math.floor((x - currStartingX) / Math.abs(xScale));
-
-    					if (origX >= 0 && origX < inputWidth) {
-    						newPixels[y][x] = pixels[origY][origX];
+    						if (origX >= 0 && origX < inputWidth) {
+    							newPixels[y][x] = pixels[inputY][origX];
+    						}
     					}
     				}
     			}
@@ -6349,6 +6375,7 @@ var app = (function () {
     	const friendButton = generateTextButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff', '#1b2e43', '#2b4669', "left", 2);
     	const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
     	const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
+    	const squarePaintTextButton = generateTextButtonClass(15, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
     	const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
     	const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
 
@@ -6544,6 +6571,15 @@ var app = (function () {
 
     	let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
 
+    	let paintBackToMain = new squarePaintTextButton('<',
+    	0,
+    	0,
+    	() => {
+    			get_store_value(game).setCurrentRoom('mainRoom');
+    			petObject.setCoordinate(36, 54, 0);
+    		},
+    	5);
+
     	//ROOM INSTANTIATION
     	let paintRoom = new Room('paintRoom',
     	false,
@@ -6591,12 +6627,12 @@ var app = (function () {
     			"black"
     		],
     	color => {
-    			postcardRendering.pixelCanvas.setColor(color);
+    			postcardRendering.currentCanvas.setColor(color);
     			paintRoom.removeObject(colorMenuObj);
     		});
 
     	let paintButton1 = new paintButtonText('col',
-    	8,
+    	14,
     	0,
     	() => {
     			if (paintRoom.objects.includes(colorMenuObj)) {
@@ -6609,22 +6645,34 @@ var app = (function () {
 
     	let eraserButton = new paintButtonIcon(paintButtonSprites[4],
     	paintButtonSprites[4],
-    	32,
+    	38,
     	0,
     	() => {
-    			postcardRendering.pixelCanvas.setEraser();
+    			postcardRendering.currentCanvas.setEraser();
     		},
     	5);
 
     	let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2],
     	paintButtonSprites[2],
-    	56,
+    	62,
     	0,
     	() => {
-    			postcardRendering.pixelCanvas.rotateBrushShape();
+    			postcardRendering.currentCanvas.rotateBrushShape();
     			paintRoom.addObject(shapeButtonSquare);
     			shapeButtonSquare.onHover();
     			paintRoom.removeObject(shapeButtonCircle);
+    		},
+    	5);
+
+    	let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3],
+    	paintButtonSprites[3],
+    	62,
+    	0,
+    	() => {
+    			postcardRendering.currentCanvas.rotateBrushShape();
+    			paintRoom.addObject(shapeButtonCircle);
+    			shapeButtonCircle.onHover();
+    			paintRoom.removeObject(shapeButtonSquare);
     		},
     	5);
 
@@ -6633,19 +6681,7 @@ var app = (function () {
     	104,
     	0,
     	() => {
-    			postcardRendering.pixelCanvas.clearCanvas();
-    		},
-    	5);
-
-    	let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3],
-    	paintButtonSprites[3],
-    	56,
-    	0,
-    	() => {
-    			postcardRendering.pixelCanvas.rotateBrushShape();
-    			paintRoom.addObject(shapeButtonCircle);
-    			shapeButtonCircle.onHover();
-    			paintRoom.removeObject(shapeButtonSquare);
+    			postcardRendering.currentCanvas.clearCanvas();
     		},
     	5);
 
@@ -6654,19 +6690,19 @@ var app = (function () {
     	0,
     	113,
     	() => {
-    			postcardRendering.pixelCanvas.setToPencilColor();
+    			postcardRendering.currentCanvas.setToPencilColor();
     		},
     	5);
 
     	let sizeNumber = new activeTextRenderer(basic, 109, 116, 5);
-    	sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+    	sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
 
     	let brushSizeDown = new brushSizeButton('<',
     	97,
     	113,
     	() => {
-    			postcardRendering.pixelCanvas.decrementSize();
-    			sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+    			postcardRendering.currentCanvas.decrementSize();
+    			sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
     		},
     	5);
 
@@ -6674,36 +6710,36 @@ var app = (function () {
     	116,
     	113,
     	() => {
-    			postcardRendering.pixelCanvas.incrementSize();
-    			sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+    			postcardRendering.currentCanvas.incrementSize();
+    			sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
     		},
     	5);
 
     	let undoButton = new paintButtonText('U',
-    	50,
+    	48,
     	113,
     	() => {
-    			postcardRendering.pixelCanvas.retrievePastCanvas();
+    			postcardRendering.currentCanvas.retrievePastCanvas();
     		},
     	5);
 
     	let redoButton = new paintButtonText('R',
-    	70,
+    	72,
     	113,
     	() => {
-    			postcardRendering.pixelCanvas.retrieveFutureCanvas();
+    			postcardRendering.currentCanvas.retrieveFutureCanvas();
     		},
     	5);
 
     	let flipButton = new paintButtonText('F',
-    	30,
+    	24,
     	113,
     	() => {
     			postcardRendering.flipPostcard();
     		},
     	5);
 
-    	paintRoom.addObject(backToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
+    	paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
 
     	//----------------SOCIAL ROOM----------------
     	//TEXT INPUT BAR INSTANTIATION

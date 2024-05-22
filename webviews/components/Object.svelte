@@ -421,37 +421,65 @@
             this.postcardYOffset = y + (height - this.postcardHeight) / 2;
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
-            this.pixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-            this.children.push(this.pixelCanvas);
+            this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
+            this.backPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); 
+            this.currentCanvas = this.frontPixelCanvas;
+            this.children.push(this.currentCanvas);
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.renderChildren = false;
             this.progressTracker = 0;
-            this.updateState("default");
+            this.state = "front";
         }
         flipPostcard(){
-            console.log("Flip called")
-            this.state = "flip";
+            if(this.state == "front"){
+                this.state = "flipToBack";
+            }
+            else if (this.state == "back"){
+                this.state = "flipToFront";
+            }
         }
         nextFrame(){
-            console.log("next frame, state: ", this.state)
-            if(this.state == "flip"){
+            if(this.state == "flipToBack"){
                 console.log("flip state")
                 this.progressTracker += 0.05;
+                if(this.progressTracker >= .5){
+                    this.currentCanvas = this.backPixelCanvas;
+                    this.children.pop();
+                    this.children.push(this.currentCanvas);
+                }
                 if(this.progressTracker >= 1){
-                    this.updateState("default");
+                    this.state = "back";
+                    this.progressTracker = 1;
+                }
+            }
+            else if(this.state == "flipToFront"){
+                this.progressTracker -= 0.05;
+                if(this.progressTracker <= .5){
+                    this.currentCanvas = this.frontPixelCanvas;
+                    this.children.pop();
+                    this.children.push(this.currentCanvas);
+                }
+                if(this.progressTracker <= 0){
+                    this.state = "front";
                     this.progressTracker = 0;
-                    this.state = "default";
                 }
             }
         }
         getSprite(){
             // const renderedPostcardFront = new Sprite(this.postcardFront.getSprite().matrix, this.postcardXOffset, this.postcardYOffset, this.z);
             const renderedPostcardFront = new Sprite(
-                this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker),
+                this.progressTracker < .5 ? 
+                this.applyPerspectiveDistortion(this.postcardFront.getSprite().matrix, this.progressTracker) :
+                this.applyPerspectiveDistortion(this.postcardBack.getSprite().matrix, 1 - this.progressTracker),
                 this.x, this.y, this.z
             )
-            const renderedPixelCanvas = new Sprite(this.pixelCanvas.externalRender(), this.postcardXOffset, this.postcardYOffset, this.z);
+            const renderedPixelCanvas = new Sprite(
+                this.progressTracker < .5 ?
+                this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), this.progressTracker) :
+                this.applyPerspectiveDistortion(this.currentCanvas.externalRender(), 1 - this.progressTracker),
+                // this.frontPixelCanvas.externalRender(),
+                this.x, this.y, this.z);
             return [renderedPostcardFront, renderedPixelCanvas];
         }
 
@@ -483,6 +511,7 @@
             let newPixels = generateEmptyMatrix(this.width, this.height);
             let inputHeight = pixels.length;
             let inputWidth = pixels[0].length;
+            let startingY = Math.floor((this.height - inputHeight) / 2);
 
             // Full PI rotation over progress to simulate 180-degree flip
             let rotation = Math.PI * progress;
@@ -495,25 +524,22 @@
 
             // Base and extended scale factors for the top and bottom y scaling
             let baseScale = 1 - variation / inputHeight;  // Smaller side
-            let extendedScale = 1 + variation / inputHeight;  // Larger side
-            let lowPerspective = progress < 0.5 ? baseScale : extendedScale;
-            let highPerspective = progress < 0.5 ? extendedScale : baseScale;
 
             for (let y = 0; y < this.height; y++) {
-                // Linear interpolation between lowPerspective and highPerspective based on y position
-                let yRatio = y / this.height;
-                let yScale = lowPerspective + (highPerspective - lowPerspective) * yRatio;
-
-                // Map y to its original position using yScale
-                let origY = Math.floor((y / yScale) * (inputHeight / this.height));
-                if (origY < 0 || origY >= inputHeight) continue;  // Skip if outside original bounds
-
-                for (let x = 0; x < this.width; x++) {
-                    if (x >= currStartingX && x < currStartingX + cardLength) {
-                        // Convert the current x to the original x in the source pixels based on xScale
-                        let origX = Math.floor((x - currStartingX) / Math.abs(xScale));
-                        if (origX >= 0 && origX < inputWidth) {
-                            newPixels[y][x] = pixels[origY][origX];
+                if(y >= startingY && y < startingY + inputHeight){
+                    let yScale = baseScale + (1 - baseScale) * (y - startingY) / inputHeight;
+                    let inputY = Math.floor(y - startingY);
+                    for (let x = 0; x < this.width; x++) {
+                        if (x >= currStartingX && x < currStartingX + cardLength) {
+                            let origX;
+                            if (xScale > 0) {
+                                origX = Math.floor((x - currStartingX) / xScale);
+                            } else {
+                                origX = inputWidth - 1 - Math.floor((x - currStartingX) / -xScale);
+                            }
+                            if (origX >= 0 && origX < inputWidth) {
+                                newPixels[y][x] = pixels[inputY][origX];
+                            }
                         }
                     }
                 }
@@ -521,6 +547,7 @@
 
             return newPixels;
         }
+
     }
 
     //TODO: move paint objects to separate file

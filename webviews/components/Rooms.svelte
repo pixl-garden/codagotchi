@@ -31,6 +31,7 @@
         const friendButton = generateTextButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
         const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
         const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const squarePaintTextButton = generateTextButtonClass(15, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         
@@ -128,6 +129,10 @@
         // let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
         let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
+        let paintBackToMain = new squarePaintTextButton('<', 0, 0, () => {
+            get(game).setCurrentRoom('mainRoom');
+            petObject.setCoordinate(36, 54, 0);
+        }, 5);
         
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom', false, false, () => {
@@ -143,8 +148,8 @@
             //TODO: MAKE INTO BUTTONLIST
         let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
         ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
-         (color) => { postcardRendering.pixelCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
-        let paintButton1 = new paintButtonText('col', 8, 0, ()=>{
+         (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
+        let paintButton1 = new paintButtonText('col', 14, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 paintRoom.removeObject(colorMenuObj);
             }
@@ -152,49 +157,49 @@
                 paintRoom.addObject(colorMenuObj);
             }
         }, 5);
-        let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 32, 0, ()=>{
-            postcardRendering.pixelCanvas.setEraser();
+        let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 38, 0, ()=>{
+            postcardRendering.currentCanvas.setEraser();
         }, 5);
 
-        let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 56, 0, ()=>{
-            postcardRendering.pixelCanvas.rotateBrushShape();
+        let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 62, 0, ()=>{
+            postcardRendering.currentCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonSquare);
             shapeButtonSquare.onHover();
             paintRoom.removeObject(shapeButtonCircle);
         }, 5);
-        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 104, 0, ()=>{
-            postcardRendering.pixelCanvas.clearCanvas();
-        }, 5);
-        let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 56, 0, ()=>{
-            postcardRendering.pixelCanvas.rotateBrushShape();
+        let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 62, 0, ()=>{
+            postcardRendering.currentCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonCircle);
             shapeButtonCircle.onHover();
             paintRoom.removeObject(shapeButtonSquare);
         }, 5);
+        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 104, 0, ()=>{
+            postcardRendering.currentCanvas.clearCanvas();
+        }, 5);
         let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 113, ()=>{
-            postcardRendering.pixelCanvas.setToPencilColor()
+            postcardRendering.currentCanvas.setToPencilColor()
         }, 5);
 
         let sizeNumber = new activeTextRenderer(basic, 109, 116, 5);
-        sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+        sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         let brushSizeDown = new brushSizeButton('<', 97, 113, ()=>{
-            postcardRendering.pixelCanvas.decrementSize();
-            sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+            postcardRendering.currentCanvas.decrementSize();
+            sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         }, 5);
         let brushSizeUp = new brushSizeButton('>', 116, 113, ()=>{
-            postcardRendering.pixelCanvas.incrementSize();
-            sizeNumber.setText((postcardRendering.pixelCanvas.brushSize / 2).toString());
+            postcardRendering.currentCanvas.incrementSize();
+            sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         }, 5);
-        let undoButton = new paintButtonText('U', 50, 113, ()=>{
-            postcardRendering.pixelCanvas.retrievePastCanvas();
+        let undoButton = new paintButtonText('U', 48, 113, ()=>{
+            postcardRendering.currentCanvas.retrievePastCanvas();
         }, 5);
-        let redoButton = new paintButtonText('R', 70, 113, ()=>{
-            postcardRendering.pixelCanvas.retrieveFutureCanvas();
+        let redoButton = new paintButtonText('R', 72, 113, ()=>{
+            postcardRendering.currentCanvas.retrieveFutureCanvas();
         }, 5);
-        let flipButton = new paintButtonText('F', 30, 113, ()=>{
+        let flipButton = new paintButtonText('F', 24, 113, ()=>{
             postcardRendering.flipPostcard();
         }, 5);
-        paintRoom.addObject(backToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
+        paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
                shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
 
     //----------------SOCIAL ROOM----------------
