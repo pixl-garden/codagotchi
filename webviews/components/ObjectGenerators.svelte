@@ -5,6 +5,25 @@
     import { get } from 'svelte/store';
     import { Sprite } from './SpriteComponent.svelte';
 
+    export function generateInvisibleButtonClass( width, height ) {
+        return class Button extends GeneratedObject {
+            constructor(x, y, z, actionOnClick) {
+                const defaultSprite = generateEmptyMatrix(width, height);
+                super([defaultSprite], { default: [0], hovered: [0] }, x, y, z, actionOnClick);
+            }
+
+            onHover() {
+                    super.onHover(); // Call parent's hover function
+                    this.updateState('hovered');
+            }
+
+            onStopHover() {
+                super.onStopHover(); // Call parent's stop hover function
+                this.updateState('default');
+            }
+        };
+    }
+
     export function generateTextButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {

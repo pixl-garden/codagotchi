@@ -2,27 +2,45 @@
     import { GeneratedObject, objectGrid, activeTextRenderer } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
-    const ITEMWIDTH = 32;
-    const stackableTypes = ["food"]
+    const stackableTypes = ["food", "stamp"]
 
+    /**
+     * Represents an item in the game inventory, extending functionalities from GeneratedObject.
+     * @extends GeneratedObject
+     */
     export class Item extends GeneratedObject {
+        /**
+         * Creates an instance of an Item.
+         * @param {string} itemName - The name of the item, used to fetch its configuration.
+         */
         constructor( itemName ){
             // maybe add an item count parameter?
             const config = itemConfig[itemName];
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
             const objState = { default: [config.spriteIndex] }
-            const spriteMatrix = spriteReaderFromStore(ITEMWIDTH, ITEMWIDTH, config.spriteSheet);
+            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet);
             super(spriteMatrix, objState, 0, 0, 0);
+            /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
+            /** @property {boolean} stackable - Indicates if the item can be stacked. */
             this.stackable = false;
+            /** @property {number} itemCount - The count of this item in inventory. */
             this.itemCount = 1;
-            this.spriteHeight = ITEMWIDTH;
-            this.spriteWidth = ITEMWIDTH;
+            /** @property {number} spriteHeight - The height of the item's sprite. */
+            this.spriteHeight = config.spriteWidth;
+            /** @property {number} spriteWidth - The width of the item's sprite. */
+            this.spriteWidth = config.spriteWidth;
+            /** @property {Object} config - Configuration details for the item. */
             this.config = config;
+            /** @property {string} displayName - The display name of the item. */
             this.displayName = config.displayName;
+            /** @property {string} description - The description of the item. */
             this.description = config.description;
+            /** @property {string} itemType - The type category of the item. */
             this.itemType = config.type;
+            /** @property {number | undefined} inventoryId - The unique ID of the item in the inventory. */
             this.inventoryId;
+            /** @property {Object} properties - Custom properties specific to the item. */
             this.properties = {};
         }
         getName(){
@@ -51,6 +69,7 @@
             this.items = new Map(); // Stores inventoryId -> item instance
             // stackable items is redundant but is used for quick access to stackable items
             this.stackableItems = new Map(); // Stores itemIdString -> inventoryId for stackable items
+            this.itemsByType = new Map(); // Stores itemType -> Set of inventoryIds
         }
 
         // Get the first available ID for a new item
@@ -64,6 +83,14 @@
             return id;
         }
 
+        // Add item to the type index (used for quick access to items of a certain type)
+        addItemToTypeIndex(item) {
+            console.log("addItemToTypeIndex called");
+            const typeSet = this.itemsByType.get(item.itemType) || new Set();
+            typeSet.add(item.inventoryId);
+            this.itemsByType.set(item.itemType, typeSet);
+        }
+
         addStackableItemToInstance(itemIdString, quantity = 1) {
             let item;
             if (this.stackableItems.has(itemIdString)) {
@@ -73,12 +100,13 @@
             } else {
                 const newId = this.getFirstAvailableId();
                 item = new Item(itemIdString);
-                item.inventoryId = newId; // Assign the first available inventory ID
+                item.inventoryId = newId;
                 item.itemCount = quantity;
                 item.stackable = true;
 
                 this.items.set(newId, item);
                 this.stackableItems.set(itemIdString, newId);
+                this.addItemToTypeIndex(item);
             }
             return item;
         }
@@ -112,16 +140,17 @@
             if (this.items.has(inventoryId)) {
                 const item = this.items.get(inventoryId);
 
-                if (item.stackable) {
+                if (item.stackable && item.itemCount > 1) {
                     item.itemCount--;
-                    if (item.itemCount <= 0) {
-                        this.stackableItems.delete(item.itemName);
-                        this.items.delete(inventoryId);
-                    }
                 } else {
                     this.items.delete(inventoryId);
+                    this.stackableItems.delete(item.itemName);
+                    const typeSet = this.itemsByType.get(item.itemType);
+                    if (typeSet) {
+                        typeSet.delete(inventoryId);
+                        if (typeSet.size === 0) this.itemsByType.delete(item.itemType);
+                    }
                 }
-
                 return true; // Item found and removed
             }
             return false; // Item not found
@@ -152,6 +181,11 @@
             // Convert the Map values to an array
             return Array.from(this.items.values());
         }
+
+        getItemsByType(itemType) {
+            const inventoryIds = this.itemsByType.get(itemType) || new Set();
+            return Array.from(inventoryIds).map(id => this.items.get(id));
+        }
     }
 
     // Function to reconstruct items from serialized data
@@ -178,16 +212,22 @@
             const item = reconstructItem(itemData);
             item.inventoryId = parseInt(inventoryId); // Ensure the inventoryId is treated as a number if needed
 
+            // Set item into the main items map
             inventory.items.set(item.inventoryId, item);
             if (stackableTypes.includes(item.itemType)) {
                 inventory.stackableItems.set(item.itemName, item.inventoryId);
             }
+
+            // Update the itemsByType map
+            const typeSet = inventory.itemsByType.get(item.itemType) || new Set();
+            typeSet.add(item.inventoryId);
+            inventory.itemsByType.set(item.itemType, typeSet);
         });
 
         return inventory;
     }
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer){
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer, itemZ = 10){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
@@ -226,6 +266,7 @@
                         // console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
                         let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
                         numberRenderer.setText(item.itemCount.toString());
+                        item.setCoordinate(0, 0, itemZ);
                         slotInstance.addChild(item);
                         slotInstance.addChild(numberRenderer);
                     }

@@ -1,10 +1,19 @@
 {
+    "stamp1":{
+        "type": "stamp",
+        "displayName": "Stamp 1",
+        "spriteSheet": "javascriptStamp.png",
+        "spriteIndex": 0,
+        "description": "javascript stamp",
+        "spriteWidth": 24
+    },
     "tomatoSoup":{
         "type": "food",
         "displayName": "Tomato Soup",
         "spriteSheet": "testItems.png",
         "spriteIndex": 0,
         "description": "soup",
+        "spriteWidth": 32,
         "hunger": 5,
         "thirst": 1,
         "energy": 1
@@ -15,6 +24,7 @@
         "spriteSheet": "testItems.png",
         "spriteIndex": 1,
         "description": "mmmmm",
+        "spriteWidth": 32,
         "hunger": 0,
         "thirst": 2,
         "energy": 5
@@ -25,6 +35,7 @@
         "spriteSheet": "testItems.png",
         "spriteIndex": 2,
         "description": "rod",
+        "spriteWidth": 32,
         "hunger": 0,
         "thirst": 0,
         "energy": 0
@@ -35,6 +46,7 @@
         "spriteSheet": "testItems.png",
         "spriteIndex": 3,
         "description": "fish",
+        "spriteWidth": 32,
         "hunger": 3,
         "thirst": 1,
         "energy": 1
@@ -45,6 +57,7 @@
         "spriteSheet": "testItems.png",
         "spriteIndex": 4,
         "description": "fish",
+        "spriteWidth": 32,
         "hunger": 3,
         "thirst": 1,
         "energy": 1
@@ -55,6 +68,7 @@
         "spriteSheet": "testItem.png",
         "spriteIndex": 0,
         "description": "potion",
+        "spriteWidth": 32,
         "hunger": 0,
         "thirst": 0,
         "energy": 0}

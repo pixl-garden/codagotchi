@@ -23,6 +23,8 @@
         // $game.clearGlobalState();
         $game.syncLocalToGlobalState( {} );
         $game.constructInventory();
+        console.log("ItemByType Map: ", $game.inventory.itemsByType);
+        console.log("Stamp Items: ", $game.inventory.getItemsByType('stamp'));
         handleResize();
         preloadObjects();
         //prettier-ignore

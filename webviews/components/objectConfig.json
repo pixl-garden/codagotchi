@@ -2,6 +2,7 @@
     "objectType1": {
         "spriteWidth": 7,
         "spriteHeight": 9,
+        "spriteSheet": "dinowalk.png",
         "states": {
             "hidden": [5],
             "visible": [1]
@@ -117,6 +118,23 @@
         "spriteWidth": 120,
         "spriteHeight": 80,
         "spriteSheet": "postcardBack.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "box_canvas": {
+        "spriteWidth": 110,
+        "spriteHeight": 94,
+        "spriteSheet": "box_canvas.png",
+        "states": {
+            "default": [0]
+        }
+        
+    },
+    "stampSlot": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "stampSlot.png",
         "states": {
             "default": [0]
         }

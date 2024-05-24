@@ -3,7 +3,7 @@
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
-    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar } from './ObjectGenerators.svelte';
+    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
@@ -34,7 +34,9 @@
         const squarePaintTextButton = generateTextButtonClass(15, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        
+        const invisibleStampButton = generateInvisibleButtonClass(24, 24);
+
+
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
         const backToMain = new smallLetterButton('<', 0, 2, () => {
@@ -108,9 +110,10 @@
                 customizeUI.startMovingTo(9, 88);
             }
             else{
-                customizeUI.startMovingTo(9, 21, sineWaveSpeed);
+                customizeUI.startMovingTo(9, 21);
             }
         });
+
         //ROOM INSTANTIATION
         let customizeRoom = new Room('customizeRoom', false, false, () => {
             petObject.nextFrame();
@@ -126,26 +129,24 @@
 
     //----------------PAINT ROOM----------------
         //BACKGROUND INSTANTIATION
-        // let postcardBackground = new Background('postcardBackground', 0, 0, -20, () => {})
         let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
-        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
-        let paintBackToMain = new squarePaintTextButton('<', 0, 0, () => {
-            get(game).setCurrentRoom('mainRoom');
-            petObject.setCoordinate(36, 54, 0);
-        }, 5);
-        
+
         //ROOM INSTANTIATION
         let paintRoom = new Room('paintRoom', false, false, () => {
             postcardRendering.nextFrame();
         });
 
-        //PAINT CANVAS INSTANTIATION
+        //POSTCARD RENDERER INSTANTIATION
         let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80);
-        // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
 
-        console.log(paintButtonSprites);
+        // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
+        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
+        let paintBackToMain = new squarePaintTextButton('<', 0, 0, () => {
+            get(game).setCurrentRoom('mainRoom');
+            petObject.setCoordinate(36, 54, 0);
+        }, 5);
         let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
         ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
          (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
@@ -199,8 +200,27 @@
         let flipButton = new paintButtonText('F', 24, 113, ()=>{
             postcardRendering.flipPostcard();
         }, 5);
+
+        // STAMP MENU INSTANTIATION
+
+        let stampMenu = new Background('box_canvas', 9, 17, 6, () => {});
+        function createStampSlot() {
+            let output = new Object("stampSlot", 0, 0, 0);
+            output.hoverWithChildren = true;
+            output.passMouseCoords = true;
+            // console.log("createItemSlot instance:", output); // Check the instance
+            return output;
+        }
+        let testToolTip = new toolTip("black", "white", 3, 2, basic);
+        let stampArray = get(game).inventory.getItemsByType('stamp');
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 29, 8, stampArray, 9, createStampSlot, testToolTip, tiny, 100);
+        // stampMenu.addChild(stampGrid);
+        let stampButton = new invisibleStampButton(90, 30, 11, ()=>{
+            get(game).getCurrentRoom().addObject( stampMenu );
+            get(game).getCurrentRoom().addObject( stampGrid );
+        })
         paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
-               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, stampButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
@@ -272,6 +292,7 @@
         // get(game).addStackableItem("coffee", 5);
         // get(game).addStackableItem("potion", 2);
         // get(game).subtractStackableItem("tomatoSoup", 3);
+        get(game).addStackableItem("stamp1", 2);
         let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
@@ -281,8 +302,6 @@
             // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
-        //TOOLTIP INSTANTIATION
-        let testToolTip = new toolTip("black", "white", 3, 2, basic);
         //INVENTORY GRID INSTANTIATION
         let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tiny);
         //ROOM INSTANTIATION
