@@ -198,20 +198,21 @@
 
         getChildSprites() {
             let childSprites = [];
-            const accumulateChildSprites = (parent, offsetX = 0, offsetY = 0) => {
+            const accumulateChildSprites = (parent, offsetX = 0, offsetY = 0, offsetZ = 0) => {
                 for (let child of parent.children) {
                     let childSprite = child.getSprite();
                     if(childSprite != null){
                         // Apply both the current parent's offset and any accumulated offset from ancestors
                         childSprite.x += offsetX + parent.x;
                         childSprite.y += offsetY + parent.y;
+                        childSprite.z += offsetZ + parent.z;
                         childSprites.push(childSprite);
                     }
 
 
                     // If the child has its own children, recursively accumulate their sprites too
                     if (child.children.length > 0) {
-                        accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y);
+                        accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y, offsetZ + parent.z);
                     }
                 }
             };
