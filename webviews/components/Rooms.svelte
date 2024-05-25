@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass } from './ObjectGenerators.svelte';
@@ -205,7 +205,16 @@
 
         let stampMenu = new Background('box_canvas', 9, 17, 6, () => {});
         function createStampSlot() {
-            let output = new Object("stampSlot", 0, 0, 0);
+            let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
+                console.log("Item: ", output.slotItem);
+                if(output.slotItem){
+                    output.onStopHover();
+                    stampGrid.displayToolTip = false;
+                    postcardRendering.setStamp(output.slotItem);
+                    get(game).getCurrentRoom().removeObject( stampMenu );
+                    get(game).getCurrentRoom().removeObject( stampGrid );
+                }
+            });
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
             // console.log("createItemSlot instance:", output); // Check the instance
@@ -213,7 +222,7 @@
         }
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         let stampArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 29, 8, stampArray, 9, createStampSlot, testToolTip, tiny, 100);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 8, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
         // stampMenu.addChild(stampGrid);
         let stampButton = new invisibleStampButton(90, 30, 11, ()=>{
             get(game).getCurrentRoom().addObject( stampMenu );
@@ -292,7 +301,8 @@
         // get(game).addStackableItem("coffee", 5);
         // get(game).addStackableItem("potion", 2);
         // get(game).subtractStackableItem("tomatoSoup", 3);
-        get(game).addStackableItem("stamp1", 2);
+        get(game).addStackableItem("javascriptStamp", 2);
+        get(game).addStackableItem("pythonStamp", 2);
         let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {

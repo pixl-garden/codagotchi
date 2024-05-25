@@ -3856,10 +3856,18 @@ var app = (function () {
     	document.documentElement.style.setProperty('--screen-width', `${screenWidth$1}px`);
     }
 
-    var stamp1 = {
+    var javascriptStamp = {
     	type: "stamp",
-    	displayName: "Stamp 1",
-    	spriteSheet: "javascriptStamp.png",
+    	displayName: "Python",
+    	spriteSheet: "stamps.png",
+    	spriteIndex: 1,
+    	description: "python stamp",
+    	spriteWidth: 24
+    };
+    var pythonStamp = {
+    	type: "stamp",
+    	displayName: "Javascript",
+    	spriteSheet: "stamps.png",
     	spriteIndex: 0,
     	description: "javascript stamp",
     	spriteWidth: 24
@@ -3931,7 +3939,8 @@ var app = (function () {
     	energy: 0
     };
     var itemConfig = {
-    	stamp1: stamp1,
+    	javascriptStamp: javascriptStamp,
+    	pythonStamp: pythonStamp,
     	tomatoSoup: tomatoSoup,
     	coffee: coffee,
     	fishingRod: fishingRod,
@@ -4426,6 +4435,7 @@ var app = (function () {
 
     		this.mouseX = null;
     		this.mouseY = null;
+    		this.mouseInteractions = true;
     	}
 
     	// Function to start moving towards a target
@@ -4825,7 +4835,7 @@ var app = (function () {
     			});
 
     		this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-    		this.backPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset);
+    		this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset);
     		this.currentCanvas = this.frontPixelCanvas;
     		this.children.push(this.currentCanvas);
     		this.stateQueue = [];
@@ -4833,6 +4843,12 @@ var app = (function () {
     		this.renderChildren = false;
     		this.progressTracker = 0;
     		this.state = "front";
+    		this.stampItem;
+    	}
+
+    	setStamp(stampItem) {
+    		this.stampItem = stampItem;
+    		this.backPixelCanvas.setStamp(stampItem);
     	}
 
     	flipPostcard() {
@@ -4943,6 +4959,32 @@ var app = (function () {
     		}
 
     		return newPixels;
+    	}
+    }
+
+    class postcardBackCanvas extends GeneratedObject {
+    	constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
+    		const emptyMatrix = generateEmptyMatrix(width, height);
+    		super([emptyMatrix], { default: [0] }, x, y, z);
+    		this.pixelMatrix = emptyMatrix;
+    		this.width = width;
+    		this.height = height;
+    		this.offsetX = offsetX == null ? x : offsetX;
+    		this.offsetY = offsetY == null ? y : offsetY;
+    		this.stampItem = null;
+    	}
+
+    	setStamp(stampItem) {
+    		this.stampItem = stampItem;
+    		this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampItem.currentSpriteIndex], 0, 0, 89, 8);
+    	}
+
+    	getSprite() {
+    		return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+    	}
+
+    	externalRender() {
+    		return this.pixelMatrix;
     	}
     }
 
@@ -5386,6 +5428,13 @@ var app = (function () {
     	}
     }
 
+    class ItemSlot extends Object$1 {
+    	constructor(objectName, x, y, z, actionOnClick = null) {
+    		super(objectName, x, y, z, actionOnClick);
+    		this.slotItem = null;
+    	}
+    }
+
     class buttonList extends objectGrid {
     	constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
     		let buttons = [];
@@ -5518,6 +5567,8 @@ var app = (function () {
 
     		/** @property {Object} properties - Custom properties specific to the item. */
     		this.properties = {};
+
+    		this.mouseInteractions = false;
     	}
 
     	getName() {
@@ -5721,10 +5772,10 @@ var app = (function () {
     }
 
     class inventoryGrid extends objectGrid {
-    	constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer, itemZ = 10) {
+    	constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer, scrollSpeed, itemZ = 10) {
     		let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
     		console.log("Constructed items: ", constructedItems);
-    		super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
+    		super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
     		this.toolTip = toolTip;
     		this.toolTip.setCoordinate(0, 0, 30);
     		this.displayToolTip = false;
@@ -5763,13 +5814,19 @@ var app = (function () {
     				// console.log("Slot Instance: ", slotInstance); // Check the instance
     				// console.log(slotInstance instanceof GeneratedObject);
     				if (item) {
-    					// console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
-    					let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
+    					console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
 
-    					numberRenderer.setText(item.itemCount.toString());
+    					if (numberTextRenderer != null) {
+    						let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
+    						numberRenderer.setText(item.itemCount.toString());
+    						slotInstance.addChild(numberRenderer);
+    					}
+
     					item.setCoordinate(0, 0, itemZ);
+    					slotInstance.slotItem = item;
     					slotInstance.addChild(item);
-    					slotInstance.addChild(numberRenderer);
+    				} else {
+    					slotInstance.slotItem = null;
     				}
 
     				inventoryGrid.push(slotInstance);
@@ -6037,7 +6094,7 @@ var app = (function () {
     		}
 
     		// Check if the coordinates are within the object's bounds
-    		if (x >= objX && x <= objX + obj.spriteWidth && y >= objY && y <= objY + obj.spriteHeight) {
+    		if (x >= objX && x <= objX + obj.spriteWidth && y >= objY && y <= objY + obj.spriteHeight && obj.mouseInteractions) {
     			if (parent && parent.hoverWithChildren) {
     				// If a parent has hoverWithChildren, add both the child and the parent to foundObjects
     				if (!foundObjects.includes(parent)) foundObjects.push(parent);
@@ -6841,7 +6898,22 @@ var app = (function () {
     		});
 
     	function createStampSlot() {
-    		let output = new Object$1("stampSlot", 0, 0, 0);
+    		let output = new ItemSlot("stampSlot",
+    		0,
+    		0,
+    		0,
+    		() => {
+    				console.log("Item: ", output.slotItem);
+
+    				if (output.slotItem) {
+    					output.onStopHover();
+    					stampGrid.displayToolTip = false;
+    					postcardRendering.setStamp(output.slotItem);
+    					get_store_value(game).getCurrentRoom().removeObject(stampMenu);
+    					get_store_value(game).getCurrentRoom().removeObject(stampGrid);
+    				}
+    			});
+
     		output.hoverWithChildren = true;
     		output.passMouseCoords = true;
 
@@ -6851,7 +6923,7 @@ var app = (function () {
 
     	let testToolTip = new toolTip("black", "white", 3, 2, basic);
     	let stampArray = get_store_value(game).inventory.getItemsByType('stamp');
-    	let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 29, 8, stampArray, 9, createStampSlot, testToolTip, tiny, 100);
+    	let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 8, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
 
     	// stampMenu.addChild(stampGrid);
     	let stampButton = new invisibleStampButton(90,
@@ -6976,8 +7048,9 @@ var app = (function () {
     	// get(game).addStackableItem("coffee", 5);
     	// get(game).addStackableItem("potion", 2);
     	// get(game).subtractStackableItem("tomatoSoup", 3);
-    	get_store_value(game).addStackableItem("stamp1", 2);
+    	get_store_value(game).addStackableItem("javascriptStamp", 2);
 
+    	get_store_value(game).addStackableItem("pythonStamp", 2);
     	let itemArray = get_store_value(game).inventory.getItemsArray();
 
     	//ITEMSLOT FACTORY FUNCTION
@@ -7086,9 +7159,11 @@ var app = (function () {
     		$game.syncLocalToGlobalState({});
 
     		$game.constructInventory();
-    		console.log("ItemByType Map: ", $game.inventory.itemsByType);
-    		console.log("Stamp Items: ", $game.inventory.getItemsByType('stamp'));
+
+    		// console.log("ItemByType Map: ", $game.inventory.itemsByType);
+    		// console.log("Stamp Items: ", $game.inventory.getItemsByType('stamp'));
     		handleResize();
+
     		preloadObjects();
 
     		//prettier-ignore

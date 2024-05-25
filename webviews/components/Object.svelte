@@ -6,7 +6,7 @@
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix } from './MatrixFunctions.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix } from './MatrixFunctions.svelte';
 
     
 
@@ -69,6 +69,7 @@
             this.passMouseCoords = false;
             this.mouseX = null;
             this.mouseY = null;
+            this.mouseInteractions = true;
         }
 
         // Function to start moving towards a target
@@ -420,7 +421,7 @@
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-            this.backPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); 
+            this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); 
             this.currentCanvas = this.frontPixelCanvas;
             this.children.push(this.currentCanvas);
             this.stateQueue = [];
@@ -428,8 +429,12 @@
             this.renderChildren = false;
             this.progressTracker = 0;
             this.state = "front";
+            this.stampItem;
         }
-
+        setStamp(stampItem) {
+            this.stampItem = stampItem;
+            this.backPixelCanvas.setStamp(stampItem);
+        }
         flipPostcard(){
             if(this.state == "front"){
                 this.state = "flipToBack";
@@ -529,6 +534,32 @@
             return newPixels;
         }
 
+    }
+
+    export class postcardBackCanvas extends GeneratedObject {
+        constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
+            const emptyMatrix = generateEmptyMatrix(width, height);
+            super([emptyMatrix], { default: [0] }, x, y, z);
+            this.pixelMatrix = emptyMatrix;
+            this.width = width;
+            this.height = height;
+            this.offsetX = offsetX == null ? x : offsetX;
+            this.offsetY = offsetY == null ? y : offsetY;
+            this.stampItem = null;
+        }
+
+        setStamp(stampItem) {
+            this.stampItem = stampItem;
+            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampItem.currentSpriteIndex], 0, 0, 89, 8);
+        }
+
+        getSprite() {
+            return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+        }
+
+        externalRender() {
+            return this.pixelMatrix;
+        }
     }
 
     export class PixelCanvas extends GeneratedObject {
@@ -943,6 +974,13 @@
         }
         getSprite(){
             return new Sprite(this.currentSprite, this.x, this.y, this.z);
+        }
+    }
+
+    export class ItemSlot extends Object {
+        constructor(objectName, x, y, z, actionOnClick = null) {
+            super(objectName, x, y, z, actionOnClick);
+            this.slotItem = null;
         }
     }
 
