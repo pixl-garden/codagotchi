@@ -37,7 +37,7 @@
 
             // Check if the coordinates are within the object's bounds
             if (x >= objX && x <= objX + obj.spriteWidth && 
-                y >= objY && y <= objY + obj.spriteHeight) {
+                y >= objY && y <= objY + obj.spriteHeight && obj.mouseInteractions) {
                 if (parent && parent.hoverWithChildren) {
                     // If a parent has hoverWithChildren, add both the child and the parent to foundObjects
                     if (!foundObjects.includes(parent)) foundObjects.push(parent);

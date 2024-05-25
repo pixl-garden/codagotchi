@@ -1,8 +1,16 @@
 {
-    "stamp1":{
+    "javascriptStamp":{
         "type": "stamp",
-        "displayName": "Stamp 1",
-        "spriteSheet": "javascriptStamp.png",
+        "displayName": "Python",
+        "spriteSheet": "stamps.png",
+        "spriteIndex": 1,
+        "description": "python stamp",
+        "spriteWidth": 24
+    },
+    "pythonStamp":{
+        "type": "stamp",
+        "displayName": "Javascript",
+        "spriteSheet": "stamps.png",
         "spriteIndex": 0,
         "description": "javascript stamp",
         "spriteWidth": 24

@@ -42,6 +42,7 @@
             this.inventoryId;
             /** @property {Object} properties - Custom properties specific to the item. */
             this.properties = {};
+            this.mouseInteractions = false;
         }
         getName(){
             return this.displayName;
@@ -227,10 +228,10 @@
         return inventory;
     }
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer, itemZ = 10){
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer, scrollSpeed, itemZ = 10){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
-            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", 3);
+            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
             this.toolTip = toolTip;
             this.toolTip.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
@@ -260,15 +261,22 @@
                 for(let i = 0; i < totalSlots; i++) {
                     let item = items[i];
                     let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
+                    
                     // console.log("Slot Instance: ", slotInstance); // Check the instance
                     // console.log(slotInstance instanceof GeneratedObject);
                     if(item) {
-                        // console.log("Item: ", item); // Check the item (should be a GeneratedObject instance
-                        let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
-                        numberRenderer.setText(item.itemCount.toString());
+                        console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
+                        if(numberTextRenderer != null){
+                            let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
+                            numberRenderer.setText(item.itemCount.toString());
+                            slotInstance.addChild(numberRenderer);
+                        }
                         item.setCoordinate(0, 0, itemZ);
+                        slotInstance.slotItem = item;
                         slotInstance.addChild(item);
-                        slotInstance.addChild(numberRenderer);
+                    }
+                    else{
+                        slotInstance.slotItem = null;
                     }
                     inventoryGrid.push(slotInstance);
                 }
