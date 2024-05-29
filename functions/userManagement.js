@@ -4,11 +4,9 @@ const createUserProfile = async (githubUserId, githubUsername, tokenTime) => {
     const userRef = db.ref(`users/${githubUserId}`);
     await userRef.set({
         public: {
-            uid: githubUserId.toString(),
-            displayName: githubUsername,
-            githubUsername: githubUsername,
+            uid: githubUserId.toString(), // Matches the GitHub user ID
+            username: githubUsername,
             photoURL: `https://avatars.githubusercontent.com/u/${githubUserId}?v=4`,
-            githubUserId: githubUserId,
             createdAt: tokenTime,
             lastLoginAt: tokenTime,
             lastSeenAt: tokenTime,
