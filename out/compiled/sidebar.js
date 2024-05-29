@@ -3443,6 +3443,45 @@ var app = (function () {
     	return outSprite;
     }
 
+    function setMatrix(
+    	baseSprite,
+    overlaySprite,
+    baseXOffset = 0,
+    baseYOffset = 0,
+    overlayXOffset = 0,
+    overlayYOffset = 0
+    ) {
+    	// Define size of result sprite
+    	const outWidth = Math.max(baseSprite[0].length + baseXOffset, overlaySprite[0].length + overlayXOffset);
+
+    	const outHeight = Math.max(baseSprite.length + baseYOffset, overlaySprite.length + overlayYOffset);
+    	let outSprite = generateEmptyMatrix(outWidth, outHeight);
+
+    	for (let y = 0; y < outHeight; y++) {
+    		for (let x = 0; x < outWidth; x++) {
+    			// Calculate coordinates in base and overlay sprites
+    			const baseX = x - baseXOffset;
+
+    			const baseY = y - baseYOffset;
+    			const overlayX = x - overlayXOffset;
+    			const overlayY = y - overlayYOffset;
+
+    			// Check if we are within the bounds of the overlay sprite
+    			if (overlayX >= 0 && overlayX < overlaySprite[0].length && overlayY >= 0 && overlayY < overlaySprite.length) {
+    				outSprite[y][x] = overlaySprite[overlayY][overlayX];
+    			} else // Check if we are within the bounds of the base sprite
+    			if (baseX >= 0 && baseX < baseSprite[0].length && baseY >= 0 && baseY < baseSprite.length) {
+    				outSprite[y][x] = baseSprite[baseY][baseX];
+    			} else // Otherwise, set to transparent
+    			{
+    				outSprite[y][x] = 'transparent';
+    			}
+    		}
+    	}
+
+    	return outSprite;
+    }
+
     function concatenateMatrixes(matrix1, matrix2) {
     	//Function used to create sprite sheets (adds matrix2 to the right of matrix1)
     	if (matrix1.length !== matrix2.length) {
@@ -3744,6 +3783,20 @@ var app = (function () {
     		}
 
     		return matrix;
+    	};
+    }
+
+    function createTextMeasureFunction(spriteWidth, letterSpacing) {
+    	// This function returns the width of the text based on the sprite width and letter spacing
+    	return function measureText(text) {
+    		if (typeof text !== 'string') {
+    			throw new Error('measureText: Text must be a string');
+    		}
+
+    		let numChars = text.length;
+
+    		// Calculate total width as number of characters times sprite width plus the spaces between them
+    		return (spriteWidth + letterSpacing) * numChars - letterSpacing; // Subtract letterSpacing once for the last character
     	};
     }
 
@@ -4442,7 +4495,6 @@ var app = (function () {
     	startMovingTo(newTargetX, newTargetY) {
     		this.targetX = newTargetX;
     		this.targetY = newTargetY;
-    		console.log();
 
     		// console.log("MOVING TO: ", this.targetX, this.targetY);
     		this.isMoving = true;
@@ -4492,14 +4544,15 @@ var app = (function () {
     		this.accumulatedMoveX -= moveX;
 
     		this.accumulatedMoveY -= moveY;
-    		console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
-    		console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
-    		console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
 
+    		// console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
+    		// console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
+    		// console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
     		// Check if the object has reached (or overshot) the target position
     		if (Math.abs(this.targetX - this.x) < 1 && Math.abs(this.velocityX) < this.velocityThreshold && (Math.abs(this.targetY - this.y) < 1 && Math.abs(this.velocityY) < this.velocityThreshold)) {
-    			console.log("REACHED TARGET");
+    			// console.log("REACHED TARGET");
     			this.x = this.targetX;
+
     			this.y = this.targetY;
 
     			// Explicitly reset velocities and accumulated movements
@@ -4808,13 +4861,14 @@ var app = (function () {
     }
 
     class postcardRenderer extends GeneratedObject {
-    	constructor(x, y, z, width, height, postcardWidth, postcardHeight) {
+    	constructor(x, y, z, width, height, postcardWidth, postcardHeight, textRenderer) {
     		const emptyMatrix = generateEmptyMatrix(width, height);
     		super([emptyMatrix], { default: [0] }, x, y, z);
     		this.postcardWidth = postcardWidth;
     		this.postcardHeight = postcardHeight;
     		this.width = width;
     		this.height = height;
+    		this.textRenderer = textRenderer;
     		this.postcardXOffset = x + (width - this.postcardWidth) / 2;
     		this.postcardYOffset = y + (height - this.postcardHeight) / 2;
 
@@ -4835,7 +4889,7 @@ var app = (function () {
     			});
 
     		this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-    		this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset);
+    		this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer);
     		this.currentCanvas = this.frontPixelCanvas;
     		this.children.push(this.currentCanvas);
     		this.stateQueue = [];
@@ -4846,9 +4900,17 @@ var app = (function () {
     		this.stampItem;
     	}
 
+    	setTextActive(bool) {
+    		this.backPixelCanvas.setTextActive(bool);
+    	}
+
     	setStamp(stampItem) {
     		this.stampItem = stampItem;
     		this.backPixelCanvas.setStamp(stampItem);
+    	}
+
+    	setUserText(text) {
+    		this.backPixelCanvas.setUserText(text);
     	}
 
     	flipPostcard() {
@@ -4859,9 +4921,12 @@ var app = (function () {
     		}
     	}
 
+    	setUserText(text) {
+    		this.backPixelCanvas.setUserText(text);
+    	}
+
     	nextFrame() {
     		if (this.state == "flipToBack") {
-    			console.log("flip state");
     			this.progressTracker += 0.05;
 
     			//once rotation is halfway, switch the canvas 
@@ -4963,20 +5028,37 @@ var app = (function () {
     }
 
     class postcardBackCanvas extends GeneratedObject {
-    	constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
+    	constructor(x, y, z, width, height, offsetX, offsetY, textRenderer) {
     		const emptyMatrix = generateEmptyMatrix(width, height);
     		super([emptyMatrix], { default: [0] }, x, y, z);
+    		this.emptyLeftMatrix = generateEmptyMatrix(80, 80);
+    		this.emptyRightMatrix = generateEmptyMatrix(40, 80);
     		this.pixelMatrix = emptyMatrix;
     		this.width = width;
     		this.height = height;
     		this.offsetX = offsetX == null ? x : offsetX;
     		this.offsetY = offsetY == null ? y : offsetY;
     		this.stampItem = null;
+    		this.userText = "";
+    		this.multiLineTextRenderer = new multiLineTextRenderer(x + 2, y - 2, z, 78, height, 9, textRenderer, 4, 0);
+    	}
+
+    	setTextActive(bool) {
+    		this.multiLineTextRenderer.setTextActive(bool);
     	}
 
     	setStamp(stampItem) {
     		this.stampItem = stampItem;
+    		this.clearStamp();
     		this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampItem.currentSpriteIndex], 0, 0, 89, 8);
+    	}
+
+    	clearStamp() {
+    		this.pixelMatrix = setMatrix(this.pixelMatrix, this.emptyRightMatrix, 0, 0, 80, 0);
+    	}
+
+    	clearText() {
+    		this.pixelMatrix = setMatrix(this.pixelMatrix, this.emptyLeftMatrix, 0, 0, 0, 0);
     	}
 
     	getSprite() {
@@ -4985,6 +5067,112 @@ var app = (function () {
 
     	externalRender() {
     		return this.pixelMatrix;
+    	}
+
+    	setUserText(text) {
+    		this.userText = text;
+    		this.multiLineTextRenderer.setText(text);
+    		this.clearText();
+    		this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.multiLineTextRenderer.externalRender(), 0, 0, this.multiLineTextRenderer.x, this.multiLineTextRenderer.y);
+    	}
+    }
+
+    class multiLineTextRenderer extends GeneratedObject {
+    	constructor(x, y, z, width, height, lineHeight, textRenderer, letterWidth, letterSpacing, hasCursor = true) {
+    		const emptyMatrix = generateEmptyMatrix(width, height);
+    		super(emptyMatrix, { default: [0] }, x, y, z);
+    		this.textRenderer = textRenderer;
+    		this.textMeasurer = createTextMeasureFunction(letterWidth, letterSpacing);
+    		this.x = x;
+    		this.y = y;
+    		this.z = z;
+    		this.width = width;
+    		this.height = height;
+    		this.lineHeight = lineHeight;
+    		this.hasCursor = hasCursor;
+    		this.isActive = false;
+    		this.blinkCounter = 0;
+    		this.blinkInterval = 10;
+    		this.showingCursor = false;
+    		this.text = "";
+    		this.lines = [];
+    	}
+
+    	setTextActive(bool) {
+    		console.log("BASE TEXT ACTIVE CALLED");
+    		this.isActive = bool;
+    	}
+
+    	alternateCursor() {
+    		this.blinkCounter++;
+
+    		if (this.blinkCounter >= this.blinkInterval) {
+    			this.blinkCounter = 0;
+    			this.showingCursor = !this.showingCursor;
+    		}
+    	}
+
+    	setText(text) {
+    		// console.log("SETTING TEXT")
+    		this.text = text;
+
+    		this.lines = this.wrapText(text, this.width, this.textMeasurer);
+    	}
+
+    	wrapText(text, maxWidth, textRendererMeasure) {
+    		// console.log("WRAPPING TEXT: ", this.text)
+    		if (this.hasCursor) {
+    			this.alternateCursor();
+    		}
+
+    		let words = text.split(' ');
+    		let lines = [];
+    		let currentLine = '';
+    		let currentWidth = 0;
+
+    		words.forEach(word => {
+    			let wordWidth = textRendererMeasure(word);
+    			let spaceWidth = textRendererMeasure(' ');
+
+    			if (currentWidth + wordWidth + spaceWidth > maxWidth) {
+    				lines.push(currentLine.trim());
+    				currentLine = word + ' ';
+    				currentWidth = wordWidth + spaceWidth;
+    			} else {
+    				currentLine += word + ' ';
+    				currentWidth += wordWidth + spaceWidth;
+    			}
+    		});
+
+    		if (currentLine) {
+    			if (this.isActive && this.showingCursor) {
+    				currentLine += '|';
+    			}
+
+    			lines.push(currentLine.trim());
+    		}
+
+    		return lines;
+    	}
+
+    	externalRender() {
+    		let matrix = generateEmptyMatrix(this.width, this.height);
+    		let currentY = this.y;
+
+    		// console.log("LINES: ", this.lines)
+    		this.lines.forEach(line => {
+    			let renderedLine = this.textRenderer(line);
+
+    			renderedLine.forEach((row, y) => {
+    				row.forEach((color, x) => {
+    					matrix[currentY + y][x] = color;
+    				});
+    			});
+
+    			currentY += this.lineHeight;
+    		});
+
+    		return matrix;
     	}
     }
 
@@ -5118,7 +5306,6 @@ var app = (function () {
     		this.color = color;
 
     		if (this.color != 'transparent') {
-    			console.log("changing from", this.pencilColor, "to", color);
     			this.pencilColor = color;
     		}
     	}
@@ -5129,7 +5316,6 @@ var app = (function () {
 
     	clearCanvas() {
     		if (this.pixelMatrix.some(row => row.some(pixel => pixel !== 'transparent'))) {
-    			console.log('cleared');
     			this.saveCurrentCanvas();
     			this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
     		}
@@ -5171,7 +5357,6 @@ var app = (function () {
     	}
 
     	saveCurrentCanvas() {
-    		console.log("SAVING CANVAS");
     		let deepCopy = this.pixelMatrix.map(row => row.slice());
     		this.savedPastCanvas.push(deepCopy);
     	}
@@ -5180,13 +5365,11 @@ var app = (function () {
     		if (this.savedPastCanvas.length > 0) {
     			this.saveFutureCanvas();
     			let lastCanvas = this.savedPastCanvas.pop();
-    			console.log("LAST CANVAS: ", lastCanvas);
     			this.pixelMatrix = lastCanvas;
     		}
     	}
 
     	saveFutureCanvas() {
-    		console.log("SAVING FUTURE CANVAS");
     		let deepCopy = this.pixelMatrix.map(row => row.slice());
     		this.savedFutureCanvas.push(deepCopy);
     	}
@@ -5195,7 +5378,6 @@ var app = (function () {
     		if (this.savedFutureCanvas.length > 0) {
     			this.saveCurrentCanvas();
     			let lastCanvas = this.savedFutureCanvas.pop();
-    			console.log("NEXT CANVAS: ", lastCanvas);
     			this.pixelMatrix = lastCanvas;
     		}
     	}
@@ -5398,9 +5580,10 @@ var app = (function () {
     }
 
     class toolTip extends GeneratedObject {
+    	//TODO: implement proper z axis
     	constructor(borderColor, backgroundColor, roundness, padding, textRenderer) {
     		const emptyMatrix = generateEmptyMatrix(1, 1);
-    		super([emptyMatrix], { default: [0] }, 10, 90, 20);
+    		super([emptyMatrix], { default: [0] }, 10, 90, 40);
     		this.item;
     		this.currentTitle = "";
     		this.currentDescription = "";
@@ -5424,7 +5607,7 @@ var app = (function () {
     	}
 
     	getSprite() {
-    		return new Sprite(this.currentSprite, this.x, this.y, this.z);
+    		return new Sprite(this.currentSprite, this.x, this.y, 40);
     	}
     }
 
@@ -6498,7 +6681,7 @@ var app = (function () {
     	//textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
     	let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
 
-    	createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
+    	let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
     	let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
     	let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
 
@@ -6530,6 +6713,7 @@ var app = (function () {
     	const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
     	const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA', '#848B97', '#424D64');
     	const invisibleStampButton = generateInvisibleButtonClass(24, 24);
+    	const invisiblePostcardTextInputButton = generateInvisibleButtonClass(80, 80);
 
     	//---------------GENERAL OBJECTS----------------
     	//BUTTON TO RETURN TO MAIN ROOM
@@ -6722,14 +6906,19 @@ var app = (function () {
 
     	//ROOM INSTANTIATION
     	let paintRoom = new Room('paintRoom',
-    	false,
+    	() => {
+    			
+    		},
     	false,
     	() => {
-    			postcardRendering.nextFrame();
+    			postcardRendering.nextFrame(); //set inputValue to empty string here
+    			postcardRendering.setUserText(get_store_value(inputValue));
     		});
 
     	//POSTCARD RENDERER INSTANTIATION
-    	let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80);
+    	let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80, gang);
+
+    	postcardRendering.setUserText("Hello, World! what the fuck is up uhh words words words");
 
     	// let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
     	//PAINT BUTTONS INSTANTIATION
@@ -6884,6 +7073,14 @@ var app = (function () {
     	24,
     	113,
     	() => {
+    			if (postcardRendering.state === 'front') {
+    				get_store_value(game).getCurrentRoom().addObject(postcardTextInputButton);
+    				get_store_value(game).getCurrentRoom().addObject(stampButton);
+    			} else if (postcardRendering.state === 'back') {
+    				get_store_value(game).getCurrentRoom().removeObject(postcardTextInputButton);
+    				get_store_value(game).getCurrentRoom().removeObject(stampButton);
+    			}
+
     			postcardRendering.flipPostcard();
     		},
     	5);
@@ -6892,7 +7089,7 @@ var app = (function () {
     	let stampMenu = new Background('box_canvas',
     	9,
     	17,
-    	6,
+    	12,
     	() => {
     			
     		});
@@ -6923,7 +7120,7 @@ var app = (function () {
 
     	let testToolTip = new toolTip("black", "white", 3, 2, basic);
     	let stampArray = get_store_value(game).inventory.getItemsByType('stamp');
-    	let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 8, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
+    	let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
 
     	// stampMenu.addChild(stampGrid);
     	let stampButton = new invisibleStampButton(90,
@@ -6934,7 +7131,20 @@ var app = (function () {
     			get_store_value(game).getCurrentRoom().addObject(stampGrid);
     		});
 
-    	paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, stampButton);
+    	let postcardTextInputButton = new invisiblePostcardTextInputButton(4,
+    	19,
+    	11,
+    	() => {
+    			if (get_store_value(shouldFocus) === false) {
+    				shouldFocus.set(true);
+    				postcardRendering.setTextActive(true);
+    			} else {
+    				shouldFocus.set(false);
+    				postcardRendering.setTextActive(false);
+    			}
+    		});
+
+    	paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
 
     	//----------------SOCIAL ROOM----------------
     	//TEXT INPUT BAR INSTANTIATION

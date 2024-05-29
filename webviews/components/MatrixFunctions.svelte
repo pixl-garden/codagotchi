@@ -88,6 +88,38 @@
         return outSprite;
     }
 
+    //works the same as overlayMatrix but does not ignore transparent pixels
+    export function setMatrix(baseSprite, overlaySprite, baseXOffset = 0, baseYOffset = 0, overlayXOffset = 0, overlayYOffset = 0) {
+        // Define size of result sprite
+        const outWidth = Math.max(baseSprite[0].length + baseXOffset, overlaySprite[0].length + overlayXOffset);
+        const outHeight = Math.max(baseSprite.length + baseYOffset, overlaySprite.length + overlayYOffset);
+        let outSprite = generateEmptyMatrix(outWidth, outHeight);
+
+        for (let y = 0; y < outHeight; y++) {
+            for (let x = 0; x < outWidth; x++) {
+                // Calculate coordinates in base and overlay sprites
+                const baseX = x - baseXOffset;
+                const baseY = y - baseYOffset;
+                const overlayX = x - overlayXOffset;
+                const overlayY = y - overlayYOffset;
+
+                // Check if we are within the bounds of the overlay sprite
+                if (overlayX >= 0 && overlayX < overlaySprite[0].length && overlayY >= 0 && overlayY < overlaySprite.length) {
+                    outSprite[y][x] = overlaySprite[overlayY][overlayX];
+                }
+                // Check if we are within the bounds of the base sprite
+                else if (baseX >= 0 && baseX < baseSprite[0].length && baseY >= 0 && baseY < baseSprite.length) {
+                    outSprite[y][x] = baseSprite[baseY][baseX];
+                }
+                // Otherwise, set to transparent
+                else {
+                    outSprite[y][x] = 'transparent';
+                }
+            }
+        }
+        return outSprite;
+    }
+
 
     export function concatenateMatrixes(matrix1, matrix2) {
         //Function used to create sprite sheets (adds matrix2 to the right of matrix1)

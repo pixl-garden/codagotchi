@@ -6,7 +6,8 @@
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix } from './MatrixFunctions.svelte';
+    import { createTextMeasureFunction } from './TextRenderer.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix } from './MatrixFunctions.svelte';
 
     
 
@@ -76,7 +77,6 @@
         startMovingTo(newTargetX, newTargetY) {
             this.targetX = newTargetX;
             this.targetY = newTargetY;
-            console.log()
             // console.log("MOVING TO: ", this.targetX, this.targetY);
             this.isMoving = true;
         }
@@ -118,15 +118,15 @@
             this.accumulatedMoveX -= moveX;
             this.accumulatedMoveY -= moveY;
 
-            console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
-            console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
-            console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
+            // console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
+            // console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
+            // console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
     
 
             // Check if the object has reached (or overshot) the target position
             if ((Math.abs(this.targetX - this.x) < 1 && Math.abs(this.velocityX) < this.velocityThreshold) &&
                 (Math.abs(this.targetY - this.y) < 1 && Math.abs(this.velocityY) < this.velocityThreshold)) {
-                console.log("REACHED TARGET");
+                // console.log("REACHED TARGET");
                 this.x = this.targetX;
                 this.y = this.targetY;
 
@@ -409,19 +409,20 @@
     }
 
     export class postcardRenderer extends GeneratedObject {
-        constructor(x, y, z, width, height, postcardWidth, postcardHeight){
+        constructor(x, y, z, width, height, postcardWidth, postcardHeight, textRenderer){
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
             this.postcardWidth = postcardWidth;
             this.postcardHeight = postcardHeight;
             this.width = width;
             this.height = height;
+            this.textRenderer = textRenderer;
             this.postcardXOffset = x + (width - this.postcardWidth) / 2;
             this.postcardYOffset = y + (height - this.postcardHeight) / 2;
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-            this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); 
+            this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer); 
             this.currentCanvas = this.frontPixelCanvas;
             this.children.push(this.currentCanvas);
             this.stateQueue = [];
@@ -431,9 +432,15 @@
             this.state = "front";
             this.stampItem;
         }
+        setTextActive(bool) {
+            this.backPixelCanvas.setTextActive(bool);
+        }
         setStamp(stampItem) {
             this.stampItem = stampItem;
             this.backPixelCanvas.setStamp(stampItem);
+        }
+        setUserText(text){
+            this.backPixelCanvas.setUserText(text);
         }
         flipPostcard(){
             if(this.state == "front"){
@@ -443,10 +450,12 @@
                 this.state = "flipToFront";
             }
         }
+        setUserText(text){
+            this.backPixelCanvas.setUserText(text);
+        }
 
         nextFrame(){
             if(this.state == "flipToBack"){
-                console.log("flip state")
                 this.progressTracker += 0.05;
                 //once rotation is halfway, switch the canvas 
                 if(this.progressTracker >= .5){
@@ -537,20 +546,37 @@
     }
 
     export class postcardBackCanvas extends GeneratedObject {
-        constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
+        constructor(x, y, z, width, height, offsetX, offsetY, textRenderer) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
+            this.emptyLeftMatrix = generateEmptyMatrix(80, 80);
+            this.emptyRightMatrix = generateEmptyMatrix(40, 80);
             this.pixelMatrix = emptyMatrix;
             this.width = width;
             this.height = height;
             this.offsetX = offsetX == null ? x : offsetX;
             this.offsetY = offsetY == null ? y : offsetY;
             this.stampItem = null;
+            this.userText = "";
+            this.multiLineTextRenderer = new multiLineTextRenderer(x + 2, y - 2, z, 78, height, 9, textRenderer, 4, 0);
+        }
+
+        setTextActive(bool) {
+            this.multiLineTextRenderer.setTextActive(bool);
         }
 
         setStamp(stampItem) {
             this.stampItem = stampItem;
+            this.clearStamp();
             this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampItem.currentSpriteIndex], 0, 0, 89, 8);
+        }
+
+        clearStamp() {
+            this.pixelMatrix = setMatrix(this.pixelMatrix, this.emptyRightMatrix, 0, 0, 80, 0);
+        }
+
+        clearText() {
+            this.pixelMatrix = setMatrix(this.pixelMatrix, this.emptyLeftMatrix, 0, 0, 0, 0);
         }
 
         getSprite() {
@@ -559,6 +585,101 @@
 
         externalRender() {
             return this.pixelMatrix;
+        }
+
+        setUserText(text) {
+            this.userText = text;
+            this.multiLineTextRenderer.setText(text);
+            this.clearText();
+            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.multiLineTextRenderer.externalRender(), 0, 0, 
+                this.multiLineTextRenderer.x, this.multiLineTextRenderer.y);
+        }
+    }
+
+    //TODO: needs to be modified when non monospace fonts are implemented
+    export class multiLineTextRenderer extends GeneratedObject {
+        constructor(x, y, z, width, height, lineHeight, textRenderer, letterWidth, letterSpacing, hasCursor = true){
+            const emptyMatrix = generateEmptyMatrix(width, height);
+            super(emptyMatrix, { default: [0] }, x, y, z);
+            this.textRenderer = textRenderer;
+            this.textMeasurer = createTextMeasureFunction(letterWidth, letterSpacing);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.width = width;
+            this.height = height;
+            this.lineHeight = lineHeight;
+            this.hasCursor = hasCursor;
+            this.isActive = false;
+            this.blinkCounter = 0;
+            this.blinkInterval = 10;
+            this.showingCursor = false;
+            this.text = "";
+            this.lines = [];
+        }
+        setTextActive(bool) {
+            console.log("BASE TEXT ACTIVE CALLED")
+            this.isActive = bool;
+        }
+        alternateCursor() {
+            this.blinkCounter++;
+            if (this.blinkCounter >= this.blinkInterval) {
+                this.blinkCounter = 0;
+                this.showingCursor = !this.showingCursor;
+            }
+        }
+        setText(text) {
+            // console.log("SETTING TEXT")
+            this.text = text;
+            this.lines = this.wrapText(text, this.width, this.textMeasurer);
+        }
+        wrapText(text, maxWidth, textRendererMeasure) {
+            // console.log("WRAPPING TEXT: ", this.text)
+            if(this.hasCursor){
+                this.alternateCursor()
+            }
+            let words = text.split(' ');
+            let lines = [];
+            let currentLine = '';
+            let currentWidth = 0;
+
+            words.forEach(word => {
+                let wordWidth = textRendererMeasure(word);
+                let spaceWidth = textRendererMeasure(' ');
+                if (currentWidth + wordWidth + spaceWidth > maxWidth) {
+                    lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                    currentWidth = wordWidth + spaceWidth;
+                } else {
+                    currentLine += word + ' ';
+                    currentWidth += wordWidth + spaceWidth;
+                }
+            });
+
+            if (currentLine) {
+                if(this.isActive && this.showingCursor){
+                    currentLine += '|';
+                }
+                lines.push(currentLine.trim());
+            }
+
+            return lines;
+        }
+
+        externalRender() {
+            let matrix = generateEmptyMatrix(this.width, this.height);
+            let currentY = this.y;
+            // console.log("LINES: ", this.lines)
+            this.lines.forEach(line => {
+                let renderedLine = this.textRenderer(line);
+                renderedLine.forEach((row, y) => {
+                    row.forEach((color, x) => {
+                        matrix[currentY + y][x] = color;
+                    });
+                });
+                currentY += this.lineHeight;
+            });
+            return matrix;
         }
     }
 
@@ -685,7 +806,6 @@
         setColor(color) {
             this.color = color;
             if( this.color != 'transparent') {
-                console.log("changing from", this.pencilColor, "to", color);
                 this.pencilColor = color;
 
             }
@@ -697,7 +817,6 @@
 
         clearCanvas() {
             if(this.pixelMatrix.some(row => row.some(pixel => pixel !== 'transparent'))) {
-                console.log('cleared');
                 this.saveCurrentCanvas();
                 this.pixelMatrix = this.pixelMatrix.map(row => row.fill('transparent'));
             }
@@ -730,7 +849,6 @@
         }
 
         saveCurrentCanvas() {
-            console.log("SAVING CANVAS")
             let deepCopy = this.pixelMatrix.map(row => row.slice());
             this.savedPastCanvas.push(deepCopy);
         }
@@ -739,13 +857,11 @@
             if (this.savedPastCanvas.length > 0) {
                 this.saveFutureCanvas();
                 let lastCanvas = this.savedPastCanvas.pop();
-                console.log("LAST CANVAS: ", lastCanvas);
                 this.pixelMatrix = lastCanvas;
             }
         }
 
         saveFutureCanvas() {
-            console.log("SAVING FUTURE CANVAS")
             let deepCopy = this.pixelMatrix.map(row => row.slice());
             this.savedFutureCanvas.push(deepCopy);
         }
@@ -754,7 +870,6 @@
             if (this.savedFutureCanvas.length > 0) {
                 this.saveCurrentCanvas();
                 let lastCanvas = this.savedFutureCanvas.pop();
-                console.log("NEXT CANVAS: ", lastCanvas);
                 this.pixelMatrix = lastCanvas;
             }
         }
@@ -950,9 +1065,10 @@
     }
 
     export class toolTip extends GeneratedObject {
+        //TODO: implement proper z axis
         constructor(borderColor, backgroundColor, roundness, padding, textRenderer){
             const emptyMatrix = generateEmptyMatrix(1, 1);
-            super([emptyMatrix], { default: [0] }, 10, 90, 20);
+            super([emptyMatrix], { default: [0] }, 10, 90, 40);
             this.item;
             this.currentTitle = "";
             this.currentDescription = "";
@@ -973,7 +1089,7 @@
             this.generateSprite();
         }
         getSprite(){
-            return new Sprite(this.currentSprite, this.x, this.y, this.z);
+            return new Sprite(this.currentSprite, this.x, this.y, 40);
         }
     }
 
