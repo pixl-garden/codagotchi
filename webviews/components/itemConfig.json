@@ -2,51 +2,64 @@
     "javascriptStamp":{
         "type": "stamp",
         "displayName": "Python",
-        "spriteSheet": "stamps.png",
+        "spriteSheet": "JS_stamps.png",
         "spriteIndex": 1,
         "description": "python stamp",
-        "spriteWidth": 24
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2],
+            "0": [1],
+            "1": [2]
+        }
     },
     "pythonStamp":{
         "type": "stamp",
         "displayName": "Javascript",
         "spriteSheet": "stamps.png",
-        "spriteIndex": 0,
         "description": "javascript stamp",
-        "spriteWidth": 24
+        "spriteWidth": 24,
+        "states": {
+            "default": [0]
+        }
     },
     "tomatoSoup":{
         "type": "food",
         "displayName": "Tomato Soup",
         "spriteSheet": "testItems.png",
-        "spriteIndex": 0,
         "description": "soup",
         "spriteWidth": 32,
         "hunger": 5,
         "thirst": 1,
-        "energy": 1
+        "energy": 1,
+        "states": {
+            "default": [0]
+        }
     },
     "coffee":{
         "type": "food",
         "displayName": "Coffee",
         "spriteSheet": "testItems.png",
-        "spriteIndex": 1,
         "description": "mmmmm",
         "spriteWidth": 32,
         "hunger": 0,
         "thirst": 2,
-        "energy": 5
+        "energy": 5,
+        "states": {
+            "default": [1]
+        }
     },
     "fishingRod":{
         "type": "tool",
         "displayName": "Fishing Rod",
         "spriteSheet": "testItems.png",
-        "spriteIndex": 2,
         "description": "rod",
         "spriteWidth": 32,
         "hunger": 0,
         "thirst": 0,
-        "energy": 0
+        "energy": 0,
+        "states": {
+            "default": [2]
+        }
     },
     "redHerring":{
         "type": "food",
@@ -57,27 +70,35 @@
         "spriteWidth": 32,
         "hunger": 3,
         "thirst": 1,
-        "energy": 1
+        "energy": 1,
+        "states": {
+            "default": [3]
+        }
     },
     "tropicalFish":{
         "type": "food",
         "displayName": "Tropical Fish",
         "spriteSheet": "testItems.png",
-        "spriteIndex": 4,
         "description": "fish",
         "spriteWidth": 32,
         "hunger": 3,
         "thirst": 1,
-        "energy": 1
+        "energy": 1,
+        "states": {
+            "default": [4]
+        }
     },
     "potion":{
         "type": "food",
         "displayName": "Potion",
         "spriteSheet": "testItem.png",
-        "spriteIndex": 0,
         "description": "potion",
         "spriteWidth": 32,
         "hunger": 0,
         "thirst": 0,
-        "energy": 0}
+        "energy": 0,
+        "states": {
+            "default": [0]
+        }
+    }
 }

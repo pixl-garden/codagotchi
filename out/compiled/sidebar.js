@@ -3912,51 +3912,80 @@ var app = (function () {
     var javascriptStamp = {
     	type: "stamp",
     	displayName: "Python",
-    	spriteSheet: "stamps.png",
+    	spriteSheet: "JS_stamps.png",
     	spriteIndex: 1,
     	description: "python stamp",
-    	spriteWidth: 24
+    	spriteWidth: 32,
+    	states: {
+    		"0": [
+    			1
+    		],
+    		"1": [
+    			2
+    		],
+    		"default": [
+    			0,
+    			1,
+    			2
+    		]
+    	}
     };
     var pythonStamp = {
     	type: "stamp",
     	displayName: "Javascript",
     	spriteSheet: "stamps.png",
-    	spriteIndex: 0,
     	description: "javascript stamp",
-    	spriteWidth: 24
+    	spriteWidth: 24,
+    	states: {
+    		"default": [
+    			0
+    		]
+    	}
     };
     var tomatoSoup = {
     	type: "food",
     	displayName: "Tomato Soup",
     	spriteSheet: "testItems.png",
-    	spriteIndex: 0,
     	description: "soup",
     	spriteWidth: 32,
     	hunger: 5,
     	thirst: 1,
-    	energy: 1
+    	energy: 1,
+    	states: {
+    		"default": [
+    			0
+    		]
+    	}
     };
     var coffee = {
     	type: "food",
     	displayName: "Coffee",
     	spriteSheet: "testItems.png",
-    	spriteIndex: 1,
     	description: "mmmmm",
     	spriteWidth: 32,
     	hunger: 0,
     	thirst: 2,
-    	energy: 5
+    	energy: 5,
+    	states: {
+    		"default": [
+    			1
+    		]
+    	}
     };
     var fishingRod = {
     	type: "tool",
     	displayName: "Fishing Rod",
     	spriteSheet: "testItems.png",
-    	spriteIndex: 2,
     	description: "rod",
     	spriteWidth: 32,
     	hunger: 0,
     	thirst: 0,
-    	energy: 0
+    	energy: 0,
+    	states: {
+    		"default": [
+    			2
+    		]
+    	}
     };
     var redHerring = {
     	type: "food",
@@ -3967,29 +3996,42 @@ var app = (function () {
     	spriteWidth: 32,
     	hunger: 3,
     	thirst: 1,
-    	energy: 1
+    	energy: 1,
+    	states: {
+    		"default": [
+    			3
+    		]
+    	}
     };
     var tropicalFish = {
     	type: "food",
     	displayName: "Tropical Fish",
     	spriteSheet: "testItems.png",
-    	spriteIndex: 4,
     	description: "fish",
     	spriteWidth: 32,
     	hunger: 3,
     	thirst: 1,
-    	energy: 1
+    	energy: 1,
+    	states: {
+    		"default": [
+    			4
+    		]
+    	}
     };
     var potion = {
     	type: "food",
     	displayName: "Potion",
     	spriteSheet: "testItem.png",
-    	spriteIndex: 0,
     	description: "potion",
     	spriteWidth: 32,
     	hunger: 0,
     	thirst: 0,
-    	energy: 0
+    	energy: 0,
+    	states: {
+    		"default": [
+    			0
+    		]
+    	}
     };
     var itemConfig = {
     	javascriptStamp: javascriptStamp,
@@ -5050,7 +5092,9 @@ var app = (function () {
     	setStamp(stampItem) {
     		this.stampItem = stampItem;
     		this.clearStamp();
-    		this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampItem.currentSpriteIndex], 0, 0, 89, 8);
+    		console.log("stamp array?? ", this.stampItem.states["default"]);
+    		let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];
+    		this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 86, 8);
     	}
 
     	clearStamp() {
@@ -5198,10 +5242,27 @@ var app = (function () {
     		this.brushShape = "circle";
     		this.savedPastCanvas = [];
     		this.savedFutureCanvas = [];
+    		this.isPaintBucket = false;
     	}
 
     	setBrushSize(size) {
     		this.brushSize = size;
+    	}
+
+    	recursiveFill(x, y, targetColor, replacementColor) {
+    		if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) {
+    			return;
+    		}
+
+    		if (this.pixelMatrix[y][x] !== targetColor) {
+    			return;
+    		}
+
+    		this.pixelMatrix[y][x] = replacementColor;
+    		this.recursiveFill(x + 1, y, targetColor, replacementColor);
+    		this.recursiveFill(x - 1, y, targetColor, replacementColor);
+    		this.recursiveFill(x, y + 1, targetColor, replacementColor);
+    		this.recursiveFill(x, y - 1, targetColor, replacementColor);
     	}
 
     	paintPixel(x, y) {
@@ -5210,39 +5271,44 @@ var app = (function () {
 
     		const adjustedY = y - this.offsetY;
 
-    		if (this.brushShape === 'square') {
-    			// Square brush logic (unchanged)
-    			const halfBrushSize = Math.floor(this.brushSize / 2);
+    		if (this.isPaintBucket) {
+    			let targetColor = this.pixelMatrix[adjustedY][adjustedX];
+    			this.recursiveFill(adjustedX, adjustedY, targetColor, this.color);
+    		} else {
+    			if (this.brushShape === 'square') {
+    				// Square brush logic (unchanged)
+    				const halfBrushSize = Math.floor(this.brushSize / 2);
 
-    			for (let offsetY = -halfBrushSize; offsetY <= halfBrushSize; offsetY++) {
-    				for (let offsetX = -halfBrushSize; offsetX <= halfBrushSize; offsetX++) {
-    					this.paintAt(adjustedX + offsetX, adjustedY + offsetY);
-    				}
-    			}
-    		} else if (this.brushShape === 'circle') {
-    			// Circle brush logic
-    			const radius = this.brushSize / 2;
-
-    			const radiusSquared = radius * radius;
-    			const minX = Math.ceil(adjustedX - radius);
-    			const maxX = Math.floor(adjustedX + radius);
-    			const minY = Math.ceil(adjustedY - radius);
-    			const maxY = Math.floor(adjustedY + radius);
-
-    			for (let paintY = minY; paintY <= maxY; paintY++) {
-    				for (let paintX = minX; paintX <= maxX; paintX++) {
-    					// Calculate distance from the center of the circle to this point
-    					const dx = paintX + 0.5 - adjustedX; // Add 0.5 to target the center of pixels
-
-    					const dy = paintY + 0.5 - adjustedY; // Add 0.5 to target the center of pixels
-
-    					if (dx * dx + dy * dy <= radiusSquared) {
-    						this.paintAt(paintX, paintY);
+    				for (let offsetY = -halfBrushSize; offsetY <= halfBrushSize; offsetY++) {
+    					for (let offsetX = -halfBrushSize; offsetX <= halfBrushSize; offsetX++) {
+    						this.paintAt(adjustedX + offsetX, adjustedY + offsetY);
     					}
     				}
+    			} else if (this.brushShape === 'circle') {
+    				// Circle brush logic
+    				const radius = this.brushSize / 2;
+
+    				const radiusSquared = radius * radius;
+    				const minX = Math.ceil(adjustedX - radius);
+    				const maxX = Math.floor(adjustedX + radius);
+    				const minY = Math.ceil(adjustedY - radius);
+    				const maxY = Math.floor(adjustedY + radius);
+
+    				for (let paintY = minY; paintY <= maxY; paintY++) {
+    					for (let paintX = minX; paintX <= maxX; paintX++) {
+    						// Calculate distance from the center of the circle to this point
+    						const dx = paintX + 0.5 - adjustedX; // Add 0.5 to target the center of pixels
+
+    						const dy = paintY + 0.5 - adjustedY; // Add 0.5 to target the center of pixels
+
+    						if (dx * dx + dy * dy <= radiusSquared) {
+    							this.paintAt(paintX, paintY);
+    						}
+    					}
+    				}
+    			} else {
+    				console.error('Unknown brush shape:', this.brushShape);
     			}
-    		} else {
-    			console.error('Unknown brush shape:', this.brushShape);
     		}
     	}
 
@@ -5262,7 +5328,8 @@ var app = (function () {
     	}
 
     	setEraser() {
-    		this.setColor("transparent");
+    		// this.setColor("transparent");
+    		this.isPaintBucket = !this.isPaintBucket;
     	}
 
     	getSprite() {
@@ -5714,9 +5781,8 @@ var app = (function () {
     		const config = itemConfig[itemName];
 
     		if (!config) throw new Error(`Item ${itemName} not found in itemConfig.json`);
-    		const objState = { default: [config.spriteIndex] };
     		const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet);
-    		super(spriteMatrix, objState, 0, 0, 0);
+    		super(spriteMatrix, config.states, 0, 0, 0);
 
     		/** @property {string} itemName - The internal name of the item. */
     		this.itemName = itemName;

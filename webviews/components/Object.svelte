@@ -568,7 +568,9 @@
         setStamp(stampItem) {
             this.stampItem = stampItem;
             this.clearStamp();
-            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampItem.currentSpriteIndex], 0, 0, 89, 8);
+            console.log("stamp array?? ", this.stampItem.states["default"] )
+            let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
+            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 86, 8);
         }
 
         clearStamp() {
@@ -703,46 +705,67 @@
             this.brushShape = "circle";
             this.savedPastCanvas = [];
             this.savedFutureCanvas = [];
+            this.isPaintBucket = false;
         }
         setBrushSize(size) {
             this.brushSize = size;
+        }
+
+        recursiveFill(x, y, targetColor, replacementColor) {
+            if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) {
+                return;
+            }
+            if (this.pixelMatrix[y][x] !== targetColor) {
+                return;
+            }
+            this.pixelMatrix[y][x] = replacementColor;
+            this.recursiveFill(x + 1, y, targetColor, replacementColor);
+            this.recursiveFill(x - 1, y, targetColor, replacementColor);
+            this.recursiveFill(x, y + 1, targetColor, replacementColor);
+            this.recursiveFill(x, y - 1, targetColor, replacementColor);
         }
 
         paintPixel(x, y) {
             // Adjust x and y based on the canvas offset
             const adjustedX = x - this.offsetX;
             const adjustedY = y - this.offsetY;
+            if(this.isPaintBucket) {
+                let targetColor = this.pixelMatrix[adjustedY][adjustedX];
+                this.recursiveFill(adjustedX, adjustedY, targetColor, this.color);
 
-            if (this.brushShape === 'square') {
-                // Square brush logic (unchanged)
-                const halfBrushSize = Math.floor(this.brushSize / 2);
-                for (let offsetY = -halfBrushSize; offsetY <= halfBrushSize; offsetY++) {
-                    for (let offsetX = -halfBrushSize; offsetX <= halfBrushSize; offsetX++) {
-                        this.paintAt(adjustedX + offsetX, adjustedY + offsetY);
-                    }
-                }
-            } else if (this.brushShape === 'circle') {
-                // Circle brush logic
-                const radius = this.brushSize / 2;
-                const radiusSquared = radius * radius;
-                const minX = Math.ceil(adjustedX - radius);
-                const maxX = Math.floor(adjustedX + radius);
-                const minY = Math.ceil(adjustedY - radius);
-                const maxY = Math.floor(adjustedY + radius);
-
-                for (let paintY = minY; paintY <= maxY; paintY++) {
-                    for (let paintX = minX; paintX <= maxX; paintX++) {
-                        // Calculate distance from the center of the circle to this point
-                        const dx = paintX + 0.5 - adjustedX; // Add 0.5 to target the center of pixels
-                        const dy = paintY + 0.5 - adjustedY; // Add 0.5 to target the center of pixels
-                        if (dx * dx + dy * dy <= radiusSquared) {
-                            this.paintAt(paintX, paintY);
+            } else {
+                if (this.brushShape === 'square') {
+                    // Square brush logic (unchanged)
+                    const halfBrushSize = Math.floor(this.brushSize / 2);
+                    for (let offsetY = -halfBrushSize; offsetY <= halfBrushSize; offsetY++) {
+                        for (let offsetX = -halfBrushSize; offsetX <= halfBrushSize; offsetX++) {
+                            this.paintAt(adjustedX + offsetX, adjustedY + offsetY);
                         }
                     }
+                } else if (this.brushShape === 'circle') {
+                    // Circle brush logic
+                    const radius = this.brushSize / 2;
+                    const radiusSquared = radius * radius;
+                    const minX = Math.ceil(adjustedX - radius);
+                    const maxX = Math.floor(adjustedX + radius);
+                    const minY = Math.ceil(adjustedY - radius);
+                    const maxY = Math.floor(adjustedY + radius);
+
+                    for (let paintY = minY; paintY <= maxY; paintY++) {
+                        for (let paintX = minX; paintX <= maxX; paintX++) {
+                            // Calculate distance from the center of the circle to this point
+                            const dx = paintX + 0.5 - adjustedX; // Add 0.5 to target the center of pixels
+                            const dy = paintY + 0.5 - adjustedY; // Add 0.5 to target the center of pixels
+                            if (dx * dx + dy * dy <= radiusSquared) {
+                                this.paintAt(paintX, paintY);
+                            }
+                        }
+                    }
+                } else {
+                    console.error('Unknown brush shape:', this.brushShape);
                 }
-            } else {
-                console.error('Unknown brush shape:', this.brushShape);
             }
+
         }
 
         paintAt(x, y) {
@@ -761,7 +784,8 @@
         }
 
         setEraser() {
-            this.setColor("transparent");
+            // this.setColor("transparent");
+            this.isPaintBucket = !this.isPaintBucket;
         }
 
         getSprite() {
