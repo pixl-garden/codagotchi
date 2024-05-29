@@ -101,6 +101,20 @@
     };
 }
 
+//TODO: needs to be drastically modified when non mono-spaced fonts are implemented
+export function createTextMeasureFunction(spriteWidth, letterSpacing) {
+    // This function returns the width of the text based on the sprite width and letter spacing
+    return function measureText(text) {
+        if (typeof text !== 'string') {
+            throw new Error('measureText: Text must be a string');
+        }
+
+        let numChars = text.length;
+        // Calculate total width as number of characters times sprite width plus the spaces between them
+        return (spriteWidth + letterSpacing) * numChars - letterSpacing; // Subtract letterSpacing once for the last character
+    };
+}
+
 // Function to check if a column is empty (transparent)
 function isColumnEmpty(matrix, columnIndex) {
     for (let i = 0; i < matrix.length; i++) {

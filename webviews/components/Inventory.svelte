@@ -17,9 +17,8 @@
             // maybe add an item count parameter?
             const config = itemConfig[itemName];
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
-            const objState = { default: [config.spriteIndex] }
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet);
-            super(spriteMatrix, objState, 0, 0, 0);
+            super(spriteMatrix, config.states, 0, 0, 0);
             /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
             /** @property {boolean} stackable - Indicates if the item can be stacked. */

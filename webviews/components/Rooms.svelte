@@ -1,5 +1,5 @@
 <script context='module'>
-    import { game, Room, shouldFocus, handleGitHubLogin } from './Game.svelte';
+    import { game, Room, shouldFocus, handleGitHubLogin, inputValue } from './Game.svelte';
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { createTextRenderer} from './TextRenderer.svelte';
@@ -35,6 +35,7 @@
         const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const invisibleStampButton = generateInvisibleButtonClass(24, 24);
+        const invisiblePostcardTextInputButton = generateInvisibleButtonClass(80, 80);
 
 
     //---------------GENERAL OBJECTS----------------
@@ -132,12 +133,16 @@
         let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
 
         //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom', false, false, () => {
+        let paintRoom = new Room('paintRoom', () => {
+            //set inputValue to empty string here
+        }, false, () => {
             postcardRendering.nextFrame();
+            postcardRendering.setUserText(get(inputValue));
         });
 
         //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80);
+        let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80, gang);
+        postcardRendering.setUserText("Hello, World! what the fuck is up uhh words words words");
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
@@ -198,12 +203,19 @@
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         }, 5);
         let flipButton = new paintButtonText('F', 24, 113, ()=>{
+            if(postcardRendering.state === 'front'){
+                get(game).getCurrentRoom().addObject( postcardTextInputButton );
+                get(game).getCurrentRoom().addObject( stampButton );
+            } else if (postcardRendering.state === 'back'){
+                get(game).getCurrentRoom().removeObject( postcardTextInputButton );
+                get(game).getCurrentRoom().removeObject( stampButton );
+            }
             postcardRendering.flipPostcard();
         }, 5);
 
         // STAMP MENU INSTANTIATION
 
-        let stampMenu = new Background('box_canvas', 9, 17, 6, () => {});
+        let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
                 console.log("Item: ", output.slotItem);
@@ -222,14 +234,24 @@
         }
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         let stampArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 8, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
         // stampMenu.addChild(stampGrid);
         let stampButton = new invisibleStampButton(90, 30, 11, ()=>{
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
         })
+        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, ()=>{
+            if(get(shouldFocus) === false){
+                shouldFocus.set(true);
+                postcardRendering.setTextActive(true);
+            }
+            else{
+                shouldFocus.set(false);
+                postcardRendering.setTextActive(false);
+            }
+        })
         paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
-               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, stampButton);
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
