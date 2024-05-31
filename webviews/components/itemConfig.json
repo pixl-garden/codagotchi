@@ -1,25 +1,79 @@
 {
     "javascriptStamp":{
         "type": "stamp",
-        "displayName": "Python",
+        "displayName": "Javascript",
         "spriteSheet": "JS_stamps.png",
         "spriteIndex": 1,
-        "description": "python stamp",
+        "description": "javascript stamp",
         "spriteWidth": 32,
         "states": {
-            "default": [0, 1, 2],
-            "0": [1],
-            "1": [2]
+            "default": [0, 1, 2]
         }
     },
     "pythonStamp":{
         "type": "stamp",
-        "displayName": "Javascript",
-        "spriteSheet": "stamps.png",
-        "description": "javascript stamp",
-        "spriteWidth": 24,
+        "displayName": "Python",
+        "spriteSheet": "stamps_py.png",
+        "spriteIndex": 1,
+        "description": "python stamp",
+        "spriteWidth": 32,
         "states": {
-            "default": [0]
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "CStamp":{
+        "type": "stamp",
+        "displayName": "C",
+        "spriteSheet": "stamps_C.png",
+        "spriteIndex": 1,
+        "description": "C stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "C++Stamp":{
+        "type": "stamp",
+        "displayName": "C++",
+        "spriteSheet": "stamps_C++.png",
+        "spriteIndex": 1,
+        "description": "C++ stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "C#Stamp":{
+        "type": "stamp",
+        "displayName": "C#",
+        "spriteSheet": "stamps_C#.png",
+        "spriteIndex": 1,
+        "description": "C# stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "CSSStamp":{
+        "type": "stamp",
+        "displayName": "CSS",
+        "spriteSheet": "stamps_CSS.png",
+        "spriteIndex": 1,
+        "description": "CSS stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "HTMLStamp":{
+        "type": "stamp",
+        "displayName": "HTML",
+        "spriteSheet": "stamps_HTML.png",
+        "spriteIndex": 1,
+        "description": "HTML stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
         }
     },
     "tomatoSoup":{

@@ -3330,7 +3330,7 @@ var app = (function () {
     				resolve(colorData);
     			};
 
-    			img.onerror = () => reject('Failed to load image');
+    			img.onerror = () => reject('Failed to load image' + img.src);
     		});
     }
 
@@ -3911,18 +3911,12 @@ var app = (function () {
 
     var javascriptStamp = {
     	type: "stamp",
-    	displayName: "Python",
+    	displayName: "Javascript",
     	spriteSheet: "JS_stamps.png",
     	spriteIndex: 1,
-    	description: "python stamp",
+    	description: "javascript stamp",
     	spriteWidth: 32,
     	states: {
-    		"0": [
-    			1
-    		],
-    		"1": [
-    			2
-    		],
     		"default": [
     			0,
     			1,
@@ -3932,13 +3926,69 @@ var app = (function () {
     };
     var pythonStamp = {
     	type: "stamp",
-    	displayName: "Javascript",
-    	spriteSheet: "stamps.png",
-    	description: "javascript stamp",
-    	spriteWidth: 24,
+    	displayName: "Python",
+    	spriteSheet: "stamps_py.png",
+    	spriteIndex: 1,
+    	description: "python stamp",
+    	spriteWidth: 32,
     	states: {
     		"default": [
-    			0
+    			0,
+    			1,
+    			2,
+    			3,
+    			4
+    		]
+    	}
+    };
+    var CStamp = {
+    	type: "stamp",
+    	displayName: "C",
+    	spriteSheet: "stamps_C.png",
+    	spriteIndex: 1,
+    	description: "C stamp",
+    	spriteWidth: 32,
+    	states: {
+    		"default": [
+    			0,
+    			1,
+    			2,
+    			3,
+    			4
+    		]
+    	}
+    };
+    var CSSStamp = {
+    	type: "stamp",
+    	displayName: "CSS",
+    	spriteSheet: "stamps_CSS.png",
+    	spriteIndex: 1,
+    	description: "CSS stamp",
+    	spriteWidth: 32,
+    	states: {
+    		"default": [
+    			0,
+    			1,
+    			2,
+    			3,
+    			4
+    		]
+    	}
+    };
+    var HTMLStamp = {
+    	type: "stamp",
+    	displayName: "HTML",
+    	spriteSheet: "stamps_HTML.png",
+    	spriteIndex: 1,
+    	description: "HTML stamp",
+    	spriteWidth: 32,
+    	states: {
+    		"default": [
+    			0,
+    			1,
+    			2,
+    			3,
+    			4
     		]
     	}
     };
@@ -4036,6 +4086,43 @@ var app = (function () {
     var itemConfig = {
     	javascriptStamp: javascriptStamp,
     	pythonStamp: pythonStamp,
+    	CStamp: CStamp,
+    	"C++Stamp": {
+    	type: "stamp",
+    	displayName: "C++",
+    	spriteSheet: "stamps_C++.png",
+    	spriteIndex: 1,
+    	description: "C++ stamp",
+    	spriteWidth: 32,
+    	states: {
+    		"default": [
+    			0,
+    			1,
+    			2,
+    			3,
+    			4
+    		]
+    	}
+    },
+    	"C#Stamp": {
+    	type: "stamp",
+    	displayName: "C#",
+    	spriteSheet: "stamps_C#.png",
+    	spriteIndex: 1,
+    	description: "C# stamp",
+    	spriteWidth: 32,
+    	states: {
+    		"default": [
+    			0,
+    			1,
+    			2,
+    			3,
+    			4
+    		]
+    	}
+    },
+    	CSSStamp: CSSStamp,
+    	HTMLStamp: HTMLStamp,
     	tomatoSoup: tomatoSoup,
     	coffee: coffee,
     	fishingRod: fishingRod,
@@ -7374,6 +7461,11 @@ var app = (function () {
     	get_store_value(game).addStackableItem("javascriptStamp", 2);
 
     	get_store_value(game).addStackableItem("pythonStamp", 2);
+    	get_store_value(game).addStackableItem("CSSStamp", 2);
+    	get_store_value(game).addStackableItem("CStamp", 2);
+    	get_store_value(game).addStackableItem("C++Stamp", 2);
+    	get_store_value(game).addStackableItem("C#Stamp", 2);
+    	get_store_value(game).addStackableItem("HTMLStamp", 2);
     	let itemArray = get_store_value(game).inventory.getItemsArray();
 
     	//ITEMSLOT FACTORY FUNCTION
