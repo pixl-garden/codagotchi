@@ -265,7 +265,7 @@
 
     export function generateTooltipSprite(titleText, borderColor, backgroundColor, rounding, padding, textRenderer) {
         // Use the textRenderer to get the text sprite matrix for the titleText
-        const textSprite = textRenderer(titleText);
+        const textSprite = textRenderer.renderText(titleText);
 
         // Calculate the tooltip background dimensions based on the text dimensions and padding
         const backgroundWidth = textSprite[0].length + padding * 2 + 1;

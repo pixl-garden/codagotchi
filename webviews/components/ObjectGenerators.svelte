@@ -28,8 +28,10 @@
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(text, x, y, actionOnClick, z) {
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer(text), topShadow, bottomShadow, layout, offset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer(text), topShadowHover, bottomShadowHover, layout, offset );
+                    console.log("TEXT RENDERER: " + textRenderer);
+                    console.log("TEXT RENDERER: TEXT " + textRenderer.renderText(text));
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
@@ -138,7 +140,7 @@
             }
             
             getSprite(){
-                return new Sprite(generateTextInputMatrix( width, height, bgColor, borderColor, textRenderer(get(inputValue)), roundness, textXOffset, borderThickness ), this.x, this.y, this.z);
+                return new Sprite(generateTextInputMatrix( width, height, bgColor, borderColor, textRenderer.renderText(get(inputValue)), roundness, textXOffset, borderThickness ), this.x, this.y, this.z);
             }
         };
     };

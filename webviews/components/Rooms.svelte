@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue } from './Game.svelte';
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
-    import { createTextRenderer} from './TextRenderer.svelte';
+    import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
@@ -14,10 +14,11 @@
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
             //textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
-        let basic = createTextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
-        let gang = createTextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
-        let retro = createTextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
-        let tiny = createTextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
+        let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
+        let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
+        let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
+        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
+        
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
         //   topShadowColor, bottomShadowColor, topHoverShadowColor, bottomHoverShadowColor,
