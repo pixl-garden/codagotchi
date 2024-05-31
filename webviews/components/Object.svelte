@@ -784,7 +784,10 @@
         }
 
         setEraser() {
-            // this.setColor("transparent");
+            this.setColor("transparent");
+        }
+
+        toggleFill(){
             this.isPaintBucket = !this.isPaintBucket;
         }
 

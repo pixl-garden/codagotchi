@@ -182,6 +182,9 @@
         let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 104, 0, ()=>{
             postcardRendering.currentCanvas.clearCanvas();
         }, 5);
+        let bucketButton = new paintButtonIcon(paintButtonSprites[6], paintButtonSprites[6], 86, 0, ()=>{
+            postcardRendering.currentCanvas.toggleFill();
+        }, 5);
         let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 113, ()=>{
             postcardRendering.currentCanvas.setToPencilColor()
         }, 5);
@@ -251,7 +254,7 @@
             }
         })
         paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
-               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, bucketButton);
 
     //----------------SOCIAL ROOM----------------
         //TEXT INPUT BAR INSTANTIATION
@@ -371,7 +374,6 @@
         //     const speed = 1; // You can adjust this value for faster or slower speed
         //     return speed;
         // }
-
     }
 
     export function roomMain(){
