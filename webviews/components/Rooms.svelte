@@ -372,6 +372,12 @@
         // get(game).subtractStackableItem("tomatoSoup", 3);
         get(game).addStackableItem("javascriptStamp", 2);
         get(game).addStackableItem("pythonStamp", 2);
+        get(game).addStackableItem("CSSStamp", 2);
+        get(game).addStackableItem("CStamp", 2);
+        get(game).addStackableItem("C++Stamp", 2);
+        get(game).addStackableItem("C#Stamp", 2);
+        get(game).addStackableItem("HTMLStamp", 2);
+
         let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {

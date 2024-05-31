@@ -115,7 +115,7 @@
                 }
                 resolve(colorData);
             };
-            img.onerror = () => reject('Failed to load image');
+            img.onerror = () => reject('Failed to load image' + img.src);
         });
     }
 </script>
