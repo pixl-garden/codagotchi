@@ -3,64 +3,78 @@
     import { replaceMatrixColor } from './MatrixFunctions.svelte';
 
     //export a function that renders text
-    export function createTextRenderer(
-    charmap,
-    spriteWidth,
-    spriteHeight,
-    backgroundColor,
-    renderColor,
-    letterSpacing = 0,
-    charMappingString,
-    textShadowColor = null,
-    textShadowXOffset = 0,
-    textShadowYOffset = 0
-) {
-    let charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
-    const charsArray = Array.from(charMappingString);
-    const charToSpriteIndex = {};
-    for (let i = 0; i < charsArray.length; i++) {
-        charToSpriteIndex[charsArray[i]] = i;
+    export class TextRenderer {
+    constructor (
+        charmap,
+        spriteWidth,
+        spriteHeight,
+        backgroundColor,
+        renderColor,
+        letterSpacing = 0,
+        charMappingString,
+        textShadowColor = null,
+        textShadowXOffset = 0,
+        textShadowYOffset = 0
+    ) {
+        this.charmap = charmap;
+        this.spriteWidth = spriteWidth;
+        this.spriteHeight = spriteHeight;
+        this.backgroundColor = backgroundColor;
+        this.renderColor = renderColor;
+        this.letterSpacing = letterSpacing;
+        this.charMappingString = charMappingString;
+        this.textShadowColor = textShadowColor;
+        this.textShadowXOffset = textShadowXOffset;
+        this.textShadowYOffset = textShadowYOffset;
+
+        this.charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
+        const charsArray = Array.from(charMappingString);
+        this.charToSpriteIndex = {};
+        for (let i = 0; i < charsArray.length; i++) {
+            this.charToSpriteIndex[charsArray[i]] = i;
+        }
     }
 
-    return function renderText(text) {
+    renderText(text) {
         if(typeof text !== 'string') {
             throw new Error('renderText: Text must be a string');
         }
+        this.text = text;
         // Create a larger matrix to accommodate shadows
-        const matrixWidth = text.length * (spriteWidth + letterSpacing);
-        const matrixHeight = spriteHeight + Math.abs(textShadowYOffset);
-        const matrix = Array(matrixHeight).fill(null).map(() => Array(matrixWidth).fill(backgroundColor));
+        const matrixWidth = text.length * (this.spriteWidth + this.letterSpacing);
+        const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
+        const matrix = Array(matrixHeight).fill(null).map(() => Array(matrixWidth).fill(this.backgroundColor));
 
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
-            if (charToSpriteIndex[char] !== undefined) {
-                const spriteIndex = charToSpriteIndex[char];
-                const sprite = charSprites[spriteIndex];
+            if (this.charToSpriteIndex[char] !== undefined) {
+                const spriteIndex = this.charToSpriteIndex[char];
+                const sprite = this.charSprites[spriteIndex];
 
                 // Render shadow first if enabled
-                if (textShadowColor !== null) {
-                    for (let y = 0; y < spriteHeight; y++) {
-                        for (let x = 0; x < spriteWidth; x++) {
+                if (this.textShadowColor !== null) { 
+                    for (let y = 0; y < this.spriteHeight; y++) {
+                        for (let x = 0; x < this.spriteWidth; x++) {
                             // Calculate position for shadow
-                            const posX = i * (spriteWidth + letterSpacing) + x + textShadowXOffset;
-                            const posY = y + textShadowYOffset;
+                            const posX = i * (this.spriteWidth + this.letterSpacing) + x + this.textShadowXOffset;
+                            const posY = y + this.textShadowYOffset;
                             // Apply shadow color if the current pixel is not transparent
-                            if (sprite[y][x] !== backgroundColor) {
-                                matrix[posY][posX] = textShadowColor;
+                            if (sprite[y][x] !== this.backgroundColor) {
+                                matrix[posY][posX] = this.textShadowColor;
                             }
                         }
                     }
                 }
 
                 // Then render the character itself
-                for (let y = 0; y < spriteHeight; y++) {
-                    for (let x = 0; x < spriteWidth; x++) {
+                for (let y = 0; y < this.spriteHeight; y++) {
+                    for (let x = 0; x < this.spriteWidth; x++) {
                         // Calculate position for character
-                        const posX = i * (spriteWidth + letterSpacing) + x;
+                        const posX = i * (this.spriteWidth + this.letterSpacing) + x;
                         const posY = y;
                         // Apply character color if the current pixel is not transparent
-                        if (sprite[y][x] !== backgroundColor) {
-                            matrix[posY][posX] = renderColor;
+                        if (sprite[y][x] !== this.backgroundColor) {
+                            matrix[posY][posX] = this.renderColor;
                         }
                     }
                 }
@@ -70,7 +84,7 @@
         // Finally, convert all backgroundColor pixels to 'transparent'
         for (let y = 0; y < matrixHeight; y++) {
             for (let x = 0; x < matrixWidth; x++) {
-                if (matrix[y][x] === backgroundColor) {
+                if (matrix[y][x] === this.backgroundColor) {
                     matrix[y][x] = 'transparent';
                 }
             }
@@ -96,7 +110,6 @@
                 matrix[i] = matrix[i].slice(firstNonEmptyColumn, lastNonEmptyColumn + 1);
             }
         }
-
         return matrix;
     };
 }

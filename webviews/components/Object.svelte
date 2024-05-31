@@ -300,7 +300,7 @@
             this.text = text;
         }
         getSprite(){
-            return new Sprite(this.textRenderer(this.text), this.x, this.y, this.z);
+            return new Sprite(this.textRenderer.renderText(this.text), this.x, this.y, this.z);
         }
     }
 
@@ -673,7 +673,7 @@
             let currentY = this.y;
             // console.log("LINES: ", this.lines)
             this.lines.forEach(line => {
-                let renderedLine = this.textRenderer(line);
+                let renderedLine = this.textRenderer.renderText(line);
                 renderedLine.forEach((row, y) => {
                     row.forEach((color, x) => {
                         matrix[currentY + y][x] = color;
