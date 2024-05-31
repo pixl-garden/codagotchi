@@ -36,27 +36,29 @@
         const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const invisibleStampButton = generateInvisibleButtonClass(24, 24);
         const invisiblePostcardTextInputButton = generateInvisibleButtonClass(80, 80);
+        const socialTabButton = generateTextButtonClass(57, 16, ...defaultButtonParams);
 
 
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
-        const backToMain = new smallLetterButton('<', 0, 2, () => {
-            get(game).setCurrentRoom('mainRoom');
+        const backToMain = new singleLetterButton('<', 0, 0, () => {
+            get(game).setCurrentRoom('mainRoom');           
             petObject.setCoordinate(36, 54, 0)
         }, 10);
+         
 
     //----------------MAIN ROOM----------------
         //STATUS BAR INSTANTIATION
         const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
         const statusBar = new StatusBar(20, 2, 0);
         //MAIN MENU INSTANTIATION
-        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Social', 'Inventory', 'Close'];
+        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Close'];
         const mainMenuButtonFunctions = [() => {get(game).setCurrentRoom('settingsRoom')}, 
         () => {get(game).setCurrentRoom('shopRoom')}, 
         () => {get(game).setCurrentRoom('customizeRoom');
         petObject.setCoordinate(24, 99, 0);}, 
         () => {get(game).setCurrentRoom('paintRoom')}, 
-        () => {get(game).setCurrentRoom('socialRoom')}, 
+        () => {get(game).setCurrentRoom('friendRoom')}, 
         () => {get(game).setCurrentRoom('inventoryRoom')}, 
         () => {
             get(game).getCurrentRoom().removeObject( mainMenu );
@@ -257,21 +259,28 @@
                shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, bucketButton);
 
     //----------------SOCIAL ROOM----------------
-        //TEXT INPUT BAR INSTANTIATION
-        const inputTextBar = new generateTextInputBar(100, 18, 'black', '#7997bc', 4, basic, 5, 1);
-        let textInputBarTest = new inputTextBar(0, 85, 0);
-        //FRIENDS INSTANTIATION
-            //TODO: MAKE INTO BUTTONLIST
-        function instantiateFriends(friends, friendTitle, friendButton) {
-            let friendArray = [];
-            const titleHeight = 14;
-            const buttonHeight = 17;
-            const title = new friendTitle('Friend Requests', 0, 0, () => {}, 0);
-            friendArray.push(title);
+       
+    // should have a button back and two sections (friends and requests)
+        
+        function instantiateFriends(friends, friendButton) {
 
+            let friendList = new buttonList(friends, friends.map(() => () => {}), friendButton, 128, 16, -1, 0, 15, 0, "vertical")
+            return friendList;
+        }
+
+        //TEXT INPUT BAR INSTANTIATION
+        const addFriendTextBar = new generateTextInputBar(112, 16, 'black', '#7997bc', 4, basic, 5, 1);
+        let inputBar = new addFriendTextBar(0, 16, 0);
+    
+        function instantiateFriendRequests(friends, friendButton) {
+            let friendArray = [];
+            const buttonHeight = 17;
+
+          
+                
             for (let i = 0; i < friends.length; i++) {
                 // Create the friend button
-                let friend = new friendButton(friends[i], 0, titleHeight + (buttonHeight * i), () => {}, 0);
+                let friend = new friendButton(friends[i], 0, 15 + 16 + (buttonHeight * i), () => {}, 0);
                 friend.hoverWithChildren = true;
                 friend.onHover = () => {
                     friend.updateState('hovered');
@@ -304,9 +313,44 @@
             }
             return friendArray;
         }
+
+        
+
+        let placeholderFriends = ["everlastingflame", "kitgore", "chinapoet"];
+        let placeholderFriendRequest = ["dude", "mama"];
+
+        /*
+        Tabs look:
+        [<][Friends][Requests]
+        */
+        /*  
+        [Friends]                       [Requests]
+                                        [Add Friend]
+        [friend1]                       [Search bar] -m
+        [friend2]                       [Friend Requests]  
+        [friend3]                       [Friend Request1]
+                                        [Friend Request2]
+        */
+       
+        // TABS FOR SOCIAL ROOM
+        const socialTabs = ['Friends', 'Add'];
+        
+        // room header constructor would have tabs array passed in
+        // tabs array would have tab names and functions to switch rooms
+
+        
+        const socialTabList = new buttonList(socialTabs, [
+            () => {get(game).setCurrentRoom('friendRoom')}, 
+            () => {get(game).setCurrentRoom('requestRoom')}
+        ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
+        
         //ROOM INSTANTIATION
-        let socialRoom = new Room('socialRoom');
-        socialRoom.addObject(...instantiateFriends(["everlastingflame", "kitgore", "chinapoet"], friendTitle, friendButton), backToMain, textInputBarTest);
+        let friendRoom = new Room('friendRoom');
+        let requestRoom = new Room('requestRoom');
+
+        friendRoom.addObject(instantiateFriends(placeholderFriends, friendButton), backToMain, socialTabList);
+
+        requestRoom.addObject(...instantiateFriendRequests(placeholderFriendRequest, friendButton), backToMain, socialTabList, inputBar);
         
     //----------------INVENTORY ROOM----------------
         //ITEM INSTANTIATION (PLACEHOLDER)
