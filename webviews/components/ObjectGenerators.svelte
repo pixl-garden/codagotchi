@@ -28,8 +28,6 @@
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(text, x, y, actionOnClick, z) {
-                    console.log("TEXT RENDERER: " + textRenderer);
-                    console.log("TEXT RENDERER: TEXT " + textRenderer.renderText(text));
                     const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset);
                     const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset );
 
