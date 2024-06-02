@@ -14,10 +14,10 @@
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
             //textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
-        let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
-        let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
-        let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
-        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
+        let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", 3, standardCharMap);
+        let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
+        let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
+        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 3, standardCharMap, "#3f1c1c", 1, 1);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,

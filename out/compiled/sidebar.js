@@ -3691,13 +3691,55 @@ var app = (function () {
     		this.textShadowColor = textShadowColor;
     		this.textShadowXOffset = textShadowXOffset;
     		this.textShadowYOffset = textShadowYOffset;
+    		this.characterWidths = new Map();
+
+    		// Load the character sprites from the store into an array of matrices
     		this.charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
+
+    		// Create a mapping from characters to sprite indexes
     		const charsArray = Array.from(charMappingString);
+
     		this.charToSpriteIndex = {};
 
     		for (let i = 0; i < charsArray.length; i++) {
     			this.charToSpriteIndex[charsArray[i]] = i;
     		}
+
+    		console.log("UNTRIMMED ARRAY: ", this.charSprites);
+    		console.log("TRIMMED ARRAY: ", this.trimCharacterWidth());
+    	}
+
+    	trimCharacterWidth(spaceWidth = 3) {
+    		let outputMatrixArray = [];
+
+    		for (let spriteIndex = 0; spriteIndex < this.charSprites.length; spriteIndex++) {
+    			let leftTrim = this.spriteWidth; // Initialize to max width
+    			let rightTrim = 0;
+
+    			for (let y = 0; y < this.spriteHeight; y++) {
+    				for (let x = 0; x < this.spriteWidth; x++) {
+    					if (this.charSprites[spriteIndex][y][x] !== this.backgroundColor) {
+    						if (x < leftTrim) leftTrim = x;
+    						if (x > rightTrim) rightTrim = x;
+    					}
+    				}
+    			}
+
+    			let character = Object.keys(this.charToSpriteIndex).find(key => this.charToSpriteIndex[key] === spriteIndex);
+
+    			if (character === " ") {
+    				this.characterWidths.set(" ", spaceWidth);
+    				let spaceMatrix = Array.from({ length: this.spriteHeight }, () => Array(spaceWidth).fill(this.backgroundColor));
+    				outputMatrixArray.push(spaceMatrix);
+    			} else {
+    				this.characterWidths.set(character, rightTrim - leftTrim + 1);
+    				let trimmedSprite = this.charSprites[spriteIndex].map(row => row.slice(leftTrim, rightTrim + 1));
+    				outputMatrixArray.push(trimmedSprite);
+    			}
+    		}
+
+    		this.currentCharSprites = outputMatrixArray;
+    		return outputMatrixArray;
     	}
 
     	renderText(text) {
@@ -3705,83 +3747,66 @@ var app = (function () {
     			throw new Error('renderText: Text must be a string');
     		}
 
-    		this.text = text;
-
-    		// Create a larger matrix to accommodate shadows
-    		const matrixWidth = text.length * (this.spriteWidth + this.letterSpacing);
-
-    		const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
-    		const matrix = Array(matrixHeight).fill(null).map(() => Array(matrixWidth).fill(this.backgroundColor));
+    		let currentWidth = 0;
+    		const characterOffsets = [];
 
     		for (let i = 0; i < text.length; i++) {
     			const char = text[i];
+    			const charWidth = this.characterWidths.get(char);
 
-    			if (this.charToSpriteIndex[char] !== undefined) {
-    				const spriteIndex = this.charToSpriteIndex[char];
-    				const sprite = this.charSprites[spriteIndex];
-
-    				// Render shadow first if enabled
-    				if (this.textShadowColor !== null) {
-    					for (let y = 0; y < this.spriteHeight; y++) {
-    						for (let x = 0; x < this.spriteWidth; x++) {
-    							// Calculate position for shadow
-    							const posX = i * (this.spriteWidth + this.letterSpacing) + x + this.textShadowXOffset;
-
-    							const posY = y + this.textShadowYOffset;
-
-    							// Apply shadow color if the current pixel is not transparent
-    							if (sprite[y][x] !== this.backgroundColor) {
-    								matrix[posY][posX] = this.textShadowColor;
-    							}
-    						}
-    					}
-    				}
-
-    				// Then render the character itself
-    				for (let y = 0; y < this.spriteHeight; y++) {
-    					for (let x = 0; x < this.spriteWidth; x++) {
-    						// Calculate position for character
-    						const posX = i * (this.spriteWidth + this.letterSpacing) + x;
-
-    						const posY = y;
-
-    						// Apply character color if the current pixel is not transparent
-    						if (sprite[y][x] !== this.backgroundColor) {
-    							matrix[posY][posX] = this.renderColor;
-    						}
-    					}
-    				}
+    			if (charWidth === undefined) {
+    				console.warn(`No character width found for '${char}', using default width of spriteWidth.`);
+    				continue;
     			}
+
+    			if (i > 0) {
+    				currentWidth += this.letterSpacing;
+    			}
+
+    			characterOffsets.push(currentWidth);
+    			currentWidth += charWidth;
     		}
 
-    		// Finally, convert all backgroundColor pixels to 'transparent'
+    		if (currentWidth <= 0) {
+    			console.warn('Invalid total width for text rendering, returning empty matrix.');
+    			return [];
+    		}
+
+    		const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
+    		const matrix = Array(matrixHeight).fill(null).map(() => Array(currentWidth).fill(this.backgroundColor));
+
+    		text.split('').forEach((char, i) => {
+    			const spriteIndex = this.charToSpriteIndex[char];
+    			const sprite = this.currentCharSprites[spriteIndex];
+    			sprite[0].length;
+
+    			if (this.textShadowColor !== null) {
+    				sprite.forEach((row, y) => {
+    					row.forEach((pixel, x) => {
+    						if (pixel !== this.backgroundColor) {
+    							const posX = characterOffsets[i] + x + this.textShadowXOffset;
+    							const posY = y + this.textShadowYOffset;
+    							matrix[posY][posX] = this.textShadowColor;
+    						}
+    					});
+    				});
+    			}
+
+    			sprite.forEach((row, y) => {
+    				row.forEach((pixel, x) => {
+    					if (pixel !== this.backgroundColor) {
+    						const posX = characterOffsets[i] + x;
+    						matrix[y][posX] = this.renderColor;
+    					}
+    				});
+    			});
+    		});
+
     		for (let y = 0; y < matrixHeight; y++) {
-    			for (let x = 0; x < matrixWidth; x++) {
+    			for (let x = 0; x < currentWidth; x++) {
     				if (matrix[y][x] === this.backgroundColor) {
     					matrix[y][x] = 'transparent';
     				}
-    			}
-    		}
-
-    		// Now trim the empty columns from the matrix
-    		let firstNonEmptyColumn = 0;
-
-    		let lastNonEmptyColumn = matrixWidth - 1;
-
-    		// Find the first non-empty column from the left
-    		while (firstNonEmptyColumn < matrixWidth && isColumnEmpty(matrix, firstNonEmptyColumn)) {
-    			firstNonEmptyColumn++;
-    		}
-
-    		// Find the first non-empty column from the right
-    		while (lastNonEmptyColumn >= 0 && isColumnEmpty(matrix, lastNonEmptyColumn)) {
-    			lastNonEmptyColumn--;
-    		}
-
-    		// If there are empty columns on either side, slice the matrix to exclude them
-    		if (firstNonEmptyColumn > 0 || lastNonEmptyColumn < matrixWidth - 1) {
-    			for (let i = 0; i < matrix.length; i++) {
-    				matrix[i] = matrix[i].slice(firstNonEmptyColumn, lastNonEmptyColumn + 1);
     			}
     		}
 
@@ -3790,28 +3815,14 @@ var app = (function () {
     }
 
     function createTextMeasureFunction(spriteWidth, letterSpacing) {
-    	// This function returns the width of the text based on the sprite width and letter spacing
     	return function measureText(text) {
     		if (typeof text !== 'string') {
     			throw new Error('measureText: Text must be a string');
     		}
 
     		let numChars = text.length;
-
-    		// Calculate total width as number of characters times sprite width plus the spaces between them
-    		return (spriteWidth + letterSpacing) * numChars - letterSpacing; // Subtract letterSpacing once for the last character
+    		return (spriteWidth + letterSpacing) * numChars - letterSpacing;
     	};
-    }
-
-    // Function to check if a column is empty (transparent)
-    function isColumnEmpty(matrix, columnIndex) {
-    	for (let i = 0; i < matrix.length; i++) {
-    		if (matrix[i][columnIndex] !== 'transparent') {
-    			return false;
-    		}
-    	}
-
-    	return true;
     }
 
     /* webviews/components/SpriteComponent.svelte generated by Svelte v3.59.2 */
@@ -6690,8 +6701,6 @@ var app = (function () {
     ) {
     	return class Button extends GeneratedObject {
     		constructor(text, x, y, actionOnClick, z) {
-    			console.log("TEXT RENDERER: " + textRenderer);
-    			console.log("TEXT RENDERER: TEXT " + textRenderer.renderText(text));
     			const defaultSprite = generateButtonMatrix(width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset);
     			const hoverSprite = generateButtonMatrix(width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset);
 
@@ -6837,11 +6846,11 @@ var app = (function () {
 
     	//createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
     	//textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
-    	let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", -1, standardCharMap);
+    	let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", 3, standardCharMap);
 
-    	let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", -4, standardCharMap);
-    	let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", -2, standardCharMap, "#3c3f83", 1, 1);
-    	let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", -4, standardCharMap, "#3f1c1c", 1, 1);
+    	let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
+    	let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
+    	let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 3, standardCharMap, "#3f1c1c", 1, 1);
 
     	//----------------BUTTON CLASS GENERATORS----------------
     	//generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
