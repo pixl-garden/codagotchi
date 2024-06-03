@@ -1,8 +1,11 @@
 <script context="module">
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { replaceMatrixColor } from './MatrixFunctions.svelte';
+    import { ParameterInformation } from 'vscode';
 
-    //export a function that renders text
+    /**
+    * Class for rendering text, use renderText method to render text
+    */
     export class TextRenderer {
     constructor (
         charmap,
@@ -41,6 +44,7 @@
         console.log("TRIMMED ARRAY: ", this.trimCharacterWidth());
     }
 
+    //function for trimming excess pixels from the sides of the character sprites (for non-monospaced font rendering)
     trimCharacterWidth(spaceWidth = 3) {
         let outputMatrixArray = [];
         for (let spriteIndex = 0; spriteIndex < this.charSprites.length; spriteIndex++) {
@@ -71,6 +75,11 @@
         return outputMatrixArray;
     }
 
+    /**
+     * Renders the given text as a matrix of pixels
+     * @param {string} text The text to render
+     * @returns {string[][]} Matrix of pixels (color strings) representing the rendered text
+     */
     renderText(text) {
         if (typeof text !== 'string') {
             throw new Error('renderText: Text must be a string');
@@ -136,6 +145,22 @@
         }
 
         return matrix;
+    }
+
+    /**
+     * Measures the width of given text in pixels
+     * @param {string} text The text to measure
+     * @returns {number} The width of the text in pixels as integer
+     */
+    measureText(text){
+        if (typeof text !== 'string') {
+            throw new Error('measureText: Text must be a string');
+        }
+        let textLength = 0;
+        for(let i = 0; i < text.length; i++){
+            textLength += this.characterWidths.get(text[i]) + this.letterSpacing;
+        }
+        return textLength - this.letterSpacing;
     }
 }
 

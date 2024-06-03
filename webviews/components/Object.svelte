@@ -604,7 +604,6 @@
             const emptyMatrix = generateEmptyMatrix(width, height);
             super(emptyMatrix, { default: [0] }, x, y, z);
             this.textRenderer = textRenderer;
-            this.textMeasurer = createTextMeasureFunction(letterWidth, letterSpacing);
             this.x = x;
             this.y = y;
             this.z = z;
@@ -633,9 +632,9 @@
         setText(text) {
             // console.log("SETTING TEXT")
             this.text = text;
-            this.lines = this.wrapText(text, this.width, this.textMeasurer);
+            this.lines = this.wrapText(text, this.width);
         }
-        wrapText(text, maxWidth, textRendererMeasure) {
+        wrapText(text, maxWidth) {
             // console.log("WRAPPING TEXT: ", this.text)
             if(this.hasCursor){
                 this.alternateCursor()
@@ -646,8 +645,8 @@
             let currentWidth = 0;
 
             words.forEach(word => {
-                let wordWidth = textRendererMeasure(word);
-                let spaceWidth = textRendererMeasure(' ');
+                let wordWidth = this.textRenderer.measureText(word);
+                let spaceWidth = this.textRenderer.measureText(' ');
                 if (currentWidth + wordWidth + spaceWidth > maxWidth) {
                     lines.push(currentLine.trim());
                     currentLine = word + ' ';
@@ -660,7 +659,7 @@
 
             if (currentLine) {
                 if(this.isActive && this.showingCursor){
-                    currentLine += '|';
+                    currentLine = currentLine.slice(0, -1) + '|';
                 }
                 lines.push(currentLine.trim());
             }
