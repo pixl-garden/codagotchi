@@ -80,6 +80,8 @@
         
     //----------------SETTINGS ROOM----------------
         //SETTINGS MENU INSTANTIATION
+        // TODO: const firstButtonThatChanges = [{text: "Git Login", function: () => {handleGitHubLogin()}}, {text: "Logged In!", function: () => {}}];
+
         const settingsMenuButtonTexts = ['Git Login', 'Notifs', 'Display', '<BACK'];
         const settingsMenuButtonFunctions = [() => {handleGitHubLogin()}, () => {}, () => {}, () => {get(game).setCurrentRoom('mainRoom')}]
         const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {});

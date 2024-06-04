@@ -83,13 +83,18 @@
         }
 
         constructInventory() {
+            //TODO: get from user data instead of directly in local state
             this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
             // console.log("Constructed inventory: ", this.inventory);
         }
 
+        constructUserData(){
+            this.localUserData = this.getLocalState().userData || {};
+        }
+
         addStackableItem(itemIdString, quantity = 1) {
             this.pushToSaveData({ 
-                "inventory": (this.localUserData.owned.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
+                "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
             });
         }
 

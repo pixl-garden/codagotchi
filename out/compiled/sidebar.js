@@ -6240,6 +6240,7 @@ var app = (function () {
     		Game.instance = this;
     		this.syncLocalToGlobalState();
     		this.inventory;
+    		this.localUserData;
     	}
 
     	updateRooms(roomName, roomObj) {
@@ -6314,8 +6315,13 @@ var app = (function () {
     	}
 
     	constructInventory() {
+    		//TODO: get from user data instead of directly in local state
     		this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
     	} // console.log("Constructed inventory: ", this.inventory);
+
+    	constructUserData() {
+    		this.localUserData = this.getLocalState().userData || {};
+    	}
 
     	addStackableItem(itemIdString, quantity = 1) {
     		this.pushToSaveData({
@@ -6960,6 +6966,7 @@ var app = (function () {
 
     	//----------------SETTINGS ROOM----------------
     	//SETTINGS MENU INSTANTIATION
+    	// TODO: const firstButtonThatChanges = [{text: "Git Login", function: () => {handleGitHubLogin()}}, {text: "Logged In!", function: () => {}}];
     	const settingsMenuButtonTexts = ['Git Login', 'Notifs', 'Display', '<BACK'];
 
     	const settingsMenuButtonFunctions = [
