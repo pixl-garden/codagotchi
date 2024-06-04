@@ -14,10 +14,10 @@
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
             //textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
-        let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", 3, standardCharMap);
+        let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", 1, standardCharMap);
         let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
         let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
-        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 3, standardCharMap, "#3f1c1c", 1, 1);
+        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -145,7 +145,6 @@
 
         //POSTCARD RENDERER INSTANTIATION
         let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80, gang);
-        postcardRendering.setUserText("Hello, World! what the fuck is up uhh words words words");
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
@@ -155,7 +154,7 @@
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0);
         }, 5);
-        let colorMenuObj = new ColorMenu(6, 16, 5, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
+        let colorMenuObj = new ColorMenu(6, 16, 12, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
         ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
          (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
         let paintButton1 = new paintButtonText('col', 14, 0, ()=>{
@@ -220,7 +219,6 @@
         }, 5);
 
         // STAMP MENU INSTANTIATION
-
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
@@ -246,7 +244,7 @@
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
         })
-        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, ()=>{
+        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 24, 11, ()=>{
             if(get(shouldFocus) === false){
                 shouldFocus.set(true);
                 postcardRendering.setTextActive(true);
