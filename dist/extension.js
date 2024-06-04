@@ -135,7 +135,7 @@ class SidebarProvider {
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
         this._onDidViewReady.fire();
         webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
+            var _a, _b;
             switch (data.type) {
                 // send the image URIs to the webview
                 case 'webview-ready': {
@@ -251,6 +251,15 @@ class SidebarProvider {
                     // Now you have the dimensions of the WebView
                     console.log(`WebView dimensions: ${width}x${height}`);
                     break;
+                }
+                case 'getUserData': {
+                    // get from db
+                    let data = yield (0, database_1.get)((0, database_1.ref)(firebaseInit_1.default, 'users/' + githubUsername));
+                    console.log("from DB: ", data);
+                    (_b = this._view) === null || _b === void 0 ? void 0 : _b.webview.postMessage({
+                        type: 'userData',
+                        value: data.val(),
+                    });
                 }
             }
         }));

@@ -40,7 +40,8 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "test": "jest --verbose",
-    "lint": "eslint . --ext .js,.ts,.svelte"
+    "lint": "eslint . --ext .js,.ts,.svelte",
+    "seed": "node ./src/seed.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",

@@ -92,11 +92,11 @@
             currentWidth += charWidth;
         }
 
-        if (currentWidth <= 0) {
-            console.warn('Invalid total width for text rendering, returning empty matrix.');
-            return [];
+        if (currentWidth <= 0) { 
+            let nullMatrix = [[]];
+            return nullMatrix;
         }
-
+        
         const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
         const matrix = Array(matrixHeight).fill(null).map(() => Array(currentWidth).fill(this.backgroundColor));
 

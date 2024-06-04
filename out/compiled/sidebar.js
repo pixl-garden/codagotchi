@@ -3768,8 +3768,8 @@ var app = (function () {
     		}
 
     		if (currentWidth <= 0) {
-    			console.warn('Invalid total width for text rendering, returning empty matrix.');
-    			return [];
+    			let nullMatrix = [[]];
+    			return nullMatrix;
     		}
 
     		const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
@@ -5429,7 +5429,10 @@ var app = (function () {
     	}
 
     	setEraser() {
-    		// this.setColor("transparent");
+    		this.setColor("transparent");
+    	}
+
+    	toggleFill() {
     		this.isPaintBucket = !this.isPaintBucket;
     	}
 
@@ -6267,6 +6270,7 @@ var app = (function () {
 
     	// pushes new state info to global state (vscode API)
     	pushToGlobalState(stateInfo) {
+    		// TODO: Implement caching here later
     		tsvscode.postMessage({
     			type: 'pushToGlobalState',
     			value: stateInfo
@@ -6293,7 +6297,9 @@ var app = (function () {
 
     	// push new data to global state and synchronize local and global states
     	pushToSaveData(stateInfo) {
+    		//pushToSaveData({ "inventory": this.inventory.serialize() })
     		this.pushToGlobalState(stateInfo);
+
     		this.syncLocalToGlobalState();
     	}
 
@@ -7189,9 +7195,15 @@ var app = (function () {
     		},
     	5);
 
-    	// let bucketButton = new paintButtonIcon(paintButtonSprites[6], paintButtonSprites[6], 86, 0, ()=>{
-    	//     postcardRendering.currentCanvas.toggleFill();
-    	// }, 5);
+    	let bucketButton = new paintButtonIcon(paintButtonSprites[6],
+    	paintButtonSprites[6],
+    	86,
+    	0,
+    	() => {
+    			postcardRendering.currentCanvas.toggleFill();
+    		},
+    	5);
+
     	let pencilButton = new paintButtonIcon(paintButtonSprites[0],
     	paintButtonSprites[0],
     	0,
@@ -7313,7 +7325,7 @@ var app = (function () {
     			}
     		});
 
-    	paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton);
+    	paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, bucketButton);
 
     	//----------------SOCIAL ROOM----------------
     	// should have a button back and two sections (friends and requests)
@@ -7409,21 +7421,13 @@ var app = (function () {
     		return friendArray;
     	}
 
+    	// INSTEAD OF THIS GET FRIENDS WITH API CALL
     	let placeholderFriends = ["everlastingflame", "kitgore", "chinapoet"];
+
+    	// let userFriends = 
+    	// INSTEAD OF THIS GET FRIEND REQUESTS WITH API CALL
     	let placeholderFriendRequest = ["dude", "mama"];
 
-    	/*
-    Tabs look:
-    [<][Friends][Requests]
-    */
-    	/*  
-    [Friends]                       [Requests]
-                                    [Add Friend]
-    [friend1]                       [Search bar] -m
-    [friend2]                       [Friend Requests]  
-    [friend3]                       [Friend Request1]
-                                    [Friend Request2]
-    */
     	// TABS FOR SOCIAL ROOM
     	const socialTabs = ['Friends', 'Add'];
 
@@ -7686,6 +7690,15 @@ var app = (function () {
     				$game.setLocalState(message.value);
     			} else if (message.type === 'resize') {
     				handleResize();
+    			} else if (message.type === "getUserFromDb") {
+    				let userData = message.value;
+    				console.log("User Data in Main: ", userData);
+
+    				if (userData) {
+    					$game.setLocalState(userData);
+    					$game.syncLocalToGlobalState();
+    					$game.constructInventory();
+    				}
     			}
     		});
 
