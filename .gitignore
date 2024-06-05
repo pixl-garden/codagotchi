@@ -2,3 +2,4 @@ node_modules
 src/firebaseInit.ts
 seed.js
 out
+dist
