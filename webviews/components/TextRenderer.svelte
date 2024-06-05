@@ -2,7 +2,10 @@
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { replaceMatrixColor } from './MatrixFunctions.svelte';
 
-    //export a function that renders text
+
+    /**
+    * Class for rendering text, use renderText method to render text
+    */
     export class TextRenderer {
     constructor (
         charmap,
@@ -36,11 +39,10 @@
         for (let i = 0; i < charsArray.length; i++) {
             this.charToSpriteIndex[charsArray[i]] = i;
         }
-
-        console.log("UNTRIMMED ARRAY: ", this.charSprites);
-        console.log("TRIMMED ARRAY: ", this.trimCharacterWidth());
+        this.trimCharacterWidth();
     }
 
+    // function for trimming excess pixels from the sides of the character sprites (for non-monospaced font rendering)
     trimCharacterWidth(spaceWidth = 3) {
         let outputMatrixArray = [];
         for (let spriteIndex = 0; spriteIndex < this.charSprites.length; spriteIndex++) {
@@ -71,15 +73,26 @@
         return outputMatrixArray;
     }
 
-    renderText(text) {
+    /**
+     * Renders the given text as a matrix of pixels
+     * @param {string} text The text to render
+     * @param {string} renderColor The color of the text, if not provided, the renderer's renderColor will be used
+     * @param {string} textShadowColor The color of the text shadow, if not provided, the renderer's textShadowColor will be used
+     * @returns {string[][]} Matrix of pixels (color strings) representing the rendered text
+     */
+    renderText(text, renderColor = this.renderColor, textShadowColor = this.textShadowColor) {
         if (typeof text !== 'string') {
             throw new Error('renderText: Text must be a string');
         }
 
+        // Used to calculate the x position of each character in the rendered text
         let currentWidth = 0;
         const characterOffsets = [];
+
+        // Set characterOffsets for each character in the text
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
+            // Get the width of the character from the characterWidths map
             const charWidth = this.characterWidths.get(char);
             if (charWidth === undefined) {
                 console.warn(`No character width found for '${char}', using default width of spriteWidth.`);
@@ -92,9 +105,12 @@
             currentWidth += charWidth;
         }
 
+        // Extend base matrix to acount for text shadow
+        currentWidth += Math.abs(this.textShadowXOffset);
+
+        // If the text is empty, return an empty 2d matrix
         if (currentWidth <= 0) { 
-            let nullMatrix = [[]];
-            return nullMatrix;
+            return [[]];
         }
         
         const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
@@ -111,7 +127,7 @@
                         if (pixel !== this.backgroundColor) {
                             const posX = characterOffsets[i] + x + this.textShadowXOffset;
                             const posY = y + this.textShadowYOffset;
-                            matrix[posY][posX] = this.textShadowColor;
+                            matrix[posY][posX] = textShadowColor;
                         }
                     });
                 });
@@ -121,7 +137,7 @@
                 row.forEach((pixel, x) => {
                     if (pixel !== this.backgroundColor) {
                         const posX = characterOffsets[i] + x;
-                        matrix[y][posX] = this.renderColor;
+                        matrix[y][posX] = renderColor;
                     }
                 });
             });
@@ -137,27 +153,21 @@
 
         return matrix;
     }
-}
 
-export function createTextMeasureFunction(spriteWidth, letterSpacing) {
-    return function measureText(text) {
+    /**
+     * Measures the width of given text in pixels
+     * @param {string} text The text to measure
+     * @returns {number} The width of the text in pixels as integer
+     */
+    measureText(text){
         if (typeof text !== 'string') {
             throw new Error('measureText: Text must be a string');
         }
-        let numChars = text.length;
-        return (spriteWidth + letterSpacing) * numChars - letterSpacing;
-    };
-}
-
-function isColumnEmpty(matrix, columnIndex) {
-    for (let i = 0; i < matrix.length; i++) {
-        if (matrix[i][columnIndex] !== 'transparent') {
-            return false;
+        let textLength = 0;
+        for(let i = 0; i < text.length; i++){
+            textLength += this.characterWidths.get(text[i]) + this.letterSpacing;
         }
+        return textLength;
     }
-    return true;
 }
-
-    // Example instantiation
-    // const renderBasicText = createTextRenderer('basic.png', 8, 8, 'black', -3, ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 </script>

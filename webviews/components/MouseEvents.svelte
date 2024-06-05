@@ -137,6 +137,7 @@
     export function handleClick(event, gameInstance) {
         let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
         let clickedObject = getObjectAt(gridX, gridY, gameInstance)[0];
+        console.log("MOUSE CLICKED AT: ", gridX, gridY, "CLICKED OBJECT: ", clickedObject)
         
         if (clickedObject && isMouseDown && !activeDragObject) {
             activeDragObject = clickedObject;

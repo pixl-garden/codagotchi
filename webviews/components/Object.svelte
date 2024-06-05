@@ -6,7 +6,6 @@
     import { game } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { createTextMeasureFunction } from './TextRenderer.svelte';
     import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix } from './MatrixFunctions.svelte';
 
     
@@ -596,6 +595,10 @@
             this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.multiLineTextRenderer.externalRender(), 0, 0, 
                 this.multiLineTextRenderer.x, this.multiLineTextRenderer.y);
         }
+
+        setColor(color) {
+            this.multiLineTextRenderer.setColor(color);
+        }
     }
 
     //TODO: needs to be modified when non monospace fonts are implemented
@@ -604,7 +607,6 @@
             const emptyMatrix = generateEmptyMatrix(width, height);
             super(emptyMatrix, { default: [0] }, x, y, z);
             this.textRenderer = textRenderer;
-            this.textMeasurer = createTextMeasureFunction(letterWidth, letterSpacing);
             this.x = x;
             this.y = y;
             this.z = z;
@@ -618,6 +620,10 @@
             this.showingCursor = false;
             this.text = "";
             this.lines = [];
+            this.color = null;
+        }
+        setColor(color) {
+            this.color = color;
         }
         setTextActive(bool) {
             console.log("BASE TEXT ACTIVE CALLED")
@@ -631,12 +637,10 @@
             }
         }
         setText(text) {
-            // console.log("SETTING TEXT")
             this.text = text;
-            this.lines = this.wrapText(text, this.width, this.textMeasurer);
+            this.lines = this.wrapText(text, this.width);
         }
-        wrapText(text, maxWidth, textRendererMeasure) {
-            // console.log("WRAPPING TEXT: ", this.text)
+        wrapText(text, maxWidth) {
             if(this.hasCursor){
                 this.alternateCursor()
             }
@@ -646,9 +650,9 @@
             let currentWidth = 0;
 
             words.forEach(word => {
-                let wordWidth = textRendererMeasure(word);
-                let spaceWidth = textRendererMeasure(' ');
-                if (currentWidth + wordWidth + spaceWidth > maxWidth) {
+                let wordWidth = this.textRenderer.measureText(word);
+                let spaceWidth = this.textRenderer.measureText(' ');
+                if (currentWidth + wordWidth> maxWidth) {
                     lines.push(currentLine.trim());
                     currentLine = word + ' ';
                     currentWidth = wordWidth + spaceWidth;
@@ -660,7 +664,7 @@
 
             if (currentLine) {
                 if(this.isActive && this.showingCursor){
-                    currentLine += '|';
+                    currentLine = currentLine.slice(0, -1) + '|';
                 }
                 lines.push(currentLine.trim());
             }
@@ -673,7 +677,9 @@
             let currentY = this.y;
             // console.log("LINES: ", this.lines)
             this.lines.forEach(line => {
-                let renderedLine = this.textRenderer.renderText(line);
+                let renderedLine = this.color === null ? 
+                    this.textRenderer.renderText(line) :
+                    this.textRenderer.renderText(line, this.color);
                 renderedLine.forEach((row, y) => {
                     row.forEach((color, x) => {
                         matrix[currentY + y][x] = color;
@@ -1195,7 +1201,7 @@
         }
         //constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
         generateColorGrid(){
-            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 3, 3, 10, this.buttons, 0, 0, "horizontal", 0);
+            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 3, 3, this.z, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
         }
 
