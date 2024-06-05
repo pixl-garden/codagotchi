@@ -21,6 +21,7 @@
         }
 
         setCurrentRoom(name) {
+            inputValue.set(''); // Clear input field
             if (this.rooms[name]) {
                 this.currentRoom = this.rooms[name];
                 this.currentRoomName = name;
@@ -118,32 +119,6 @@
         }
 
     }
-
-    // export function setItem(serializedItem) {
-    //     let currentState = getLocalState();
-    //     let inventory = currentState.inventory || [];
-    //     const itemIndex = inventory.findIndex(item => item.itemName === serializedItem.itemName);
-
-    //     if (itemIndex > -1) {
-    //         // Update existing item
-    //         inventory[itemIndex] = serializedItem;
-    //     } else {
-    //         // Add new item
-    //         inventory.push(serializedItem);
-    //     }
-
-    //     setGlobalState({ "inventory": inventory });
-    //     getLocalState();
-    // }
-
-    // export function removeItem(itemName){
-    //     let currentState = getLocalState();
-    //     let inventory = currentState.inventory || [];
-    //     inventory = inventory.filter(item => item.itemName !== itemName);
-
-    //     setGlobalState({ ...currentState, inventory });
-    //     getLocalState();
-    // }
 
     export const game = writable(new Game());
 
