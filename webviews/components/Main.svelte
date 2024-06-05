@@ -121,7 +121,18 @@
             else if(message.type === 'resize'){
                 handleResize();
             }
+            else if (message.type === "getUserFromDb") {
+                let userData = message.value;
+                console.log("User Data in Main: ", userData);
+
+                if(userData){
+                    $game.setLocalState(userData);
+                    $game.syncLocalToGlobalState();
+                    $game.constructInventory();
+                }
+            }
         });
+
 
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);

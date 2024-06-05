@@ -277,6 +277,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     console.log(`WebView dimensions: ${width}x${height}`);
                     break;
                 }
+                case 'getUserData': {
+                    // get from db
+                    let data = await get(ref(database, 'users/' + githubUsername));
+                    console.log("from DB: ", data);
+                    this._view?.webview.postMessage({
+                        type: 'userData',
+                        value: data.val(),
+                    });
+                }
             }
         });
     }

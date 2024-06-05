@@ -1,5 +1,7 @@
 import axios from 'axios';
 import * as functions from 'firebase-functions';
+import { createUserProfile } from './userManagement.js';
+import admin from 'firebase-admin';
 
 const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (request, response) => {
     const code = request.query.code;
@@ -46,6 +48,8 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
         });
 
         const githubUserId = githubUserResponse.data.id;
+        // check if user already exists in the database
+        const userExists = (await admin.database().ref(`users/${githubUserId}`).once('value')) !== null;
         const githubUsername = githubUserResponse.data.login;
 
         // Create a Firebase custom token
@@ -57,7 +61,6 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
         const ref = db.ref('authTokens/' + state); // 'state' is the UUID
         await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time });
 
-        response.send('Authentication successful, you can return to the app.');
         // check if token is complete
 
         const startTime = Date.now();
@@ -75,8 +78,14 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
             }
         }
         if (statusComplete) {
-            await createUserProfile(githubUserId, githubUsername, token_time);
-            response.send('Authentication and user profile creation successful.');
+            if (!userExists) {
+                await createUserProfile(githubUserId, githubUsername, token_time);
+            }
+            const loggedInUserData = await db.ref(`users/${githubUserId}`).once('value');
+            response.status(200).send({
+                message: 'Auth successful. User logged in.',
+                data: loggedInUserData.val(),
+            });
         } else {
             response.status(408).send('Request timed out. User profile not created.');
         }

@@ -112,7 +112,7 @@
         if (currentWidth <= 0) { 
             return [[]];
         }
-
+        
         const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
         const matrix = Array(matrixHeight).fill(null).map(() => Array(currentWidth).fill(this.backgroundColor));
 

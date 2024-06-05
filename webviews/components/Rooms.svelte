@@ -7,9 +7,8 @@
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
-
     
-    export function preloadObjects(){
+    export function preloadObjects() {
     //----------------FONT RENDERERS----------------
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
@@ -81,6 +80,8 @@
         
     //----------------SETTINGS ROOM----------------
         //SETTINGS MENU INSTANTIATION
+        // TODO: const firstButtonThatChanges = [{text: "Git Login", function: () => {handleGitHubLogin()}}, {text: "Logged In!", function: () => {}}];
+
         const settingsMenuButtonTexts = ['Git Login', 'Notifs', 'Display', '<BACK'];
         const settingsMenuButtonFunctions = [() => {handleGitHubLogin()}, () => {}, () => {}, () => {get(game).setCurrentRoom('mainRoom')}]
         const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {});
@@ -274,8 +275,6 @@
         function instantiateFriendRequests(friends, friendButton) {
             let friendArray = [];
             const buttonHeight = 17;
-
-          
                 
             for (let i = 0; i < friends.length; i++) {
                 // Create the friend button
@@ -315,21 +314,13 @@
 
         
 
+        // INSTEAD OF THIS GET FRIENDS WITH API CALL
         let placeholderFriends = ["everlastingflame", "kitgore", "chinapoet"];
-        let placeholderFriendRequest = ["dude", "mama"];
 
-        /*
-        Tabs look:
-        [<][Friends][Requests]
-        */
-        /*  
-        [Friends]                       [Requests]
-                                        [Add Friend]
-        [friend1]                       [Search bar] -m
-        [friend2]                       [Friend Requests]  
-        [friend3]                       [Friend Request1]
-                                        [Friend Request2]
-        */
+        // let userFriends = 
+
+        // INSTEAD OF THIS GET FRIEND REQUESTS WITH API CALL
+        let placeholderFriendRequest = ["dude", "mama"];
        
         // TABS FOR SOCIAL ROOM
         const socialTabs = ['Friends', 'Add'];

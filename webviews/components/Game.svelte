@@ -14,6 +14,7 @@
             Game.instance = this;
             this.syncLocalToGlobalState();
             this.inventory;
+            this.localUserData;
         }
 
         updateRooms(roomName, roomObj) {
@@ -45,6 +46,7 @@
         
         // pushes new state info to global state (vscode API)
         pushToGlobalState( stateInfo ) {
+            // TODO: Implement caching here later
             tsvscode.postMessage({ type: 'pushToGlobalState', value: stateInfo });
         };
 
@@ -66,6 +68,7 @@
 
         // push new data to global state and synchronize local and global states
         pushToSaveData( stateInfo ){
+            //pushToSaveData({ "inventory": this.inventory.serialize() })
             this.pushToGlobalState( stateInfo )
             this.syncLocalToGlobalState();
         }
@@ -81,8 +84,13 @@
         }
 
         constructInventory() {
+            //TODO: get from user data instead of directly in local state
             this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
             // console.log("Constructed inventory: ", this.inventory);
+        }
+
+        constructUserData(){
+            this.localUserData = this.getLocalState().userData || {};
         }
 
         addStackableItem(itemIdString, quantity = 1) {
