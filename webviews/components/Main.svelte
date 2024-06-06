@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { generateScreen, handleResize } from './Codagotchi.svelte';
     import { images } from './store.js';
-    import { Room, game, shouldFocus, inputValue } from './Game.svelte';
+    import { Room, game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { preloadAllSpriteSheets } from './SpriteReader.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
@@ -141,10 +141,15 @@
     $: if ($shouldFocus) {
         // console.log('Input is focused');
     }
-    $: console.log('Input Value:', $inputValue);
+    // $: console.log('Input Value:', $inputValue);
+
+    $: {
+        const inputValueStore = $inputValue;
+        textInput.updateAllInstances(inputValueStore);
+    }
 </script>
 
-<input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
+ <input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
 <canvas class="pixel-grid"
      on:click={(e) => handleClick(e, get(game))}
      on:mousemove={(e) => handleMouseMove(e, get(game))}

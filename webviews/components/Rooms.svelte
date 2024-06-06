@@ -137,11 +137,10 @@
         let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
 
         //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom', () => {
-            //set inputValue to empty string here
-        }, false, () => {
+        let paintRoom = new Room('paintRoom', 
+            false, false, () => {
             postcardRendering.nextFrame();
-            postcardRendering.setUserText(get(inputValue));
+            // postcardRendering.setUserText(get(inputValue));
         });
 
         //POSTCARD RENDERER INSTANTIATION

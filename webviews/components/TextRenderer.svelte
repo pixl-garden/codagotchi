@@ -1,12 +1,12 @@
 <script context="module">
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { replaceMatrixColor } from './MatrixFunctions.svelte';
-
+    import { inputValue } from './Game.svelte';
 
     /**
     * Class for rendering text, use renderText method to render text
     */
-    export class TextRenderer {
+export class TextRenderer {
     constructor (
         charmap,
         spriteWidth,
@@ -170,4 +170,5 @@
         return textLength;
     }
 }
+
 </script>

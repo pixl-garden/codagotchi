@@ -82,6 +82,20 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
         }
     }
 }
+
+async function printUserPublicData(userId: string) {
+    const dbRef = ref(database, `users/${userId}/public`);
+    try {
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+            console.log("Public user data:", snapshot.val());
+        } else {
+            console.log("No public user data found.");
+        }
+    } catch (error) {
+        console.error("Error fetching public user data:", error);
+    }
+}
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -226,6 +240,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         } catch (error) {
                                             console.error('Error storing user data in the database:', error);
                                         }
+
+                                        printUserPublicData('103673149');
 
                                         // Remove the listener after successful authentication
                                         off(tokenRef, 'value', tokenListener);

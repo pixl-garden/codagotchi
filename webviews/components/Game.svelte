@@ -181,6 +181,32 @@
         }
     }
 
+    export class textInput {
+        static instances = [];
+        constructor(
+            updateTextFunction,
+            charMap
+        ) {
+            textInput.instances.push(this);
+            this.updateTextFunction = updateTextFunction;
+            this.charMap = charMap;
+        }
+
+        static updateAllInstances(inputText) {
+            textInput.instances.forEach(instance => instance.updateTextFunction(instance.filterCharacter(inputText)));
+        }
+        
+        filterCharacter(filterText) {
+            let output = "";
+            for( let i = 0; i<filterText.length; i++ ) {
+                if(this.charMap.includes(filterText[i])) {
+                    output = output.concat(filterText[i]);
+                }
+            }
+            return output;
+        }
+    }
+
     export const shouldFocus = writable(false);
     export const inputValue = writable('');
 </script>
