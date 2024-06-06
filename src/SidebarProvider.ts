@@ -8,7 +8,8 @@ import database from './firebaseInit';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
-const CLIENT_ID = 'a253a1599d7b631b091a';
+import * as dotenv from 'dotenv';
+
 const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
 const REQUESTED_SCOPES = 'user,read:user';
 let githubUsername = '';
@@ -16,7 +17,9 @@ let githubUsername = '';
 // Generate a unique state value
 const state = uuidv4();
 
-const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
+dotenv.config();
+
+const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
 
 // Set the Global State (with merging)
 // ---- Example usage: ----
@@ -27,6 +30,7 @@ const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_
 // });
 // if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity 
 // and will not delete other keys in the inventory object
+
 
 function setCurrentState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
     // Retrieve the existing global state

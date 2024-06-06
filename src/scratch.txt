@@ -1,0 +1,68 @@
+import * as vscode from 'vscode';
+import { getAuth } from 'firebase/auth';
+
+function activate(context: vscode.ExtensionContext) {
+    const auth = getAuth();
+    context.subscriptions.push(
+        vscode.commands.registerCommand('yourExtension.checkAuthentication', async () => {
+            const refreshToken = await context.secrets.get("refreshToken");
+            if (refreshToken) {
+                // Assume checkTokenValidity is a function that checks token validity and refreshes it if needed
+                checkTokenValidity(refreshToken).then(isValid => {
+                    if (isValid) {
+                        console.log("Token is valid or has been refreshed.");
+                    } else {
+                        console.log("Token is invalid. Need re-authentication.");
+                        // Optionally, trigger re-authentication
+                    }
+                });
+            } else {
+                console.log("No refresh token stored. User needs to authenticate.");
+                // Trigger authentication flow
+            }
+        })
+    );
+}
+
+async function checkTokenValidity(refreshToken) {
+    // Send the refresh token to your server where you can use Firebase Admin SDK to verify and refresh the ID token
+    // This would require setting up an endpoint that handles this logic
+    // Return true if the token is refreshed or still valid, false if it cannot be refreshed (e.g., token is revoked or expired)
+    return fetch('https://your-backend.com/refreshToken', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success && data.newIdToken) {
+            // Store new ID token, update any required states
+            return true;
+        } else {
+            return false;
+        }
+    }).catch(error => {
+        console.error("Error refreshing token:", error);
+        return false;
+    });
+}
+
+const axios = require('axios');
+
+async function signInWithCustomToken(customToken) {
+    const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=[API_KEY]`;
+    try {
+        const response = await axios.post(signInUrl, {
+            token: customToken,
+            returnSecureToken: true // This must be true to get a refresh token
+        });
+        const { idToken, refreshToken } = response.data;
+        console.log("ID Token:", idToken);
+        console.log("Refresh Token:", refreshToken);
+        return { idToken, refreshToken };
+    } catch (error) {
+        console.error("Error signing in with custom token:", error);
+        throw error;
+    }
+}
