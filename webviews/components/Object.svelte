@@ -3,11 +3,10 @@
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
-    import { game } from './Game.svelte';
+    import { game, textInput } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix } from './MatrixFunctions.svelte';
-
     
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
@@ -438,9 +437,9 @@
             this.stampItem = stampItem;
             this.backPixelCanvas.setStamp(stampItem);
         }
-        setUserText(text){
-            this.backPixelCanvas.setUserText(text);
-        }
+        // setUserText(text){
+        //     this.backPixelCanvas.setUserText(text);
+        // }
         flipPostcard(){
             if(this.state == "front"){
                 this.state = "flipToBack";
@@ -449,10 +448,6 @@
                 this.state = "flipToFront";
             }
         }
-        setUserText(text){
-            this.backPixelCanvas.setUserText(text);
-        }
-
         nextFrame(){
             if(this.state == "flipToBack"){
                 this.progressTracker += 0.05;
@@ -482,6 +477,12 @@
                     this.progressTracker = 0;
                 }
             }
+            else if(this.state == "back"){
+                this.backPixelCanvas.nextFrame();
+            }
+            // else if(this.state == "front"){
+            //     this.frontPixelCanvas.nextFrame();
+            // }
         }
 
         getSprite(){
@@ -558,6 +559,12 @@
             this.stampItem = null;
             this.userText = "";
             this.multiLineTextRenderer = new multiLineTextRenderer(x + 2, y - 2, z, 78, height, 9, textRenderer, 4, 0);
+            this.textInput = new textInput((text) => this.setUserText(text), textRenderer.charMappingString);
+        }
+
+        nextFrame(){
+            this.multiLineTextRenderer.alternateCursor();
+            this.setUserText(this.userText);
         }
 
         setTextActive(bool) {
@@ -593,7 +600,7 @@
             this.multiLineTextRenderer.setText(text);
             this.clearText();
             this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.multiLineTextRenderer.externalRender(), 0, 0, 
-                this.multiLineTextRenderer.x, this.multiLineTextRenderer.y);
+            this.multiLineTextRenderer.x, this.multiLineTextRenderer.y);
         }
 
         setColor(color) {
@@ -626,7 +633,6 @@
             this.color = color;
         }
         setTextActive(bool) {
-            console.log("BASE TEXT ACTIVE CALLED")
             this.isActive = bool;
         }
         alternateCursor() {
@@ -641,9 +647,6 @@
             this.lines = this.wrapText(text, this.width);
         }
         wrapText(text, maxWidth) {
-            if(this.hasCursor){
-                this.alternateCursor()
-            }
             let words = text.split(' ');
             let lines = [];
             let currentLine = '';
@@ -675,7 +678,6 @@
         externalRender() {
             let matrix = generateEmptyMatrix(this.width, this.height);
             let currentY = this.y;
-            // console.log("LINES: ", this.lines)
             this.lines.forEach(line => {
                 let renderedLine = this.color === null ? 
                     this.textRenderer.renderText(line) :

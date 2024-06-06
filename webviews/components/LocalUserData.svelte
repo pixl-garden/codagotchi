@@ -18,6 +18,4 @@
       this.inventory = createInventoryFromSave(userData.owned.inventory);
     }
   }
-
-
 </script>
