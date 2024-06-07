@@ -6,7 +6,7 @@
     import { game, textInput } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix } from './MatrixFunctions.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix } from './MatrixFunctions.svelte';
     
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
@@ -862,7 +862,7 @@
         }
 
         decrementSize() {
-            if( this.brushSize > 2 ) {
+            if( this.brushSize >= 2 ) {
                 this.brushSize -= 2;
             }
         }
@@ -1194,8 +1194,10 @@
     }
 
     export class Menu extends GeneratedObject {
-        constructor(x, y, z, width, height, borderColor, backgroundColor, roundness){
-            const backgroundMatrix = generateStatusBarSprite(width, height, borderColor, backgroundColor, '#000000', 0, roundness);
+        constructor(x, y, z, width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+                outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1){
+            const backgroundMatrix = generateMenuMatrix(width, height, bgColor, innerBorderColor, outerBorderColor, 
+                innerRoundness, outerRoundness, innerBorderThickness, outerBorderThickness);
             super([backgroundMatrix], { default: [0] }, x, y, z);
             this.width = width;
             this.height = height;
@@ -1204,20 +1206,22 @@
 
     export class ColorButton extends GeneratedObject {
         constructor(color, x, y, z, actionOnClick, width, height){
-            const defaultSprite = generateRectangleMatrix(width, height, color);
-            const hoverSprite = generateRectangleMatrix(width, height, color);
-            super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+            const defaultSprite = generateColorButtonMatrix(width, height, color);
+            super([defaultSprite, defaultSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
             this.color = color;
             this.width = width;
             this.height = height;
         }
     }
     
+
     //    export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
     //topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
     export class ColorMenu extends Menu {
-        constructor(x, y, z, width, height, borderColor, backgroundColor, roundness, colorSize, colorSpacing, columns, rows, colorArray, colorFunction){
-            super(x, y, z, width, height, borderColor, backgroundColor, roundness);
+        constructor(x, y, z, width, height, colorSize, colorSpacing, columns, rows, colorArray, colorFunction, 
+                bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1){
+            super(x, y, z, width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+                outerRoundness, innerBorderThickness , outerBorderThickness);
             this.colorSize = colorSize;
             this.colorArray = colorArray;
             this.colorFunction = colorFunction;
@@ -1241,7 +1245,7 @@
         }
         //constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
         generateColorGrid(){
-            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 3, 3, this.z, this.buttons, 0, 0, "horizontal", 0);
+            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 7, 7, this.z, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
         }
 

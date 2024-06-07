@@ -45,7 +45,8 @@
             get(game).setCurrentRoom('mainRoom');           
             petObject.setCoordinate(36, 54, 0)
         }, 10);
-         
+        //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
+        let defaultMenuParams = ["#59585a", "#2b2a2b", "black", 2, 5, 3, 1];
 
     //----------------MAIN ROOM----------------
         //STATUS BAR INSTANTIATION
@@ -154,9 +155,28 @@
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0);
         }, 5);
-        let colorMenuObj = new ColorMenu(6, 16, 12, 36, 36, "#8B9BB4", "#BEC8DA", 3, 6, 2, 4, 4, 
-        ["red", "orange", "green", "blue", "darkslateblue", "purple", "magenta", "lime", "pink", "azure", "beige", "greenyellow", "indianred", "lightcoral", "white", "black"],
-         (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); });
+
+        let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, 
+        [
+            "#FF0000",  // red
+            "#FFA500",  // orange
+            "#008000",  // green
+            "#0000FF",  // blue
+            "#483D8B",  // darkslateblue
+            "#800080",  // purple
+            "#FF00FF",  // magenta
+            "#00FF00",  // lime
+            "#FFC0CB",  // pink
+            "#F0FFFF",  // azure
+            "#F5F5DC",  // beige
+            "#ADFF2F",  // greenyellow
+            "#CD5C5C",  // indianred
+            "#F08080",  // lightcoral
+            "#FFFFFF",  // white
+            "#000000"   // black
+        ],
+         (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); },
+        '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
         let paintButton1 = new paintButtonText('col', 14, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 paintRoom.removeObject(colorMenuObj);
