@@ -10,17 +10,7 @@
         return sprite;
     }
 
-    //TODO - combine rectangle and rounded rectangle functions into one function
-    export function generateRectangleMatrix(width, height, color) {
-        const sprite = [];
-        for (let i = 0; i < height; i++) {
-            const row = Array(width).fill(color);
-            sprite.push(row);
-        }
-        return sprite;
-    }
-
-    export function generateRoundedRectangleMatrix(width, height, color, rounding) {
+    export function generateRectangleMatrix(width, height, color, rounding = 0) {
         const sprite = [];
 
         // Cap the rounding to half the width or height, whichever is smallest
@@ -199,8 +189,8 @@
     }
 
     export function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
-        const backgroundSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
-        const innerBackground = generateRoundedRectangleMatrix(width - 2, height - 2, bgColor, roundness);
+        const backgroundSprite = generateRectangleMatrix(width, height, borderColor, roundness);
+        const innerBackground = generateRectangleMatrix(width - 2, height - 2, bgColor, roundness);
         let statusBarSprite = overlayMatrix(backgroundSprite, innerBackground, 0, 0, 1, 1);
 
         // Create the border overlay sprite by replacing the background color with transparent
@@ -209,7 +199,7 @@
         if (filledWidth > 0) {
             // Adjust the filledWidth to account for the border
             filledWidth = Math.min(filledWidth, width - 2);
-            let filledStatusBarSprite = generateRoundedRectangleMatrix(filledWidth, height - 2, statusBarColor, roundness);
+            let filledStatusBarSprite = generateRectangleMatrix(filledWidth, height - 2, statusBarColor, roundness);
 
             // Overlay the filled status bar onto the combined border and background sprite
             statusBarSprite = overlayMatrix(statusBarSprite, filledStatusBarSprite, 0, 0, 1, 1);
@@ -241,7 +231,7 @@
         borderThickness = Math.min(borderThickness, Math.floor(width / 2), Math.floor(height / 2));
 
         // Create the outer rounded rectangle sprite for the border
-        const outerSprite = generateRoundedRectangleMatrix(width, height, borderColor, roundness);
+        const outerSprite = generateRectangleMatrix(width, height, borderColor, roundness);
 
         // Adjust the innerWidth and innerHeight based on the border thickness
         const innerWidth = width - (borderThickness * 2);
@@ -249,7 +239,7 @@
 
         // Create the inner rounded rectangle sprite for the input field background and cap roundness to half the width or height, whichever is smallest
         const innerRoundness = Math.min(roundness, Math.floor(innerWidth / 2), Math.floor(innerHeight / 2));
-        const innerSprite = generateRoundedRectangleMatrix(innerWidth, innerHeight, bgColor, innerRoundness);
+        const innerSprite = generateRectangleMatrix(innerWidth, innerHeight, bgColor, innerRoundness);
 
         // Overlay the inner sprite onto the outer sprite to create the text input background and offset it by the border thickness
         let textInputSprite = overlayMatrix(outerSprite, innerSprite, 0, 0, borderThickness, borderThickness);
@@ -272,7 +262,7 @@
         const backgroundHeight = textSprite.length + padding * 2;
 
         // Generate the rounded rectangle matrix for the tooltip background
-        const backgroundSprite = generateRoundedRectangleMatrix(backgroundWidth, backgroundHeight, backgroundColor, rounding);
+        const backgroundSprite = generateRectangleMatrix(backgroundWidth, backgroundHeight, backgroundColor, rounding);
 
         // Overlay the text sprite onto the background sprite, centered
         const textXOffset = padding;
@@ -280,11 +270,89 @@
         const tooltipSprite = overlayMatrix(backgroundSprite, textSprite, 0, 0, textXOffset, textYOffset);
 
         // Optionally, if you want a border around the tooltip, you can first generate a larger background for the border
-        const borderBackgroundSprite = generateRoundedRectangleMatrix(backgroundWidth + 2, backgroundHeight + 2, borderColor, rounding + 1);
+        const borderBackgroundSprite = generateRectangleMatrix(backgroundWidth + 2, backgroundHeight + 2, borderColor, rounding + 1);
         // Then overlay the tooltip sprite (background + text) onto this border sprite
         const finalTooltipSprite = overlayMatrix(borderBackgroundSprite, tooltipSprite, 0, 0, 1, 1);
 
         return finalTooltipSprite;
     }
-    
+
+    export function generateMenuMatrix(width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1) {
+        
+        console.log("width: ", width, "height: ", height, "bgColor: ", bgColor, "innerBorderColor: ", innerBorderColor, "outerBorderColor: ", outerBorderColor, "innerRoundness: ", innerRoundness, "outerRoundness: ", outerRoundness, "innerBorderThickness: ", innerBorderThickness, "outerBorderThickness: ", outerBorderThickness)
+        // Ensure the border thickness doesn't exceed half the width or height of the sprite
+        innerBorderThickness = Math.min(innerBorderThickness, Math.floor(width / 2), Math.floor(height / 2));
+        outerRoundness = Math.min(outerRoundness, Math.floor(width / 2), Math.floor(height / 2));
+        // Create the outer rounded rectangle sprite for the border
+        const outerBorderSprite = generateRectangleMatrix(width, height, outerBorderColor, outerRoundness);
+
+        const innerBorderWidth = width - (outerBorderThickness * 2);
+        const innerBorderHeight = height - (outerBorderThickness * 2);
+
+        const innerBorderSprite = generateRectangleMatrix(innerBorderWidth, innerBorderHeight, innerBorderColor, outerRoundness);
+        console.log("innerBorderThickness: ", innerBorderThickness, "outerBorderThickness: ", outerBorderThickness);
+        // Adjust the centerWidth and centerHeight based on the border thickness
+        const centerWidth = width - (innerBorderThickness * 2) - (outerBorderThickness * 2);
+        const centerHeight = height - (innerBorderThickness * 2) - (outerBorderThickness * 2);
+        console.log("centerWidth=", centerWidth, "centerHeight", centerHeight, "bgColor", bgColor, "innerRoundness", innerRoundness, "innerBorderThickness", innerBorderThickness, "outerBorderThickness", outerBorderThickness)
+
+        // Create the inner rounded rectangle sprite for the input field background and cap roundness to half the width or height, whichever is smallest
+        innerRoundness = Math.min(innerRoundness, Math.floor(centerWidth / 2), Math.floor(centerHeight / 2));
+        const innerSprite = generateRectangleMatrix(centerWidth, centerHeight, bgColor, innerRoundness);
+
+        console.log("outerBorderSprite: ", outerBorderSprite, "innerBorderSprite: ", innerBorderSprite, "innerSprite: ", innerSprite);
+        
+        // Overlay the inner sprite onto the outer sprite to create the text input background and offset it by the border thickness
+        let layerOneSprite = overlayMatrix(outerBorderSprite, innerBorderSprite, 0, 0, outerBorderThickness, outerBorderThickness);
+
+        // Overlay the text sprite on the left side of the text input, starting after the border thickness
+        let layerTwoSprite = overlayMatrix(layerOneSprite, innerSprite, 0, 0, innerBorderThickness + outerBorderThickness, innerBorderThickness + outerBorderThickness);
+
+        console.log("layerOneSprite: ", layerOneSprite, "layerTwoSprite: ", layerTwoSprite);
+        return layerTwoSprite;
+    }
+
+    export function generateColorButtonMatrix(width, height, color) { 
+        const topShadowColor = adjustColor(color, 10);
+        const bottomShadowColor = adjustColor(color, -10);
+
+        console.log("topShadowColor: ", topShadowColor, "bottomShadowColor: ", bottomShadowColor)
+
+        let buttonSprite = generateRectangleMatrix(width, height, color);
+
+        const topShadowHorizontal = generateRectangleMatrix(width, 1, topShadowColor);
+        const topShadowVertical = generateRectangleMatrix(1, height, topShadowColor); // Extend to the full height
+        buttonSprite = overlayMatrix(buttonSprite, topShadowHorizontal, 0, 0, 0, 0);
+        buttonSprite = overlayMatrix(buttonSprite, topShadowVertical, 0, 0, 0, 0);
+
+        const bottomShadowHorizontal = generateRectangleMatrix(width, 1, bottomShadowColor);
+        const bottomShadowVertical = generateRectangleMatrix(1, height, bottomShadowColor); // Extend to the full height
+        buttonSprite = overlayMatrix(buttonSprite, bottomShadowHorizontal, 0, 0, 0, height - 1);
+        buttonSprite = overlayMatrix(buttonSprite, bottomShadowVertical, 0, 0, width - 1, 0);
+
+        return buttonSprite;
+    }
+
+    function adjustColor(hex, percent) {
+        // Parse the hex color to get the RGB components
+        let r = parseInt(hex.slice(1, 3), 16);
+        let g = parseInt(hex.slice(3, 5), 16);
+        let b = parseInt(hex.slice(5, 7), 16);
+
+        // Calculate the adjustment value based on the percent parameter
+        let amount = Math.floor((percent / 100) * 255);
+
+        // Adjust the RGB values and ensure they remain within the 0-255 range
+        r = Math.max(0, Math.min(255, r + amount));
+        g = Math.max(0, Math.min(255, g + amount));
+        b = Math.max(0, Math.min(255, b + amount));
+
+        // Convert the RGB values back to hexadecimal format
+        r = r.toString(16).padStart(2, '0');
+        g = g.toString(16).padStart(2, '0');
+        b = b.toString(16).padStart(2, '0');
+
+        // Return the new hex color
+        return `#${r}${g}${b}`;
+    }
 </script>
