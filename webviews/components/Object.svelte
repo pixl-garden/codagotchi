@@ -572,11 +572,13 @@
         }
 
         setStamp(stampItem) {
-            this.stampItem = stampItem;
-            this.clearStamp();
-            console.log("stamp array?? ", this.stampItem.states["default"] )
-            let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
-            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 86, 8);
+            if( stampItem !== this.stampItem) {
+                this.stampItem = stampItem;
+                this.clearStamp();
+                console.log("stamp array?? ", this.stampItem.states["default"] )
+                let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
+                this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 86, 8);
+            }
         }
 
         clearStamp() {
@@ -646,34 +648,70 @@
             this.text = text;
             this.lines = this.wrapText(text, this.width);
         }
+
         wrapText(text, maxWidth) {
             let words = text.split(' ');
             let lines = [];
             let currentLine = '';
             let currentWidth = 0;
+            const spaceWidth = this.textRenderer.measureText(' ');
 
-            words.forEach(word => {
+            words.forEach((word) => {
+                if (word === '') {
+                    // handle multiple spaces
+                    currentLine += ' ';
+                    currentWidth += spaceWidth;
+                    return;
+                }
                 let wordWidth = this.textRenderer.measureText(word);
-                let spaceWidth = this.textRenderer.measureText(' ');
-                if (currentWidth + wordWidth> maxWidth) {
-                    lines.push(currentLine.trim());
-                    currentLine = word + ' ';
-                    currentWidth = wordWidth + spaceWidth;
+                if (wordWidth > maxWidth) {
+                    // Handle long words by breaking them with hyphenation
+                    if (currentWidth > 0) {  // Push current line and start a new one if not empty
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                        currentWidth = 0;
+                    }
+                    while (wordWidth > maxWidth) {
+                        let part = word;
+                        while (this.textRenderer.measureText(part + '-') > maxWidth) {
+                            part = part.slice(0, -1);  // Continuously remove the last character
+                        }
+                        if (part.length < word.length) { // Only add hyphen if part was actually cut
+                            lines.push(part + '-');
+                            word = word.substring(part.length);  // Remove the part from the word
+                        } else { // If the whole part fits and it's exactly the word, no hyphen needed
+                            lines.push(part);
+                            word = '';
+                        }
+                        wordWidth = this.textRenderer.measureText(word);  // Measure remaining part
+                    }
+                    if (word) { // If there's any remainder that fits within maxWidth
+                        currentLine = word + ' ';
+                        currentWidth = this.textRenderer.measureText(currentLine);
+                    }
                 } else {
-                    currentLine += word + ' ';
-                    currentWidth += wordWidth + spaceWidth;
+                    // Proceed as normal if the word fits in the width
+                    if (currentWidth + wordWidth > maxWidth) {
+                        lines.push(currentLine.trim());
+                        currentLine = word + ' ';
+                        currentWidth = wordWidth + spaceWidth;
+                    } else {
+                        currentLine += word + ' ';
+                        currentWidth += wordWidth + spaceWidth;
+                    }
                 }
             });
 
             if (currentLine) {
-                if(this.isActive && this.showingCursor){
-                    currentLine = currentLine.slice(0, -1) + '|';
+                if(this.isActive && this.showingCursor) {
+                    currentLine = currentLine.slice(0, -1) + '|';  // Adjust for cursor display
                 }
                 lines.push(currentLine.trim());
             }
 
             return lines;
         }
+
 
         externalRender() {
             let matrix = generateEmptyMatrix(this.width, this.height);
