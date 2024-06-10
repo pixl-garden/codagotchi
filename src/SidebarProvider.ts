@@ -3,9 +3,10 @@ import { merge } from 'lodash';
 import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package installed.
-import database from './firebaseInit';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { database, app, firebaseConfig } from './firebaseInit';
+import { getAuth, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
 const CLIENT_ID = 'a253a1599d7b631b091a';
@@ -17,6 +18,64 @@ let githubUsername = '';
 const state = uuidv4();
 
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
+
+async function signInWithCustomTokenViaREST(customToken: string, context: vscode.ExtensionContext) {
+    const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${firebaseConfig.apiKey}`;
+    const auth = getAuth();
+    console.log("Signing in with custom token")
+    try {
+        const response = await axios.post(signInUrl, {
+            token: customToken,
+            returnSecureToken: true  // Must be true to get a refresh token
+        });
+        const { idToken, refreshToken } = response.data;
+        console.log("ID Token:", idToken);
+        console.log("Refresh Token:", refreshToken);
+        
+        // Store the refresh token in VSCode's secret storage
+        await context.secrets.store("refreshToken", refreshToken);
+
+        // Set Firebase Auth state in the SDK
+        // await signInWithCustomToken(auth, idToken);
+
+        return { idToken, refreshToken };
+    } catch (error) {
+        console.error("Error signing in with custom token:", error);
+        throw error;
+    }
+}
+
+// Function to refresh the ID token using the refresh token
+
+async function refreshToken(refreshToken: string, context: vscode.ExtensionContext) {
+    const refreshTokenUrl = `https://securetoken.googleapis.com/v1/token?key=${firebaseConfig.apiKey}`;
+    const auth = getAuth();
+    try {
+        const response = await axios.post(refreshTokenUrl, {
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+        });
+        const { id_token, refresh_token } = response.data;
+        console.log("New ID Token:", id_token);
+        console.log("New Refresh Token:", refresh_token);
+
+        // Update the refresh token in the secret storage
+        await context.secrets.store("refreshToken", refresh_token);
+
+        // Update Firebase Auth state with the new ID token
+        auth.currentUser?.getIdToken(/* forceRefresh */ true).then(updatedToken => {
+            console.log('Updated Firebase Auth Token:', updatedToken);
+            // Optionally, use the updatedToken as needed in your application
+        }).catch(error => {
+            console.error('Error updating Firebase Auth Token:', error);
+        });
+
+        return { idToken: id_token, refreshToken: refresh_token };
+    } catch (error) {
+        console.error("Error refreshing token:", error);
+        throw error;
+    }
+}
 
 // Set the Global State (with merging)
 // ---- Example usage: ----
@@ -96,6 +155,7 @@ async function printUserPublicData(userId: string) {
         console.error("Error fetching public user data:", error);
     }
 }
+
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -171,6 +231,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         type: 'image-uris',
                         uris: webviewImageUris,
                     });
+                    refreshToken(await this.context.secrets.get("refreshToken") || '', this.context);
                     break;
                 }
 
@@ -241,7 +302,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                             console.error('Error storing user data in the database:', error);
                                         }
 
-                                        printUserPublicData('103673149');
+                                        // printUserPublicData('103673149');
+                                        signInWithCustomTokenViaREST(firebaseToken, this.context);
 
                                         // Remove the listener after successful authentication
                                         off(tokenRef, 'value', tokenListener);
@@ -288,6 +350,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 case 'resize': {
                     const width = data.width;
                     const height = data.height;
+                    printUserPublicData('103673149');
 
                     // Now you have the dimensions of the WebView
                     console.log(`WebView dimensions: ${width}x${height}`);
