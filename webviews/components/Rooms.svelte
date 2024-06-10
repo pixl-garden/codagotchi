@@ -1,9 +1,9 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
-    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass } from './ObjectGenerators.svelte';
+    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
@@ -15,8 +15,10 @@
             //textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
         let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", 1, standardCharMap);
         let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
-        let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
-        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
+        let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
+        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#000000", 1, standardCharMap);
+        let retroShadow = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
+        let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -28,15 +30,16 @@
         const smallLetterButton = generateTextButtonClass(10, 10, ...defaultButtonParams);
         const settingsTitleButton = generateTextButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
         const friendTitle = generateTextButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const friendButton = generateTextButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retro, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
-        const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retro, '#5356b2', '#777cff', "#5e62af", "#a389ff");
-        const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        const squarePaintTextButton = generateTextButtonClass(15, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const friendButton = generateTextButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retroShadow, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
+        const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retroShadow, '#5356b2', '#777cff', "#5e62af", "#a389ff");
+        const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retroShadow, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const squarePaintTextButton = generateTextButtonClass(15, 15, '#8B9BB4', 'black', '#616C7E', 'black', retroShadow, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retro, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retroShadow, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
         const invisibleStampButton = generateInvisibleButtonClass(24, 24);
         const invisiblePostcardTextInputButton = generateInvisibleButtonClass(80, 80);
         const socialTabButton = generateTextButtonClass(57, 16, ...defaultButtonParams);
+        const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
 
 
     //---------------GENERAL OBJECTS----------------
@@ -179,9 +182,10 @@
         '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
         let paintButton1 = new paintButtonText('col', 14, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
-                paintRoom.removeObject(colorMenuObj);
+                closeAllPaintMenus();
             }
             else{
+                closeAllPaintMenus();
                 paintRoom.addObject(colorMenuObj);
             }
         }, 5);
@@ -227,7 +231,8 @@
         let redoButton = new paintButtonText('R', 72, 113, ()=>{
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         }, 5);
-        let flipButton = new paintButtonText('F', 24, 113, ()=>{
+
+        let flipButton = new Button('flipButton', 57, 104, () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
                 get(game).getCurrentRoom().addObject( stampButton );
@@ -235,8 +240,41 @@
                 get(game).getCurrentRoom().removeObject( postcardTextInputButton );
                 get(game).getCurrentRoom().removeObject( stampButton );
             }
+            closeAllPaintMenus();
             postcardRendering.flipPostcard();
         }, 5);
+
+        // FONT MENU INSTANTIATION
+        let fontMenuButton = new paintButtonText('T', 24, 113, ()=>{
+            if(paintRoom.objects.includes(fontButtonList)) {
+                closeAllPaintMenus();
+            }
+            else{
+                closeAllPaintMenus();
+                paintRoom.addObject(fontButtonList);
+                paintRoom.addObject(fontMenu);
+            }
+        }, 5);
+        let tinyButton = new fontButton('tiny', 60, 60, ()=>{
+            postcardRendering.setTextRenderer(tiny);
+            closeAllPaintMenus();
+        }, 30, tiny, 2);
+        let gangButton = new fontButton('gang', 75, 60, ()=>{
+            postcardRendering.setTextRenderer(gang);
+            closeAllPaintMenus();
+        }, 30, gang, -1);
+        let retroButton = new fontButton('retro', 100, 60, ()=>{
+            postcardRendering.setTextRenderer(retro);
+            closeAllPaintMenus();
+        }, 30, retro);
+        let basicButton = new fontButton('basic', 115, 60, ()=>{
+            postcardRendering.setTextRenderer(basic);
+            closeAllPaintMenus();
+        }, 30, basic);
+        let fontButtonArray = [tinyButton, gangButton, retroButton, basicButton];
+
+        let fontButtonList = new objectGrid(1, 0, fontButtonArray.length, -1, 12, 22, 30, fontButtonArray);
+        let fontMenu = new Menu(6, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
 
         // STAMP MENU INSTANTIATION
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
@@ -247,8 +285,7 @@
                     output.onStopHover();
                     stampGrid.displayToolTip = false;
                     postcardRendering.setStamp(output.slotItem);
-                    get(game).getCurrentRoom().removeObject( stampMenu );
-                    get(game).getCurrentRoom().removeObject( stampGrid );
+                    closeAllPaintMenus();
                 }
             });
             output.hoverWithChildren = true;
@@ -260,11 +297,12 @@
         let stampArray = get(game).inventory.getItemsByType('stamp');
         let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
         // stampMenu.addChild(stampGrid);
-        let stampButton = new invisibleStampButton(90, 30, 11, ()=>{
+        let stampButton = new invisibleStampButton(90, 30, 11, () => {
+            closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
         })
-        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 24, 11, ()=>{
+        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 24, 11, () => {
             if(get(shouldFocus) === false){
                 shouldFocus.set(true);
                 postcardRendering.setTextActive(true);
@@ -275,7 +313,22 @@
             }
         })
         paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
-               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, flipButton, bucketButton);
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, 
+               flipButton, bucketButton, fontMenuButton );
+
+        function closeAllPaintMenus(){
+            if(paintRoom.objects.includes(colorMenuObj)){
+                paintRoom.removeObject(colorMenuObj);
+            }
+            if(paintRoom.objects.includes(fontButtonList)){
+                paintRoom.removeObject(fontButtonList);
+                paintRoom.removeObject(fontMenu);
+            }
+            if(paintRoom.objects.includes(stampMenu)){
+                paintRoom.removeObject(stampMenu);
+                paintRoom.removeObject(stampGrid);
+            }
+        }
 
     //----------------SOCIAL ROOM----------------
        
@@ -397,7 +450,7 @@
             return output;
         }
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tiny);
+        let inventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tinyShadow);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom');
         inventoryRoom.addObject(backToMain, inventoryGridTest);
