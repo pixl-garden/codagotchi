@@ -142,7 +142,8 @@
         return outputMatrix;
     }
 
-    export function generateButtonMatrix( width, height, bgColor, borderColor, displaySprite, bottomShadowColor = null, topShadowColor = null, layout = "center", offset = 0 ) {
+    export function generateButtonMatrix( width, height, bgColor, borderColor, displaySprite, bottomShadowColor = null, topShadowColor = null, layout = "center", 
+                                          textXOffset = 0, textYOffset = 1) {
         const outerSprite = generateRectangleMatrix(width, height, borderColor);
         const innerWidth = width - 2;
         const innerHeight = height - 2;
@@ -171,16 +172,16 @@
             displaySpriteX = Math.floor((innerWidth - displaySprite[0].length) / 2) + 1;
         }
         else if(layout === "left"){
-            displaySpriteX = 1 + offset;
+            displaySpriteX = 1 + textXOffset;
         }
         else if(layout === "right"){
-            displaySpriteX = innerWidth - displaySprite[0].length - offset;
+            displaySpriteX = innerWidth - displaySprite[0].length - textXOffset;
         }
         else{
             displaySpriteX = Math.floor((innerWidth - displaySprite[0].length) / 2) + 1;
         }
         
-        let displaySpriteY = Math.floor((innerHeight - displaySprite.length) / 2) + 1;
+        let displaySpriteY = Math.floor((innerHeight - displaySprite.length) / 2) + textYOffset;
 
         // Overlay the sprite in the center of the button
         const finalButtonSprite = overlayMatrix(buttonSprite, displaySprite, 0, 0, displaySpriteX, displaySpriteY);

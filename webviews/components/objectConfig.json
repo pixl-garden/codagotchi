@@ -156,6 +156,15 @@
             "hovered": [1]
         }
     },
+    "flipButton":{
+        "spriteWidth": 14,
+        "spriteHeight": 9,
+        "spriteSheet": "flipArrows.png",
+        "states": {
+            "default": [0],
+            "hovered": [0]
+        }
+    },
     "testItem":{
         "spriteWidth": 32,
         "spriteHeight": 32,

@@ -430,6 +430,10 @@
             this.state = "front";
             this.stampItem;
         }
+        setTextRenderer(textRenderer){
+            this.textRenderer = textRenderer;
+            this.backPixelCanvas.multiLineTextRenderer.textRenderer = textRenderer;
+        }
         setTextActive(bool) {
             this.backPixelCanvas.setTextActive(bool);
         }

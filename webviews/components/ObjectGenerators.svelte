@@ -47,6 +47,29 @@
             };
         }
 
+    export function generateFontTextButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered,
+        topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
+            return class Button extends GeneratedObject {
+                constructor(text, x, y, actionOnClick, z, textRenderer, textYOffset = 1) {
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset, textYOffset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset, textYOffset);
+
+                    // State management: 0 for default sprite and 1 for hover sprite
+                    super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+                }
+
+                onHover() {
+                    super.onHover(); // Call parent's hover function
+                    this.updateState('hovered');
+                }
+
+                onStopHover() {
+                    super.onStopHover(); // Call parent's stop hover function
+                    this.updateState('default');
+                }
+            };
+        }
+
     
     export function generateIconButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered,  
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
