@@ -6,6 +6,7 @@
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
+    import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     
     export function preloadObjects() {
@@ -24,21 +25,20 @@
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
         //   topShadowColor, bottomShadowColor, topHoverShadowColor, bottomHoverShadowColor,
         //   textAlign ("center" "left" or "right"), margin (only for left or right align))
-        const defaultButtonParams = ['#7997bc', 'black', '#426b9e', 'black', basic, '#47596f', '#a4ccff', '#223751', "#629de9"]
-        const settingsMenuButton = generateTextButtonClass(128, 17, ...defaultButtonParams);
-        const singleLetterButton = generateTextButtonClass(16, 16, ...defaultButtonParams);
-        const smallLetterButton = generateTextButtonClass(10, 10, ...defaultButtonParams);
-        const settingsTitleButton = generateTextButtonClass(128, 13, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const friendTitle = generateTextButtonClass(128, 15, '#426b9e', 'black', '#426b9e', 'black', basic, '#223751', "#629de9", '#223751', "#629de9");
-        const friendButton = generateTextButtonClass(128, 18, '#7997bc', 'black', '#223751', 'black', retroShadow, '#47596f', '#a4ccff','#1b2e43', '#2b4669', "left", 2);
-        const dropDownButton = new generateTextButtonClass(58, 13, '#6266d1', 'black', '#888dfc', 'black', retroShadow, '#5356b2', '#777cff', "#5e62af", "#a389ff");
-        const paintButtonText = generateTextButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', retroShadow, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        const squarePaintTextButton = generateTextButtonClass(15, 15, '#8B9BB4', 'black', '#616C7E', 'black', retroShadow, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        const paintButtonIcon = generateIconButtonClass(25, 15, '#8B9BB4', 'black', '#616C7E', 'black', '#5B6A89', '#BEC8DA','#848B97', '#424D64');
-        const brushSizeButton = generateTextButtonClass(10, 15, '#8B9BB4', 'black', '#616C7E', 'black', retroShadow, '#5B6A89', '#BEC8DA','#848B97', '#424D64');
+        const settingsMenuButton = generateTextButtonClass(128, 17, basic, ...Colors.secondaryMenuColorParams);
+        const singleLetterButton = generateTextButtonClass(16, 16, basic, ...Colors.secondaryMenuColorParams);
+        const smallLetterButton = generateTextButtonClass(10, 10, basic, ...Colors.secondaryMenuColorParams);
+        const settingsTitleButton = generateTextButtonClass(128, 13, basic, ...Colors.secondaryMenuTitleColorParams);
+        const friendTitle = generateTextButtonClass(128, 15, basic, ...Colors.secondaryMenuColorParams);
+        const friendButton = generateTextButtonClass(128, 18, retroShadow, ...Colors.secondaryMenuColorParams, "left", 2);
+        const dropDownButton = new generateTextButtonClass(58, 13, retroShadow, ...Colors.mainMenuColorParams);
+        const paintButtonText = generateTextButtonClass(25, 15, retroShadow, ...Colors.secondaryMenuColorParams);
+        const squarePaintTextButton = generateTextButtonClass(15, 15, retroShadow, ...Colors.secondaryMenuColorParams);
+        const paintButtonIcon = generateIconButtonClass(25, 15, ...Colors.secondaryMenuColorParams);
+        const brushSizeButton = generateTextButtonClass(10, 15, retroShadow, ...Colors.secondaryMenuColorParams);
         const invisibleStampButton = generateInvisibleButtonClass(24, 24);
         const invisiblePostcardTextInputButton = generateInvisibleButtonClass(80, 80);
-        const socialTabButton = generateTextButtonClass(57, 16, ...defaultButtonParams);
+        const socialTabButton = generateTextButtonClass(57, 16, basic, ...Colors.secondaryMenuColorParams);
         const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
 
 
@@ -148,7 +148,7 @@
         });
 
         //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 16, 0, 120, 94, 120, 80, gang);
+        let postcardRendering = new postcardRenderer(4, 12, 0, 120, 94, 120, 80, gang);
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
@@ -161,22 +161,22 @@
 
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, 
         [
-            "#FF0000",  // red
-            "#FFA500",  // orange
-            "#008000",  // green
-            "#0000FF",  // blue
-            "#483D8B",  // darkslateblue
-            "#800080",  // purple
-            "#FF00FF",  // magenta
-            "#00FF00",  // lime
-            "#FFC0CB",  // pink
-            "#F0FFFF",  // azure
-            "#F5F5DC",  // beige
-            "#ADFF2F",  // greenyellow
-            "#CD5C5C",  // indianred
-            "#F08080",  // lightcoral
-            "#FFFFFF",  // white
-            "#000000"   // black
+            Colors.red,  
+            Colors.orange,  
+            Colors.green,  
+            Colors.blue,  
+            Colors.darkslateblue,  
+            Colors.purple,  
+            Colors.magenta,  
+            Colors.lime,  
+            Colors.pink,  
+            Colors.azure,  
+            Colors.beige,  
+            Colors.greenyellow,  
+            Colors.indianred,  
+            Colors.lightcoral,  
+            Colors.white,  
+            Colors.black
         ],
          (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); },
         '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
@@ -302,7 +302,7 @@
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
         })
-        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 24, 11, () => {
+        let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
             if(get(shouldFocus) === false){
                 shouldFocus.set(true);
                 postcardRendering.setTextActive(true);

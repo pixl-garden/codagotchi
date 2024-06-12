@@ -24,12 +24,12 @@
         };
     }
 
-    export function generateTextButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
+    export function generateTextButtonClass( width, height, textRenderer, bgColor, borderColor, bgColorHovered, borderColorHovered,
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(text, x, y, actionOnClick, z) {
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset );
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), bottomShadowHover, topShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
@@ -76,8 +76,8 @@
             return class Button extends GeneratedObject {
                 constructor(iconSprite, hoveredIconSprite, x, y, actionOnClick, z) {
                     console.log(iconSprite, hoveredIconSprite);
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, iconSprite, topShadow, bottomShadow, layout, offset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, hoveredIconSprite, topShadowHover, bottomShadowHover, layout, offset );
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, iconSprite, bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, hoveredIconSprite, bottomShadowHover, topShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
