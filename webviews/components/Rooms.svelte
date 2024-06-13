@@ -33,14 +33,15 @@
         const friendTitle = generateTextButtonClass(128, 15, basic, ...Colors.secondaryMenuColorParams);
         const friendButton = generateTextButtonClass(128, 18, retroShadow, ...Colors.secondaryMenuColorParams, "left", 2);
         const dropDownButton = new generateTextButtonClass(58, 13, retroShadow, ...Colors.mainMenuColorParams);
-        const paintButtonText = generateTextButtonClass(25, 15, retroShadow, ...Colors.secondaryMenuColorParams);
-        const squarePaintTextButton = generateTextButtonClass(15, 15, retroShadow, ...Colors.secondaryMenuColorParams);
-        const paintButtonIcon = generateIconButtonClass(25, 15, ...Colors.secondaryMenuColorParams);
-        const brushSizeButton = generateTextButtonClass(10, 15, retroShadow, ...Colors.secondaryMenuColorParams);
-        const invisibleStampButton = generateInvisibleButtonClass(24, 24);
+        const paintButtonText = generateTextButtonClass(17, 15, retroShadow, ...Colors.secondaryMenuColorParams);
+        const squarePaintTextButton = generateTextButtonClass(11, 15, retroShadow, ...Colors.secondaryMenuColorParams);
+        const paintButtonIcon = generateIconButtonClass(17, 15, ...Colors.secondaryMenuColorParams);
+        const brushSizeButton = generateTextButtonClass(8, 15, retroShadow, ...Colors.secondaryMenuColorParams);
+        const invisibleStampButton = generateInvisibleButtonClass(21, 21);
         const invisiblePostcardTextInputButton = generateInvisibleButtonClass(80, 80);
         const socialTabButton = generateTextButtonClass(57, 16, basic, ...Colors.secondaryMenuColorParams);
         const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
+        const paintUnhoverableButton = generateTextButtonClass(12, 15, retroShadow, ...Colors.secondaryMenuUnhoverableColorParams);
 
 
     //---------------GENERAL OBJECTS----------------
@@ -149,7 +150,7 @@
         });
 
         //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 19, 0, 120, 80, 120, 80, gang);
+        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang);
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
@@ -187,7 +188,7 @@
         },
         '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
         let defaultColorButtonIcon = generateColorButtonMatrix(9, 9, Colors.black)
-        let colorButton = new paintButtonIcon(defaultColorButtonIcon, defaultColorButtonIcon, 14, 0, ()=>{
+        let colorButton = new paintButtonIcon(defaultColorButtonIcon, defaultColorButtonIcon, 10, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 closeAllPaintMenus();
             }
@@ -196,70 +197,46 @@
                 paintRoom.addObject(colorMenuObj);
             }
         }, 5);
-        let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 38, 0, ()=>{
+        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 26, 0, ()=>{
+            postcardRendering.currentCanvas.setToPencilColor()
+        }, 5);
+        let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 42, 0, ()=>{
             postcardRendering.currentCanvas.setEraser();
         }, 5);
+        let bucketButton = new paintButtonIcon(paintButtonSprites[6], paintButtonSprites[6], 58, 0, ()=>{
+            postcardRendering.currentCanvas.toggleFill();
+        }, 5);
 
-        let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 62, 0, ()=>{
+        let shapeButtonCircle = new paintButtonIcon(paintButtonSprites[2], paintButtonSprites[2], 74, 0, ()=>{
             postcardRendering.currentCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonSquare);
             shapeButtonSquare.onHover();
             paintRoom.removeObject(shapeButtonCircle);
         }, 5);
-        let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 62, 0, ()=>{
+        let shapeButtonSquare = new paintButtonIcon(paintButtonSprites[3], paintButtonSprites[3], 74, 0, ()=>{
             postcardRendering.currentCanvas.rotateBrushShape();
             paintRoom.addObject(shapeButtonCircle);
             shapeButtonCircle.onHover();
             paintRoom.removeObject(shapeButtonSquare);
         }, 5);
-        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 104, 0, ()=>{
+        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 112, 0, ()=>{
             postcardRendering.currentCanvas.clearCanvas();
         }, 5);
-        let bucketButton = new paintButtonIcon(paintButtonSprites[6], paintButtonSprites[6], 86, 0, ()=>{
-            postcardRendering.currentCanvas.toggleFill();
-        }, 5);
-        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 0, 113, ()=>{
-            postcardRendering.currentCanvas.setToPencilColor()
-        }, 5);
 
-        let sizeNumber = new activeTextRenderer(basic, 111, 116, 5);
+        let sizeNumber = new activeTextRenderer(basic, 99, 3, 5);
         sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
-        let brushSizeDown = new brushSizeButton('<', 99, 113, ()=>{
+        let sizeBackground = new paintUnhoverableButton(' ', 95, 0, () => {}, 4);
+        let brushSizeDown = new brushSizeButton('<', 90, 0, ()=>{
             postcardRendering.currentCanvas.decrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         }, 5);
-        let brushSizeUp = new brushSizeButton('>', 118, 113, ()=>{
+        let brushSizeUp = new brushSizeButton('>', 105, 0, ()=>{
             postcardRendering.currentCanvas.incrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         }, 5);
-        // let undoButton = new paintButtonText('U', 48, 113, ()=>{
-        //     postcardRendering.currentCanvas.retrievePastCanvas();
-        // }, 5);
-        // let redoButton = new paintButtonText('R', 72, 113, ()=>{
-        //     postcardRendering.currentCanvas.retrieveFutureCanvas();
-        // }, 5);
-        let undoButton = new Button('undoButton', 37, 100, () => {
-            postcardRendering.currentCanvas.retrievePastCanvas();   
-        }, 5);
-        let redoButton = new Button('redoButton', 74, 100, () => {
-            postcardRendering.currentCanvas.retrieveFutureCanvas();
-        }, 5);
-
-
-        let flipButton = new Button('flipButton', 55, 100, () => {
-            if(postcardRendering.state === 'front'){
-                get(game).getCurrentRoom().addObject( postcardTextInputButton );
-                get(game).getCurrentRoom().addObject( stampButton );
-            } else if (postcardRendering.state === 'back'){
-                get(game).getCurrentRoom().removeObject( postcardTextInputButton );
-                get(game).getCurrentRoom().removeObject( stampButton );
-            }
-            closeAllPaintMenus();
-            postcardRendering.flipPostcard();
-        }, 5);
 
         // FONT MENU INSTANTIATION
-        let fontMenuButton = new paintButtonText('T', 24, 113, ()=>{
+        let fontMenuButton = new paintButtonIcon(paintButtonSprites[7], paintButtonSprites[7], 58, 0, ()=>{
             if(paintRoom.objects.includes(fontButtonList)) {
                 closeAllPaintMenus();
             }
@@ -287,8 +264,31 @@
         }, 30, basic);
         let fontButtonArray = [tinyButton, gangButton, retroButton, basicButton];
 
-        let fontButtonList = new objectGrid(1, 0, fontButtonArray.length, -1, 12, 22, 30, fontButtonArray);
-        let fontMenu = new Menu(6, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
+        let fontButtonList = new objectGrid(1, 0, fontButtonArray.length, -1, 60, 22, 30, fontButtonArray);
+        let fontMenu = new Menu(54, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
+
+        let undoButton = new Button('undoButton', 37, 111, () => {
+            postcardRendering.currentCanvas.retrievePastCanvas();   
+        }, 5);
+        let redoButton = new Button('redoButton', 74, 111, () => {
+            postcardRendering.currentCanvas.retrieveFutureCanvas();
+        }, 5);
+
+        let flipButton = new Button('flipButton', 55, 111, () => {
+            if(postcardRendering.state === 'front'){
+                get(game).getCurrentRoom().addObject( postcardTextInputButton );
+                get(game).getCurrentRoom().addObject( stampButton );
+                get(game).getCurrentRoom().removeObject( bucketButton );
+                get(game).getCurrentRoom().addObject( fontMenuButton );
+            } else if (postcardRendering.state === 'back'){
+                get(game).getCurrentRoom().removeObject( postcardTextInputButton );
+                get(game).getCurrentRoom().removeObject( stampButton );
+                get(game).getCurrentRoom().addObject( bucketButton );
+                get(game).getCurrentRoom().removeObject( fontMenuButton );
+            }
+            closeAllPaintMenus();
+            postcardRendering.flipPostcard();
+        }, 5);
 
         // STAMP MENU INSTANTIATION
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
@@ -311,7 +311,7 @@
         let stampArray = get(game).inventory.getItemsByType('stamp');
         let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
         // stampMenu.addChild(stampGrid);
-        let stampButton = new invisibleStampButton(90, 30, 11, () => {
+        let stampButton = new invisibleStampButton(97, 29, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
@@ -327,8 +327,8 @@
             }
         })
         paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, colorButton, eraserButton, 
-               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, 
-               flipButton, bucketButton, fontMenuButton );
+               shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, sizeBackground, undoButton, redoButton, pencilButton, 
+               flipButton, bucketButton );
 
         function closeAllPaintMenus(){
             if(paintRoom.objects.includes(colorMenuObj)){
