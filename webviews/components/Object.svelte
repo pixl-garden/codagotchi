@@ -553,7 +553,7 @@
         constructor(x, y, z, width, height, offsetX, offsetY, textRenderer) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
-            this.emptyLeftMatrix = generateEmptyMatrix(80, 80);
+            this.emptyLeftMatrix = generateEmptyMatrix(82, 80);
             this.emptyRightMatrix = generateEmptyMatrix(40, 80);
             this.pixelMatrix = emptyMatrix;
             this.width = width;
@@ -562,7 +562,7 @@
             this.offsetY = offsetY == null ? y : offsetY;
             this.stampItem = null;
             this.userText = "";
-            this.multiLineTextRenderer = new multiLineTextRenderer(x + 2, y - 2, z, 78, height, 9, textRenderer, 4, 0);
+            this.multiLineTextRenderer = new multiLineTextRenderer(x + 3, y + 4, z, 78, height, 9, textRenderer, 4, 0);
             this.textInput = new textInput((text) => this.setUserText(text), textRenderer.charMappingString);
         }
 
@@ -718,13 +718,16 @@
 
 
         externalRender() {
-            let matrix = generateEmptyMatrix(this.width, this.height);
+            let matrix = generateEmptyMatrix(this.width, this.height + 1);
             let currentY = this.y;
             this.lines.forEach(line => {
                 let renderedLine = this.color === null ? 
                     this.textRenderer.renderText(line) :
                     this.textRenderer.renderText(line, this.color);
                 renderedLine.forEach((row, y) => {
+                    if(currentY + this.lineHeight >= this.y + this.height) {
+                        return;
+                    }
                     row.forEach((color, x) => {
                         matrix[currentY + y][x] = color;
                     });
@@ -762,18 +765,41 @@
         }
 
         recursiveFill(x, y, targetColor, replacementColor) {
-            if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) {
-                return;
+            if (targetColor === replacementColor) {
+                return; // Avoid unnecessary work if the colors are the same
             }
-            if (this.pixelMatrix[y][x] !== targetColor) {
-                return;
+
+            let queue = [];
+            let visited = new Set(); // Set to track visited pixels
+            queue.push({x, y});
+            visited.add(`${x},${y}`);
+
+            while (queue.length > 0) {
+                let {x, y} = queue.shift(); // Dequeue
+
+                // Check bounds
+                if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) {
+                    continue;
+                }
+
+                // Check if the current pixel is of the target color
+                if (this.pixelMatrix[y][x] !== targetColor) {
+                    continue;
+                }
+
+                // Color the pixel
+                this.pixelMatrix[y][x] = replacementColor;
+
+                // Enqueue all adjacent pixels that have not been visited or modified
+                [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].forEach(([nx, ny]) => {
+                    if (!visited.has(`${nx},${ny}`) && this.pixelMatrix[ny] && this.pixelMatrix[ny][nx] === targetColor) {
+                        queue.push({x: nx, y: ny});
+                        visited.add(`${nx},${ny}`);
+                    }
+                });
             }
-            this.pixelMatrix[y][x] = replacementColor;
-            this.recursiveFill(x + 1, y, targetColor, replacementColor);
-            this.recursiveFill(x - 1, y, targetColor, replacementColor);
-            this.recursiveFill(x, y + 1, targetColor, replacementColor);
-            this.recursiveFill(x, y - 1, targetColor, replacementColor);
         }
+
 
         paintPixel(x, y) {
             // Adjust x and y based on the canvas offset
@@ -835,6 +861,7 @@
 
         setEraser() {
             this.setColor("transparent");
+            this.isPaintBucket = false;
         }
 
         toggleFill(){
@@ -890,6 +917,7 @@
 
         setToPencilColor() {
             this.color = this.pencilColor;
+            this.isPaintBucket = false;
         }
 
         clearCanvas() {

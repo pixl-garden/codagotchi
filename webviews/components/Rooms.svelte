@@ -4,6 +4,7 @@
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
+    import { generateColorButtonMatrix } from './MatrixFunctions.svelte';
     import { get } from 'svelte/store';
     import Codagotchi from './Codagotchi.svelte';
     import * as Colors from './colors.js';
@@ -148,7 +149,7 @@
         });
 
         //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 12, 0, 120, 94, 120, 80, gang);
+        let postcardRendering = new postcardRenderer(4, 19, 0, 120, 80, 120, 80, gang);
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
@@ -178,9 +179,15 @@
             Colors.white,  
             Colors.black
         ],
-         (color) => { postcardRendering.currentCanvas.setColor(color); paintRoom.removeObject(colorMenuObj); },
+         (color) => { 
+            postcardRendering.currentCanvas.setColor(color); 
+            paintRoom.removeObject(colorMenuObj); 
+            let newColorButtonIcon = generateColorButtonMatrix(9, 9, color);
+            colorButton.setIcon(newColorButtonIcon, newColorButtonIcon);
+        },
         '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
-        let paintButton1 = new paintButtonText('col', 14, 0, ()=>{
+        let defaultColorButtonIcon = generateColorButtonMatrix(9, 9, Colors.black)
+        let colorButton = new paintButtonIcon(defaultColorButtonIcon, defaultColorButtonIcon, 14, 0, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 closeAllPaintMenus();
             }
@@ -232,7 +239,7 @@
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         }, 5);
 
-        let flipButton = new Button('flipButton', 55, 99, () => {
+        let flipButton = new Button('flipButton', 55, 100, () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
                 get(game).getCurrentRoom().addObject( stampButton );
@@ -312,7 +319,7 @@
                 postcardRendering.setTextActive(false);
             }
         })
-        paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, paintButton1, eraserButton, 
+        paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, colorButton, eraserButton, 
                shapeButtonCircle, clearButton, brushSizeDown, brushSizeUp, sizeNumber, undoButton, redoButton, pencilButton, 
                flipButton, bucketButton, fontMenuButton );
 
