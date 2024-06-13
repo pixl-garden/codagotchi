@@ -581,7 +581,7 @@
                 this.clearStamp();
                 console.log("stamp array?? ", this.stampItem.states["default"] )
                 let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
-                this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 86, 8);
+                this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 87, 4);
             }
         }
 

@@ -35,6 +35,9 @@ export const secondaryMenuColorParams = [secondaryMenuBackground, secondaryMenuB
 export const secondaryMenuTitleColorParams = [secondaryMenuTitleBackground, secondaryMenuBorder, secondaryMenuTitleBackground, secondaryMenuBorder,
     secondaryMenuTitleHighlight, secondaryMenuTitleShadow, secondaryMenuTitleHighlight, secondaryMenuTitleShadow]
 
+export const secondaryMenuUnhoverableColorParams = [secondaryMenuBackground, secondaryMenuBorder, secondaryMenuBackground, secondaryMenuBorder,
+                                secondaryMenuHighlight, secondaryMenuShadow, secondaryMenuHighlight, secondaryMenuShadow]
+
 
 // color menu colors
 export const lightcoral = '#F08080';
