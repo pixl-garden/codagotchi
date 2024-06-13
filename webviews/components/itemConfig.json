@@ -2,20 +2,31 @@
     "javascriptStamp":{
         "type": "stamp",
         "displayName": "Javascript",
-        "spriteSheet": "JS_stamps.png",
+        "spriteSheet": "stamps_JS.png",
         "spriteIndex": 1,
         "description": "javascript stamp",
         "spriteWidth": 32,
         "states": {
-            "default": [0, 1, 2]
+            "default": [0, 1, 2, 3, 4]
         }
     },
-    "pythonStamp":{
+    "HTMLStamp":{
         "type": "stamp",
-        "displayName": "Python",
-        "spriteSheet": "stamps_py.png",
+        "displayName": "HTML",
+        "spriteSheet": "stamps_HTML.png",
         "spriteIndex": 1,
-        "description": "python stamp",
+        "description": "HTML stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "CSSStamp":{
+        "type": "stamp",
+        "displayName": "CSS",
+        "spriteSheet": "stamps_CSS.png",
+        "spriteIndex": 1,
+        "description": "CSS stamp",
         "spriteWidth": 32,
         "states": {
             "default": [0, 1, 2, 3, 4]
@@ -54,23 +65,12 @@
             "default": [0, 1, 2, 3, 4]
         }
     },
-    "CSSStamp":{
+    "pythonStamp":{
         "type": "stamp",
-        "displayName": "CSS",
-        "spriteSheet": "stamps_CSS.png",
+        "displayName": "Python",
+        "spriteSheet": "stamps_py.png",
         "spriteIndex": 1,
-        "description": "CSS stamp",
-        "spriteWidth": 32,
-        "states": {
-            "default": [0, 1, 2, 3, 4]
-        }
-    },
-    "HTMLStamp":{
-        "type": "stamp",
-        "displayName": "HTML",
-        "spriteSheet": "stamps_HTML.png",
-        "spriteIndex": 1,
-        "description": "HTML stamp",
+        "description": "python stamp",
         "spriteWidth": 32,
         "states": {
             "default": [0, 1, 2, 3, 4]

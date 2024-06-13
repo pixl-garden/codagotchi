@@ -157,9 +157,9 @@
         }
     },
     "flipButton":{
-        "spriteWidth": 14,
-        "spriteHeight": 9,
-        "spriteSheet": "flipArrows.png",
+        "spriteWidth": 21,
+        "spriteHeight": 13,
+        "spriteSheet": "flipButton3.png",
         "states": {
             "default": [0],
             "hovered": [0]

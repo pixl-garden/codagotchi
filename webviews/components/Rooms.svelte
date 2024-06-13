@@ -232,7 +232,7 @@
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         }, 5);
 
-        let flipButton = new Button('flipButton', 57, 104, () => {
+        let flipButton = new Button('flipButton', 55, 99, () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
                 get(game).getCurrentRoom().addObject( stampButton );
@@ -433,12 +433,12 @@
         // get(game).addStackableItem("potion", 2);
         // get(game).subtractStackableItem("tomatoSoup", 3);
         get(game).addStackableItem("javascriptStamp", 2);
-        get(game).addStackableItem("pythonStamp", 2);
         get(game).addStackableItem("CSSStamp", 2);
+        get(game).addStackableItem("HTMLStamp", 2);
         get(game).addStackableItem("CStamp", 2);
         get(game).addStackableItem("C++Stamp", 2);
         get(game).addStackableItem("C#Stamp", 2);
-        get(game).addStackableItem("HTMLStamp", 2);
+        get(game).addStackableItem("pythonStamp", 2);
 
         let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
