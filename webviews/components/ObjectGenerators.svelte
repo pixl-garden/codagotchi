@@ -92,6 +92,12 @@
                     super.onStopHover(); // Call parent's stop hover function
                     this.updateState('default');
                 }
+
+                setIcon(newIconSprite, newHoveredIconSprite) {
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, newIconSprite, bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, newHoveredIconSprite, bottomShadowHover, topShadowHover, layout, offset );
+                    this.sprites = [defaultSprite, hoverSprite];
+                }
             };
         }
 

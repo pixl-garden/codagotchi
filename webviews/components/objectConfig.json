@@ -157,12 +157,12 @@
         }
     },
     "flipButton":{
-        "spriteWidth": 14,
-        "spriteHeight": 9,
-        "spriteSheet": "flipArrows.png",
+        "spriteWidth": 15,
+        "spriteHeight": 11,
+        "spriteSheet": "mirroredFlip.png",
         "states": {
             "default": [0],
-            "hovered": [0]
+            "hovered": [1]
         }
     },
     "testItem":{
