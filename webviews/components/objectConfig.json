@@ -165,6 +165,24 @@
             "hovered": [1]
         }
     },
+    "undoButton":{
+        "spriteWidth": 14,
+        "spriteHeight": 11,
+        "spriteSheet": "undo-redo.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "redoButton":{
+        "spriteWidth": 14,
+        "spriteHeight": 11,
+        "spriteSheet": "undo-redo.png",
+        "states": {
+            "default": [2],
+            "hovered": [3]
+        }
+    },
     "testItem":{
         "spriteWidth": 32,
         "spriteHeight": 32,

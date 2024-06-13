@@ -222,22 +222,29 @@
             postcardRendering.currentCanvas.setToPencilColor()
         }, 5);
 
-        let sizeNumber = new activeTextRenderer(basic, 109, 116, 5);
+        let sizeNumber = new activeTextRenderer(basic, 111, 116, 5);
         sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
-        let brushSizeDown = new brushSizeButton('<', 97, 113, ()=>{
+        let brushSizeDown = new brushSizeButton('<', 99, 113, ()=>{
             postcardRendering.currentCanvas.decrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         }, 5);
-        let brushSizeUp = new brushSizeButton('>', 116, 113, ()=>{
+        let brushSizeUp = new brushSizeButton('>', 118, 113, ()=>{
             postcardRendering.currentCanvas.incrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         }, 5);
-        let undoButton = new paintButtonText('U', 48, 113, ()=>{
-            postcardRendering.currentCanvas.retrievePastCanvas();
+        // let undoButton = new paintButtonText('U', 48, 113, ()=>{
+        //     postcardRendering.currentCanvas.retrievePastCanvas();
+        // }, 5);
+        // let redoButton = new paintButtonText('R', 72, 113, ()=>{
+        //     postcardRendering.currentCanvas.retrieveFutureCanvas();
+        // }, 5);
+        let undoButton = new Button('undoButton', 37, 100, () => {
+            postcardRendering.currentCanvas.retrievePastCanvas();   
         }, 5);
-        let redoButton = new paintButtonText('R', 72, 113, ()=>{
+        let redoButton = new Button('redoButton', 74, 100, () => {
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         }, 5);
+
 
         let flipButton = new Button('flipButton', 55, 100, () => {
             if(postcardRendering.state === 'front'){
