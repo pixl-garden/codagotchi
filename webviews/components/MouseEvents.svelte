@@ -1,6 +1,6 @@
 
 <script context="module">
-    import { Object, Button, NavigationButton, PixelCanvas } from './Object.svelte';
+    import { PixelCanvas } from './Object.svelte';
 
     let mouseExited = false;
     let lastHoveredObject = null;
@@ -110,14 +110,18 @@
                 newHoveredObject.onHover?.();
                 newHoveredChild?.onHover?.(); // Call onHover for the new hovered child, if any
                 newHoveredObject.hoveredChild = newHoveredChild;
+                event.currentTarget.style.cursor = newHoveredObject.showPointer ? 'pointer' : 'default';
+            }
+            else {
+                event.currentTarget.style.cursor = 'default';
             }
 
-            event.currentTarget.style.cursor = newHoveredObject instanceof Button ? 'pointer' : 'default';
+            // event.currentTarget.style.cursor = newHoveredObject instanceof Button ? 'pointer' : 'default';
             lastHoveredObject = newHoveredObject;
             lastHoveredChild = newHoveredChild; // Update lastHoveredChild to reflect the new state
         }
         else {
-            newHoveredObject.whileHover();
+            newHoveredObject?.whileHover();
             for(let i = 0; i < childObjects.length; i++){
                 childObjects[i].whileHover();
             }
@@ -143,6 +147,7 @@
             activeDragObject = clickedObject;
             clickedObject.clickAction(gridX, gridY);
         }
+        updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
     }
 
     export function handleMouseDown(event, gameInstance) {
@@ -194,6 +199,7 @@
         if (lastHoveredObject) {
             lastHoveredObject.onStopHover?.();
             lastHoveredObject.hoveredChild = null;
+            lastHoveredObject = null;
             event.currentTarget.style.cursor = 'default';
         }
         mouseExited = true;

@@ -149,7 +149,7 @@
     }
 </script>
 
- <input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
+<input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
 <canvas class="pixel-grid"
      on:click={(e) => handleClick(e, get(game))}
      on:mousemove={(e) => handleMouseMove(e, get(game))}
