@@ -39,12 +39,12 @@
             this.currentStateCallback = null;
             
 
-            // Constants for second-order dynamics
+            // Constants for second-order dynamics movement
             this.k1 = 7.0; // Damping ratio
             this.k2 = .5; // Natural frequency
             this.k3 = 2.0; // Reference input
 
-            // Variables for second-order dynamics
+            // Variables for second-order dynamics movement
             this.previousX = x;
             this.previousY = y;
             this.velocityX = 0;
@@ -69,6 +69,7 @@
             this.mouseX = null;
             this.mouseY = null;
             this.mouseInteractions = true;
+            this.showPointer = false;
         }
 
         // Function to start moving towards a target
@@ -1026,6 +1027,7 @@
             super(objectName, x, y, z, actionOnClick);
             this.action = actionOnClick || (() => {});
             this.updateState("default");
+            this.showPointer = true;
         }
 
         onHover() {

@@ -223,7 +223,7 @@
             postcardRendering.currentCanvas.clearCanvas();
         }, 5);
 
-        let sizeNumber = new activeTextRenderer(basic, 99, 3, 5);
+        let sizeNumber = new activeTextRenderer(retroShadow, 99, 2, 5);
         sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         let sizeBackground = new paintUnhoverableButton(' ', 95, 0, () => {}, 4);
         let brushSizeDown = new brushSizeButton('<', 90, 0, ()=>{

@@ -207,6 +207,6 @@
         }
     }
 
-    export const shouldFocus = writable(false);
-    export const inputValue = writable('');
+    export const shouldFocus = writable(false); // boolean to determine if input field should be focused
+    export const inputValue = writable(''); // input field value
 </script>
