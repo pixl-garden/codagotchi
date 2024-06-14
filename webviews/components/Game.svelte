@@ -195,6 +195,11 @@
         static updateAllInstances(inputText) {
             textInput.instances.forEach(instance => instance.updateTextFunction(instance.filterCharacter(inputText)));
         }
+
+        clearAll() {
+            textInput.updateAllInstances('');
+            inputValue.set('');
+        }
         
         filterCharacter(filterText) {
             let output = "";

@@ -613,6 +613,11 @@
         setColor(color) {
             this.multiLineTextRenderer.setColor(color);
         }
+
+        clearCanvas() {
+            this.clearStamp();
+            this.textInput.clearAll();
+        }
     }
 
     //TODO: needs to be modified when non monospace fonts are implemented
@@ -717,7 +722,6 @@
             return lines;
         }
 
-
         externalRender() {
             let matrix = generateEmptyMatrix(this.width, this.height + 1);
             let currentY = this.y;
@@ -749,13 +753,13 @@
             this.canvasWidth = width;
             this.canvasHeight = height;
             this.pixelMatrix = emptyMatrix;
-            this.color = 'white';
-            this.pencilColor = 'white';
+            this.color = 'black';
+            this.pencilColor = 'black';
             this.lastX = null;
             this.lastY = null;
             this.offsetX = offsetX == null ? x : offsetX;
             this.offsetY = offsetY == null ? y : offsetY;
-            this.brushSize = 10;
+            this.brushSize = 6;
             this.brushShape = "circle";
             this.savedPastCanvas = [];
             this.savedFutureCanvas = [];
@@ -820,8 +824,14 @@
                         }
                     }
                 } else if (this.brushShape === 'circle') {
+
                     // Circle brush logic
                     const radius = this.brushSize / 2;
+                    if(radius == 0){
+                        this.paintAt(adjustedX, adjustedY);
+                        return;
+                    }
+
                     const radiusSquared = radius * radius;
                     const minX = Math.ceil(adjustedX - radius);
                     const maxX = Math.floor(adjustedX + radius);
@@ -878,17 +888,8 @@
             return this.pixelMatrix;
         }
 
-        rotateSize() {
-            if( this.brushSize < 20 ) {
-                this.brushSize += 2;
-            }
-            else {
-                this.brushSize = 2;
-            }
-        }
-
         incrementSize() {
-            if( this.brushSize < 20 ) {
+            if( this.brushSize < 18 ) {
                 this.brushSize += 2;
             }
         }
