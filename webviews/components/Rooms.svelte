@@ -44,13 +44,17 @@
         const socialTabButton = generateTextButtonClass(57, 16, basic, ...Colors.secondaryMenuColorParams);
         const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
         const paintUnhoverableButton = generateTextButtonClass(18, 15, retroShadowBlue, ...Colors.secondaryMenuUnhoverableColorParams);
+        const fishingButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
+
 
 
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
         const backToMain = new singleLetterButton('<', 0, 0, () => {
-            get(game).setCurrentRoom('mainRoom');           
-            petObject.setCoordinate(36, 54, 0)
+            get(game).setCurrentRoom('mainRoom');
+        }, 10);
+        const backToMain2 = new singleLetterButton('<', 0, 112, () => {
+            get(game).setCurrentRoom('mainRoom');
         }, 10);
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
         let defaultMenuParams = ["#59585a", "#2b2a2b", "black", 2, 5, 3, 1];
@@ -60,14 +64,14 @@
         const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
         const statusBar = new StatusBar(20, 2, 0);
         //MAIN MENU INSTANTIATION
-        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Close'];
+        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Close'];
         const mainMenuButtonFunctions = [() => {get(game).setCurrentRoom('settingsRoom')}, 
         () => {get(game).setCurrentRoom('shopRoom')}, 
-        () => {get(game).setCurrentRoom('customizeRoom');
-        petObject.setCoordinate(24, 99, 0);}, 
+        () => {get(game).setCurrentRoom('customizeRoom')}, 
         () => {get(game).setCurrentRoom('paintRoom')}, 
         () => {get(game).setCurrentRoom('friendRoom')}, 
         () => {get(game).setCurrentRoom('inventoryRoom')}, 
+        () => {get(game).setCurrentRoom('fishingRoom')},
         () => {
             get(game).getCurrentRoom().removeObject( mainMenu );
             get(game).getCurrentRoom().addObject( mainMenuButton );}
@@ -81,7 +85,9 @@
         //PET INSTANTIATION
         let petObject = new Pet('pearguin', 36, 54, 0, "leaf");
         //ROOM INSTANTIATION
-        let mainRoom = new Room('mainRoom', false, false, () => {
+        let mainRoom = new Room('mainRoom', () => {
+            petObject.setCoordinate(36, 54, 0);
+        }, false, () => {
             petObject.nextFrame();
         });
         mainRoom.addObject(petObject, mainMenuButton, statusBar);
@@ -96,7 +102,7 @@
         const settingsMenu = new buttonList(settingsMenuButtonTexts, settingsMenuButtonFunctions, settingsMenuButton, 58, 12, -1, 0, 12, 0);
         //ROOM INSTANTIATION
         let settingsRoom = new Room('settingsRoom');
-        settingsRoom.addObject(settingsTitle, settingsMenu);
+         settingsRoom.addObject(settingsTitle, settingsMenu);
     
     //----------------CUSTOMIZE ROOM----------------
         //BACKGROUND INSTANTIATION
@@ -128,7 +134,9 @@
         });
 
         //ROOM INSTANTIATION
-        let customizeRoom = new Room('customizeRoom', false, false, () => {
+        let customizeRoom = new Room('customizeRoom', () => {
+            petObject.setCoordinate(24, 99, 0);
+        }, false, () => {
             petObject.nextFrame();
             vanityBackground.nextFrame();
             customizeUI.nextFrame();
@@ -458,6 +466,7 @@
         let inventoryRoom = new Room('inventoryRoom');
         inventoryRoom.addObject(backToMain, inventoryGridTest);
 
+
     //----------------MOVEMENT FUNCTIONS----------------
         //TODO: INCORPORATE INTO OBJECT CLASS OR CREATE SEPERATE MOVEMENT FILE
         function linearSpeed(diff) {
@@ -489,7 +498,35 @@
         //     const speed = 1; // You can adjust this value for faster or slower speed
         //     return speed;
         // }
+
+        // FISHING ROOM
+    
+        // TODO: room, background, navigation
+        let testingButton = new fishingButton("FISH", 90, 60, ()=>{
+            // if(fishingNotif.y < 0){
+            //     fishingNotif.startMovingTo(6, 2);
+            // }
+            // else{
+            //     fishingNotif.startMovingTo(6, -32);
+            // }
+            console.log("FISH SON");
+        }, 5);
+        let fishingRoom = new Room('fishingRoom',  () => {
+            petObject.setCoordinate(29, 32, 0);
+        },
+        false,
+        () => {
+            petObject.nextFrame();
+            // fishingNotif.nextFrame();
+        });
+        let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
+        let fishingNotif = new Menu(6, -32, 12, 116, 30, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
+        // fishingNotif.setPhysics();
+        fishingRoom.addObject(backToMain2, fishingBackground, petObject, testingButton, fishingNotif);
     }
+
+
+
 
     export function roomMain(){
         get(game).getCurrentRoom().update();

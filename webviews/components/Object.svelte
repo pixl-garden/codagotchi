@@ -72,6 +72,12 @@
             this.showPointer = false;
         }
 
+        setPhysics(k1, k2, k3){
+            this.k1 = k1;
+            this.k2 = k2;
+            this.k3 = k3;
+        }
+
         // Function to start moving towards a target
         startMovingTo(newTargetX, newTargetY) {
             this.targetX = newTargetX;
@@ -1236,6 +1242,9 @@
             super([backgroundMatrix], { default: [0] }, x, y, z);
             this.width = width;
             this.height = height;
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.updateState("default")
         }
     }
 

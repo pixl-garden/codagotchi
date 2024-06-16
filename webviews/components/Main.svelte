@@ -47,7 +47,7 @@
             if(children.length > 0 && obj.renderChildren) {
                 obj.getChildSprites().forEach((sprite) => {
                     // console.log("Child sprite: ", sprite)
-                    if (Array.isArray(sprite)) {
+                    if (Array.isArray(sprite)) {-
                         sprites.push(...sprite);
                     //if not an array, push sprite
                     } else {

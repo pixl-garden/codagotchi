@@ -22,10 +22,12 @@
         }
 
         setCurrentRoom(name) {
+            this.currentRoom?.exit()
             inputValue.set(''); // Clear input field
             if (this.rooms[name]) {
                 this.currentRoom = this.rooms[name];
                 this.currentRoomName = name;
+                this.currentRoom.enter();
             } else {
                 console.error(`Room ${name} does not exist!`);
             }
@@ -33,7 +35,7 @@
 
         getCurrentRoom() {
             return this.currentRoom;
-        }
+        } 
 
         getObjectsOfCurrentRoom() {
             return this.rooms[this.currentRoomName].getObjects();
@@ -135,7 +137,7 @@
     };
 
     export class Room {
-        constructor(roomName, enterLogic = false, exitLogic = false, updateLogic = () => {}) {
+        constructor(roomName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}) {
             this.name = roomName;
             this.adjacentRooms = new Set(); // Set ensures no duplicate rooms in list
             this.objects = [];
@@ -172,7 +174,6 @@
 
         update() {
             // Default room-specific logic and updates
-            this.update();
         }
         removeObject(...objects) {
             for (let object of objects) {
