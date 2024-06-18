@@ -13,12 +13,12 @@
          * Creates an instance of an Item.
          * @param {string} itemName - The name of the item, used to fetch its configuration.
          */
-        constructor( itemName ){
+        constructor( itemName, x = 0, y = 0, z = 0) {
             // maybe add an item count parameter?
             const config = itemConfig[itemName];
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet);
-            super(spriteMatrix, config.states, 0, 0, 0);
+            super(spriteMatrix, config.states, x, y, z);
             /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
             /** @property {boolean} stackable - Indicates if the item can be stacked. */

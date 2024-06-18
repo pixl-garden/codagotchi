@@ -72,6 +72,12 @@
             this.showPointer = false;
         }
 
+        /**
+         * Set the physics parameters for the object
+         * @param {number} k1 - Damping ratio (how quickly the object slows down)
+         * @param {number} k2 - Natural frequency (how much the motion oscillates)
+         * @param {number} k3 - Reference input (how quickly the object moves towards the target)
+         */
         setPhysics(k1, k2, k3){
             this.k1 = k1;
             this.k2 = k2;
@@ -156,7 +162,7 @@
             }
 
             // Define sprites for current state
-            const stateSprites = this.config.states[this.state];
+            const stateSprites = this.states[this.state];
 
             // If the state index exceeds the state length, reset to first sprite in state
             if (this.currentStateIndex >= stateSprites.length) {
@@ -245,6 +251,10 @@
         }
         addChild(child) {
             this.children.push(child);
+        }
+
+        updateChild(child, oldChild) {
+            this.children[this.children.indexOf(oldChild)] = child;
         }
 
         // Method to register button parameters
