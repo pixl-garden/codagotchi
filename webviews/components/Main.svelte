@@ -114,6 +114,7 @@
             }
             else if (message.type === 'documentSaved'){
                 console.log("DOCUMENT SAVE RECEIVED IN MAINNNNN TIME: ", message.value)
+                $game.resetActivityTimeout();
             }
             else if (message.type === 'currentState') {
                 $game.setLocalState(message.value);

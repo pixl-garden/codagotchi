@@ -7,7 +7,7 @@
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix } from './MatrixFunctions.svelte';
-    
+    import * as Colors from './colors.js';    
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
     // or maybe do the other way around, create setAbsoluteCoordinate function and leave setCoordinate as is
@@ -469,6 +469,10 @@
                 this.state = "flipToFront";
             }
         }
+        setColor(color){
+            this.frontPixelCanvas.setColor(color);
+            this.backPixelCanvas.setColor(color);
+        }
         nextFrame(){
             if(this.state == "flipToBack"){
                 this.progressTracker += 0.05;
@@ -769,8 +773,8 @@
             this.canvasWidth = width;
             this.canvasHeight = height;
             this.pixelMatrix = emptyMatrix;
-            this.color = 'black';
-            this.pencilColor = 'black';
+            this.color = Colors.black;
+            this.pencilColor = Colors.black;
             this.lastX = null;
             this.lastY = null;
             this.offsetX = offsetX == null ? x : offsetX;
@@ -1185,6 +1189,11 @@
             }
             this.spriteWidth = (spriteWidth + this.columnSpacing) * this.columns;
             this.spriteHeight = (spriteHeight + this.rowSpacing) * this.rows;
+        }
+
+        updateObjects(objectsArray){
+            this.children = objectsArray;
+            this.generateObjectGrid();
         }
     }
 
