@@ -2,7 +2,6 @@
     import lootTableConfig from './lootTableConfig.json';
     import { weightedRandomSelection } from './LootGenerator.svelte';
     import { Item } from './Inventory.svelte';
-    import { reject } from 'lodash';
     
     export class Fishing {
         constructor() {
