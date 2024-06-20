@@ -12,7 +12,6 @@
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
     // or maybe do the other way around, create setAbsoluteCoordinate function and leave setCoordinate as is
 
-    //TODO: MOVEMENT NEEDS WORK, BEHAVES DIFFERENTLY IN DIFFERENT DIRECTIONS
     export class GeneratedObject {
         constructor(sprites, states, x, y, z, actionOnClick = null) {
             if (!sprites) {
@@ -128,16 +127,11 @@
             // Subtract the integer movement from the accumulated movement
             this.accumulatedMoveX -= moveX;
             this.accumulatedMoveY -= moveY;
-
-            // console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
-            // console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
-            // console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
     
 
             // Check if the object has reached (or overshot) the target position
             if ((Math.abs(this.targetX - this.x) < 1 && Math.abs(this.velocityX) < this.velocityThreshold) &&
                 (Math.abs(this.targetY - this.y) < 1 && Math.abs(this.velocityY) < this.velocityThreshold)) {
-                // console.log("REACHED TARGET");
                 this.x = this.targetX;
                 this.y = this.targetY;
 
@@ -156,7 +150,7 @@
             if(this.isMoving){
                 this.updatePosition();
             }
-            // Avoid unneccessary frame update if object has only one state and no queued states
+            // Avoid unneccessary frame update if current state only has one frame and there are no queued states
             if(this.state.length <= 1 && this.stateQueue.length == 0){
                 return;
             }
@@ -327,7 +321,7 @@
                 throw new Error(`No configuration found for pet type: ${petType}`);
             }
 
-            const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);            //GeneratedObject(sprites, states, x, y, z, actionOnClick)
+            const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
             super(petSpriteArray, config.states, x, y, z, () => {
                 this.queueState('flop');
                 this.queueState('flop');
@@ -458,9 +452,6 @@
             this.stampItem = stampItem;
             this.backPixelCanvas.setStamp(stampItem);
         }
-        // setUserText(text){
-        //     this.backPixelCanvas.setUserText(text);
-        // }
         flipPostcard(){
             if(this.state == "front"){
                 this.state = "flipToBack";
@@ -505,9 +496,6 @@
             else if(this.state == "back"){
                 this.backPixelCanvas.nextFrame();
             }
-            // else if(this.state == "front"){
-            //     this.frontPixelCanvas.nextFrame();
-            // }
         }
 
         getSprite(){
@@ -1039,8 +1027,6 @@
                 this.updateState("default");
             }
         }
-
-        
     }
 
     export class Button extends Object {
@@ -1277,9 +1263,6 @@
         }
     }
     
-
-    //    export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
-    //topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
     export class ColorMenu extends Menu {
         constructor(x, y, z, width, height, colorSize, colorSpacing, columns, rows, colorArray, colorFunction, 
                 bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1){
@@ -1306,27 +1289,10 @@
                 this.buttons.push(button);
             }
         }
-        //constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
         generateColorGrid(){
             let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 7, 7, this.z, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
         }
-
-        // getSprite() {
-        //     let spritesOut = [];
-        //     if(this.children.length > 0) {
-        //         this.getChildSprites().forEach((sprite) => {
-        //             // console.log("Child sprite: ", sprite)
-        //             if (Array.isArray(sprite)) {
-        //                 spritesOut.push(...sprite);
-        //             //if not an array, push sprite
-        //             } else {
-        //                 spritesOut.push(sprite);
-        //             }
-        //         });
-        //     }
-        //     return spritesOut;
-        // }
     }
 
 </script>
