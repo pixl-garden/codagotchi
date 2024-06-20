@@ -1129,6 +1129,12 @@
             this.mouseX = null;
             this.mouseY = null;
             this.renderChildren = true;
+            this.childHeight = this.children[0].getHeight();
+            this.childWidth = this.children[0].getWidth();
+            this.spriteWidth = (this.childWidth + this.columnSpacing) * this.columns;
+            this.spriteHeight = (this.childHeight + this.rowSpacing) * this.rows;
+            this.objectTop = 0;
+            this.objectBottom = 128 - this.spriteHeight;
             this.generateObjectGrid();
         }
 
@@ -1155,8 +1161,9 @@
         onScrollUp() {
             if (this.scrollDirection === "horizontal") {
                 this.scrollOffsetX += this.scrollSpeed;
-            } else { // Assuming horizontal scrolling
+            } else if(this.scrollOffsetY <= this.objectTop) { // Assuming horizontal scrolling, stop at top of page
                 this.scrollOffsetY += this.scrollSpeed;
+
             }
             this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
@@ -1164,8 +1171,9 @@
         onScrollDown() {
             if (this.scrollDirection === "horizontal") {
                 this.scrollOffsetX -= this.scrollSpeed;
-            } else { // Assuming horizontal scrolling
+            } else if(this.scrollOffsetY >= this.objectBottom) { // Assuming horizontal scrolling
                 this.scrollOffsetY -= this.scrollSpeed;
+
             }
             this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
@@ -1173,8 +1181,6 @@
         generateObjectGrid() {
             let currentX = this.scrollOffsetX;
             let currentY = this.scrollOffsetY;
-            const spriteWidth = this.children[0].getWidth();
-            const spriteHeight = this.children[0].getHeight();
             // console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
 
             for (let row = 0; row < this.rows; row++) {
@@ -1182,13 +1188,12 @@
                     let index = row * this.columns + column;
                     if (index >= this.children.length) break;
 
-                    let objectX = currentX + (column * (spriteWidth + this.columnSpacing));
-                    let objectY = currentY + (row * (spriteHeight + this.rowSpacing));
+                    let objectX = currentX + (column * (this.childWidth + this.columnSpacing));
+                    let objectY = currentY + (row * (this.childHeight + this.rowSpacing));
                     this.children[index].setCoordinate(objectX, objectY, this.z);
                 }
             }
-            this.spriteWidth = (spriteWidth + this.columnSpacing) * this.columns;
-            this.spriteHeight = (spriteHeight + this.rowSpacing) * this.rows;
+
         }
 
         updateObjects(objectsArray){
