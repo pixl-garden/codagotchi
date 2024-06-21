@@ -10,6 +10,7 @@
             constructor(x, y, z, actionOnClick) {
                 const defaultSprite = generateEmptyMatrix(width, height);
                 super([defaultSprite], { default: [0], hovered: [0] }, x, y, z, actionOnClick);
+                this.showPointer = true;
             }
 
             onHover() {
@@ -24,15 +25,40 @@
         };
     }
 
-    export function generateTextButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
+    export function generateTextButtonClass( width, height, textRenderer, bgColor, borderColor, bgColorHovered, borderColorHovered,
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(text, x, y, actionOnClick, z) {
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset );
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), bottomShadowHover, topShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+                    this.showPointer = true;
+                }
+
+                onHover() {
+                    super.onHover(); // Call parent's hover function
+                    this.updateState('hovered');
+                }
+
+                onStopHover() {
+                    super.onStopHover(); // Call parent's stop hover function
+                    this.updateState('default');
+                }
+            };
+        }
+
+    export function generateFontTextButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered,
+        topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
+            return class Button extends GeneratedObject {
+                constructor(text, x, y, actionOnClick, z, textRenderer, textYOffset = 1) {
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset, textYOffset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset, textYOffset);
+
+                    // State management: 0 for default sprite and 1 for hover sprite
+                    super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+                    this.showPointer = true;
                 }
 
                 onHover() {
@@ -53,11 +79,12 @@
             return class Button extends GeneratedObject {
                 constructor(iconSprite, hoveredIconSprite, x, y, actionOnClick, z) {
                     console.log(iconSprite, hoveredIconSprite);
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, iconSprite, topShadow, bottomShadow, layout, offset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, hoveredIconSprite, topShadowHover, bottomShadowHover, layout, offset );
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, iconSprite, bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, hoveredIconSprite, bottomShadowHover, topShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+                    this.showPointer = true;
                 }
 
                 onHover() {
@@ -68,6 +95,12 @@
                 onStopHover() {
                     super.onStopHover(); // Call parent's stop hover function
                     this.updateState('default');
+                }
+
+                setIcon(newIconSprite, newHoveredIconSprite) {
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, newIconSprite, bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, newHoveredIconSprite, bottomShadowHover, topShadowHover, layout, offset );
+                    this.sprites = [defaultSprite, hoverSprite];
                 }
             };
         }
@@ -132,6 +165,7 @@
                         shouldFocus.set(false);
                     }
                 });
+                this.showPointer = true;
             }
 
             whileHover(){

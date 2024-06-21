@@ -47,7 +47,7 @@
             if(children.length > 0 && obj.renderChildren) {
                 obj.getChildSprites().forEach((sprite) => {
                     // console.log("Child sprite: ", sprite)
-                    if (Array.isArray(sprite)) {
+                    if (Array.isArray(sprite)) {-
                         sprites.push(...sprite);
                     //if not an array, push sprite
                     } else {
@@ -114,6 +114,7 @@
             }
             else if (message.type === 'documentSaved'){
                 console.log("DOCUMENT SAVE RECEIVED IN MAINNNNN TIME: ", message.value)
+                $game.resetActivityTimeout();
             }
             else if (message.type === 'currentState') {
                 $game.setLocalState(message.value);
@@ -149,7 +150,7 @@
     }
 </script>
 
- <input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
+<input type="text" id="hiddenInput" bind:value={$inputValue} use:focus={$shouldFocus} />
 <canvas class="pixel-grid"
      on:click={(e) => handleClick(e, get(game))}
      on:mousemove={(e) => handleMouseMove(e, get(game))}

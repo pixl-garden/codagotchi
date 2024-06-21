@@ -15,6 +15,29 @@
             this.syncLocalToGlobalState();
             this.inventory;
             this.localUserData;
+            this.timeoutTime = 10000;// 10 minutes
+            this.handleInactivity = this.handleInactivity.bind(this);
+            this.resetActivityTimeout = this.resetActivityTimeout.bind(this);
+            this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
+            this.isActive = true;
+        }
+
+        //function to call when player goes inactive
+        handleInactivity() {
+            console.log("Inactivity timeout reached.") 
+            console.log("Current room: ", this.currentRoom);
+            this.currentRoom.onInactivity();
+            this.isActive = false;
+        }
+
+        resetActivityTimeout() {
+            if(!this.isActive){
+                this.currentRoom.onActivity();
+            }
+            console.log("Resetting inactivity timeout.")
+            this.isActive = true;
+            clearTimeout(this.timeoutHandler);
+            this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
         }
 
         updateRooms(roomName, roomObj) {
@@ -22,10 +45,12 @@
         }
 
         setCurrentRoom(name) {
+            this.currentRoom?.exit()
             inputValue.set(''); // Clear input field
             if (this.rooms[name]) {
                 this.currentRoom = this.rooms[name];
                 this.currentRoomName = name;
+                this.currentRoom.enter();
             } else {
                 console.error(`Room ${name} does not exist!`);
             }
@@ -33,7 +58,7 @@
 
         getCurrentRoom() {
             return this.currentRoom;
-        }
+        } 
 
         getObjectsOfCurrentRoom() {
             return this.rooms[this.currentRoomName].getObjects();
@@ -135,13 +160,16 @@
     };
 
     export class Room {
-        constructor(roomName, enterLogic = false, exitLogic = false, updateLogic = () => {}) {
+        constructor(roomName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, onActivity = () => {},   
+                    onInactivity = () => {}) {
             this.name = roomName;
             this.adjacentRooms = new Set(); // Set ensures no duplicate rooms in list
             this.objects = [];
             this.enter = enterLogic || this.enter;
             this.exit = exitLogic || this.exit;
             this.update = updateLogic || this.update;
+            this.onActivity = onActivity || this.onActivity;
+            this.onInactivity = onInactivity || this.onInactivity;
             get(game).updateRooms(roomName, this); // Add room to game object
         }
         addAdjacentRoom(room) {
@@ -155,6 +183,15 @@
             //allows for multiple object parameters to be added at once
             for (let object of objects) {
                 this.objects.push(object);
+            }
+        }
+        
+        updateObject(oldObject, newObject) {
+            const index = this.objects.indexOf(oldObject);
+            if (index !== -1) { // Check if the oldObject is actually found
+                this.objects[index] = newObject;
+            } else {
+                console.log('Object not found in array.');
             }
         }
 
@@ -172,8 +209,16 @@
 
         update() {
             // Default room-specific logic and updates
-            this.update();
         }
+
+        onActivity() {
+            // Default logic when player is active
+        }
+
+        onInactivity() {
+            // Default logic when player is inactive
+        }
+
         removeObject(...objects) {
             for (let object of objects) {
                 this.objects = this.objects.filter((obj) => obj !== object);
@@ -195,6 +240,11 @@
         static updateAllInstances(inputText) {
             textInput.instances.forEach(instance => instance.updateTextFunction(instance.filterCharacter(inputText)));
         }
+
+        clearAll() {
+            textInput.updateAllInstances('');
+            inputValue.set('');
+        }
         
         filterCharacter(filterText) {
             let output = "";
@@ -207,6 +257,6 @@
         }
     }
 
-    export const shouldFocus = writable(false);
-    export const inputValue = writable('');
+    export const shouldFocus = writable(false); // boolean to determine if input field should be focused
+    export const inputValue = writable(''); // input field value
 </script>

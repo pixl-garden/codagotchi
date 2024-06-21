@@ -6,13 +6,12 @@
     import { game, textInput } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix } from './MatrixFunctions.svelte';
-    
+    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix } from './MatrixFunctions.svelte';
+    import * as Colors from './colors.js';    
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
     // or maybe do the other way around, create setAbsoluteCoordinate function and leave setCoordinate as is
 
-    //TODO: MOVEMENT NEEDS WORK, BEHAVES DIFFERENTLY IN DIFFERENT DIRECTIONS
     export class GeneratedObject {
         constructor(sprites, states, x, y, z, actionOnClick = null) {
             if (!sprites) {
@@ -39,12 +38,12 @@
             this.currentStateCallback = null;
             
 
-            // Constants for second-order dynamics
+            // Constants for second-order dynamics movement
             this.k1 = 7.0; // Damping ratio
             this.k2 = .5; // Natural frequency
             this.k3 = 2.0; // Reference input
 
-            // Variables for second-order dynamics
+            // Variables for second-order dynamics movement
             this.previousX = x;
             this.previousY = y;
             this.velocityX = 0;
@@ -69,6 +68,19 @@
             this.mouseX = null;
             this.mouseY = null;
             this.mouseInteractions = true;
+            this.showPointer = false;
+        }
+
+        /**
+         * Set the physics parameters for the object
+         * @param {number} k1 - Damping ratio (how quickly the object slows down)
+         * @param {number} k2 - Natural frequency (how much the motion oscillates)
+         * @param {number} k3 - Reference input (how quickly the object moves towards the target)
+         */
+        setPhysics(k1, k2, k3){
+            this.k1 = k1;
+            this.k2 = k2;
+            this.k3 = k3;
         }
 
         // Function to start moving towards a target
@@ -115,16 +127,11 @@
             // Subtract the integer movement from the accumulated movement
             this.accumulatedMoveX -= moveX;
             this.accumulatedMoveY -= moveY;
-
-            // console.log(`X: ${this.x}, Y: ${this.y}, TargetX: ${this.targetX}, TargetY: ${this.targetY}`);
-            // console.log(`VelocityX: ${this.velocityX}, VelocityY: ${this.velocityY}`);
-            // console.log(`AccumulatedMoveX: ${this.accumulatedMoveX}, AccumulatedMoveY: ${this.accumulatedMoveY}`);
     
 
             // Check if the object has reached (or overshot) the target position
             if ((Math.abs(this.targetX - this.x) < 1 && Math.abs(this.velocityX) < this.velocityThreshold) &&
                 (Math.abs(this.targetY - this.y) < 1 && Math.abs(this.velocityY) < this.velocityThreshold)) {
-                // console.log("REACHED TARGET");
                 this.x = this.targetX;
                 this.y = this.targetY;
 
@@ -143,13 +150,13 @@
             if(this.isMoving){
                 this.updatePosition();
             }
-            // Avoid unneccessary frame update if object has only one state and no queued states
+            // Avoid unneccessary frame update if current state only has one frame and there are no queued states
             if(this.state.length <= 1 && this.stateQueue.length == 0){
                 return;
             }
 
             // Define sprites for current state
-            const stateSprites = this.config.states[this.state];
+            const stateSprites = this.states[this.state];
 
             // If the state index exceeds the state length, reset to first sprite in state
             if (this.currentStateIndex >= stateSprites.length) {
@@ -240,6 +247,10 @@
             this.children.push(child);
         }
 
+        updateChild(child, oldChild) {
+            this.children[this.children.indexOf(oldChild)] = child;
+        }
+
         // Method to register button parameters
         // TODO: REMOVE THIS FUNCTION (replace with robust child system)
         registerButtonParams(buttonParams) {
@@ -310,7 +321,7 @@
                 throw new Error(`No configuration found for pet type: ${petType}`);
             }
 
-            const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);            //GeneratedObject(sprites, states, x, y, z, actionOnClick)
+            const petSpriteArray = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
             super(petSpriteArray, config.states, x, y, z, () => {
                 this.queueState('flop');
                 this.queueState('flop');
@@ -430,6 +441,10 @@
             this.state = "front";
             this.stampItem;
         }
+        setTextRenderer(textRenderer){
+            this.textRenderer = textRenderer;
+            this.backPixelCanvas.multiLineTextRenderer.textRenderer = textRenderer;
+        }
         setTextActive(bool) {
             this.backPixelCanvas.setTextActive(bool);
         }
@@ -437,9 +452,6 @@
             this.stampItem = stampItem;
             this.backPixelCanvas.setStamp(stampItem);
         }
-        // setUserText(text){
-        //     this.backPixelCanvas.setUserText(text);
-        // }
         flipPostcard(){
             if(this.state == "front"){
                 this.state = "flipToBack";
@@ -447,6 +459,10 @@
             else if (this.state == "back"){
                 this.state = "flipToFront";
             }
+        }
+        setColor(color){
+            this.frontPixelCanvas.setColor(color);
+            this.backPixelCanvas.setColor(color);
         }
         nextFrame(){
             if(this.state == "flipToBack"){
@@ -480,9 +496,6 @@
             else if(this.state == "back"){
                 this.backPixelCanvas.nextFrame();
             }
-            // else if(this.state == "front"){
-            //     this.frontPixelCanvas.nextFrame();
-            // }
         }
 
         getSprite(){
@@ -549,7 +562,7 @@
         constructor(x, y, z, width, height, offsetX, offsetY, textRenderer) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
-            this.emptyLeftMatrix = generateEmptyMatrix(80, 80);
+            this.emptyLeftMatrix = generateEmptyMatrix(82, 80);
             this.emptyRightMatrix = generateEmptyMatrix(40, 80);
             this.pixelMatrix = emptyMatrix;
             this.width = width;
@@ -558,7 +571,7 @@
             this.offsetY = offsetY == null ? y : offsetY;
             this.stampItem = null;
             this.userText = "";
-            this.multiLineTextRenderer = new multiLineTextRenderer(x + 2, y - 2, z, 78, height, 9, textRenderer, 4, 0);
+            this.multiLineTextRenderer = new multiLineTextRenderer(x + 3, y + 4, z, 78, height, 9, textRenderer, 4, 0);
             this.textInput = new textInput((text) => this.setUserText(text), textRenderer.charMappingString);
         }
 
@@ -572,11 +585,13 @@
         }
 
         setStamp(stampItem) {
-            this.stampItem = stampItem;
-            this.clearStamp();
-            console.log("stamp array?? ", this.stampItem.states["default"] )
-            let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
-            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 86, 8);
+            if( stampItem !== this.stampItem) {
+                this.stampItem = stampItem;
+                this.clearStamp();
+                console.log("stamp array?? ", this.stampItem.states["default"] )
+                let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
+                this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 87, 4);
+            }
         }
 
         clearStamp() {
@@ -605,6 +620,11 @@
 
         setColor(color) {
             this.multiLineTextRenderer.setColor(color);
+        }
+
+        clearCanvas() {
+            this.clearStamp();
+            this.textInput.clearAll();
         }
     }
 
@@ -646,28 +666,63 @@
             this.text = text;
             this.lines = this.wrapText(text, this.width);
         }
+
         wrapText(text, maxWidth) {
             let words = text.split(' ');
             let lines = [];
             let currentLine = '';
             let currentWidth = 0;
+            const spaceWidth = this.textRenderer.measureText(' ');
 
-            words.forEach(word => {
+            words.forEach((word) => {
+                if (word === '') {
+                    // handle multiple spaces
+                    currentLine += ' ';
+                    currentWidth += spaceWidth;
+                    return;
+                }
                 let wordWidth = this.textRenderer.measureText(word);
-                let spaceWidth = this.textRenderer.measureText(' ');
-                if (currentWidth + wordWidth> maxWidth) {
-                    lines.push(currentLine.trim());
-                    currentLine = word + ' ';
-                    currentWidth = wordWidth + spaceWidth;
+                if (wordWidth > maxWidth) {
+                    // Handle long words by breaking them with hyphenation
+                    if (currentWidth > 0) {  // Push current line and start a new one if not empty
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                        currentWidth = 0;
+                    }
+                    while (wordWidth > maxWidth) {
+                        let part = word;
+                        while (this.textRenderer.measureText(part + '-') > maxWidth) {
+                            part = part.slice(0, -1);  // Continuously remove the last character
+                        }
+                        if (part.length < word.length) { // Only add hyphen if part was actually cut
+                            lines.push(part + '-');
+                            word = word.substring(part.length);  // Remove the part from the word
+                        } else { // If the whole part fits and it's exactly the word, no hyphen needed
+                            lines.push(part);
+                            word = '';
+                        }
+                        wordWidth = this.textRenderer.measureText(word);  // Measure remaining part
+                    }
+                    if (word) { // If there's any remainder that fits within maxWidth
+                        currentLine = word + ' ';
+                        currentWidth = this.textRenderer.measureText(currentLine);
+                    }
                 } else {
-                    currentLine += word + ' ';
-                    currentWidth += wordWidth + spaceWidth;
+                    // Proceed as normal if the word fits in the width
+                    if (currentWidth + wordWidth > maxWidth) {
+                        lines.push(currentLine.trim());
+                        currentLine = word + ' ';
+                        currentWidth = wordWidth + spaceWidth;
+                    } else {
+                        currentLine += word + ' ';
+                        currentWidth += wordWidth + spaceWidth;
+                    }
                 }
             });
 
             if (currentLine) {
-                if(this.isActive && this.showingCursor){
-                    currentLine = currentLine.slice(0, -1) + '|';
+                if(this.isActive && this.showingCursor) {
+                    currentLine = currentLine.slice(0, -1) + '|';  // Adjust for cursor display
                 }
                 lines.push(currentLine.trim());
             }
@@ -676,13 +731,16 @@
         }
 
         externalRender() {
-            let matrix = generateEmptyMatrix(this.width, this.height);
+            let matrix = generateEmptyMatrix(this.width, this.height + 1);
             let currentY = this.y;
             this.lines.forEach(line => {
                 let renderedLine = this.color === null ? 
                     this.textRenderer.renderText(line) :
                     this.textRenderer.renderText(line, this.color);
                 renderedLine.forEach((row, y) => {
+                    if(currentY + this.lineHeight >= this.y + this.height) {
+                        return;
+                    }
                     row.forEach((color, x) => {
                         matrix[currentY + y][x] = color;
                     });
@@ -703,13 +761,13 @@
             this.canvasWidth = width;
             this.canvasHeight = height;
             this.pixelMatrix = emptyMatrix;
-            this.color = 'white';
-            this.pencilColor = 'white';
+            this.color = Colors.black;
+            this.pencilColor = Colors.black;
             this.lastX = null;
             this.lastY = null;
             this.offsetX = offsetX == null ? x : offsetX;
             this.offsetY = offsetY == null ? y : offsetY;
-            this.brushSize = 10;
+            this.brushSize = 6;
             this.brushShape = "circle";
             this.savedPastCanvas = [];
             this.savedFutureCanvas = [];
@@ -720,18 +778,41 @@
         }
 
         recursiveFill(x, y, targetColor, replacementColor) {
-            if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) {
-                return;
+            if (targetColor === replacementColor) {
+                return; // Avoid unnecessary work if the colors are the same
             }
-            if (this.pixelMatrix[y][x] !== targetColor) {
-                return;
+
+            let queue = [];
+            let visited = new Set(); // Set to track visited pixels
+            queue.push({x, y});
+            visited.add(`${x},${y}`);
+
+            while (queue.length > 0) {
+                let {x, y} = queue.shift(); // Dequeue
+
+                // Check bounds
+                if (x < 0 || x >= this.canvasWidth || y < 0 || y >= this.canvasHeight) {
+                    continue;
+                }
+
+                // Check if the current pixel is of the target color
+                if (this.pixelMatrix[y][x] !== targetColor) {
+                    continue;
+                }
+
+                // Color the pixel
+                this.pixelMatrix[y][x] = replacementColor;
+
+                // Enqueue all adjacent pixels that have not been visited or modified
+                [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].forEach(([nx, ny]) => {
+                    if (!visited.has(`${nx},${ny}`) && this.pixelMatrix[ny] && this.pixelMatrix[ny][nx] === targetColor) {
+                        queue.push({x: nx, y: ny});
+                        visited.add(`${nx},${ny}`);
+                    }
+                });
             }
-            this.pixelMatrix[y][x] = replacementColor;
-            this.recursiveFill(x + 1, y, targetColor, replacementColor);
-            this.recursiveFill(x - 1, y, targetColor, replacementColor);
-            this.recursiveFill(x, y + 1, targetColor, replacementColor);
-            this.recursiveFill(x, y - 1, targetColor, replacementColor);
         }
+
 
         paintPixel(x, y) {
             // Adjust x and y based on the canvas offset
@@ -751,8 +832,14 @@
                         }
                     }
                 } else if (this.brushShape === 'circle') {
+
                     // Circle brush logic
                     const radius = this.brushSize / 2;
+                    if(radius == 0){
+                        this.paintAt(adjustedX, adjustedY);
+                        return;
+                    }
+
                     const radiusSquared = radius * radius;
                     const minX = Math.ceil(adjustedX - radius);
                     const maxX = Math.floor(adjustedX + radius);
@@ -793,6 +880,7 @@
 
         setEraser() {
             this.setColor("transparent");
+            this.isPaintBucket = false;
         }
 
         toggleFill(){
@@ -808,23 +896,14 @@
             return this.pixelMatrix;
         }
 
-        rotateSize() {
-            if( this.brushSize < 20 ) {
-                this.brushSize += 2;
-            }
-            else {
-                this.brushSize = 2;
-            }
-        }
-
         incrementSize() {
-            if( this.brushSize < 20 ) {
+            if( this.brushSize < 18 ) {
                 this.brushSize += 2;
             }
         }
 
         decrementSize() {
-            if( this.brushSize > 2 ) {
+            if( this.brushSize >= 2 ) {
                 this.brushSize -= 2;
             }
         }
@@ -848,6 +927,7 @@
 
         setToPencilColor() {
             this.color = this.pencilColor;
+            this.isPaintBucket = false;
         }
 
         clearCanvas() {
@@ -947,8 +1027,6 @@
                 this.updateState("default");
             }
         }
-
-        
     }
 
     export class Button extends Object {
@@ -956,6 +1034,7 @@
             super(objectName, x, y, z, actionOnClick);
             this.action = actionOnClick || (() => {});
             this.updateState("default");
+            this.showPointer = true;
         }
 
         onHover() {
@@ -1036,6 +1115,12 @@
             this.mouseX = null;
             this.mouseY = null;
             this.renderChildren = true;
+            this.childHeight = this.children[0].getHeight();
+            this.childWidth = this.children[0].getWidth();
+            this.spriteWidth = (this.childWidth + this.columnSpacing) * this.columns;
+            this.spriteHeight = (this.childHeight + this.rowSpacing) * this.rows;
+            this.objectTop = 0;
+            this.objectBottom = 128 - this.spriteHeight;
             this.generateObjectGrid();
         }
 
@@ -1062,8 +1147,9 @@
         onScrollUp() {
             if (this.scrollDirection === "horizontal") {
                 this.scrollOffsetX += this.scrollSpeed;
-            } else { // Assuming horizontal scrolling
+            } else if(this.scrollOffsetY <= this.objectTop) { // Assuming horizontal scrolling, stop at top of page
                 this.scrollOffsetY += this.scrollSpeed;
+
             }
             this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
@@ -1071,8 +1157,9 @@
         onScrollDown() {
             if (this.scrollDirection === "horizontal") {
                 this.scrollOffsetX -= this.scrollSpeed;
-            } else { // Assuming horizontal scrolling
+            } else if(this.scrollOffsetY >= this.objectBottom) { // Assuming horizontal scrolling
                 this.scrollOffsetY -= this.scrollSpeed;
+
             }
             this.generateObjectGrid(); // Re-generate grid to reflect new positions
         }
@@ -1080,8 +1167,6 @@
         generateObjectGrid() {
             let currentX = this.scrollOffsetX;
             let currentY = this.scrollOffsetY;
-            const spriteWidth = this.children[0].getWidth();
-            const spriteHeight = this.children[0].getHeight();
             // console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
 
             for (let row = 0; row < this.rows; row++) {
@@ -1089,13 +1174,17 @@
                     let index = row * this.columns + column;
                     if (index >= this.children.length) break;
 
-                    let objectX = currentX + (column * (spriteWidth + this.columnSpacing));
-                    let objectY = currentY + (row * (spriteHeight + this.rowSpacing));
+                    let objectX = currentX + (column * (this.childWidth + this.columnSpacing));
+                    let objectY = currentY + (row * (this.childHeight + this.rowSpacing));
                     this.children[index].setCoordinate(objectX, objectY, this.z);
                 }
             }
-            this.spriteWidth = (spriteWidth + this.columnSpacing) * this.columns;
-            this.spriteHeight = (spriteHeight + this.rowSpacing) * this.rows;
+
+        }
+
+        updateObjects(objectsArray){
+            this.children = objectsArray;
+            this.generateObjectGrid();
         }
     }
 
@@ -1156,30 +1245,34 @@
     }
 
     export class Menu extends GeneratedObject {
-        constructor(x, y, z, width, height, borderColor, backgroundColor, roundness){
-            const backgroundMatrix = generateStatusBarSprite(width, height, borderColor, backgroundColor, '#000000', 0, roundness);
+        constructor(x, y, z, width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+                outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1){
+            const backgroundMatrix = generateMenuMatrix(width, height, bgColor, innerBorderColor, outerBorderColor, 
+                innerRoundness, outerRoundness, innerBorderThickness, outerBorderThickness);
             super([backgroundMatrix], { default: [0] }, x, y, z);
             this.width = width;
             this.height = height;
+            this.stateQueue = [];
+            this.isStateCompleted = false;
+            this.updateState("default")
         }
     }
 
     export class ColorButton extends GeneratedObject {
         constructor(color, x, y, z, actionOnClick, width, height){
-            const defaultSprite = generateRectangleMatrix(width, height, color);
-            const hoverSprite = generateRectangleMatrix(width, height, color);
-            super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
+            const defaultSprite = generateColorButtonMatrix(width, height, color);
+            super([defaultSprite, defaultSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
             this.color = color;
             this.width = width;
             this.height = height;
         }
     }
     
-    //    export function generateButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered, textRenderer, 
-    //topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
     export class ColorMenu extends Menu {
-        constructor(x, y, z, width, height, borderColor, backgroundColor, roundness, colorSize, colorSpacing, columns, rows, colorArray, colorFunction){
-            super(x, y, z, width, height, borderColor, backgroundColor, roundness);
+        constructor(x, y, z, width, height, colorSize, colorSpacing, columns, rows, colorArray, colorFunction, 
+                bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1){
+            super(x, y, z, width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+                outerRoundness, innerBorderThickness , outerBorderThickness);
             this.colorSize = colorSize;
             this.colorArray = colorArray;
             this.colorFunction = colorFunction;
@@ -1201,27 +1294,10 @@
                 this.buttons.push(button);
             }
         }
-        //constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
         generateColorGrid(){
-            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 3, 3, this.z, this.buttons, 0, 0, "horizontal", 0);
+            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 7, 7, this.z, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
         }
-
-        // getSprite() {
-        //     let spritesOut = [];
-        //     if(this.children.length > 0) {
-        //         this.getChildSprites().forEach((sprite) => {
-        //             // console.log("Child sprite: ", sprite)
-        //             if (Array.isArray(sprite)) {
-        //                 spritesOut.push(...sprite);
-        //             //if not an array, push sprite
-        //             } else {
-        //                 spritesOut.push(sprite);
-        //             }
-        //         });
-        //     }
-        //     return spritesOut;
-        // }
     }
 
 </script>

@@ -13,12 +13,12 @@
          * Creates an instance of an Item.
          * @param {string} itemName - The name of the item, used to fetch its configuration.
          */
-        constructor( itemName ){
+        constructor( itemName, x = 0, y = 0, z = 0) {
             // maybe add an item count parameter?
             const config = itemConfig[itemName];
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet);
-            super(spriteMatrix, config.states, 0, 0, 0);
+            super(spriteMatrix, config.states, x, y, z);
             /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
             /** @property {boolean} stackable - Indicates if the item can be stacked. */
@@ -231,11 +231,20 @@
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
+            this.itemSlotConstructor = itemSlotConstructor;
+            this.totalSlots = totalSlots;
+            this.items = items;
+            this.numberTextRenderer = numberTextRenderer;
             this.toolTip = toolTip;
             this.toolTip.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
             this.hoverWithChildren = true;
-            
+            this.itemZ = itemZ;
+            this.setHoverLogic();
+        }
+
+
+        setHoverLogic() {
             this.children.forEach((itemSlot) => {
                 //while itemSlot hover, set coordinate of tooltip to mouse
                 itemSlot.whileHover = () => {
@@ -251,36 +260,13 @@
                 }
                 //on itemSlot stop hover, hide the tooltip
                 itemSlot.onStopHover = () => {
+                    console.log("tooltip=" + this.toolTip);
+                    this.toolTip.currentTitle;
+
                     this.displayToolTip = false;
                     itemSlot.updateState("default");
                 }
             });
-            function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer) {
-                let inventoryGrid = [];
-                for(let i = 0; i < totalSlots; i++) {
-                    let item = items[i];
-                    let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
-                    
-                    // console.log("Slot Instance: ", slotInstance); // Check the instance
-                    // console.log(slotInstance instanceof GeneratedObject);
-                    if(item) {
-                        console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
-                        if(numberTextRenderer != null){
-                            let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
-                            numberRenderer.setText(item.itemCount.toString());
-                            slotInstance.addChild(numberRenderer);
-                        }
-                        item.setCoordinate(0, 0, itemZ);
-                        slotInstance.slotItem = item;
-                        slotInstance.addChild(item);
-                    }
-                    else{
-                        slotInstance.slotItem = null;
-                    }
-                    inventoryGrid.push(slotInstance);
-                }
-                return inventoryGrid;
-            }
         }
 
         //called when buttons are hovered (item grid stops being hovered)
@@ -293,6 +279,7 @@
             }
             if(this.hoveredChild == null){
                 this.displayToolTip = false;
+                // this.toolTip = null;
             }
         }
 
@@ -315,5 +302,42 @@
             }
             return spritesOut;
         }
+
+        //update the item slots with new items
+        updateItemSlots(itemsArray){
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemZ);
+            // update the objects rendered in the grid (from objectGrid superclass)
+            this.updateObjects(itemSlotExport);
+            this.setHoverLogic();
+        }
+    }
+
+    // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
+    // maybe change this later
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemZ) {
+        let inventoryGrid = [];
+        for(let i = 0; i < totalSlots; i++) {
+            let item = items[i];
+            let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
+            
+            // console.log("Slot Instance: ", slotInstance); // Check the instance
+            // console.log(slotInstance instanceof GeneratedObject);
+            if(item) {
+                console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
+                if(numberTextRenderer != null){
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
+                    numberRenderer.setText(item.itemCount.toString());
+                    slotInstance.addChild(numberRenderer);
+                }
+                item.setCoordinate(2, 2, itemZ);
+                slotInstance.slotItem = item;
+                slotInstance.addChild(item);
+            }
+            else{
+                slotInstance.slotItem = null;
+            }
+            inventoryGrid.push(slotInstance);
+        }
+        return inventoryGrid;
     }
 </script>

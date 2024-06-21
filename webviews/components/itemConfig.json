@@ -2,20 +2,31 @@
     "javascriptStamp":{
         "type": "stamp",
         "displayName": "Javascript",
-        "spriteSheet": "JS_stamps.png",
+        "spriteSheet": "stamps_JS.png",
         "spriteIndex": 1,
         "description": "javascript stamp",
         "spriteWidth": 32,
         "states": {
-            "default": [0, 1, 2]
+            "default": [0, 1, 2, 3, 4]
         }
     },
-    "pythonStamp":{
+    "HTMLStamp":{
         "type": "stamp",
-        "displayName": "Python",
-        "spriteSheet": "stamps_py.png",
+        "displayName": "HTML",
+        "spriteSheet": "stamps_HTML.png",
         "spriteIndex": 1,
-        "description": "python stamp",
+        "description": "HTML stamp",
+        "spriteWidth": 32,
+        "states": {
+            "default": [0, 1, 2, 3, 4]
+        }
+    },
+    "CSSStamp":{
+        "type": "stamp",
+        "displayName": "CSS",
+        "spriteSheet": "stamps_CSS.png",
+        "spriteIndex": 1,
+        "description": "CSS stamp",
         "spriteWidth": 32,
         "states": {
             "default": [0, 1, 2, 3, 4]
@@ -54,23 +65,12 @@
             "default": [0, 1, 2, 3, 4]
         }
     },
-    "CSSStamp":{
+    "pythonStamp":{
         "type": "stamp",
-        "displayName": "CSS",
-        "spriteSheet": "stamps_CSS.png",
+        "displayName": "Python",
+        "spriteSheet": "stamps_py.png",
         "spriteIndex": 1,
-        "description": "CSS stamp",
-        "spriteWidth": 32,
-        "states": {
-            "default": [0, 1, 2, 3, 4]
-        }
-    },
-    "HTMLStamp":{
-        "type": "stamp",
-        "displayName": "HTML",
-        "spriteSheet": "stamps_HTML.png",
-        "spriteIndex": 1,
-        "description": "HTML stamp",
+        "description": "python stamp",
         "spriteWidth": 32,
         "states": {
             "default": [0, 1, 2, 3, 4]
@@ -153,6 +153,201 @@
         "energy": 0,
         "states": {
             "default": [0]
+        }
+    },
+    "atlanticBass":{
+        "type": "food",
+        "displayName": "Atlantic Bass",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [0]
+        }
+    },
+    "clownfish":{
+        "type": "food",
+        "displayName": "Clownfish",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [1]
+        }
+    },
+    "dab":{
+        "type": "food",
+        "displayName": "Dab",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [2]
+        }
+    },
+    "seaSpider":{
+        "type": "food",
+        "displayName": "Sea Spider",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [3]
+        }
+    },
+    "blueGill":{
+        "type": "food",
+        "displayName": "Blue Gill",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [4]
+        }
+    },
+    "guppy":{
+        "type": "food",
+        "displayName": "Guppy",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [5]
+        }
+    },
+    "freshwaterSnail":{
+        "type": "food",
+        "displayName": "Snail",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [6]
+        }
+    },
+    "axolotl":{
+        "type": "food",
+        "displayName": "Axolotl",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [7]
+        }
+    },
+    "highFinBandedShark":{
+        "type": "food",
+        "displayName": "Banded Shark",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [8]
+        }
+    },
+    "goldenTench":{
+        "type": "food",
+        "displayName": "Gold Tench",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [9]
+        }
+    },
+    "mossBall":{
+        "type": "food",
+        "displayName": "Moss Ball",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [10]
+        }
+    },
+    "plasticBag":{
+        "type": "food",
+        "displayName": "Plastic Bag",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [11]
+        }
+    },
+    "junonia":{
+        "type": "food",
+        "displayName": "Junonia",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [12]
+        }
+    },
+    "sandDollar":{
+        "type": "food",
+        "displayName": "Sand Dollar",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [13]
+        }
+    },
+    "starfish":{
+        "type": "food",
+        "displayName": "Starfish",
+        "spriteSheet": "fish.png",
+        "description": "fish",
+        "spriteWidth": 16,
+        "hunger": 3,
+        "thirst": 1,
+        "energy": 1,
+        "states": {
+            "default": [14]
         }
     }
 }
