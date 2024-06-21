@@ -2,12 +2,9 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-dotenv.config();
-if( dotenv.config() === undefined){
-    console.error("No .env file found");
-    process.exit(1);
-}
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -19,6 +16,8 @@ const firebaseConfig = {
     appId: process.env.FIREBASE_APP_ID,
     measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
+
+console.log(firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
