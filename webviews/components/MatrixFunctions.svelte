@@ -356,4 +356,21 @@
         // Return the new hex color
         return `#${r}${g}${b}`;
     }
+
+    //currently only works with positive integers
+    export function scaleMatrix(inputSprite, scale){
+        let outputSprite = [];
+        for (let y = 0; y < inputSprite.length; y++) {
+            for (let i = 0; i < scale; i++) {
+                let row = [];
+                for (let x = 0; x < inputSprite[y].length; x++) {
+                    for (let j = 0; j < scale; j++) {
+                        row.push(inputSprite[y][x]);
+                    }
+                }
+                outputSprite.push(row);
+            }
+        }
+        return outputSprite;
+    }
 </script>

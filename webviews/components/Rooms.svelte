@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu, itemScaler } from './Object.svelte';
     import { Item, inventoryGrid } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -49,6 +49,7 @@
         const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
         const paintUnhoverableButton = generateTextButtonClass(18, 15, retroShadowBlue, ...Colors.secondaryMenuUnhoverableColorParams);
         const fishingButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
+        const invisibleMiningButton = generateInvisibleButtonClass(34, 57);
 
 
 
@@ -68,7 +69,7 @@
         const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
         const statusBar = new StatusBar(20, 2, 0);
         //MAIN MENU INSTANTIATION
-        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Close'];
+        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Mining', 'Close'];
         const mainMenuButtonFunctions = [() => {get(game).setCurrentRoom('settingsRoom')}, 
         () => {get(game).setCurrentRoom('shopRoom')}, 
         () => {get(game).setCurrentRoom('customizeRoom')}, 
@@ -76,8 +77,9 @@
         () => {get(game).setCurrentRoom('friendRoom')}, 
         () => {get(game).setCurrentRoom('inventoryRoom')}, 
         () => {get(game).setCurrentRoom('fishingRoom')},
+        () => {get(game).setCurrentRoom('caveEntranceRoom')},
         () => {
-            get(game).getCurrentRoom().removeObject( mainMenu );
+            get(game).getCurrentRoom().removeObject( mainMenu ); 
             get(game).getCurrentRoom().addObject( mainMenuButton );}
         ]
         const mainMenu = new buttonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
@@ -472,7 +474,7 @@
         // get(game).addStackableItem("C#Stamp", 2);
         // get(game).addStackableItem("pythonStamp", 2);
 
-        let itemArray = get(game).inventory.getItemsArray();
+        let itemArray = get(game).inventory.getItemsByType('food');
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
             let output = new Object("smallItemSlot", 0, 0, 0);
@@ -482,18 +484,19 @@
             return output;
         }
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridInstance = new inventoryGrid(6, 1, 8, 1, 2, 0, -1, itemArray, 48, createItemSlot, testToolTip, electro);
+        let inventoryGridInstance = new inventoryGrid(6, 1, 3, 1, 2, 65, -1, itemArray, 48, createItemSlot, testToolTip, electro, 0);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
             // itemArray = get(game).inventory.getItemsArray();
-            itemArray = get(game).inventory.getItemsByType('food');
             itemArray.forEach(item => console.log("itemArray item:", item.displayName));
             inventoryGridInstance.updateItemSlots(itemArray);
             // let newInventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tinyShadow);
             // inventoryRoom.updateObject(inventoryGridTest, newInventoryGridTest);
             // inventoryGridTest = newInventoryGridTest;
         });
-        inventoryRoom.addObject(backToMain, inventoryGridInstance);
+        let scaledItem = new itemScaler(2, 2, 2, 2);
+        scaledItem.setItem(itemArray[0])
+        inventoryRoom.addObject(backToMain, inventoryGridInstance, scaledItem);
 
         // ---------------- FISHING ROOM ----------------
     
@@ -537,6 +540,7 @@
             });
         }
 
+        // FISHING ROOM
 
         let fishingRoom = new Room('fishingRoom',  
             () => {
@@ -562,7 +566,44 @@
         fishingNotif.setPhysics(16, .2, 3.8);
         fishingRoom.addObject(backToMain2, fishingBackground, petObject, castLineButton, fishingNotif);
 
+        // MINING ROOM 
+        let caveEntranceRoom = new Room('caveEntranceRoom',  
+            () => {
+                petObject.setCoordinate(23, 71, 0);
+            },
+            false,
+            () => {
+                petObject.nextFrame();
+            },
+            ()=> {},
+            ()=> {
+            }
+        );
+        let caveEntrance = new Background('caveEntrance', 0, 0, -20, () => {} );
+        let doorButton = new invisibleMiningButton(46, 45, 5, () => {
+            get(game).setCurrentRoom('miningRoom');
+        })
+
+        caveEntranceRoom.addObject(backToMain2, caveEntrance, petObject, doorButton);
+
+        let miningRoom = new Room('miningRoom',  
+            () => {
+                petObject.setCoordinate(23, 71, 0);
+            },
+            false,
+            () => {
+
+            },
+            ()=> {},
+            ()=> {
+            }
+        );
+        let miningBackground = new Background('miningBackground', 0, 0, -20, () => {} );
+
+        miningRoom.addObject(backToMain2, miningBackground);
     }
+
+        
 
     export function roomMain(){
         get(game).getCurrentRoom().update();
