@@ -18,19 +18,20 @@
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
             //textColor, letterSpacing, charMap, textShadowColor, textShadowXOffset, textShadowYOffset)
-        let basic = new TextRenderer('charmap1.png', 7, 9, "#FFFFFF", "#000000", 1, standardCharMap);
-        let gang = new TextRenderer('gangsmallFont.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
-        let retro = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#000000", 1, standardCharMap);
-        let tiny = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#000000", 1, standardCharMap);
-        let retroShadowBlue = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
-        let retroShadowGray = new TextRenderer('retrocomputer.png', 8, 10, "#FFFFFF", "#d7d7ff", 1, standardCharMap, "#464e57", 1, 1);
-        let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, "#FFFFFF", "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
+        let basic = new TextRenderer('charmap1.png', 7, 9, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
+        let gang = new TextRenderer('gangsmallFont.png', 8, 10, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
+        let retro = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
+        let tiny = new TextRenderer('tinyPixls.png', 8, 8, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
+        let retroShadowBlue = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
+        let retroShadowGray = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#464e57", 1, 1);
+        let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, Colors.white, Colors.black, "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
+        let electro = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555"], [Colors.black, Colors.white], -1, standardCharMap);
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
         //   topShadowColor, bottomShadowColor, topHoverShadowColor, bottomHoverShadowColor,
         //   textAlign ("center" "left" or "right"), margin (only for left or right align))
-        const settingsMenuButton = generateTextButtonClass(128, 17, basic, ...Colors.secondaryMenuColorParams);
+        const settingsMenuButton = generateTextButtonClass(128, 17, electro, ...Colors.secondaryMenuColorParams);
         const singleLetterButton = generateTextButtonClass(16, 16, basic, ...Colors.secondaryMenuColorParams);
         const smallLetterButton = generateTextButtonClass(10, 10, basic, ...Colors.secondaryMenuColorParams);
         const settingsTitleButton = generateTextButtonClass(128, 13, basic, ...Colors.secondaryMenuTitleColorParams);
@@ -481,7 +482,7 @@
             return output;
         }
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridInstance = new inventoryGrid(6, 1, 8, 1, 3, 0, -1, itemArray, 48, createItemSlot, testToolTip, tinyShadow);
+        let inventoryGridInstance = new inventoryGrid(6, 1, 8, 1, 2, 0, -1, itemArray, 48, createItemSlot, testToolTip, electro);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
             // itemArray = get(game).inventory.getItemsArray();
@@ -504,7 +505,7 @@
             if(get(game).isActive){
             castLineHandler();
         }}, 5);
-        let cancelButton = new fishingButton("XXX", 90, 80, () => {
+        let cancelButton = new fishingButton("XXX", 90, 60, () => {
             fishingInstance.cancelFishing();
             get(game).getCurrentRoom().addObject( castLineButton );
             get(game).getCurrentRoom().removeObject( cancelButton );
