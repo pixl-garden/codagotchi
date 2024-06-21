@@ -6,6 +6,7 @@
     export class Fishing {
         constructor() {
             this.abortController = null;
+            this.cancelFlag = false;
         }
 
         // Simulate casting a fishing line asynchronously
@@ -47,6 +48,7 @@
             if (this.abortController) {
                 this.abortController.abort();
             }
+            this.cancelFlag = true;
         }
     }
 

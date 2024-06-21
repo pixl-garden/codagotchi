@@ -447,6 +447,7 @@
         // let testItem11 = new Item("tomatoSoup", 0, 0, 0)
         // let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
         // get(game).addStackableItem("tomatoSoup", 3);
+        // get(game).subtractStackableItem("tomatoSoup", 3);
         // get(game).addStackableItem("coffee", 5);
         // get(game).addStackableItem("potion", 2);
 
@@ -473,17 +474,18 @@
         let itemArray = get(game).inventory.getItemsArray();
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
-            let output = new Object("itemSlot", 0, 0, 0);
+            let output = new Object("smallItemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
             // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridInstance = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tinyShadow);
+        let inventoryGridInstance = new inventoryGrid(6, 1, 8, 1, 3, 0, -1, itemArray, 48, createItemSlot, testToolTip, tinyShadow);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
-            itemArray = get(game).inventory.getItemsArray();
+            // itemArray = get(game).inventory.getItemsArray();
+            itemArray = get(game).inventory.getItemsByType('food');
             itemArray.forEach(item => console.log("itemArray item:", item.displayName));
             inventoryGridInstance.updateItemSlots(itemArray);
             // let newInventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tinyShadow);
@@ -498,19 +500,36 @@
         let fishingInstance = new Fishing();
         let fishingNotifItem = new Item("guppy", 7, 6, 13);
         let fishingNotifText = new activeTextRenderer(retroShadowGray, 26, 9, 13);
-        let testingButton = new fishingButton("FISH", 90, 60, castLineHandler, 5);
+        let castLineButton = new fishingButton("FISH", 90, 60, ()=>{
+            if(get(game).isActive){
+            castLineHandler();
+        }}, 5);
+        let cancelButton = new fishingButton("XXX", 90, 80, () => {
+            fishingInstance.cancelFishing();
+            get(game).getCurrentRoom().addObject( castLineButton );
+            get(game).getCurrentRoom().removeObject( cancelButton );
+        }, 5);
         
         function castLineHandler() {
+            get(game).getCurrentRoom().addObject( cancelButton );
+            get(game).getCurrentRoom().removeObject( castLineButton );
+            castLineUntil();
+        }
+
+
+        function castLineUntil() {
             fishingInstance.castLine(get(game), 2000, 1000).then((fishItem) => {
                 fishingNotif.startMovingTo(6, 3);
                 fishingNotifText.setText(fishItem.getName());
                 fishingNotif.updateChild(fishItem, fishingNotifItem);
+
                 fishingNotifItem = fishItem;
                 setTimeout(() => {
                     fishingNotif.startMovingTo(6, -29);
-                    if(get(game).isActive){
-                        castLineHandler();
+                    if(get(game).isActive && !fishingInstance.cancelFlag){
+                        castLineUntil();
                     }
+                    fishingInstance.cancelFlag = false;
                 }, 4000);
             }).catch((error) => {
                 console.log(error.message);
@@ -518,9 +537,6 @@
         }
 
 
-        let cancelButton = new fishingButton("XXX", 90, 80, () => {
-            fishingInstance.cancelFishing();
-        }, 5);
         let fishingRoom = new Room('fishingRoom',  
             () => {
                 petObject.setCoordinate(29, 32, 0);
@@ -532,6 +548,10 @@
             },
             ()=> {
                 castLineHandler();
+            },
+            ()=> {
+                get(game).getCurrentRoom().addObject( castLineButton );
+                get(game).getCurrentRoom().removeObject( cancelButton );
             }
         );
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
@@ -539,7 +559,7 @@
         fishingNotif.addChild(fishingNotifItem);
         fishingNotif.addChild(fishingNotifText);
         fishingNotif.setPhysics(16, .2, 3.8);
-        fishingRoom.addObject(backToMain2, fishingBackground, petObject, testingButton, fishingNotif, cancelButton);
+        fishingRoom.addObject(backToMain2, fishingBackground, petObject, castLineButton, fishingNotif);
 
     }
 
