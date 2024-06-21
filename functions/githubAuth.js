@@ -62,7 +62,6 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
         await ref.set({ token: firebaseToken, githubUsername: githubUsername, status: 'ready', timestamp: token_time });
 
         // check if token is complete
-
         const startTime = Date.now();
         const timeout = 60000; // Timeout after 60 seconds
         let statusComplete = false;
@@ -112,7 +111,7 @@ const deleteOldTokens = functions
         if (tokens) {
             for (const [key, value] of Object.entries(tokens)) {
                 // Check if the token is older than 10 minutes
-                if (value.status === 'complete') {
+                if (value.status === 'complete' && now - value.timestamp > 600000) {
                     // 600000 milliseconds = 10 minutes
                     console.log(`Deleting old token: ${key}`);
                     await ref.child(key).remove();

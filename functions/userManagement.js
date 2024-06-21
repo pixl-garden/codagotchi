@@ -8,7 +8,7 @@ const createUserProfile = async (githubUserId, githubUsername, tokenTime) => {
             username: githubUsername,
             profile: {
                 photoURL: `https://avatars.githubusercontent.com/u/${githubUserId}?v=4`,
-                createdAt: new Date().getDate(),
+                createdAt: tokenTime,
                 lastLoginAt: tokenTime,
                 level: 1,
                 experience: 0,

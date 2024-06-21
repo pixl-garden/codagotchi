@@ -21,28 +21,25 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
         clearGlobalState(context);
     }));
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('codagotchi.checkAuthentication', async () => {
-    //         const refreshToken = await getSecretToken(context);
-    //         if (refreshToken) {
-    //             // Assume checkTokenValidity is a function that checks token validity and refreshes it if needed
-    //             checkTokenValidity(refreshToken).then((isValid) => {
-    //                 if (isValid) {
-    //                     console.log('Token is valid or has been refreshed.');
-    //                 } else {
-    //                     console.log('Token is invalid. Need re-authentication.');
-    //                     // Trigger authentication flow
-    //                 }
-    //             });
-    //         } else {
-    //             console.log('No refresh token stored. User needs to authenticate.');
-    //             // Trigger authentication flow
-
-    //         }
-    //     }),
-    // );
-
-    
+    context.subscriptions.push(
+        vscode.commands.registerCommand('codagotchi.checkAuthentication', async () => {
+            const refreshToken = await getSecretToken(context);
+            if (refreshToken) {
+                // Assume checkTokenValidity is a function that checks token validity and refreshes it if needed
+                checkTokenValidity(refreshToken).then((isValid) => {
+                    if (isValid) {
+                        console.log('Token is valid or has been refreshed.');
+                    } else {
+                        console.log('Token is invalid. Need re-authentication.');
+                        // Trigger authentication flow
+                    }
+                });
+            } else {
+                console.log('No refresh token stored. User needs to authenticate.');
+                // Trigger authentication flow
+            }
+        }),
+    );
 }
 
 
