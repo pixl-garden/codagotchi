@@ -6,7 +6,7 @@
     import { game, textInput } from './Game.svelte';
     import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix } from './MatrixFunctions.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix, scaleMatrix } from './MatrixFunctions.svelte';
     import * as Colors from './colors.js';    
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
@@ -1297,6 +1297,27 @@
         generateColorGrid(){
             let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 7, 7, this.z, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
+        }
+    }
+
+    export class itemScaler extends GeneratedObject{
+        constructor(x, y, z, scale){
+            super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
+            this.item = null;
+            this.scale = scale;
+        }
+        setItem(item){
+            this.item = item;
+        }
+        getSprite(){
+            if(this.item){
+                let baseMatrix = this.item.getSprite().getMatrix();
+                let scaledMatrix = scaleMatrix(baseMatrix, this.scale);
+                return new Sprite(scaledMatrix, this.x, this.y, this.z);
+            }
+            else{
+                return new Sprite(generateEmptyMatrix(1, 1), this.x, this.y, this.z);
+            }
         }
     }
 

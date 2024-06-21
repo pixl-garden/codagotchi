@@ -164,6 +164,22 @@
             "hovered": [3]
         }
     },
+    "caveEntrance":{
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "caveEntrance.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "miningBackground": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "miningBackground.png",
+        "states": {
+            "default": [0]
+        }
+    },
     "testItem":{
         "spriteWidth": 32,
         "spriteHeight": 32,
