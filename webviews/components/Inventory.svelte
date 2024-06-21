@@ -325,7 +325,7 @@
             if(item) {
                 console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
                 if(numberTextRenderer != null){
-                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 25, 23, 0);
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 15, 15, itemZ+1);
                     numberRenderer.setText(item.itemCount.toString());
                     slotInstance.addChild(numberRenderer);
                 }

@@ -12,6 +12,7 @@ export class TextRenderer {
         spriteWidth,
         spriteHeight,
         backgroundColor,
+        foregroundColor,
         renderColor,
         letterSpacing = 0,
         charMappingString,
@@ -23,6 +24,7 @@ export class TextRenderer {
         this.spriteWidth = spriteWidth;
         this.spriteHeight = spriteHeight;
         this.backgroundColor = backgroundColor;
+        this.foregroundColor = foregroundColor;
         this.renderColor = renderColor;
         this.letterSpacing = letterSpacing;
         this.charMappingString = charMappingString;
@@ -30,6 +32,8 @@ export class TextRenderer {
         this.textShadowXOffset = textShadowXOffset;
         this.textShadowYOffset = textShadowYOffset;
         this.characterWidths = new Map();
+        // If renderColor is an array, set renderColorCount to the length of the array, otherwise set it to 1
+        this.foregroundColorCount = Array.isArray(this.foregroundColor) ? this.foregroundColor.length : 1;
 
         // Load the character sprites from the store into an array of matrices
         this.charSprites = spriteReaderFromStore(spriteWidth, spriteHeight, charmap);
@@ -84,6 +88,9 @@ export class TextRenderer {
         if (typeof text !== 'string') {
             throw new Error('renderText: Text must be a string');
         }
+        if (this.foregroundColorCount > 1 && renderColor.length !== this.foregroundColorCount) {
+            throw new Error('renderText: renderColor must be an array of the same length as the renderer\'s renderColor for multi-color text rendering');
+        }
 
         // Used to calculate the x position of each character in the rendered text
         let currentWidth = 0;
@@ -116,10 +123,17 @@ export class TextRenderer {
         const matrixHeight = this.spriteHeight + Math.abs(this.textShadowYOffset);
         const matrix = Array(matrixHeight).fill(null).map(() => Array(currentWidth).fill(this.backgroundColor));
 
+        for (let y = 0; y < matrixHeight; y++) {
+            for (let x = 0; x < currentWidth; x++) {
+                if (matrix[y][x] === this.backgroundColor) {
+                    matrix[y][x] = 'transparent';
+                }
+            }
+        }
+
         text.split('').forEach((char, i) => {
             const spriteIndex = this.charToSpriteIndex[char];
             const sprite = this.currentCharSprites[spriteIndex];
-            const spriteWidth = sprite[0].length;
 
             if (this.textShadowColor !== null) {
                 sprite.forEach((row, y) => {
@@ -137,19 +151,17 @@ export class TextRenderer {
                 row.forEach((pixel, x) => {
                     if (pixel !== this.backgroundColor) {
                         const posX = characterOffsets[i] + x;
-                        matrix[y][posX] = renderColor;
+                        if(this.foregroundColorCount > 1){
+                            let foregroundIndex = this.foregroundColor.indexOf(pixel)
+                            matrix[y][posX] = renderColor[foregroundIndex];
+                        }
+                        else{
+                            matrix[y][posX] = renderColor;
+                        }
                     }
                 });
             });
         });
-
-        for (let y = 0; y < matrixHeight; y++) {
-            for (let x = 0; x < currentWidth; x++) {
-                if (matrix[y][x] === this.backgroundColor) {
-                    matrix[y][x] = 'transparent';
-                }
-            }
-        }
 
         return matrix;
     }
