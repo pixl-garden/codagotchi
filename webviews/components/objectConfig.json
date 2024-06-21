@@ -119,6 +119,15 @@
             "default": [0]
         }
     },
+    "smallItemSlot": {
+        "spriteWidth": 20,
+        "spriteHeight": 20,
+        "spriteSheet": "inventorySprite.png",
+        "states": {
+            "default": [0],
+            "hovered": [0]
+        }
+    },
     "itemSlot":{
         "spriteWidth": 32,
         "spriteHeight": 32,

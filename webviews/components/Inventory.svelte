@@ -260,6 +260,9 @@
                 }
                 //on itemSlot stop hover, hide the tooltip
                 itemSlot.onStopHover = () => {
+                    console.log("tooltip=" + this.toolTip);
+                    this.toolTip.currentTitle;
+
                     this.displayToolTip = false;
                     itemSlot.updateState("default");
                 }
@@ -276,6 +279,7 @@
             }
             if(this.hoveredChild == null){
                 this.displayToolTip = false;
+                // this.toolTip = null;
             }
         }
 
@@ -325,7 +329,7 @@
                     numberRenderer.setText(item.itemCount.toString());
                     slotInstance.addChild(numberRenderer);
                 }
-                item.setCoordinate(0, 0, itemZ);
+                item.setCoordinate(2, 2, itemZ);
                 slotInstance.slotItem = item;
                 slotInstance.addChild(item);
             }
