@@ -119,13 +119,29 @@
             "default": [0]
         }
     },
+    "inventoryBrownLG":{
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "inventoryBrownNLG.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "inventoryBrownSquare":{
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "inventoryBrownSquare.png",
+        "states": {
+            "default": [0]
+        }
+    },
     "smallItemSlot": {
-        "spriteWidth": 20,
-        "spriteHeight": 20,
-        "spriteSheet": "inventorySprite.png",
+        "spriteWidth": 18,
+        "spriteHeight": 18,
+        "spriteSheet": "itemSlotLG.png",
         "states": {
             "default": [0],
-            "hovered": [0]
+            "hovered": [1]
         }
     },
     "itemSlot":{

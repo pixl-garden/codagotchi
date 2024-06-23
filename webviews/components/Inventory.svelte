@@ -13,7 +13,7 @@
          * Creates an instance of an Item.
          * @param {string} itemName - The name of the item, used to fetch its configuration.
          */
-        constructor( itemName, x = 0, y = 0, z = 0) {
+        constructor( itemName, x = 0, y = 0, z = 0){
             // maybe add an item count parameter?
             const config = itemConfig[itemName];
             if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
@@ -227,7 +227,7 @@
         return inventory;
     }
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, numberTextRenderer, scrollSpeed, itemZ = 10){
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, scaledItemRef, numberTextRenderer, scrollSpeed, itemZ = 10){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
@@ -239,8 +239,9 @@
             this.toolTip.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
             this.hoverWithChildren = true;
+            this.scaledItemRef = scaledItemRef;
             this.itemZ = itemZ;
-            this.setHoverLogic();
+            // this.setHoverLogic();
         }
 
 
@@ -252,8 +253,11 @@
                 }
                 //on itemSlot hover, display the tooltip and set the toop tip item to the item in the slot
                 itemSlot.onHover = () => {
-                    if(this.hoveredChild?.children[0]){
-                        this.toolTip.setItem(this.hoveredChild.children[0]);
+                    console.log("HOVERING ITEM SLOT, HOVERED CHILD: ", this.hoveredChild)
+                    if(itemSlot.slotItem != null){
+                        console.log("SLOT ITEM: ", itemSlot.slotItem)
+                        this.toolTip.setItem(itemSlot.slotItem);
+                        this.scaledItemRef.setItem(itemSlot.slotItem);
                         this.displayToolTip = true;
                     }
                     itemSlot.updateState("hovered");
@@ -308,6 +312,7 @@
             let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.updateObjects(itemSlotExport);
+            console.log("Item Slot Export: ", itemSlotExport);
             this.setHoverLogic();
         }
     }
@@ -324,14 +329,16 @@
             // console.log(slotInstance instanceof GeneratedObject);
             if(item) {
                 console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
-                if(numberTextRenderer != null){
-                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 15, 15, itemZ+1);
-                    numberRenderer.setText(item.itemCount.toString());
-                    slotInstance.addChild(numberRenderer);
-                }
                 item.setCoordinate(2, 2, itemZ);
                 slotInstance.slotItem = item;
+                // item.mouseInteractions = false;
                 slotInstance.addChild(item);
+                if(numberTextRenderer != null){
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 14, 14, itemZ+10);
+                    numberRenderer.setText(item.itemCount.toString());
+                    // numberRenderer.mouseInteractions = false;
+                    slotInstance.addChild(numberRenderer);
+                }
             }
             else{
                 slotInstance.slotItem = null;

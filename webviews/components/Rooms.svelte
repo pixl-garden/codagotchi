@@ -483,8 +483,13 @@
             // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
+
+        let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
+
         //INVENTORY GRID INSTANTIATION
-        let inventoryGridInstance = new inventoryGrid(6, 1, 3, 1, 2, 65, -1, itemArray, 48, createItemSlot, testToolTip, electro, 0);
+        let scaledItem = new itemScaler(7, 90, 2, 2);
+        scaledItem.setItem(itemArray[0])
+        let inventoryGridInstance = new inventoryGrid(6, 2, 3, 2, 5, 21, -1, itemArray, 18, createItemSlot, testToolTip, scaledItem, electro, 0);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
             // itemArray = get(game).inventory.getItemsArray();
@@ -494,9 +499,7 @@
             // inventoryRoom.updateObject(inventoryGridTest, newInventoryGridTest);
             // inventoryGridTest = newInventoryGridTest;
         });
-        let scaledItem = new itemScaler(2, 2, 2, 2);
-        scaledItem.setItem(itemArray[0])
-        inventoryRoom.addObject(backToMain, inventoryGridInstance, scaledItem);
+        inventoryRoom.addObject(backToMain, inventoryGridInstance, scaledItem, inventoryBackground);
 
         // ---------------- FISHING ROOM ----------------
     
@@ -523,6 +526,7 @@
 
         function castLineUntil() {
             fishingInstance.castLine(get(game), 2000, 1000).then((fishItem) => {
+                console.log("fishItem" + fishItem);
                 fishingNotif.startMovingTo(6, 3);
                 fishingNotifText.setText(fishItem.getName());
                 fishingNotif.updateChild(fishItem, fishingNotifItem);
