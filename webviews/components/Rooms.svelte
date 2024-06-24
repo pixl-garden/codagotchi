@@ -1,7 +1,7 @@
 <script context='module'>
-    import { game, Room, shouldFocus, handleGitHubLogin, inputValue } from './Game.svelte';
+    import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu, itemScaler } from './Object.svelte';
-    import { Item, inventoryGrid } from './Inventory.svelte';
+    import { Item, inventoryGrid, inventoryDisplayManager } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix } from './MatrixFunctions.svelte';
@@ -50,6 +50,8 @@
         const paintUnhoverableButton = generateTextButtonClass(18, 15, retroShadowBlue, ...Colors.secondaryMenuUnhoverableColorParams);
         const fishingButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
         const invisibleMiningButton = generateInvisibleButtonClass(34, 57);
+        const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
+
 
 
 
@@ -89,7 +91,7 @@
             get(game).getCurrentRoom().addObject(mainMenu);
         }, 1);
         //PET INSTANTIATION
-        let petObject = new Pet('pearguin', 36, 54, 0, "leaf");
+        let petObject = new Pet('pearguin', 36, 54, 0, get(game));
         //ROOM INSTANTIATION
         let mainRoom = new Room('mainRoom', () => {
             petObject.setCoordinate(36, 54, 0);
@@ -170,7 +172,7 @@
         });
 
         //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang);
+        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang, textInput);
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
         //PAINT BUTTONS INSTANTIATION
@@ -484,22 +486,28 @@
             return output;
         }
 
+        // let paintButtonSprites = spriteReaderFromStore(16, 16, 'paintIcons_B&W.png');
+
+        let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
+        let fishTabButton = new inventoryTabButton(fishSprites[1], fishSprites[1], 27, 3, ()=>{
+            // stuff
+        }, 5);
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
 
         //INVENTORY GRID INSTANTIATION
-        let scaledItem = new itemScaler(7, 90, 2, 2);
-        scaledItem.setItem(itemArray[0])
-        let inventoryGridInstance = new inventoryGrid(6, 2, 3, 2, 5, 21, -1, itemArray, 18, createItemSlot, testToolTip, scaledItem, electro, 0);
+        let scaledItemInstance = new itemScaler(12, 90, 2, 2);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, 15, createItemSlot, null, scaledItemInstance, electro, 0);
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
             // itemArray = get(game).inventory.getItemsArray();
-            itemArray.forEach(item => console.log("itemArray item:", item.displayName));
+            // itemArray.forEach(item => console.log("itemArray item:", item.displayName));
             inventoryGridInstance.updateItemSlots(itemArray);
             // let newInventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tinyShadow);
             // inventoryRoom.updateObject(inventoryGridTest, newInventoryGridTest);
             // inventoryGridTest = newInventoryGridTest;
         });
-        inventoryRoom.addObject(backToMain, inventoryGridInstance, scaledItem, inventoryBackground);
+        let inventoryDisplayManagerInstance = new inventoryDisplayManager(inventoryGridInstance, scaledItemInstance, fishTabButton, 0, 0, 0);
+        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance);
 
         // ---------------- FISHING ROOM ----------------
     

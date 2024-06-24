@@ -2,6 +2,7 @@
     import { GeneratedObject, objectGrid, activeTextRenderer } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
+    import { generateEmptyMatrix } from "./MatrixFunctions.svelte";
     const stackableTypes = ["food", "stamp"]
 
     /**
@@ -236,7 +237,7 @@
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.toolTip = toolTip;
-            this.toolTip.setCoordinate(0, 0, 30);
+            this.toolTip?.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
             this.hoverWithChildren = true;
             this.scaledItemRef = scaledItemRef;
@@ -249,14 +250,14 @@
             this.children.forEach((itemSlot) => {
                 //while itemSlot hover, set coordinate of tooltip to mouse
                 itemSlot.whileHover = () => {
-                    this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
+                    this.toolTip?.setCoordinate(this.mouseX, this.mouseY, 30);
                 }
                 //on itemSlot hover, display the tooltip and set the toop tip item to the item in the slot
                 itemSlot.onHover = () => {
                     console.log("HOVERING ITEM SLOT, HOVERED CHILD: ", this.hoveredChild)
                     if(itemSlot.slotItem != null){
                         console.log("SLOT ITEM: ", itemSlot.slotItem)
-                        this.toolTip.setItem(itemSlot.slotItem);
+                        this.toolTip?.setItem(itemSlot.slotItem);
                         this.scaledItemRef.setItem(itemSlot.slotItem);
                         this.displayToolTip = true;
                     }
@@ -264,9 +265,6 @@
                 }
                 //on itemSlot stop hover, hide the tooltip
                 itemSlot.onStopHover = () => {
-                    console.log("tooltip=" + this.toolTip);
-                    this.toolTip.currentTitle;
-
                     this.displayToolTip = false;
                     itemSlot.updateState("default");
                 }
@@ -277,13 +275,12 @@
         //its a bit redundant and more of a failsafe but if not included it stops working fairly quickly
         onStopHover(){
             if(this.hoveredChild != null && this.hoveredChild.children.length > 0){
-                this.toolTip.setItem(this.hoveredChild.children[0]);
-                this.toolTip.setCoordinate(this.mouseX, this.mouseY, 30);
+                this.toolTip?.setItem(this.hoveredChild.slotItem);
+                this.toolTip?.setCoordinate(this.mouseX, this.mouseY, 30);
                 this.displayToolTip = true;
             }
             if(this.hoveredChild == null){
                 this.displayToolTip = false;
-                // this.toolTip = null;
             }
         }
 
@@ -301,7 +298,7 @@
                 });
             }
             //output tooltip sprite if displayToolTip is true
-            if(this.displayToolTip){
+            if(this.displayToolTip && this.toolTip != null){
                 spritesOut.push(this.toolTip.getSprite());
             }
             return spritesOut;
@@ -346,5 +343,35 @@
             inventoryGrid.push(slotInstance);
         }
         return inventoryGrid;
+    }
+    export class inventoryDisplayManager extends GeneratedObject{
+        constructor(inventoryGrid, scaledItem, tabs, x, y, z) {
+            let emptyMatrix = generateEmptyMatrix(128, 128);
+            super([emptyMatrix], {default: [0]}, x, y, z);
+            this.inventoryGrid = inventoryGrid;
+            this.tabs = tabs;
+            this.scaledItem = scaledItem;
+            // this.itemInfoDisplay = itemInfoDisplay;
+            this.hoveredItemName;
+            this.hoveredItemInfo;
+            this.children = [inventoryGrid, scaledItem, tabs];
+        }
+        setItemInfo(x, y, z) {
+
+        }
+
+        setScaledItem(x, y, z) {
+            
+        }
+
+        setPageButtons(backX, backY, backZ, forwardX, forwardY, forwardZ) {
+
+        }
+
+        setItemTabs() {
+            
+        }
+
+
     }
 </script>
