@@ -3,8 +3,6 @@
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
-    import { game, textInput } from './Game.svelte';
-    import { get } from 'svelte/store';
     import hatConfig from './hatConfig.json'
     import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix, scaleMatrix } from './MatrixFunctions.svelte';
     import * as Colors from './colors.js';    
@@ -315,7 +313,7 @@
 
     export class Pet extends GeneratedObject {
         //TODO: abstract state groups into a separate class
-        constructor(petType, x, y, z, hat) {
+        constructor(petType, x, y, z, gameReference) {
             const config = petConfig[petType];
             if (!config) {
                 throw new Error(`No configuration found for pet type: ${petType}`);
@@ -341,6 +339,7 @@
             this.isStateCompleted = false;
             this.updateState("default")
             this.hatConfig = hatConfig
+            this.gameReference = gameReference
             this.hat 
         }
 
@@ -356,12 +355,12 @@
             this.hatSprite = spriteReaderFromStore(this.hatConfig.spriteWidth, this.hatConfig.spriteHeight, this.hatConfig.spriteSheet)[this.currentHatConfig.spriteIndex]
             this.hatAnchorX = this.currentHatConfig.anchorX
             this.hatAnchorY = this.currentHatConfig.anchorY
-            get(game).pushToGlobalState({"hat": this.hat})
+            this.gameReference.pushToGlobalState({"hat": this.hat})
         }
 
         getHat() {
-            if (this.hat == null && get(game).getLocalState().hat != null){
-                this.setHat(get(game).getLocalState().hat)
+            if (this.hat == null && this.gameReference.getLocalState().hat != null){
+                this.setHat(this.gameReference.getLocalState().hat)
             }
             return new Sprite(this.hatSprite, this.x + this.petAnchorX - this.hatAnchorX, this.y + this.petAnchorY - this.hatAnchorY);
         }
@@ -418,7 +417,7 @@
     }
 
     export class postcardRenderer extends GeneratedObject {
-        constructor(x, y, z, width, height, postcardWidth, postcardHeight, textRenderer){
+        constructor(x, y, z, width, height, postcardWidth, postcardHeight, textRenderer, textInputReference){
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
             this.postcardWidth = postcardWidth;
@@ -431,7 +430,7 @@
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
-            this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer); 
+            this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
             this.currentCanvas = this.frontPixelCanvas;
             this.children.push(this.currentCanvas);
             this.stateQueue = [];
@@ -559,7 +558,7 @@
     }
 
     export class postcardBackCanvas extends GeneratedObject {
-        constructor(x, y, z, width, height, offsetX, offsetY, textRenderer) {
+        constructor(x, y, z, width, height, offsetX, offsetY, textRenderer, textInputReference) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
             this.emptyLeftMatrix = generateEmptyMatrix(82, 80);
@@ -572,7 +571,7 @@
             this.stampItem = null;
             this.userText = "";
             this.multiLineTextRenderer = new multiLineTextRenderer(x + 3, y + 4, z, 78, height, 9, textRenderer, 4, 0);
-            this.textInput = new textInput((text) => this.setUserText(text), textRenderer.charMappingString);
+            this.textInput = new textInputReference((text) => this.setUserText(text), textRenderer.charMappingString);
         }
 
         nextFrame(){
@@ -1060,16 +1059,6 @@
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.updateState("default")
-        }
-    }
-    export class NavigationButton extends Button {
-        constructor(objectName, x, y, targetRoom, z = 0) {
-            super(
-                objectName, x, y, () => {
-                    // Set the current room in the game object to the target room
-                    get(game).setCurrentRoom(targetRoom); 
-                }, z
-            );
         }
     }
 

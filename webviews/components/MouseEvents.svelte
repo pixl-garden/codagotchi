@@ -70,9 +70,7 @@
                     }
                 }
             }
-            if(childFound.mouseInteractions){
-                return childFound;
-            }
+            return childFound;
         };
 
         // Loop through all objects and initiate the recursive search
