@@ -489,7 +489,7 @@
         // let paintButtonSprites = spriteReaderFromStore(16, 16, 'paintIcons_B&W.png');
 
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
-        let fishTabButton = new inventoryTabButton(fishSprites[1], fishSprites[1], 27, 3, ()=>{
+        let fishTabButton = new inventoryTabButton(fishSprites[1], fishSprites[1], 26, 2, ()=>{
             // stuff
         }, 5);
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
