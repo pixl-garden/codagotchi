@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { generateScreen, handleResize } from './Codagotchi.svelte';
+    import { generateScreen, handleResize } from './ScreenManager.svelte';
     import { images } from './store.js';
     import { Room, game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';

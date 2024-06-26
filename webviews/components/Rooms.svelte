@@ -6,11 +6,8 @@
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix } from './MatrixFunctions.svelte';
     import { get } from 'svelte/store';
-    import Codagotchi from './Codagotchi.svelte';
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
-    import { weightedRandomSelection } from './LootGenerator.svelte';
-    import lootTableConfig from './lootTableConfig.json';
     import { Fishing } from "./Fishing.svelte";
     
     export function preloadObjects() {
@@ -318,7 +315,7 @@
         }
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         let stampArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, 0, 20);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, null, 0, 20);
         // stampMenu.addChild(stampGrid);
         let stampButton = new invisibleStampButton(97, 29, 11, () => {
             closeAllPaintMenus();
@@ -475,8 +472,12 @@
         // get(game).addStackableItem("C++Stamp", 2);
         // get(game).addStackableItem("C#Stamp", 2);
         // get(game).addStackableItem("pythonStamp", 2);
+        get(game).addStackableItem("ore1", 2);
+        get(game).addStackableItem("ingot1", 2);
 
         let itemArray = get(game).inventory.getItemsByType('food');
+        let miningItems = get(game).inventory.getItemsByType('mining');
+
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
             let output = new Object("smallItemSlot", 0, 0, 0);
@@ -486,17 +487,22 @@
             return output;
         }
 
-        // let paintButtonSprites = spriteReaderFromStore(16, 16, 'paintIcons_B&W.png');
-
-        let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
-        let fishTabButton = new inventoryTabButton(fishSprites[1], fishSprites[1], 26, 2, ()=>{
-            // stuff
-        }, 5);
-        let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
-
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
         let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, 15, createItemSlot, null, scaledItemInstance, electro, 0);
+
+        let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
+        let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
+
+        let fishTabButton = new inventoryTabButton(fishSprites[1], fishSprites[1], 26, 2, ()=>{
+            inventoryGridInstance.updateItemSlots(itemArray);
+        }, 5);
+        let miningTabButton = new inventoryTabButton(testingSprites[5], testingSprites[5], 47, 2, ()=>{
+            inventoryGridInstance.updateItemSlots(miningItems);
+        }, 5);
+
+        
+        let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
             // itemArray = get(game).inventory.getItemsArray();
@@ -507,7 +513,7 @@
             // inventoryGridTest = newInventoryGridTest;
         });
         let inventoryDisplayManagerInstance = new inventoryDisplayManager(inventoryGridInstance, scaledItemInstance, fishTabButton, 0, 0, 0);
-        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance);
+        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance, miningTabButton);
 
         // ---------------- FISHING ROOM ----------------
     
