@@ -228,7 +228,8 @@
         return inventory;
     }
     export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, scaledItemRef, numberTextRenderer, scrollSpeed, itemZ = 10){
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, scaledItemRef, 
+                    numberTextRenderer, scrollSpeed, itemX = 0, itemY = 0, itemZ = 10){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
@@ -236,12 +237,14 @@
             this.totalSlots = totalSlots;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
-            this.toolTip = toolTip;
-            this.toolTip?.setCoordinate(0, 0, 30);
             this.displayToolTip = false;
             this.hoverWithChildren = true;
             this.scaledItemRef = scaledItemRef;
+            this.itemX = itemX;
+            this.itemY = itemY;
             this.itemZ = itemZ;
+            this.toolTip = toolTip;
+            this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             // this.setHoverLogic();
         }
 
@@ -250,15 +253,16 @@
             this.children.forEach((itemSlot) => {
                 //while itemSlot hover, set coordinate of tooltip to mouse
                 itemSlot.whileHover = () => {
-                    this.toolTip?.setCoordinate(this.mouseX, this.mouseY, 30);
+                    this.toolTip?.setCoordinate(this.mouseX, this.mouseY, this.itemZ+1);
                 }
                 //on itemSlot hover, display the tooltip and set the toop tip item to the item in the slot
                 itemSlot.onHover = () => {
                     console.log("HOVERING ITEM SLOT, HOVERED CHILD: ", this.hoveredChild)
                     if(itemSlot.slotItem != null){
                         console.log("SLOT ITEM: ", itemSlot.slotItem)
+                        console.log("itemZ=" + this.itemZ)
                         this.toolTip?.setItem(itemSlot.slotItem);
-                        this.scaledItemRef.setItem(itemSlot.slotItem);
+                        this.scaledItemRef?.setItem(itemSlot.slotItem);
                         this.displayToolTip = true;
                     }
                     itemSlot.updateState("hovered");
@@ -276,7 +280,7 @@
         onStopHover(){
             if(this.hoveredChild != null && this.hoveredChild.children.length > 0){
                 this.toolTip?.setItem(this.hoveredChild.slotItem);
-                this.toolTip?.setCoordinate(this.mouseX, this.mouseY, 30);
+                this.toolTip?.setCoordinate(this.mouseX, this.mouseY, this.itemZ+1);
                 this.displayToolTip = true;
             }
             if(this.hoveredChild == null){
@@ -306,7 +310,7 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemZ);
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.updateObjects(itemSlotExport);
             console.log("Item Slot Export: ", itemSlotExport);
@@ -316,7 +320,7 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemZ) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
@@ -326,7 +330,7 @@
             // console.log(slotInstance instanceof GeneratedObject);
             if(item) {
                 console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
-                item.setCoordinate(2, 2, itemZ);
+                item.setCoordinate(itemX, itemY, itemZ);
                 slotInstance.slotItem = item;
                 // item.mouseInteractions = false;
                 slotInstance.addChild(item);

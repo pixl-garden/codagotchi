@@ -6,6 +6,7 @@
     import hatConfig from './hatConfig.json'
     import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix, scaleMatrix } from './MatrixFunctions.svelte';
     import * as Colors from './colors.js';    
+    import { random } from 'lodash';
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates
     // or maybe do the other way around, create setAbsoluteCoordinate function and leave setCoordinate as is
@@ -569,6 +570,7 @@
             this.offsetX = offsetX == null ? x : offsetX;
             this.offsetY = offsetY == null ? y : offsetY;
             this.stampItem = null;
+            this.lastStampIndex = null;
             this.userText = "";
             this.multiLineTextRenderer = new multiLineTextRenderer(x + 3, y + 4, z, 78, height, 9, textRenderer, 4, 0);
             this.textInput = new textInputReference((text) => this.setUserText(text), textRenderer.charMappingString);
@@ -584,13 +586,19 @@
         }
 
         setStamp(stampItem) {
-            if( stampItem !== this.stampItem) {
-                this.stampItem = stampItem;
-                this.clearStamp();
-                console.log("stamp array?? ", this.stampItem.states["default"] )
-                let randomStamp = this.stampItem.states["default"][Math.floor(Math.random() * (this.stampItem.states["default"].length - 1)) + 1];            
-                this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 87, 4);
-            }
+            let randomStamp = stampItem.states["default"][Math.floor(Math.random() * (stampItem.states["default"].length - 1)) + 1];  
+            if(this.stampItem === stampItem) {
+                while(this.lastStampIndex === randomStamp) {
+                    randomStamp = stampItem.states["default"][Math.floor(Math.random() * (stampItem.states["default"].length - 1)) + 1];
+                }
+                this.lastStampIndex = randomStamp;
+            }          
+            
+            console.log("stamp item=" + stampItem, "random stamp=" + randomStamp)
+            this.stampItem = stampItem;
+            this.clearStamp();
+            console.log("stamp array?? ", this.stampItem.states["default"] )
+            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 87, 4);
         }
 
         clearStamp() {
