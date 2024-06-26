@@ -349,5 +349,25 @@
         "states": {
             "default": [14]
         }
+    },
+    "ore1":{
+        "type": "mining",
+        "displayName": "Ore 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [0]
+        }
+    },
+    "ingot1":{
+        "type": "mining",
+        "displayName": "Ingot 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [1]
+        }
     }
 }

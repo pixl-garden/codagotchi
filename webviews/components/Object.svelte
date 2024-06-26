@@ -1,5 +1,5 @@
 <script context="module">
-    import { Sprite } from './Codagotchi.svelte';
+    import { Sprite } from './SpriteComponent.svelte'
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';

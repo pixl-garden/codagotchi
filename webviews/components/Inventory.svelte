@@ -3,7 +3,7 @@
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
     import { generateEmptyMatrix } from "./MatrixFunctions.svelte";
-    const stackableTypes = ["food", "stamp"]
+    const stackableTypes = ["food", "stamp", "mining"]
 
     /**
      * Represents an item in the game inventory, extending functionalities from GeneratedObject.
