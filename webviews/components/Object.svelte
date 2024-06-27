@@ -1221,12 +1221,11 @@
         }
     }
 
-    export class buttonList extends objectGrid {
+    export class textButtonList extends objectGrid {
         constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
             let buttons = [];
             for(let i = 0; i < buttonTexts.length; i++){
-                let button = new buttonConstructor(buttonTexts[i], 0, 0, buttonFunctions[i], buttonWidth, buttonHeight);
-                button.setCoordinate(x, y, z);
+                let button = new buttonConstructor(x, y, z, buttonTexts[i], buttonFunctions[i], buttonWidth, buttonHeight);
                 buttons.push(button);
             }
             if(buttonFunctions.length > buttonTexts.length){
@@ -1239,6 +1238,10 @@
                 super(1, 0, buttons.length, spacing, x, y, z, buttons, visibleX, visibleY, "vertical", scrollSpeed);
             }
         }
+    }
+
+    export class buttonList2 extends objectGrid {
+        constructor(x, y, z, buttonConstructor, ){}
     }
 
     export class Menu extends GeneratedObject {

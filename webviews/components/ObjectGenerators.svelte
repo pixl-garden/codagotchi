@@ -28,7 +28,7 @@
     export function generateTextButtonClass( width, height, textRenderer, bgColor, borderColor, bgColorHovered, borderColorHovered,
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
-                constructor(text, x, y, actionOnClick, z) {
+                constructor(x, y, z, text, actionOnClick) {
                     const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), bottomShadow, topShadow, layout, offset);
                     const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), bottomShadowHover, topShadowHover, layout, offset );
 
@@ -52,7 +52,7 @@
     export function generateFontTextButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered,
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
-                constructor(text, x, y, actionOnClick, z, textRenderer, textYOffset = 1) {
+                constructor(x, y, z, text, actionOnClick, textRenderer, textYOffset = 1) {
                     const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset, textYOffset);
                     const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset, textYOffset);
 
@@ -77,7 +77,7 @@
     export function generateIconButtonClass( width, height, bgColor, borderColor, bgColorHovered, borderColorHovered,  
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
-                constructor(iconSprite, hoveredIconSprite, x, y, actionOnClick, z) {
+                constructor( x, y, z, iconSprite, hoveredIconSprite, actionOnClick ) {
                     console.log(iconSprite, hoveredIconSprite);
                     const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, iconSprite, bottomShadow, topShadow, layout, offset);
                     const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, hoveredIconSprite, bottomShadowHover, topShadowHover, layout, offset );

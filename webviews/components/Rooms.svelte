@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, buttonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu, itemScaler } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu, itemScaler } from './Object.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -54,12 +54,12 @@
 
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
-        const backToMain = new singleLetterButton('<', 0, 0, () => {
+        const backToMain = new singleLetterButton(0, 0, 10, '<', () => {
             get(game).setCurrentRoom('mainRoom');
-        }, 10);
-        const backToMain2 = new singleLetterButton('<', 0, 112, () => {
+        });
+        const backToMain2 = new singleLetterButton(0, 112, 10, '<', () => {
             get(game).setCurrentRoom('mainRoom');
-        }, 10);
+        });
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
         let defaultMenuParams = ["#59585a", "#2b2a2b", "black", 2, 5, 3, 1];
 
@@ -81,7 +81,7 @@
             get(game).getCurrentRoom().removeObject( mainMenu ); 
             get(game).getCurrentRoom().addObject( mainMenuButton );}
         ]
-        const mainMenu = new buttonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
+        const mainMenu = new textButtonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
         //BUTTON TO OPEN MAIN MENU
         const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
@@ -103,8 +103,8 @@
 
         const settingsMenuButtonTexts = ['Git Login', 'Notifs', 'Display', '<BACK'];
         const settingsMenuButtonFunctions = [() => {handleGitHubLogin()}, () => {}, () => {}, () => {get(game).setCurrentRoom('mainRoom')}]
-        const settingsTitle = new settingsTitleButton('Settings', 0, 0, () => {});
-        const settingsMenu = new buttonList(settingsMenuButtonTexts, settingsMenuButtonFunctions, settingsMenuButton, 58, 12, -1, 0, 12, 0);
+        const settingsTitle = new settingsTitleButton(0, 0, 0, 'Settings', () => {});
+        const settingsMenu = new textButtonList(settingsMenuButtonTexts, settingsMenuButtonFunctions, settingsMenuButton, 58, 12, -1, 0, 12, 0);
         //ROOM INSTANTIATION
         let settingsRoom = new Room('settingsRoom');
          settingsRoom.addObject(settingsTitle, settingsMenu);
@@ -123,12 +123,12 @@
         });
         //CUSTOMIZATION UI INSTANTIATION
         let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
-        const leftHatArrow = new singleLetterButton('<', 20, 100, () => {
+        const leftHatArrow = new singleLetterButton(20, 100, 0, '<', () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) - 1 < 0 ? hatArray.length - 1 : hatArray.indexOf(petObject.hat) - 1])
-        }, 0);
-        const rightHatArrow = new singleLetterButton('>', 60, 100, () => {
+        });
+        const rightHatArrow = new singleLetterButton(60, 100, 0, '>', () => {
             petObject.setHat(hatArray[hatArray.indexOf(petObject.hat) + 1 > hatArray.length - 1 ? 0 : hatArray.indexOf(petObject.hat) + 1])
-        }, 0);
+        });
         let customizeUI = new Background('customizeUI', 9, 88, -10, () => {
             if(customizeUI.y < 22){
                 customizeUI.startMovingTo(9, 88);
@@ -175,10 +175,10 @@
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
-        let paintBackToMain = new squarePaintTextButton('<', 0, 0, () => {
+        let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0);
-        }, 5);
+        });
 
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, 
         [
@@ -207,7 +207,7 @@
         },
         '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
         let defaultColorButtonIcon = generateColorButtonMatrix(9, 9, Colors.black)
-        let colorButton = new paintButtonIcon(defaultColorButtonIcon, defaultColorButtonIcon, 10, 0, ()=>{
+        let colorButton = new paintButtonIcon(10, 0, 5, defaultColorButtonIcon, defaultColorButtonIcon, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
                 closeAllPaintMenus();
             }
@@ -215,34 +215,34 @@
                 closeAllPaintMenus();
                 paintRoom.addObject(colorMenuObj);
             }
-        }, 5);
-        let pencilButton = new paintButtonIcon(paintButtonSprites[0], paintButtonSprites[0], 28, 0, ()=>{
+        });
+        let pencilButton = new paintButtonIcon(28, 0, 5, paintButtonSprites[0], paintButtonSprites[0], ()=>{
             postcardRendering.currentCanvas.setToPencilColor()
-        }, 5);
-        let eraserButton = new paintButtonIcon(paintButtonSprites[4], paintButtonSprites[4], 46, 0, ()=>{
+        });
+        let eraserButton = new paintButtonIcon(46, 0, 5, paintButtonSprites[4], paintButtonSprites[4], ()=>{
             postcardRendering.currentCanvas.setEraser();
-        }, 5);
-        let bucketButton = new paintButtonIcon2(paintButtonSprites[6], paintButtonSprites[6], 64, 0, ()=>{
+        });
+        let bucketButton = new paintButtonIcon2(64, 0, 5, paintButtonSprites[6], paintButtonSprites[6], ()=>{
             postcardRendering.currentCanvas.toggleFill();
-        }, 5);
-        let clearButton = new paintButtonIcon(paintButtonSprites[5], paintButtonSprites[1], 110, 0, ()=>{
+        });
+        let clearButton = new paintButtonIcon(110, 0, 5, paintButtonSprites[5], paintButtonSprites[1], ()=>{
             postcardRendering.currentCanvas.clearCanvas();
-        }, 5);
+        });
 
         let sizeNumber = new activeTextRenderer(retroShadowGray, 93, 2, 5);
         sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
-        let sizeBackground = new paintUnhoverableButton(' ', 88, 0, () => {}, 4);
-        let brushSizeDown = new brushSizeButton('<', 81, 0, ()=>{
+        let sizeBackground = new paintUnhoverableButton(88, 0, 4, ' ', () => {});
+        let brushSizeDown = new brushSizeButton(81, 0, 5, '<', ()=>{
             postcardRendering.currentCanvas.decrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
-        }, 5);
-        let brushSizeUp = new brushSizeButton('>', 101, 0, ()=>{
+        });
+        let brushSizeUp = new brushSizeButton(101, 0, 5, '>', ()=>{
             postcardRendering.currentCanvas.incrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
-        }, 5);
+        });
 
         // FONT MENU INSTANTIATION
-        let fontMenuButton = new paintButtonIcon2(paintButtonSprites[7], paintButtonSprites[7], 64, 0, ()=>{
+        let fontMenuButton = new paintButtonIcon2(64, 0, 5, paintButtonSprites[7], paintButtonSprites[7], ()=>{
             if(paintRoom.objects.includes(fontButtonList)) {
                 closeAllPaintMenus();
             }
@@ -251,23 +251,23 @@
                 paintRoom.addObject(fontButtonList);
                 paintRoom.addObject(fontMenu);
             }
-        }, 5);
-        let tinyButton = new fontButton('tiny', 60, 60, ()=>{
+        });
+        let tinyButton = new fontButton(60, 60, 30, 'tiny', ()=>{
             postcardRendering.setTextRenderer(tiny);
             closeAllPaintMenus();
-        }, 30, tiny, 2);
-        let gangButton = new fontButton('gang', 75, 60, ()=>{
+        }, tiny, 2);
+        let gangButton = new fontButton(75, 60, 30, 'gang', ()=>{
             postcardRendering.setTextRenderer(gang);
             closeAllPaintMenus();
-        }, 30, gang, -1);
-        let retroButton = new fontButton('retro', 100, 60, ()=>{
+        }, gang, -1);
+        let retroButton = new fontButton(100, 60, 30, 'retro', ()=>{
             postcardRendering.setTextRenderer(retro);
             closeAllPaintMenus();
-        }, 30, retro);
-        let basicButton = new fontButton('basic', 115, 60, ()=>{
+        }, retro);
+        let basicButton = new fontButton(115, 60, 30, 'basic', ()=>{
             postcardRendering.setTextRenderer(basic);
             closeAllPaintMenus();
-        }, 30, basic);
+        }, basic);
         let fontButtonArray = [tinyButton, gangButton, retroButton, basicButton];
 
         let fontButtonList = new objectGrid(1, 0, fontButtonArray.length, -1, 60, 22, 30, fontButtonArray);
@@ -359,7 +359,7 @@
         
         function instantiateFriends(friends, friendButton) {
 
-            let friendList = new buttonList(friends, friends.map(() => () => {}), friendButton, 128, 16, -1, 0, 15, 0, "vertical")
+            let friendList = new textButtonList(friends, friends.map(() => () => {}), friendButton, 128, 16, -1, 0, 15, 0, "vertical")
             return friendList;
         }
 
@@ -373,7 +373,7 @@
                 
             for (let i = 0; i < friends.length; i++) {
                 // Create the friend button
-                let friend = new friendButton(friends[i], 0, 15 + 16 + (buttonHeight * i), () => {}, 0);
+                let friend = new friendButton(0, 15 + 16 + (buttonHeight * i), 0, friends[i],  () => {});
                 friend.hoverWithChildren = true;
                 friend.onHover = () => {
                     friend.updateState('hovered');
@@ -424,7 +424,7 @@
         // tabs array would have tab names and functions to switch rooms
 
         
-        const socialTabList = new buttonList(socialTabs, [
+        const socialTabList = new textButtonList(socialTabs, [
             () => {get(game).setCurrentRoom('friendRoom')}, 
             () => {get(game).setCurrentRoom('requestRoom')}
         ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
@@ -490,12 +490,12 @@
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
 
-        let fishTabButton = new inventoryTabButton(fishSprites[1], fishSprites[1], 26, 2, ()=>{
+        let fishTabButton = new inventoryTabButton(26, 2, 5, fishSprites[1], fishSprites[1], ()=>{
             inventoryGridInstance.updateItemSlots(itemArray);
-        }, 5);
-        let miningTabButton = new inventoryTabButton(testingSprites[5], testingSprites[5], 47, 2, ()=>{
+        });
+        let miningTabButton = new inventoryTabButton(47, 2, 5, testingSprites[5], testingSprites[5], ()=>{
             inventoryGridInstance.updateItemSlots(miningItems);
-        }, 5);
+        });
 
         
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
@@ -517,15 +517,15 @@
         let fishingInstance = new Fishing();
         let fishingNotifItem = new Item("guppy", 7, 6, 13);
         let fishingNotifText = new activeTextRenderer(retroShadowGray, 26, 9, 13);
-        let castLineButton = new fishingButton("FISH", 90, 60, ()=>{
+        let castLineButton = new fishingButton(90, 60, 5, "FISH", ()=>{
             if(get(game).isActive){
             castLineHandler();
-        }}, 5);
-        let cancelButton = new fishingButton("XXX", 90, 60, () => {
+        }});
+        let cancelButton = new fishingButton(90, 60, 5, "XXX", () => {
             fishingInstance.cancelFishing();
             get(game).getCurrentRoom().addObject( castLineButton );
             get(game).getCurrentRoom().removeObject( cancelButton );
-        }, 5);
+        });
         
         function castLineHandler() {
             get(game).getCurrentRoom().addObject( cancelButton );
