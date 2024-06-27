@@ -313,14 +313,17 @@
             // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
+
+
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         let stampArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, null, 0, 20);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, null, 0, 0, 0, 10);
         // stampMenu.addChild(stampGrid);
-        let stampButton = new invisibleStampButton(97, 29, 11, () => {
+        let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
+            stampGrid.updateItemSlots(stampArray);
         })
         let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
             if(get(shouldFocus) === false){
@@ -465,13 +468,6 @@
         // get(game).subtractStackableItem("plasticBag", 2);
         // get(game).subtractStackableItem("blueGill", 1);
 
-        // get(game).addStackableItem("javascriptStamp", 2);
-        // get(game).addStackableItem("CSSStamp", 2);
-        // get(game).addStackableItem("HTMLStamp", 2);
-        // get(game).addStackableItem("CStamp", 2);
-        // get(game).addStackableItem("C++Stamp", 2);
-        // get(game).addStackableItem("C#Stamp", 2);
-        // get(game).addStackableItem("pythonStamp", 2);
         get(game).addStackableItem("ore1", 2);
         get(game).addStackableItem("ingot1", 2);
 
@@ -489,7 +485,7 @@
 
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, 15, createItemSlot, null, scaledItemInstance, electro, 0);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, 15, createItemSlot, null, scaledItemInstance, electro, 0, 2, 2, 10);
 
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
