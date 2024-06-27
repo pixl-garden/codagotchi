@@ -1086,7 +1086,7 @@
         return frames;
     }
 
-    export class objectGrid extends GeneratedObject {
+    export class ObjectGrid extends GeneratedObject {
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
             super(generateEmptyMatrix(120, 120), null, x, y, z);
             this.columns = columns > 0 ? columns : objects.length;
@@ -1221,12 +1221,11 @@
         }
     }
 
-    export class buttonList extends objectGrid {
+    export class textButtonList extends ObjectGrid {
         constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
             let buttons = [];
             for(let i = 0; i < buttonTexts.length; i++){
-                let button = new buttonConstructor(buttonTexts[i], 0, 0, buttonFunctions[i], buttonWidth, buttonHeight);
-                button.setCoordinate(x, y, z);
+                let button = new buttonConstructor(x, y, z, buttonTexts[i], buttonFunctions[i], buttonWidth, buttonHeight);
                 buttons.push(button);
             }
             if(buttonFunctions.length > buttonTexts.length){
@@ -1237,6 +1236,25 @@
             }
             else{
                 super(1, 0, buttons.length, spacing, x, y, z, buttons, visibleX, visibleY, "vertical", scrollSpeed);
+            }
+        }
+    }
+
+    export class ButtonList extends ObjectGrid {
+        constructor(x, y, z, orientation, buttonSpacing, ButtonConstructor, ...buttonParameters) {
+            let buttons = [];
+            for (let i = 0; i < buttonParameters.length; i++) {
+                // Ensure buttonParameters[i] is an array
+                if (!Array.isArray(buttonParameters[i])) {
+                    throw new TypeError(`buttonParameters[${i}] is not an array.`);
+                }
+                let button = new ButtonConstructor(x, y, z, ...buttonParameters[i]);
+                buttons.push(button);
+            }
+            if (orientation === "horizontal") {
+                super(buttons.length, buttonSpacing, 1, 0, x, y, z, buttons, 0, 0, "horizontal", 0);
+            } else {
+                super(1, 0, buttons.length, buttonSpacing, x, y, z, buttons, 0, 0, "vertical", 0);
             }
         }
     }
@@ -1292,29 +1310,8 @@
             }
         }
         generateColorGrid(){
-            let colorGrid = new objectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 7, 7, this.z, this.buttons, 0, 0, "horizontal", 0);
+            let colorGrid = new ObjectGrid(this.columns, this.colorSpacing, this.rows, this.colorSpacing, 7, 7, this.z, this.buttons, 0, 0, "horizontal", 0);
             this.children.push(colorGrid);
-        }
-    }
-
-    export class itemScaler extends GeneratedObject{
-        constructor(x, y, z, scale){
-            super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
-            this.item = null;
-            this.scale = scale;
-        }
-        setItem(item){
-            this.item = item;
-        }
-        getSprite(){
-            if(this.item){
-                let baseMatrix = this.item.getSprite().getMatrix();
-                let scaledMatrix = scaleMatrix(baseMatrix, this.scale);
-                return new Sprite(scaledMatrix, this.x, this.y, this.z);
-            }
-            else{
-                return new Sprite(generateEmptyMatrix(1, 1), this.x, this.y, this.z);
-            }
         }
     }
 
