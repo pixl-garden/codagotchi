@@ -1,8 +1,9 @@
 <script context="module">
-    import { GeneratedObject, objectGrid, activeTextRenderer } from "./Object.svelte";
+    import { GeneratedObject, ObjectGrid, activeTextRenderer } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
-    import { generateEmptyMatrix } from "./MatrixFunctions.svelte";
+    import { generateEmptyMatrix, scaleMatrix } from "./MatrixFunctions.svelte";
+    import { Sprite } from "./SpriteComponent.svelte";
     const stackableTypes = ["food", "stamp", "mining"]
 
     /**
@@ -227,23 +228,23 @@
 
         return inventory;
     }
-    export class inventoryGrid extends objectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, totalSlots, itemSlotConstructor, toolTip, scaledItemRef, 
+    export class inventoryGrid extends ObjectGrid{
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
                     numberTextRenderer, scrollSpeed, itemX = 0, itemY = 0, itemZ = 10){
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, totalSlots, numberTextRenderer);
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer);
             console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
             this.itemSlotConstructor = itemSlotConstructor;
-            this.totalSlots = totalSlots;
+            this.totalSlots = rows*columns;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.displayToolTip = false;
             this.hoverWithChildren = true;
-            this.scaledItemRef = scaledItemRef;
             this.itemX = itemX;
             this.itemY = itemY;
             this.itemZ = itemZ;
             this.toolTip = toolTip;
+            this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             // this.setHoverLogic();
         }
@@ -257,11 +258,9 @@
                 }
                 //on itemSlot hover, display the tooltip and set the toop tip item to the item in the slot
                 itemSlot.onHover = () => {
-                    console.log("HOVERING ITEM SLOT, HOVERED CHILD: ", this.hoveredChild)
                     if(itemSlot.slotItem != null){
-                        console.log("SLOT ITEM: ", itemSlot.slotItem)
-                        console.log("itemZ=" + this.itemZ)
                         this.toolTip?.setItem(itemSlot.slotItem);
+                        this.hoveredItem = itemSlot.slotItem;
                         this.scaledItemRef?.setItem(itemSlot.slotItem);
                         this.displayToolTip = true;
                     }
@@ -270,6 +269,7 @@
                 //on itemSlot stop hover, hide the tooltip
                 itemSlot.onStopHover = () => {
                     this.displayToolTip = false;
+                    this.hoveredItem = null;
                     itemSlot.updateState("default");
                 }
             });
@@ -280,11 +280,13 @@
         onStopHover(){
             if(this.hoveredChild != null && this.hoveredChild.children.length > 0){
                 this.toolTip?.setItem(this.hoveredChild.slotItem);
+                this.hoveredItem = this.hoveredChild.slotItem;
                 this.toolTip?.setCoordinate(this.mouseX, this.mouseY, this.itemZ+1);
                 this.displayToolTip = true;
             }
             if(this.hoveredChild == null){
                 this.displayToolTip = false;
+                this.hoveredItem = null;
             }
         }
 
@@ -349,16 +351,26 @@
         return inventoryGrid;
     }
     export class inventoryDisplayManager extends GeneratedObject{
-        constructor(inventoryGrid, scaledItem, tabs, x, y, z) {
+        constructor(x, y, z, inventoryGrid, tabs, scaledItem, itemInfoDisplay) {
             let emptyMatrix = generateEmptyMatrix(128, 128);
             super([emptyMatrix], {default: [0]}, x, y, z);
             this.inventoryGrid = inventoryGrid;
             this.tabs = tabs;
             this.scaledItem = scaledItem;
-            // this.itemInfoDisplay = itemInfoDisplay;
+            this.itemInfoDisplay = itemInfoDisplay;
             this.hoveredItemName;
             this.hoveredItemInfo;
-            this.children = [inventoryGrid, scaledItem, tabs];
+            this.children = [inventoryGrid, scaledItem, tabs, itemInfoDisplay];
+        }
+        whileHover(){
+            if(this.inventoryGrid.hoveredItem != null){
+                this.scaledItem.setItem(this.inventoryGrid.hoveredItem);
+                this.itemInfoDisplay.setItemInfo(this.inventoryGrid.hoveredItem.displayName);
+            }
+        }
+        onStopHover(){
+            this.scaledItem.setItem(null);
+            this.itemInfoDisplay.setItemInfo(" ");
         }
         setItemInfo(x, y, z) {
 
@@ -377,5 +389,42 @@
         }
 
 
+    }
+
+    export class itemScaler extends GeneratedObject{
+        constructor(x, y, z, scale){
+            super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
+            this.item = null;
+            this.scale = scale;
+        }
+        setItem(item){
+            this.item = item;
+        }
+        getSprite(){
+            if(this.item){
+                let baseMatrix = this.item.getSprite().getMatrix();
+                let scaledMatrix = scaleMatrix(baseMatrix, this.scale);
+                return new Sprite(scaledMatrix, this.x, this.y, this.z);
+            }
+            else{
+                return new Sprite(generateEmptyMatrix(1, 1), this.x, this.y, this.z);
+            }
+        }
+    }
+
+    export class itemInfoDisplay extends GeneratedObject{
+        constructor(x, y, z, textRenderer){
+            super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
+            this.textRenderer = textRenderer;
+            this.itemName = "";
+            this.itemInfo = "";
+        }
+        setItemInfo(itemName){
+            this.itemName = itemName;
+        }
+        getSprite(){
+            let textSprite = this.textRenderer.renderText(this.itemName);
+            return new Sprite(textSprite, this.x, this.y, this.z);
+        }
     }
 </script>

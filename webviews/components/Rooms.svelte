@@ -1,7 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, objectGrid, Menu, itemScaler } from './Object.svelte';
-    import { Item, inventoryGrid, inventoryDisplayManager } from './Inventory.svelte';
+    import { Pet, Button, Background, PixelCanvas, Object, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, ObjectGrid, Menu, ButtonList } from './Object.svelte';
+    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix } from './MatrixFunctions.svelte';
@@ -270,7 +270,7 @@
         }, basic);
         let fontButtonArray = [tinyButton, gangButton, retroButton, basicButton];
 
-        let fontButtonList = new objectGrid(1, 0, fontButtonArray.length, -1, 60, 22, 30, fontButtonArray);
+        let fontButtonList = new ObjectGrid(1, 0, fontButtonArray.length, -1, 60, 22, 30, fontButtonArray);
         let fontMenu = new Menu(54, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
 
         let undoButton = new Button('undoButton', 37, 111, () => {
@@ -317,7 +317,7 @@
 
         let testToolTip = new toolTip("black", "white", 3, 2, basic);
         let stampArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, 9, createStampSlot, testToolTip, null, null, 0, 0, 0, 10);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, createStampSlot, testToolTip, null, 0, 0, 0, 10);
         // stampMenu.addChild(stampGrid);
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
@@ -485,31 +485,30 @@
 
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, 15, createItemSlot, null, scaledItemInstance, electro, 0, 2, 2, 10);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, createItemSlot, null, electro, 0, 2, 2, 10);
 
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
 
-        let fishTabButton = new inventoryTabButton(26, 2, 5, fishSprites[1], fishSprites[1], ()=>{
-            inventoryGridInstance.updateItemSlots(itemArray);
-        });
-        let miningTabButton = new inventoryTabButton(47, 2, 5, testingSprites[5], testingSprites[5], ()=>{
-            inventoryGridInstance.updateItemSlots(miningItems);
-        });
+        let inventoryTabList = new ButtonList(26, 2, 5, "horizontal", 2, inventoryTabButton, 
+            [fishSprites[1], fishSprites[1], ()=>{
+                inventoryGridInstance.updateItemSlots(itemArray);
+            }],
+            [testingSprites[5], testingSprites[5], ()=>{
+                inventoryGridInstance.updateItemSlots(miningItems);
+            }]
+        )
+        let itemInfoDisplayInstance = new itemInfoDisplay(53, 97, 5, tiny);
 
         
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
-            // itemArray = get(game).inventory.getItemsArray();
-            // itemArray.forEach(item => console.log("itemArray item:", item.displayName));
             inventoryGridInstance.updateItemSlots(itemArray);
-            // let newInventoryGridTest = new inventoryGrid(3, 3, 5, 3, 7, 0, -1, itemArray, 15, createItemSlot, testToolTip, tinyShadow);
-            // inventoryRoom.updateObject(inventoryGridTest, newInventoryGridTest);
-            // inventoryGridTest = newInventoryGridTest;
         });
-        let inventoryDisplayManagerInstance = new inventoryDisplayManager(inventoryGridInstance, scaledItemInstance, fishTabButton, 0, 0, 0);
-        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance, miningTabButton);
+        
+        let inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 0, inventoryGridInstance, inventoryTabList, scaledItemInstance, itemInfoDisplayInstance);
+        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance);
 
         // ---------------- FISHING ROOM ----------------
     
@@ -605,12 +604,9 @@
                 petObject.setCoordinate(23, 71, 0);
             },
             false,
-            () => {
-
-            },
+            () => {},
             ()=> {},
-            ()=> {
-            }
+            ()=> {}
         );
         let miningBackground = new Background('miningBackground', 0, 0, -20, () => {} );
 
