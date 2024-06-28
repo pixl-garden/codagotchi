@@ -369,8 +369,8 @@
             }
         }
         onStopHover(){
-            this.scaledItem.setItem(null);
-            this.itemInfoDisplay.setItemInfo(" ");
+            // this.scaledItem.setItem(null);
+            // this.itemInfoDisplay.setItemInfo(" ");
         }
         setItemInfo(x, y, z) {
 
