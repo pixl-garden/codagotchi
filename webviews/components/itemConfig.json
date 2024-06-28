@@ -362,12 +362,162 @@
     },
     "ingot1":{
         "type": "mining",
-        "displayName": "Ingot 1",
+        "displayName": "Test 1",
         "spriteSheet": "testSprites.png",
         "description": "ore",
         "spriteWidth": 16,
         "states": {
             "default": [1]
+        }
+    },
+    "test2":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [2]
+        }
+    },
+    "test3":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [3]
+        }
+    },
+    "test4":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [4]
+        }
+    },
+    "test5":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [5]
+        }
+    },
+    "test6":{
+        "type": "mining",
+        "displayName": "Ingot 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [6]
+        }
+    },
+    "test7":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [7]
+        }
+    },
+    "test8":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [8]
+        }
+    },
+    "test9":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [9]
+        }
+    },
+    "test10":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [10]
+        }
+    },
+    "test11":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [11]
+        }
+    },
+    "test12":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [12]
+        }
+    },
+    "test13":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [13]
+        }
+    },
+    "test14":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [14]
+        }
+    },
+    "test15":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [15]
+        }
+    },
+    "test16":{
+        "type": "mining",
+        "displayName": "Test 1",
+        "spriteSheet": "testSprites.png",
+        "description": "ore",
+        "spriteWidth": 16,
+        "states": {
+            "default": [16]
         }
     }
 }

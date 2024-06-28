@@ -30,7 +30,7 @@
                     for (let x = startX; x < endX; x++) {
                         let matrixX = x - sprite.x;
                         if (spriteMatrix[matrixY][matrixX] !== 'transparent') {
-                            screen[x][y] = spriteMatrix[matrixY][matrixX]; // Swap x and y here
+                            screen[y][x] = spriteMatrix[matrixY][matrixX]; // Swap x and y here
                         }
                     }
                 }

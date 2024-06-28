@@ -48,6 +48,8 @@
         const fishingButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
         const invisibleMiningButton = generateInvisibleButtonClass(34, 57);
         const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
+        const changePageButton = generateIconButtonClass(8, 16, 'transparent', 'transparent', 'transparent', 'transparent');
+
 
 
 
@@ -83,10 +85,10 @@
         ]
         const mainMenu = new textButtonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
         //BUTTON TO OPEN MAIN MENU
-        const mainMenuButton = new Button('mainMenuButton', 0, 0, () => {
+        const mainMenuButton = new Button(0, 0, 1, 'mainMenuButton', () => {
             get(game).getCurrentRoom().removeObject(mainMenuButton);
             get(game).getCurrentRoom().addObject(mainMenu);
-        }, 1);
+        });
         //PET INSTANTIATION
         let petObject = new Pet('pearguin', 36, 54, 0, get(game));
         //ROOM INSTANTIATION
@@ -273,14 +275,14 @@
         let fontButtonList = new ObjectGrid(1, 0, fontButtonArray.length, -1, 60, 22, 30, fontButtonArray);
         let fontMenu = new Menu(54, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
 
-        let undoButton = new Button('undoButton', 37, 111, () => {
+        let undoButton = new Button(37, 111, 5, 'undoButton', () => {
             postcardRendering.currentCanvas.retrievePastCanvas();   
-        }, 5);
-        let redoButton = new Button('redoButton', 74, 111, () => {
+        });
+        let redoButton = new Button(74, 111, 5, 'redoButton',  () => {
             postcardRendering.currentCanvas.retrieveFutureCanvas();
-        }, 5);
+        });
 
-        let flipButton = new Button('flipButton', 55, 111, () => {
+        let flipButton = new Button(55, 111, 5, 'flipButton', () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
                 get(game).getCurrentRoom().addObject( stampButton );
@@ -294,7 +296,7 @@
             }
             closeAllPaintMenus();
             postcardRendering.flipPostcard();
-        }, 5);
+        });
 
         // STAMP MENU INSTANTIATION
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
@@ -386,12 +388,12 @@
                 }
 
                 // Register child button parameters
-                const checkButton = new Button('checkButton', 0, 30, () => {
+                const checkButton = new Button(0, 30, 1, 'checkButton', () => {
                     console.log('Button was clicked!');
-                }, 1);
-                const rejectButton = new Button('rejectButton', 0, 50, () => {
+                });
+                const rejectButton = new Button(0, 50, 1, 'rejectButton', () => {
                     console.log('Button was clicked!');
-                }, 1);
+                });
 
                 friend.registerButtonParams([
                     { xOffset: 40, yOffset: 3, zOffset: 10, buttonObject: checkButton, actionOnClick: () => {
@@ -468,11 +470,19 @@
         // get(game).subtractStackableItem("plasticBag", 2);
         // get(game).subtractStackableItem("blueGill", 1);
 
+        function addTestableItems() {
+            for(let i = 2; i <= 16; i++) {
+                get(game).addStackableItem(`test${i}`, 2);
+            }
+        }
+
+        addTestableItems();
+        
         get(game).addStackableItem("ore1", 2);
         get(game).addStackableItem("ingot1", 2);
-
-        let itemArray = get(game).inventory.getItemsByType('food');
+        
         let miningItems = get(game).inventory.getItemsByType('mining');
+        let itemArray = get(game).inventory.getItemsByType('food');
 
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
@@ -482,23 +492,30 @@
             // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
-
+        
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
         let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, createItemSlot, null, electro, 0, 2, 2, 10);
-
+        
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
-
+        
         let inventoryTabList = new ButtonList(26, 2, 5, "horizontal", 2, inventoryTabButton, 
             [fishSprites[1], fishSprites[1], ()=>{
-                inventoryGridInstance.updateItemSlots(itemArray);
+                inventoryDisplayManagerInstance.setTab("food");
             }],
             [testingSprites[5], testingSprites[5], ()=>{
-                inventoryGridInstance.updateItemSlots(miningItems);
+                inventoryDisplayManagerInstance.setTab("mining");
             }]
         )
         let itemInfoDisplayInstance = new itemInfoDisplay(53, 97, 5, tiny);
+        let prevPageButton = new Button(0, 42, 5, "prevPageButton", ()=>{
+            inventoryDisplayManagerInstance.setPrevPage();
+        })
+
+        let nextPageButton = new Button(120, 42, 5, "nextPageButton", ()=>{
+            inventoryDisplayManagerInstance.setNextPage();
+        })
 
         
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
@@ -507,8 +524,8 @@
             inventoryGridInstance.updateItemSlots(itemArray);
         });
         
-        let inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 0, inventoryGridInstance, inventoryTabList, scaledItemInstance, itemInfoDisplayInstance);
-        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance);
+        let inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 0, get(game), inventoryGridInstance, inventoryTabList, scaledItemInstance, itemInfoDisplayInstance);
+        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance, prevPageButton, nextPageButton);
 
         // ---------------- FISHING ROOM ----------------
     

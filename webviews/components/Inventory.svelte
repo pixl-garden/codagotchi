@@ -351,17 +351,53 @@
         return inventoryGrid;
     }
     export class inventoryDisplayManager extends GeneratedObject{
-        constructor(x, y, z, inventoryGrid, tabs, scaledItem, itemInfoDisplay) {
+        constructor(x, y, z, gameRef, inventoryGrid, tabs, scaledItem, itemInfoDisplay) {
             let emptyMatrix = generateEmptyMatrix(128, 128);
             super([emptyMatrix], {default: [0]}, x, y, z);
             this.inventoryGrid = inventoryGrid;
             this.tabs = tabs;
+            this.currentTab = 'food';
+            this.currentPage = 0;
+            this.totalSlots = inventoryGrid.totalSlots;
             this.scaledItem = scaledItem;
             this.itemInfoDisplay = itemInfoDisplay;
             this.hoveredItemName;
             this.hoveredItemInfo;
             this.children = [inventoryGrid, scaledItem, tabs, itemInfoDisplay];
+            this.startIndex = 0;
+            this.gameRef = gameRef
+            this.currentTabArray = this.gameRef.inventory.getItemsByType(this.currentTab);
         }
+
+        setItemsToPage(){
+            let items = this.currentTabArray.slice(this.startIndex, this.startIndex + this.totalSlots);
+            this.inventoryGrid.updateItemSlots(items);
+        }
+
+        setTab(tab){
+            this.currentTab = tab;
+            this.currentPage = 0;
+            this.currentTabArray = this.gameRef.inventory.getItemsByType(this.currentTab);
+            this.inventoryGrid.updateItemSlots(this.currentTabArray)
+        }
+        
+        setNextPage() {
+            this.currentPage++;
+            if(this.startIndex + this.totalSlots <= this.currentTabArray.length) {
+                this.startIndex += this.totalSlots;
+                this.setItemsToPage()
+            }
+        }
+
+        setPrevPage() {
+            this.currentPage--;
+            if(this.startIndex - this.totalSlots >= 0) {
+                this.startIndex -= this.totalSlots;
+                this.setItemsToPage()
+            }
+            
+        }
+
         whileHover(){
             if(this.inventoryGrid.hoveredItem != null){
                 this.scaledItem.setItem(this.inventoryGrid.hoveredItem);
