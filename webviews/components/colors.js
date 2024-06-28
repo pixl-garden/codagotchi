@@ -7,8 +7,8 @@ export const mainMenuBorder = '#000000'; //black
 export const mainMenuBorderHover = '#000000'; //black
 export const mainMenuHightlight = "#777cff" //dark purple
 export const mainMenuShadow = "#5356b2" //lighter purple
-export const mainMenuHightlightHover = "#5e62af" //darker purple
-export const mainMenuShadowHover = "#a389ff" //lightest purple
+export const mainMenuHightlightHover = "#a389ff" //darker purple
+export const mainMenuShadowHover = "#5e62af" //lightest purple
 
 export const mainMenuColorParams = [mainMenuBackground, mainMenuBorder, mainMenuBackgroundHover, mainMenuBorderHover,
                              mainMenuHightlight, mainMenuShadow, mainMenuHightlightHover, mainMenuShadowHover]

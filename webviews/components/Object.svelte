@@ -1037,7 +1037,7 @@
     }
 
     export class Button extends Object {
-        constructor(objectName, x, y, actionOnClick, z = 0) {
+        constructor(x, y, z, objectName, actionOnClick) {
             super(objectName, x, y, z, actionOnClick);
             this.action = actionOnClick || (() => {});
             this.updateState("default");
