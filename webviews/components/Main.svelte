@@ -71,8 +71,8 @@
 
     function renderScreen(screen) {
         let pixelSize = getPixelSize();
-        screen.forEach((row, x) => {
-            row.forEach((color, y) => {
+        screen.forEach((row, y) => {
+            row.forEach((color, x) => {
                 if(color === 'transparent'){
                     ctx.clearRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
                 }else{

@@ -243,5 +243,23 @@
         "states": {
             "default": [4]
         }
+    },
+    "prevPageButton":{
+        "spriteWidth": 8,
+        "spriteHeight": 16,
+        "spriteSheet": "changePageBtns.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "nextPageButton":{
+        "spriteWidth": 8,
+        "spriteHeight": 16,
+        "spriteSheet": "changePageBtns.png",
+        "states": {
+            "default": [2],
+            "hovered": [3]
+        }
     }
 }
