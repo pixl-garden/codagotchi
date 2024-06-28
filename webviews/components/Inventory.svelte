@@ -351,7 +351,7 @@
         return inventoryGrid;
     }
     export class inventoryDisplayManager extends GeneratedObject{
-        constructor(x, y, z, gameRef, inventoryGrid, tabs, scaledItem, itemInfoDisplay) {
+        constructor(x, y, z, gameRef, inventoryGrid, tabs, scaledItem, itemInfoDisplay, prevPageButton, nextPageButton) {
             let emptyMatrix = generateEmptyMatrix(128, 128);
             super([emptyMatrix], {default: [0]}, x, y, z);
             this.inventoryGrid = inventoryGrid;
@@ -363,7 +363,7 @@
             this.itemInfoDisplay = itemInfoDisplay;
             this.hoveredItemName;
             this.hoveredItemInfo;
-            this.children = [inventoryGrid, scaledItem, tabs, itemInfoDisplay];
+            this.children = [inventoryGrid, scaledItem, tabs, itemInfoDisplay, prevPageButton, nextPageButton];
             this.startIndex = 0;
             this.gameRef = gameRef
             this.currentTabArray = this.gameRef.inventory.getItemsByType(this.currentTab);

@@ -507,15 +507,15 @@
             [testingSprites[5], testingSprites[5], ()=>{
                 inventoryDisplayManagerInstance.setTab("mining");
             }]
-        )
+        );
         let itemInfoDisplayInstance = new itemInfoDisplay(53, 97, 5, tiny);
         let prevPageButton = new Button(0, 42, 5, "prevPageButton", ()=>{
             inventoryDisplayManagerInstance.setPrevPage();
-        })
+        });
 
         let nextPageButton = new Button(120, 42, 5, "nextPageButton", ()=>{
             inventoryDisplayManagerInstance.setNextPage();
-        })
+        });
 
         
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
@@ -524,8 +524,9 @@
             inventoryGridInstance.updateItemSlots(itemArray);
         });
         
-        let inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 0, get(game), inventoryGridInstance, inventoryTabList, scaledItemInstance, itemInfoDisplayInstance);
-        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance, prevPageButton, nextPageButton);
+        let inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 0, get(game), inventoryGridInstance, inventoryTabList,
+             scaledItemInstance, itemInfoDisplayInstance, prevPageButton, nextPageButton);
+        inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance);
 
         // ---------------- FISHING ROOM ----------------
     
