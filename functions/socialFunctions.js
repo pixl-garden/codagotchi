@@ -8,9 +8,26 @@ export const searchUsers = functions.https.onCall(async (data, context) => {
     return snapshot.val();
 });
 
+// add bar
+// kitgore -> press send -> request sent
+// kitgorrrr -> press send -> user not found
+
+// take username -> send a request with username in headers -> firebase search by username -> append the request in their inbox 
+
 export const sendFriendRequest = functions.https.onCall(async (data, context) => {
     checkAuthenticated(context);
-    const { toUserId, fromUserId, fromUsername } = data;
+    const { toUsername, fromUserId, fromUsername } = data;
+
+    // First, find the toUserId based on toUsername
+    const toUserRef = admin.firestore().collection('users').where('username', '==', toUsername);
+    const toUserSnapshot = await toUserRef.get();
+
+    if (toUserSnapshot.empty) {
+        return { success: false, message: 'No user found with that username' };
+    }
+
+    const toUserId = toUserSnapshot.docs[0].id;
+
     const friendRequestRef = getUserPrivateRef(toUserId).child('friendRequests');
     const snapshot = await friendRequestRef.orderByChild('fromUserId').equalTo(fromUserId).once('value');
     if (snapshot.exists()) {
@@ -34,6 +51,7 @@ export const sendFriendRequest = functions.https.onCall(async (data, context) =>
         handleError(error, 'Error sending friend request');
     }
 });
+
 
 export const handleFriendRequest = functions.https.onCall(async (data, context) => {
     checkAuthenticated(context);

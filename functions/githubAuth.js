@@ -49,7 +49,8 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
 
         const githubUserId = githubUserResponse.data.id;
         // check if user already exists in the database
-        const userExists = (await admin.database().ref(`users/${githubUserId}`).once('value')) !== null;
+        const userSnapshot = await admin.database().ref(`users/${githubUserId}`).once('value');
+        const userExists = userSnapshot.exists();
         const githubUsername = githubUserResponse.data.login;
 
         // Create a Firebase custom token
@@ -78,17 +79,30 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
             }
         }
         if (statusComplete) {
-            if (!userExists) {
-                await createUserProfile(githubUserId, githubUsername, token_time);
-            }
-            const loggedInUserData = await db.ref(`users/${githubUserId}`).once('value');
+        if (!userExists) {
+            console.log('No existing user, creating profile...');
+            await createUserProfile(githubUserId, githubUsername, token_time);
+            console.log('User profile created');
+        } else {
+            console.log('User already exists, not creating a new profile.');
+        }
+        
+        console.log('Retrieving user data...');
+        const loggedInUserData = await db.ref(`users/${githubUserId}`).once('value');
+        
+        if (loggedInUserData.exists()) {
+            console.log('User data found:', loggedInUserData.val());
             response.status(200).send({
                 message: 'Auth successful. User logged in.',
                 data: loggedInUserData.val(),
             });
         } else {
-            response.status(408).send('Request timed out. User profile not created.');
+            console.log('No user data found.');
+            response.status(404).send('User data not found after profile creation.');
         }
+} else {
+    response.status(408).send('Request timed out. User profile not created.');
+}
     } catch (error) {
         console.error('GitHub authentication error:', error);
         response.status(500).send('GitHub authentication error: ', error);

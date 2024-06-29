@@ -259,7 +259,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         printUserPublicData(this.context);
                     })
 
-
                     break;
                 }
 
