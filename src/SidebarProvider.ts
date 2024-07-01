@@ -63,18 +63,29 @@ async function refreshToken(refreshToken: string, context: vscode.ExtensionConte
         await context.secrets.store("refreshToken", refresh_token);
         await context.secrets.store("idToken", id_token);
 
-        // Update Firebase Auth state with the new ID token
-        // auth.currentUser?.getIdToken(/* forceRefresh */ true).then(updatedToken => {
-        //     console.log('Updated Firebase Auth Token:', updatedToken);
-        //     // Optionally, use the updatedToken as needed in your application
-        // }).catch(error => {
-        //     console.error('Error updating Firebase Auth Token:', error);
-        // });
+        sendFriendRequest(context, "notalim");
 
         return { idToken: id_token, refreshToken: refresh_token };
     } catch (error) {
         console.error("Error refreshing token:", error);
         throw error;
+    }
+}
+
+async function sendFriendRequest(context: vscode.ExtensionContext, recipientUsername: string) {
+    const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/sendFriendRequest';
+    const idToken = await context.secrets.get("idToken");
+
+    try {
+        const response = await axios.post(functionUrl, { recipientUsername }, {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log(response.data.result);
+    } catch (error) {
+        console.error('Error sending friend request:', error);
     }
 }
 
