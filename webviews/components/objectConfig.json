@@ -114,7 +114,15 @@
     "fishingBackground": {
         "spriteWidth": 128,
         "spriteHeight": 128,
-        "spriteSheet": "fishingBackground.png",
+        "spriteSheet": "fishingBackground2-2.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "boatFront": {
+        "spriteWidth": 52,
+        "spriteHeight": 13,
+        "spriteSheet": "boatFront2.png",
         "states": {
             "default": [0]
         }
@@ -260,6 +268,15 @@
         "states": {
             "default": [2],
             "hovered": [3]
+        }
+    },
+    "mineOres":{
+        "spriteWidth": 16,
+        "spriteHeight": 16,
+        "spriteSheet": "mineOres.png",
+        "states": {
+            "default": [0,1,2,3],
+            "hovered": [0,1,2,3]
         }
     }
 }
