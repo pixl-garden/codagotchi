@@ -9,6 +9,8 @@
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { Fishing } from "./Fishing.svelte";
+    import { Mining, MiningManager } from "./Mining.svelte";
+    import lootTableConfig from './lootTableConfig.json';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -46,6 +48,7 @@
         const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
         const paintUnhoverableButton = generateTextButtonClass(18, 15, retroShadowBlue, ...Colors.secondaryMenuUnhoverableColorParams);
         const fishingButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
+        const miningButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
         const invisibleMiningButton = generateInvisibleButtonClass(34, 57);
         const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
         const changePageButton = generateIconButtonClass(8, 16, 'transparent', 'transparent', 'transparent', 'transparent');
@@ -177,6 +180,7 @@
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
+        console.log("paintButtonSprites=" + paintButtonSprites);
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0);
@@ -478,8 +482,6 @@
 
         addTestableItems();
         
-        get(game).addStackableItem("ore1", 2);
-        get(game).addStackableItem("ingot1", 2);
         
         let miningItems = get(game).inventory.getItemsByType('mining');
         let itemArray = get(game).inventory.getItemsByType('food');
@@ -538,7 +540,7 @@
             if(get(game).isActive){
             castLineHandler();
         }});
-        let cancelButton = new fishingButton(90, 60, 5, "XXX", () => {
+        let cancelButton = new fishingButton(90, 60, 5, "STOP", () => {
             fishingInstance.cancelFishing();
             get(game).getCurrentRoom().addObject( castLineButton );
             get(game).getCurrentRoom().removeObject( cancelButton );
@@ -561,7 +563,7 @@
                 fishingNotifItem = fishItem;
                 setTimeout(() => {
                     fishingNotif.startMovingTo(6, -29);
-                    if(get(game).isActive && !fishingInstance.cancelFlag){
+                    if(get(game).isActive && !fishingInstance.cancelFlag) {
                         castLineUntil();
                     }
                     fishingInstance.cancelFlag = false;
@@ -575,7 +577,7 @@
 
         let fishingRoom = new Room('fishingRoom',  
             () => {
-                petObject.setCoordinate(29, 32, 0);
+                petObject.setCoordinate(36, 57, 0);
             },
             false,
             () => {
@@ -591,13 +593,15 @@
             }
         );
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
+        let boatFront = new Background('boatFront', 35, 89, 1, () => {} );
+
         let fishingNotif = new Menu(6, -32, 12, 116, 28, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
         fishingNotif.addChild(fishingNotifItem);
         fishingNotif.addChild(fishingNotifText);
         fishingNotif.setPhysics(16, .2, 3.8);
-        fishingRoom.addObject(backToMain2, fishingBackground, petObject, castLineButton, fishingNotif);
+        fishingRoom.addObject(backToMain2, fishingBackground, petObject, castLineButton, fishingNotif, boatFront);
 
-        // MINING ROOM 
+        // CAVE ENTRANCE ROOM 
         let caveEntranceRoom = new Room('caveEntranceRoom',  
             () => {
                 petObject.setCoordinate(23, 71, 0);
@@ -606,8 +610,9 @@
             () => {
                 petObject.nextFrame();
             },
-            ()=> {},
-            ()=> {
+            () => {},
+            () => {
+
             }
         );
         let caveEntrance = new Background('caveEntrance', 0, 0, -20, () => {} );
@@ -617,21 +622,87 @@
 
         caveEntranceRoom.addObject(backToMain2, caveEntrance, petObject, doorButton);
 
-        let miningRoom = new Room('miningRoom',  
-            () => {
-                petObject.setCoordinate(23, 71, 0);
-            },
-            false,
-            () => {},
-            ()=> {},
-            ()=> {}
-        );
-        let miningBackground = new Background('miningBackground', 0, 0, -20, () => {} );
+        // ---------------- MINING ROOM ----------------
 
-        miningRoom.addObject(backToMain2, miningBackground);
-    }
+        let blockTypes = lootTableConfig["miningTiers"];
+        let miningInstance = new MiningManager(64, 64, 5, 1, 8, 10, blockTypes);
+        let miningNotifItem = new Item("test2", 7, 6, 13);
+        let miningNotifText = new activeTextRenderer(retroShadowGray, 26, 9, 13);
+        
+        let beginMiningButton = new miningButton(90, 90, 5, "MINE", ()=>{
+            if(get(game).isActive){
+                // miningInstance.mineBlocks();
+                console.log("active");
+            }
+        });
+        let cancelMiningButton = new miningButton(90, 90, 5, "STOP", () => {
+            miningInstance.cancelMining();
+            get(game).getCurrentRoom().addObject( beginMiningButton );
+            get(game).getCurrentRoom().removeObject( cancelMiningButton );
+        });
+        
+        function miningHandler() {
+            get(game).getCurrentRoom().addObject( cancelMiningButton );
+            get(game).getCurrentRoom().removeObject( beginMiningButton );
+            mineUntil();
+            
+        }
 
         
+        function mineUntil() {
+            miningInstance.mineBlocks(get(game)).then((ore) => {
+                console.log("ore=" + ore);
+                miningNotif.startMovingTo(6, 3);
+                miningNotifText.setText(ore.getName());
+                miningNotif.updateChild(ore, miningNotifItem);
+                miningInstance.x = 80;
+                miningInstance.generateObjectGrid()
+                miningInstance.startMovingTo(64, 64);
+                
+                miningNotifItem = ore;
+                setTimeout(() => {
+                    miningNotif.startMovingTo(6, -29);
+                    if(get(game).isActive && !miningInstance.cancelFlag){
+                        mineUntil();
+                    }
+                    miningInstance.cancelFlag = false;
+                }, 4000);
+            }).catch((error) => {
+                console.log(error.message);
+            });
+        }
+        
+        
+        let miningRoom = new Room('miningRoom',  
+        () => {
+            petObject.setCoordinate(23, 48, 0);
+        },
+        false,
+        () => {
+            petObject.nextFrame();
+            miningNotif.nextFrame();
+            miningInstance.nextFrame();
+        },
+        ()=> {
+            miningHandler();
+        },
+        ()=> {
+            get(game).getCurrentRoom().addObject( beginMiningButton );
+            get(game).getCurrentRoom().removeObject( cancelMiningButton );
+        }
+    );
+    
+    let miningBackground = new Background('miningBackground', 0, 0, -20, () => {} );
+
+    let miningNotif = new Menu(6, -32, 12, 116, 28, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
+    miningNotif.addChild(miningNotifItem);
+    miningNotif.addChild(miningNotifText);
+    miningNotif.setPhysics(16, .2, 3.8);
+    miningInstance.setPhysics(8, 5, 2);
+    miningRoom.addObject(backToMain2, miningBackground, miningInstance, beginMiningButton, petObject, miningNotif);
+}
+
+
 
     export function roomMain(){
         get(game).getCurrentRoom().update();

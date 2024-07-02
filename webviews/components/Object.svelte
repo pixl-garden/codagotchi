@@ -22,7 +22,6 @@
             this.setCoordinate(x, y, z);
             this.actionOnClick = actionOnClick;
             this.scrollable = false;
-
             // State and Sprite management variables
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
