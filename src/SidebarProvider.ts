@@ -63,7 +63,8 @@ async function refreshToken(refreshToken: string, context: vscode.ExtensionConte
         await context.secrets.store("refreshToken", refresh_token);
         await context.secrets.store("idToken", id_token);
 
-        sendFriendRequest(context, "notalim");
+        // sendFriendRequest(context, "kitgore");
+        retrieveInbox(context); 
 
         return { idToken: id_token, refreshToken: refresh_token };
     } catch (error) {
@@ -89,6 +90,22 @@ async function sendFriendRequest(context: vscode.ExtensionContext, recipientUser
     }
 }
 
+async function retrieveInbox(context: vscode.ExtensionContext) {
+    const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
+    const idToken = await context.secrets.get("idToken");
+    console.log("RETRIEVING INBOX")
+    try {
+        const response = await axios.get(functionUrl, {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('Inbox data:', response.data);
+    } catch (error) {
+        console.error('Error fetching inbox:', error);
+    }
+}
 
 // Set the Global State (with merging)
 // ---- Example usage: ----

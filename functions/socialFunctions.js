@@ -31,9 +31,14 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
 
 
         let recipientUid;
+        let senderUsername;
 
         // Get the recipient's UID from username map
         try {
+            if (!idToken) {
+                return res.status(400).send('idToken is required');
+            }
+
             const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
             const recipientIdSnapshot = await recipientRef.once('value');
 
@@ -41,13 +46,18 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
                 return res.status(404).send('Recipient not found');
             }
 
-            if (!idToken) {
-                return res.status(400).send('idToken is required');
+            const senderRef = admin.database().ref(`users/${senderUid}/public`);
+            const senderSnapshot = await senderRef.once('value');
+
+            if (!senderSnapshot.exists()) {
+                return res.status(404).send('Sender not found');
             }
 
             // it's in userId field of the entry
             console.log("recipientIdSnapshot:", recipientIdSnapshot.val());
             recipientUid = recipientIdSnapshot.val().userId;
+            console.log("senderSnapshot:", senderSnapshot.val());
+            senderUsername = senderSnapshot.val().username;
 
             console.log("recipientUid:", recipientUid);
 
@@ -61,7 +71,8 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
         const inboxRef = admin.database().ref(`users/${recipientUid}/protected/inbox`);
         try {
             await inboxRef.push({
-                from: senderUid,
+                fromUid: senderUid,
+                fromUser: senderUsername,
                 type: 'friendRequest',
                 createdAt: admin.database.ServerValue.TIMESTAMP
             });
@@ -69,6 +80,30 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
         } catch (error) {
             console.error('Failed to send friend request:', error);
             res.status(500).send('Failed to send friend request');
+        }
+    });
+});
+
+export const retrieveInbox = functions.https.onRequest((req, res) => {
+    if (req.method !== 'GET') {
+        return res.status(403).send('Forbidden! Only GET requests are allowed.');
+    }
+
+    verifyToken(req, res, async () => {
+        const uid = req.user.uid; // User UID from verified token
+
+        // Path to the user's inbox
+        const inboxRef = admin.database().ref(`users/${uid}/protected/inbox`);
+        try {
+            const inboxSnapshot = await inboxRef.once('value');
+            if (inboxSnapshot.exists()) {
+                res.status(200).json(inboxSnapshot.val());
+            } else {
+                res.status(404).send('Inbox is empty');
+            }
+        } catch (error) {
+            console.error('Failed to retrieve inbox:', error);
+            res.status(500).send('Failed to retrieve inbox');
         }
     });
 });
