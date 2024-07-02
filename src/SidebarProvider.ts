@@ -4,7 +4,8 @@ import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid'; // Ensure you have the 'uuid' package installed.
-import database from './firebaseInit';
+import { database, firebaseConfig } from './firebaseInit';
+import axios from 'axios';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
@@ -17,6 +18,94 @@ let githubUsername = '';
 const state = uuidv4();
 
 const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
+
+async function signInWithCustomTokenViaREST(customToken: string, context: vscode.ExtensionContext) {
+    const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${firebaseConfig.apiKey}`;
+    const auth = getAuth();
+    console.log("Signing in with custom token")
+    try {
+        const response = await axios.post(signInUrl, {
+            token: customToken,
+            returnSecureToken: true  // Must be true to get a refresh token
+        });
+        const { idToken, refreshToken } = response.data;
+        console.log("ID Token:", idToken);
+        console.log("Refresh Token:", refreshToken);
+
+        // Store the refresh token in VSCode's secret storage
+        await context.secrets.store("refreshToken", refreshToken);
+
+        // Set Firebase Auth state in the SDK
+        // await signInWithCustomToken(auth, idToken);
+
+        return { idToken, refreshToken };
+    } catch (error) {
+        console.error("Error signing in with custom token:", error);
+        throw error;
+    }
+}
+
+// Function to refresh the ID token using the refresh token
+
+async function refreshToken(refreshToken: string, context: vscode.ExtensionContext) {
+    const refreshTokenUrl = `https://securetoken.googleapis.com/v1/token?key=${firebaseConfig.apiKey}`;
+    // const auth = getAuth();
+    try {
+        const response = await axios.post(refreshTokenUrl, {
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+        });
+        const { id_token, refresh_token } = response.data;
+        console.log("New ID Token:", id_token);
+        console.log("New Refresh Token:", refresh_token);
+
+        // Update the refresh token in the secret storage
+        await context.secrets.store("refreshToken", refresh_token);
+        await context.secrets.store("idToken", id_token);
+
+        // sendFriendRequest(context, "kitgore");
+        retrieveInbox(context); 
+
+        return { idToken: id_token, refreshToken: refresh_token };
+    } catch (error) {
+        console.error("Error refreshing token:", error);
+        throw error;
+    }
+}
+
+async function sendFriendRequest(context: vscode.ExtensionContext, recipientUsername: string) {
+    const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/sendFriendRequest';
+    const idToken = await context.secrets.get("idToken");
+
+    try {
+        const response = await axios.post(functionUrl, { recipientUsername }, {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log(response.data.result);
+    } catch (error) {
+        console.error('Error sending friend request:', error);
+    }
+}
+
+async function retrieveInbox(context: vscode.ExtensionContext) {
+    const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
+    const idToken = await context.secrets.get("idToken");
+    console.log("RETRIEVING INBOX")
+    try {
+        const response = await axios.get(functionUrl, {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('Inbox data:', response.data);
+    } catch (error) {
+        console.error('Error fetching inbox:', error);
+    }
+}
 
 // Set the Global State (with merging)
 // ---- Example usage: ----
@@ -83,12 +172,35 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
     }
 }
 
-async function printUserPublicData(userId: string) {
-    const dbRef = ref(database, `users/${userId}/public`);
+// async function printUserPublicData(userId: string) {
+//     const dbRef = ref(database, `users/${userId}/public`);
+//     try {
+//         const snapshot = await get(dbRef);
+//         if (snapshot.exists()) {
+//             console.log("Public user data:", snapshot.val());
+//         } else {
+//             console.log("No public user data found.");
+//         }
+//     } catch (error) {
+//         console.error("Error fetching public user data:", error);
+//     }
+// }
+
+async function printUserPublicData(context: vscode.ExtensionContext): Promise<void> {
+    const userId = await context.secrets.get("userId");
+    const idToken = await context.secrets.get("idToken");
+
+    if (!userId || !idToken) {
+        console.error("User ID or ID Token is missing.");
+        return;
+    }
+
+    const url = `${firebaseConfig.databaseURL}/users/${userId}/public.json?auth=${idToken}`;
+
     try {
-        const snapshot = await get(dbRef);
-        if (snapshot.exists()) {
-            console.log("Public user data:", snapshot.val());
+        const response = await axios.get(url);
+        if (response.data) {
+            console.log("Public user data:", response.data);
         } else {
             console.log("No public user data found.");
         }
@@ -171,6 +283,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         type: 'image-uris',
                         uris: webviewImageUris,
                     });
+                    refreshToken(await this.context.secrets.get("refreshToken") || '', this.context).then(() => {
+                        printUserPublicData(this.context);
+                    })
+
                     break;
                 }
 
@@ -228,7 +344,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                     .then(async (userCredential) => {
                                         // Signed in
                                         const user = userCredential.user;
-                                        console.log('Firebase user:', user);
+                                        const userId = user.uid;
+                                        console.log('Firebase user:', userId);
+                                        console.log('userID:', userId);
+                                        await this.context.secrets.store("userId", userId);
+
 
                                         // Store the GitHub username in the database under the user's UID
                                         const authRef = ref(getDatabase(), `authTokens/${state}`);
@@ -241,7 +361,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                             console.error('Error storing user data in the database:', error);
                                         }
 
-                                        printUserPublicData('103673149');
+                                        // printUserPublicData('103673149');
+                                        signInWithCustomTokenViaREST(firebaseToken, this.context);
 
                                         // Remove the listener after successful authentication
                                         off(tokenRef, 'value', tokenListener);
