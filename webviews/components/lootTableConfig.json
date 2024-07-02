@@ -1,25 +1,67 @@
 {  
-    "fishingTiers": [
-      {
-        "name": "Common",
-        "weight": 50,
-        "items": [ "atlanticBass", "guppy", "mossBall", "plasticBag", "freshwaterSnail", "dab" ]
-      },
-      {
-        "name": "Uncommon",
-        "weight": 30,
-        "items": [ "starfish", "goldenTench", "clownfish", "blueGill" ]
-      },
-      {
-        "name": "Rare",
-        "weight": 15,
-        "items": [ "sandDollar", "junonia" ]
-      },
-      {
-        "name": "Legendary",
-        "weight": 5,
-        "items": [ "axolotl", "highFinBandedShark" ]
+  "fishingTiers": [
+    {
+      "name": "Common",
+      "weight": 50,
+      "items": [ "atlanticBass", "guppy", "mossBall", "plasticBag", "freshwaterSnail", "dab" ]
+    },
+    {
+      "name": "Uncommon",
+      "weight": 30,
+      "items": [ "starfish", "goldenTench", "clownfish", "blueGill" ]
+    },
+    {
+      "name": "Rare",
+      "weight": 15,
+      "items": [ "sandDollar", "junonia" ]
+    },
+    {
+      "name": "Legendary",
+      "weight": 5,
+      "items": [ "axolotl", "highFinBandedShark" ]
+    }
+  ],
+  "miningTiers":[
+    {
+      "name": "Coal",
+      "weight": 10,
+      "items": [ "test2" ],
+      "duration": 2000,
+      "sprite": "mineOres.png",
+      "states": {
+        "default": [0]
       }
-    ]
-  }
+    },
+    {
+      "name": "Iron",
+      "weight": 8,
+      "items": [ "test3", "test4" ],
+      "duration": 2800,
+      "sprite": "mineOres.png",
+      "states": {
+        "default": [1]
+      }    
+    },
+    {
+      "name": "Gold",
+      "weight": 5,
+      "items": [ "test5", "test6" ],
+      "duration": 2400,
+      "sprite": "mineOres.png",
+      "states": {
+        "default": [2]
+      }    
+    },
+    {
+      "name": "Diamond",
+      "weight": 1,
+      "items": [ "test7", "test8" ],
+      "duration": 2400,
+      "sprite": "mineOres.png",
+      "states": {
+        "default": [3]
+      }   
+    }
+  ]
+}
   
