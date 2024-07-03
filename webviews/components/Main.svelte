@@ -31,6 +31,7 @@
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
+        $game.retrieveInbox();
     }
     //main loop
     function main() {
@@ -113,7 +114,6 @@
                 });
             }
             else if (message.type === 'documentSaved'){
-                console.log("DOCUMENT SAVE RECEIVED IN MAINNNNN TIME: ", message.value)
                 $game.resetActivityTimeout();
             }
             else if (message.type === 'currentState') {

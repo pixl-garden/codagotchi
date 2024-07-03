@@ -20,12 +20,12 @@
             this.resetActivityTimeout = this.resetActivityTimeout.bind(this);
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
             this.isActive = true;
+            this.inbox;
         }
 
         //function to call when player goes inactive
         handleInactivity() {
             console.log("Inactivity timeout reached.") 
-            console.log("Current room: ", this.currentRoom);
             this.currentRoom.onInactivity();
             this.isActive = false;
         }
@@ -80,7 +80,7 @@
         }
 
         removeItemFromGlobalState(key, itemIdToRemove) {
-            console.log("Removing item from global state: ", itemIdToRemove)
+            // console.log("Removing item from global state: ", itemIdToRemove)
             if(this.inventory.hasItemInInstance(itemIdToRemove)){
                 this.inventory.removeItemByIdFromInstance(itemIdToRemove);
                 tsvscode.postMessage({
@@ -100,7 +100,7 @@
 
         // sets local state (game.localState) to the state info (called when syncLocalToGlobalState is called)
         setLocalState( stateInfo ) {
-            console.log("Setting local state: ", stateInfo)
+            // console.log("Setting local state: ", stateInfo)
             game.localState = stateInfo
         }
 
@@ -111,7 +111,11 @@
         constructInventory() {
             //TODO: get from user data instead of directly in local state
             this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
-            // console.log("Constructed inventory: ", this.inventory);
+        }
+
+        retrieveInbox() {
+            this.inbox = new Inbox(this.getLocalState().inbox || {});
+            return this.inbox
         }
 
         constructUserData(){
@@ -137,7 +141,6 @@
         subtractStackableItem(itemIdString, quantity = 1) {
             let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity)
             if(itemInstance) {
-                console.log("subtracted item count: ", itemInstance.itemCount)
                 if(itemInstance.itemCount <= 0){
                     this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
                 } else {
@@ -147,10 +150,19 @@
                 }
             }
             else{
-                console.error("subtractStackableItem: Item not found in inventory: ", itemIdString);
             }
         }
 
+    }
+
+    class Inbox {
+        constructor(inboxJSON) {
+            this.friendRequests = inboxJSON.friendRequests || {};
+        }
+
+        removeRequest(requestID) {
+            delete this.friendRequests[requestID];
+        }
     }
 
     export const game = writable(new Game());
@@ -191,7 +203,7 @@
             if (index !== -1) { // Check if the oldObject is actually found
                 this.objects[index] = newObject;
             } else {
-                console.log('Object not found in array.');
+                // console.log('Object not found in array.');
             }
         }
 
@@ -226,6 +238,19 @@
         }
     }
 
+    // Pass a reference of the class as a parameter, when instantiating the class,
+    //  call the objects method (setUserText) to update the object's text
+    // ex: this.textInput = new textInputReference((text) => this.setUserText(text), textRenderer.charMappingString);
+
+    // To focus the text input, set the shouldFocus store to true
+    // ex: 
+    // if(get(shouldFocus) === false){
+    //     shouldFocus.set(true);
+    // }
+    // else {
+    //     shouldFocus.set(false);
+    // }
+    // See generateTextInputBar in objectGenerators for reference
     export class textInput {
         static instances = [];
         constructor(

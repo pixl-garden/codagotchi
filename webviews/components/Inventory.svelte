@@ -87,7 +87,6 @@
 
         // Add item to the type index (used for quick access to items of a certain type)
         addItemToTypeIndex(item) {
-            console.log("addItemToTypeIndex called");
             const typeSet = this.itemsByType.get(item.itemType) || new Set();
             typeSet.add(item.inventoryId);
             this.itemsByType.set(item.itemType, typeSet);
@@ -192,7 +191,6 @@
 
     // Function to reconstruct items from serialized data
     function reconstructItem(itemData) {
-        console.log("Item Data: ", itemData);
         const config = itemConfig[itemData.itemName];
         if (!config) throw new Error(`Configuration for item ${itemData.itemName} not found`);
 
@@ -232,7 +230,6 @@
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
                     numberTextRenderer, scrollSpeed, itemX = 0, itemY = 0, itemZ = 10){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer);
-            console.log("Constructed items: ", constructedItems);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
             this.itemSlotConstructor = itemSlotConstructor;
             this.totalSlots = rows*columns;
@@ -315,7 +312,6 @@
             let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.updateObjects(itemSlotExport);
-            console.log("Item Slot Export: ", itemSlotExport);
             this.setHoverLogic();
         }
     }
@@ -328,10 +324,7 @@
             let item = items[i];
             let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
             
-            // console.log("Slot Instance: ", slotInstance); // Check the instance
-            // console.log(slotInstance instanceof GeneratedObject);
             if(item) {
-                console.log("Slot Instance: ", slotInstance, numberTextRenderer); // Check the instance
                 item.setCoordinate(itemX, itemY, itemZ);
                 slotInstance.slotItem = item;
                 // item.mouseInteractions = false;

@@ -4,8 +4,6 @@ import {admin} from "./firebaseConfig.js";
 export async function verifyToken(req, res, next) {
     const idToken = req.headers.authorization?.split('Bearer ')[1];
 
-    console.log("idToken: ", idToken)
-
     if (!idToken) {
         return res.status(401).send('No ID token provided');
     }

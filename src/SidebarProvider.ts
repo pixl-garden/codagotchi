@@ -56,8 +56,8 @@ async function refreshToken(refreshToken: string, context: vscode.ExtensionConte
             refresh_token: refreshToken
         });
         const { id_token, refresh_token } = response.data;
-        console.log("New ID Token:", id_token);
-        console.log("New Refresh Token:", refresh_token);
+        // console.log("New ID Token:", id_token);
+        // console.log("New Refresh Token:", refresh_token);
 
         // Update the refresh token in the secret storage
         await context.secrets.store("refreshToken", refresh_token);
@@ -93,7 +93,6 @@ async function sendFriendRequest(context: vscode.ExtensionContext, recipientUser
 async function retrieveInbox(context: vscode.ExtensionContext) {
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
     const idToken = await context.secrets.get("idToken");
-    console.log("RETRIEVING INBOX")
     try {
         const response = await axios.get(functionUrl, {
             headers: {
@@ -101,7 +100,10 @@ async function retrieveInbox(context: vscode.ExtensionContext) {
                 'Content-Type': 'application/json'
             }
         });
-        console.log('Inbox data:', response.data);
+        // Update the global state with the inbox data
+        setCurrentState(context, {
+            inbox: response.data
+        });
     } catch (error) {
         console.error('Error fetching inbox:', error);
     }
@@ -167,7 +169,7 @@ function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
 function printJsonObject(jsonObject: { [key: string]: any }): void {
     for (const key in jsonObject) {
         if (jsonObject.hasOwnProperty(key)) {
-            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+            // console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
         }
     }
 }
@@ -284,14 +286,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         uris: webviewImageUris,
                     });
                     refreshToken(await this.context.secrets.get("refreshToken") || '', this.context).then(() => {
-                        printUserPublicData(this.context);
+                        // console.log("Token refreshed");
                     })
 
                     break;
                 }
 
                 case 'getGlobalState': {
-                    console.log('----Getting globalState----');
+                    // console.log('----Getting globalState----');
                     printJsonObject(getCurrentState(this.context));
                     this._view?.webview.postMessage({
                         type: 'currentState',
@@ -301,21 +303,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 case 'pushToGlobalState': {
-                    console.log('****Setting globalState****');
+                    // console.log('****Setting globalState****');
                     // printJsonObject(data.value)
                     setCurrentState(this.context, data.value);
                     break;
                 }
 
                 case 'removeItemFromState': {
-                    console.log('****Removing item from globalState****');
+                    // console.log('****Removing item from globalState****');
                     // printJsonObject(data.value)
                     removeItemFromState(this.context, data.key, data.itemIdToRemove);
                     break;
                 }
 
                 case 'clearGlobalState': {
-                    console.log('****Clearing globalState****');
+                    // console.log('****Clearing globalState****');
                     clearGlobalState(this.context);
                     break;
                 }
@@ -422,6 +424,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         type: 'userData',
                         value: dbData.val(),
                     });
+                }
+                case 'sendFriendRequest': {
+                    sendFriendRequest(this.context, data.val);
+                    break;
                 }
             }
         });
