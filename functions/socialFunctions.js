@@ -68,7 +68,7 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
         }
 
         // Logic to write the friend request to the recipient's inbox
-        const inboxRef = admin.database().ref(`users/${recipientUid}/protected/inbox`);
+        const inboxRef = admin.database().ref(`users/${recipientUid}/protected/inbox/friendRequests`);
         try {
             await inboxRef.push({
                 fromUid: senderUid,

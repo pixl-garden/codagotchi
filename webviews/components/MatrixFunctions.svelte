@@ -280,7 +280,6 @@
 
     export function generateMenuMatrix(width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1) {
         
-        console.log("width: ", width, "height: ", height, "bgColor: ", bgColor, "innerBorderColor: ", innerBorderColor, "outerBorderColor: ", outerBorderColor, "innerRoundness: ", innerRoundness, "outerRoundness: ", outerRoundness, "innerBorderThickness: ", innerBorderThickness, "outerBorderThickness: ", outerBorderThickness)
         // Ensure the border thickness doesn't exceed half the width or height of the sprite
         innerBorderThickness = Math.min(innerBorderThickness, Math.floor(width / 2), Math.floor(height / 2));
         outerRoundness = Math.min(outerRoundness, Math.floor(width / 2), Math.floor(height / 2));
@@ -291,17 +290,13 @@
         const innerBorderHeight = height - (outerBorderThickness * 2);
 
         const innerBorderSprite = generateRectangleMatrix(innerBorderWidth, innerBorderHeight, innerBorderColor, outerRoundness);
-        console.log("innerBorderThickness: ", innerBorderThickness, "outerBorderThickness: ", outerBorderThickness);
         // Adjust the centerWidth and centerHeight based on the border thickness
         const centerWidth = width - (innerBorderThickness * 2) - (outerBorderThickness * 2);
         const centerHeight = height - (innerBorderThickness * 2) - (outerBorderThickness * 2);
-        console.log("centerWidth=", centerWidth, "centerHeight", centerHeight, "bgColor", bgColor, "innerRoundness", innerRoundness, "innerBorderThickness", innerBorderThickness, "outerBorderThickness", outerBorderThickness)
 
         // Create the inner rounded rectangle sprite for the input field background and cap roundness to half the width or height, whichever is smallest
         innerRoundness = Math.min(innerRoundness, Math.floor(centerWidth / 2), Math.floor(centerHeight / 2));
         const innerSprite = generateRectangleMatrix(centerWidth, centerHeight, bgColor, innerRoundness);
-
-        console.log("outerBorderSprite: ", outerBorderSprite, "innerBorderSprite: ", innerBorderSprite, "innerSprite: ", innerSprite);
         
         // Overlay the inner sprite onto the outer sprite to create the text input background and offset it by the border thickness
         let layerOneSprite = overlayMatrix(outerBorderSprite, innerBorderSprite, 0, 0, outerBorderThickness, outerBorderThickness);
@@ -309,15 +304,12 @@
         // Overlay the text sprite on the left side of the text input, starting after the border thickness
         let layerTwoSprite = overlayMatrix(layerOneSprite, innerSprite, 0, 0, innerBorderThickness + outerBorderThickness, innerBorderThickness + outerBorderThickness);
 
-        console.log("layerOneSprite: ", layerOneSprite, "layerTwoSprite: ", layerTwoSprite);
         return layerTwoSprite;
     }
 
     export function generateColorButtonMatrix(width, height, color) { 
         const topShadowColor = adjustColor(color, 10);
         const bottomShadowColor = adjustColor(color, -10);
-
-        console.log("topShadowColor: ", topShadowColor, "bottomShadowColor: ", bottomShadowColor)
 
         let buttonSprite = generateRectangleMatrix(width, height, color);
 

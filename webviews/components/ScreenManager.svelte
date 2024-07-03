@@ -41,7 +41,6 @@
     }
 
     export function handleResize() {
-        console.log("handleResize")
         updateDimensions();
         updateStyles();
     }

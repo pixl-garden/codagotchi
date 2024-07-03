@@ -141,7 +141,7 @@
     export function handleClick(event, gameInstance) {
         let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
         let clickedObject = getObjectAt(gridX, gridY, gameInstance)[0];
-        console.log("MOUSE CLICKED AT: ", gridX, gridY, "CLICKED OBJECT: ", clickedObject)
+        // console.log("MOUSE CLICKED AT: ", gridX, gridY, "CLICKED OBJECT: ", clickedObject)
         
         if (clickedObject && isMouseDown && !activeDragObject) {
             activeDragObject = clickedObject;
@@ -153,7 +153,6 @@
     export function handleMouseDown(event, gameInstance) {
         if (newHoveredObject instanceof PixelCanvas) {
             newHoveredObject.saveCurrentCanvas();
-            // console.log()
         }
         event.preventDefault();
         isMouseDown = true;

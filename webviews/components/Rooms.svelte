@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, Object, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, ObjectGrid, Menu, ButtonList } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, ConfigObject, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, ObjectGrid, Menu, ButtonList } from './Object.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -9,7 +9,7 @@
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { Fishing } from "./Fishing.svelte";
-    import { Mining, MiningManager } from "./Mining.svelte";
+    import { MiningManager } from "./Mining.svelte";
     import lootTableConfig from './lootTableConfig.json';
     
     export function preloadObjects() {
@@ -149,7 +149,7 @@
             customizeUI.addChild(rightHatArrow)
             customizeUI.addChild(petObject)
 
-            petObject.setCoordinate(15, 11, 0);
+            petObject.setCoordinate(15, 11, 10);
         }, false, () => {
             petObject.nextFrame();
             vanityBackground.nextFrame();
@@ -180,7 +180,6 @@
         //PAINT BUTTONS INSTANTIATION
             //TODO: MAKE INTO BUTTONLIST
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
-        console.log("paintButtonSprites=" + paintButtonSprites);
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0);
@@ -306,7 +305,6 @@
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
-                console.log("Item: ", output.slotItem);
                 if(output.slotItem){
                     output.onStopHover();
                     stampGrid.displayToolTip = false;
@@ -316,7 +314,6 @@
             });
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
-            // console.log("createItemSlot instance:", output); // Check the instance
             return output;
         }
 
@@ -370,8 +367,12 @@
         }
 
         //TEXT INPUT BAR INSTANTIATION
-        const addFriendTextBar = new generateTextInputBar(112, 16, 'black', '#7997bc', 4, basic, 5, 1);
+        const addFriendTextBar = new generateTextInputBar(textInput, 112, 16, 'black', '#7997bc', 4, basic, 5, 1);
         let inputBar = new addFriendTextBar(0, 16, 0);
+        let sendFriendRequestButton = new brushSizeButton(118, 16, 0, '>', () => {
+            let inputUsername = inputBar.getUserText();
+            tsvscode.postMessage({ type: 'sendFriendRequest', val: inputUsername });
+        });
     
         function instantiateFriendRequests(friends, friendButton) {
             let friendArray = [];
@@ -413,16 +414,17 @@
             return friendArray;
         }
 
-        
-
         // INSTEAD OF THIS GET FRIENDS WITH API CALL
         let placeholderFriends = ["everlastingflame", "kitgore", "chinapoet"];
 
-        // let userFriends = 
-
         // INSTEAD OF THIS GET FRIEND REQUESTS WITH API CALL
-        let placeholderFriendRequest = ["dude", "mama"];
-       
+        let inbox = get(game).retrieveInbox()["friendRequests"]
+        let requests = Object.values(inbox);
+
+        // // Extract the 'fromUser' attribute from each object
+        let friendRequestUsernames = requests.map(item => item.fromUser);
+
+
         // TABS FOR SOCIAL ROOM
         const socialTabs = ['Friends', 'Add'];
         
@@ -441,7 +443,8 @@
 
         friendRoom.addObject(instantiateFriends(placeholderFriends, friendButton), backToMain, socialTabList);
 
-        requestRoom.addObject(...instantiateFriendRequests(placeholderFriendRequest, friendButton), backToMain, socialTabList, inputBar);
+        requestRoom.addObject(...instantiateFriendRequests(friendRequestUsernames, friendButton), backToMain, socialTabList, 
+                              inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------
         //ITEM INSTANTIATION (PLACEHOLDER)
@@ -488,7 +491,7 @@
 
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
-            let output = new Object("smallItemSlot", 0, 0, 0);
+            let output = new ConfigObject("smallItemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
             // console.log("createItemSlot instance:", output); // Check the instance
@@ -555,7 +558,6 @@
 
         function castLineUntil() {
             fishingInstance.castLine(get(game), 2000, 1000).then((fishItem) => {
-                console.log("fishItem" + fishItem);
                 fishingNotif.startMovingTo(6, 3);
                 fishingNotifText.setText(fishItem.getName());
                 fishingNotif.updateChild(fishItem, fishingNotifItem);

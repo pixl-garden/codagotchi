@@ -311,6 +311,7 @@
         }
     }
 
+    //TODO: make hat a separate object and make it a child of the pet class
     export class Pet extends GeneratedObject {
         //TODO: abstract state groups into a separate class
         constructor(petType, x, y, z, gameReference) {
@@ -345,8 +346,9 @@
 
         getSprite() {
             let petSprite = new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
-            let hatSprite = this.getHat()
-            return [petSprite, hatSprite]
+            // let hatSprite = this.getHat()
+            // return [petSprite, hatSprite]
+            return petSprite;
         }
 
         setHat(hat) {
@@ -593,10 +595,8 @@
                 this.lastStampIndex = randomStamp;
             }          
             
-            console.log("stamp item=" + stampItem, "random stamp=" + randomStamp)
             this.stampItem = stampItem;
             this.clearStamp();
-            console.log("stamp array?? ", this.stampItem.states["default"] )
             this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 87, 4);
         }
 
@@ -996,7 +996,7 @@
         }
     }
 
-    export class Object extends GeneratedObject {
+    export class ConfigObject extends GeneratedObject {
         constructor(objectName, x, y, z = 0, actionOnClick = null) {
             const config = objectConfig[objectName];
             // console.log(config);
@@ -1035,7 +1035,7 @@
         }
     }
 
-    export class Button extends Object {
+    export class Button extends ConfigObject {
         constructor(x, y, z, objectName, actionOnClick) {
             super(objectName, x, y, z, actionOnClick);
             this.action = actionOnClick || (() => {});
@@ -1058,7 +1058,7 @@
 
     }
 
-    export class Background extends Object {
+    export class Background extends ConfigObject {
         constructor(objectName, x, y, z, actionOnClick = () => {}) {
             super(objectName, x, y, z, () => {
                 actionOnClick();
@@ -1213,7 +1213,7 @@
         }
     }
 
-    export class ItemSlot extends Object {
+    export class ItemSlot extends ConfigObject {
         constructor(objectName, x, y, z, actionOnClick = null) {
             super(objectName, x, y, z, actionOnClick);
             this.slotItem = null;
