@@ -84,7 +84,7 @@ async function sendFriendRequest(context: vscode.ExtensionContext, recipientUser
                 'Content-Type': 'application/json'
             }
         });
-        console.log(response.data.result);
+        console.log(response.data.message);
     } catch (error) {
         console.error('Error sending friend request:', error);
     }
@@ -100,12 +100,17 @@ async function retrieveInbox(context: vscode.ExtensionContext) {
                 'Content-Type': 'application/json'
             }
         });
-        // Update the global state with the inbox data
-        setCurrentState(context, {
-            inbox: response.data
-        });
+
+        // see the current state
+        console.log(getCurrentState(context));
+        await overwriteFieldInState(context, 'inbox', response.data.inbox || {});
+
+        if (!Object.keys(response.data.inbox).length) {
+            console.log("No messages in inbox.");
+            // TODO: Trigger modal here if needed
+        }
     } catch (error) {
-        console.error('Error fetching inbox:', error);
+        console.error('Error sending friend request:', error);
     }
 }
 
@@ -133,6 +138,17 @@ function setCurrentState(context: vscode.ExtensionContext, partialUpdate: { [key
             currentGlobalState[key] = partialUpdate[key];
         }
     }
+
+    // Update the global state with the modified result
+    return context.globalState.update('globalInfo', currentGlobalState);
+}
+
+function overwriteFieldInState(context: vscode.ExtensionContext, field: string, newValue: any): Thenable<void> {
+    // Retrieve the existing global state
+    const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
+
+    // Overwrite the specific field with the new value
+    currentGlobalState[field] = newValue;
 
     // Update the global state with the modified result
     return context.globalState.update('globalInfo', currentGlobalState);
