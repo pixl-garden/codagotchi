@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, ConfigObject, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, ObjectGrid, Menu, ButtonList } from './Object.svelte';
+    import { Pet, Button, Background, PixelCanvas, ConfigObject, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -535,10 +535,9 @@
 
         // ---------------- FISHING ROOM ----------------
     
-        // TODO: room, background, navigation
         let fishingInstance = new Fishing();
-        let fishingNotifItem = new Item("guppy", 7, 6, 13);
-        let fishingNotifText = new activeTextRenderer(retroShadowGray, 26, 9, 13);
+
+        let fishingNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1)
         let castLineButton = new fishingButton(90, 60, 5, "FISH", ()=>{
             if(get(game).isActive){
             castLineHandler();
@@ -558,24 +557,16 @@
 
         function castLineUntil() {
             fishingInstance.castLine(get(game), 2000, 1000).then((fishItem) => {
-                fishingNotif.startMovingTo(6, 3);
-                fishingNotifText.setText(fishItem.getName());
-                fishingNotif.updateChild(fishItem, fishingNotifItem);
-
-                fishingNotifItem = fishItem;
-                setTimeout(() => {
-                    fishingNotif.startMovingTo(6, -29);
+                fishingNotif.callNotificationItem(fishItem, () => {
                     if(get(game).isActive && !fishingInstance.cancelFlag) {
                         castLineUntil();
                     }
                     fishingInstance.cancelFlag = false;
-                }, 4000);
+                })
             }).catch((error) => {
                 console.log(error.message);
             });
-        }
-
-        // FISHING ROOM
+        }        
 
         let fishingRoom = new Room('fishingRoom',  
             () => {
@@ -597,13 +588,10 @@
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
         let boatFront = new Background('boatFront', 35, 89, 1, () => {} );
 
-        let fishingNotif = new Menu(6, -32, 12, 116, 28, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
-        fishingNotif.addChild(fishingNotifItem);
-        fishingNotif.addChild(fishingNotifText);
         fishingNotif.setPhysics(16, .2, 3.8);
         fishingRoom.addObject(backToMain2, fishingBackground, petObject, castLineButton, fishingNotif, boatFront);
 
-        // CAVE ENTRANCE ROOM 
+        // ---------------- CAVE ENTRANCE ROOM ----------------
         let caveEntranceRoom = new Room('caveEntranceRoom',  
             () => {
                 petObject.setCoordinate(23, 71, 0);
@@ -626,10 +614,10 @@
 
         // ---------------- MINING ROOM ----------------
 
+        let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1)
+
         let blockTypes = lootTableConfig["miningTiers"];
         let miningInstance = new MiningManager(64, 64, 5, 1, 8, 10, blockTypes);
-        let miningNotifItem = new Item("test2", 7, 6, 13);
-        let miningNotifText = new activeTextRenderer(retroShadowGray, 26, 9, 13);
         
         let beginMiningButton = new miningButton(90, 90, 5, "MINE", ()=>{
             if(get(game).isActive){
@@ -650,30 +638,24 @@
             
         }
 
-        
         function mineUntil() {
             miningInstance.mineBlocks(get(game)).then((ore) => {
                 console.log("ore=" + ore);
-                miningNotif.startMovingTo(6, 3);
-                miningNotifText.setText(ore.getName());
-                miningNotif.updateChild(ore, miningNotifItem);
-                miningInstance.x = 80;
-                miningInstance.generateObjectGrid()
-                miningInstance.startMovingTo(64, 64);
-                
-                miningNotifItem = ore;
-                setTimeout(() => {
-                    miningNotif.startMovingTo(6, -29);
+
+                miningNotif.callNotificationItem(ore, () => {
                     if(get(game).isActive && !miningInstance.cancelFlag){
                         mineUntil();
                     }
                     miningInstance.cancelFlag = false;
-                }, 4000);
+                })
+                miningInstance.x = 80;
+                miningInstance.generateObjectGrid()
+                miningInstance.startMovingTo(64, 64);
+  
             }).catch((error) => {
                 console.log(error.message);
             });
         }
-        
         
         let miningRoom = new Room('miningRoom',  
         () => {
@@ -696,10 +678,6 @@
     
     let miningBackground = new Background('miningBackground', 0, 0, -20, () => {} );
 
-    let miningNotif = new Menu(6, -32, 12, 116, 28, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
-    miningNotif.addChild(miningNotifItem);
-    miningNotif.addChild(miningNotifText);
-    miningNotif.setPhysics(16, .2, 3.8);
     miningInstance.setPhysics(8, 5, 2);
     miningRoom.addObject(backToMain2, miningBackground, miningInstance, beginMiningButton, petObject, miningNotif);
 }

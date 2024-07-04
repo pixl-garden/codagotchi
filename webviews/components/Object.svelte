@@ -1314,4 +1314,37 @@
         }
     }
 
+    export class Notification extends Menu {
+        constructor(x, y, z, width, height, textRenderer, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+        outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1) {
+            super(x, y, z, width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+            outerRoundness, innerBorderThickness , outerBorderThickness)
+            // TODO: update to center text and item if new notification dimensions are needed
+            this.textX = 26;
+            this.textY = 9;
+            this.textZ = 13;
+            this.itemX = 7;
+            this.itemY = 6;
+            this.itemZ = 13;
+            this.notifText = new activeTextRenderer(textRenderer, this.textX, this.textY, this.textZ);
+            this.notifItem;
+            this.children = [this.notifText];
+            this.setPhysics(16, .2, 3.8);
+        }
+
+        callNotificationItem(item, callbackFunction = () => {}, text = item.getName()) {
+            this.notifText.setText(text);
+            this.notifItem ? this.updateChild(item, this.notifItem) : this.addChild(item);
+            this.notifItem = item;
+            this.startMovingTo(6, 3);
+            setTimeout(() => {
+                this.startMovingTo(6, -29);
+                callbackFunction();
+            }, 4000)
+        }
+
+
+    }
+
+
 </script>
