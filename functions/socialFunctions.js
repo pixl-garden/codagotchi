@@ -88,7 +88,7 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
         // Logic to write the friend request to the recipient's inbox
         const inboxRef = admin.database().ref(`users/${recipientUid}/protected/inbox/friendRequests`);
         try {
-            await inboxRef.push({
+            await inboxRef.child(senderUid).set({
                 fromUid: senderUid,
                 fromUser: senderUsername,
                 type: 'friendRequest',
@@ -132,9 +132,6 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
     }
 
     verifyToken(req, res, async () => {
-        console.log("req.user:", req.user);
-        console.log("req.body:", req.body);
-
         const senderUid = req.user.uid;
         const { requestId, action } = req.body;
         const idToken = req.headers.authorization?.split('Bearer ')[1];
@@ -146,10 +143,10 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
             }
 
             // Check if the friend request exists
-            const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/inbox`);
+            const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/inbox/friendRequests`);
             const senderInboxSnapshot = await senderInboxRef.once('value');
             if (!senderInboxSnapshot.hasChild(requestId)) {
-                return res.status(404).send({success: false, message: 'Friend request not found'});
+                return res.status(404).send({success: false, message: senderInboxSnapshot});
             }
 
             if(action !== 'accept' && action !== 'reject') {
@@ -160,12 +157,13 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
                 return res.status(200).send({ success: true, message: "Friend request rejected successfully." });
             }
             else if(action === 'accept') {
+                // Get the recipient's UID and username from the sender's inbox
                 const recipientUid = senderInboxSnapshot.child(requestId).val().fromUid;
                 const recipientUsername = senderInboxSnapshot.child(requestId).val().fromUser;
 
+                // Get the sender's username from the sender's public profile
                 const senderRef = admin.database().ref(`users/${senderUid}/public`);
                 const senderSnapshot = await senderRef.once('value');
-    
                 if (!senderSnapshot.exists()) {
                     return res.status(404).send({success: false, message:'Sender not found'});
                 }
@@ -173,6 +171,8 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
 
                 const recipientFriendRef = admin.database().ref(`users/${recipientUid}/protected/friends/${senderUid}`);
                 const senderFriendRef = admin.database().ref(`users/${senderUid}/protected/friends/${recipientUid}`);
+                
+                // Add the sender to the recipient's friends list and vice versa
                 try {
                     await recipientFriendRef.set({
                         friendUsername: senderUsername,

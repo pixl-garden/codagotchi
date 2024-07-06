@@ -19,7 +19,7 @@
             this.handleInactivity = this.handleInactivity.bind(this);
             this.resetActivityTimeout = this.resetActivityTimeout.bind(this);
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
-            this.isActive = true;
+            this.isActive = false;
             this.inbox;
         }
 
@@ -114,6 +114,11 @@
         }
 
         retrieveInbox() {
+            tsvscode.postMessage({ type: 'retrieveInbox' });
+        }
+
+        // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
+        refreshInbox() {
             this.inbox = new Inbox(this.getLocalState().inbox || {});
             return this.inbox
         }
