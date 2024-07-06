@@ -117,14 +117,14 @@
     //----------------CUSTOMIZE ROOM----------------
         //BACKGROUND INSTANTIATION
         let vanityBackground = new Background('vanityBackground', 0, 0, -20, () => {
-            if (vanityBackground.state === 'open'){
-                vanityBackground.queueState('slideBack')
-                vanityBackground.queueState('default')
-            }
-            else{
-                vanityBackground.queueState('slide')
-                vanityBackground.queueState('open')
-            }
+            // if (vanityBackground.state === 'open'){
+            //     vanityBackground.queueState('slideBack')
+            //     vanityBackground.queueState('default')
+            // }
+            // else{
+            //     vanityBackground.queueState('slide')
+            //     vanityBackground.queueState('open')
+            // }
         });
         //CUSTOMIZATION UI INSTANTIATION
         let hatArray = ["leaf", "marge", "partyDots", "partySpiral", "superSaiyan"]
@@ -373,8 +373,9 @@
             let inputUsername = inputBar.getUserText();
             tsvscode.postMessage({ type: 'sendFriendRequest', val: inputUsername });
         });
-    
-        function instantiateFriendRequests(friends, friendButton) {
+
+        //TODO: convert to buttonlist for easier refreshing and cleanliness 🧼 
+        function instantiateFriendRequests(friends, requestIds, friendButton) {
             let friendArray = [];
             const buttonHeight = 17;
                 
@@ -382,6 +383,7 @@
                 // Create the friend button
                 let friend = new friendButton(0, 15 + 16 + (buttonHeight * i), 0, friends[i],  () => {});
                 friend.hoverWithChildren = true;
+                friend.requestID = requestIds[i];
                 friend.onHover = () => {
                     friend.updateState('hovered');
                     friend.initializeButtons();
@@ -394,10 +396,10 @@
 
                 // Register child button parameters
                 const checkButton = new Button(0, 30, 1, 'checkButton', () => {
-                    console.log('Button was clicked!');
+                    tsvscode.postMessage({ type: 'handleFriendRequest', requestId: friend.requestID, action: 'accept' });
                 });
                 const rejectButton = new Button(0, 50, 1, 'rejectButton', () => {
-                    console.log('Button was clicked!');
+                    tsvscode.postMessage({ type: 'handleFriendRequest', requestId: friend.requestID, action: 'reject' });
                 });
 
                 friend.registerButtonParams([
@@ -417,33 +419,34 @@
         // INSTEAD OF THIS GET FRIENDS WITH API CALL
         let placeholderFriends = ["everlastingflame", "kitgore", "chinapoet"];
 
-        // INSTEAD OF THIS GET FRIEND REQUESTS WITH API CALL
-        let inbox = get(game).retrieveInbox()["friendRequests"]
+        //TODO: call this again on room load
+        let inbox = get(game).refreshInbox()["friendRequests"]
         let requests = Object.values(inbox);
 
-        // // Extract the 'fromUser' attribute from each object
+        // Extract the 'fromUser' attribute from each object
         let friendRequestUsernames = requests.map(item => item.fromUser);
-
-
-        // TABS FOR SOCIAL ROOM
+        // Extract the 'fromUId' attribute from each object
+        let friendRequestUids = requests.map(item => item.fromUid);
+        
         const socialTabs = ['Friends', 'Add'];
-        
-        // room header constructor would have tabs array passed in
-        // tabs array would have tab names and functions to switch rooms
 
-        
         const socialTabList = new textButtonList(socialTabs, [
             () => {get(game).setCurrentRoom('friendRoom')}, 
             () => {get(game).setCurrentRoom('requestRoom')}
         ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
         
         //ROOM INSTANTIATION
-        let friendRoom = new Room('friendRoom');
+        let friendRoom = new Room('friendRoom', 
+            () => {
+                get(game).refreshInbox();
+                console.log("inbox refreshed?")
+            },
+        );
         let requestRoom = new Room('requestRoom');
 
         friendRoom.addObject(instantiateFriends(placeholderFriends, friendButton), backToMain, socialTabList);
 
-        requestRoom.addObject(...instantiateFriendRequests(friendRequestUsernames, friendButton), backToMain, socialTabList, 
+        requestRoom.addObject(...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton), backToMain, socialTabList, 
                               inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------

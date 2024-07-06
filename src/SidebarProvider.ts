@@ -64,7 +64,6 @@ async function refreshToken(refreshToken: string, context: vscode.ExtensionConte
         await context.secrets.store("idToken", id_token);
 
         // sendFriendRequest(context, "kitgore");
-        retrieveInbox(context); 
 
         return { idToken: id_token, refreshToken: refresh_token };
     } catch (error) {
@@ -89,6 +88,37 @@ async function sendFriendRequest(context: vscode.ExtensionContext, recipientUser
         console.error('Error sending friend request:', error);
     }
 }
+
+async function handleFriendRequest(context: vscode.ExtensionContext, requestId: string, action: string) {
+    const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/handleFriendRequest';
+    const idToken = await context.secrets.get("idToken");
+
+    try {
+        const response = await axios.post(functionUrl, { requestId, action }, {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log(response.data.message);
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                console.error('Error response from server:', error.response.data.message);
+            } else if (error.request) {
+                // Request was made but no response was received
+                console.error('No response received:', error.request);
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                console.error('Error setting up request:', error.message);
+            }
+        } else {
+            console.error('An unknown error occurred:', error);
+        }
+    }
+}
+
 
 async function retrieveInbox(context: vscode.ExtensionContext) {
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
@@ -443,6 +473,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
                 case 'sendFriendRequest': {
                     sendFriendRequest(this.context, data.val);
+                    break;
+                }
+                case 'handleFriendRequest': {
+                    handleFriendRequest(this.context, data.requestId, data.action);
+                    break;
+                }
+                case 'retrieveInbox': {
+                    retrieveInbox(this.context);
                     break;
                 }
             }

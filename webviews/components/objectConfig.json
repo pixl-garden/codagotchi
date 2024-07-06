@@ -36,9 +36,9 @@
         }
     },
     "vanityBackground": {
-        "spriteWidth": 96,
-        "spriteHeight": 96,
-        "spriteSheet": "vanitySliding.png",
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "vanityBackground128.png",
         "states":{
             "default": [0],
             "slide": [1, "...", 25],
@@ -266,8 +266,8 @@
         "spriteHeight": 16,
         "spriteSheet": "changePageBtns.png",
         "states": {
-            "default": [2],
-            "hovered": [3]
+            "default": [3],
+            "hovered": [2]
         }
     },
     "mineOres":{
