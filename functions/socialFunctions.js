@@ -45,7 +45,7 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
             }
 
             // if the request has been sent already to the recipient
-            const recipientInboxRef = admin.database().ref(`users/${recipientIdSnapshot.val().userId}/protected/inbox/friendRequests`);
+            const recipientInboxRef = admin.database().ref(`users/${recipientIdSnapshot.val().userId}/protected/social/friendRequests`);
             const recipientInboxSnapshot = await recipientInboxRef.once('value');
             recipientInboxSnapshot.forEach((childSnapshot) => {
                 if (childSnapshot.val().fromUid === senderUid) {
@@ -54,7 +54,7 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
             });
 
             // if the recipient already sent a request to you, automatically accept it, call the accept request function
-            const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/inbox/friendRequests`);
+            const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/social/friendRequests`);
             const senderInboxSnapshot = await senderInboxRef.once('value');
             senderInboxSnapshot.forEach((childSnapshot) => {
                 if (childSnapshot.val().fromUid === recipientIdSnapshot.val().userId) {
@@ -86,7 +86,7 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
         }
 
         // Logic to write the friend request to the recipient's inbox
-        const inboxRef = admin.database().ref(`users/${recipientUid}/protected/inbox/friendRequests`);
+        const inboxRef = admin.database().ref(`users/${recipientUid}/protected/social/friendRequests`);
         try {
             await inboxRef.child(senderUid).set({
                 fromUid: senderUid,
@@ -111,7 +111,7 @@ export const retrieveInbox = functions.https.onRequest((req, res) => {
         const uid = req.user.uid; // User UID from verified token
 
         // Path to the user's inbox
-        const inboxRef = admin.database().ref(`users/${uid}/protected/inbox`);
+        const inboxRef = admin.database().ref(`users/${uid}/protected/social`);
         try {
             const inboxSnapshot = await inboxRef.once('value');
             const inboxData = inboxSnapshot.val();
@@ -143,7 +143,7 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
             }
 
             // Check if the friend request exists
-            const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/inbox/friendRequests`);
+            const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/social/friendRequests`);
             const senderInboxSnapshot = await senderInboxRef.once('value');
             if (!senderInboxSnapshot.hasChild(requestId)) {
                 return res.status(404).send({success: false, message: senderInboxSnapshot});
@@ -169,8 +169,8 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
                 }
                 let senderUsername = senderSnapshot.val().username;
 
-                const recipientFriendRef = admin.database().ref(`users/${recipientUid}/protected/friends/${senderUid}`);
-                const senderFriendRef = admin.database().ref(`users/${senderUid}/protected/friends/${recipientUid}`);
+                const recipientFriendRef = admin.database().ref(`users/${recipientUid}/protected/social/friends/${senderUid}`);
+                const senderFriendRef = admin.database().ref(`users/${senderUid}/protected/social/friends/${recipientUid}`);
                 
                 // Add the sender to the recipient's friends list and vice versa
                 try {

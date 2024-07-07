@@ -249,28 +249,6 @@
             this.children[this.children.indexOf(oldChild)] = child;
         }
 
-        // Method to register button parameters
-        // TODO: REMOVE THIS FUNCTION (replace with robust child system)
-        registerButtonParams(buttonParams) {
-            this.buttonParams = buttonParams;
-        }
-
-        //TODO: REMOVE THIS FUNCTION (replace with robust child system)
-        initializeButtons() {
-            this.buttonParams.forEach(param => {
-                const { xOffset, yOffset, zOffset, buttonObject, actionOnClick } = param;
-
-                // Calculate absolute positions by adding offsets to the object's position
-                const buttonX = xOffset;
-                const buttonY = yOffset;
-                const buttonZ = zOffset;
-
-                buttonObject.action = actionOnClick
-                buttonObject.setCoordinate(buttonX, buttonY, buttonZ);
-                this.children.push(buttonObject);
-            });
-        }
-
         queueState(state, callback = null) {
             this.stateQueue.push({ state, callback });
             if (!this.state || this.isStateCompleted) {
@@ -357,7 +335,7 @@
             this.hatSprite = spriteReaderFromStore(this.hatConfig.spriteWidth, this.hatConfig.spriteHeight, this.hatConfig.spriteSheet)[this.currentHatConfig.spriteIndex]
             this.hatAnchorX = this.currentHatConfig.anchorX
             this.hatAnchorY = this.currentHatConfig.anchorY
-            this.gameReference.pushToGlobalState({"hat": this.hat})
+            this.gameReference.updateGlobalState({"hat": this.hat})
         }
 
         getHat() {
@@ -1111,8 +1089,8 @@
             this.mouseX = null;
             this.mouseY = null;
             this.renderChildren = true;
-            this.childHeight = this.children[0].getHeight();
-            this.childWidth = this.children[0].getWidth();
+            this.childHeight = this.children.length > 0 ? this.children[0].getHeight() : 0;
+            this.childWidth = this.children.length > 0 ? this.children[0].getWidth() : 0;
             this.spriteWidth = (this.childWidth + this.columnSpacing) * this.columns;
             this.spriteHeight = (this.childHeight + this.rowSpacing) * this.rows;
             this.objectTop = 0;

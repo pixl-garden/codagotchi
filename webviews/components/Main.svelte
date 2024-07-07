@@ -19,7 +19,6 @@
 
     //run once before main loop
     function pre() {
-        // $game.pushToGlobalState( {"test": "whattup", "test2": "yeo", "test3": "bruh"} );
         // $game.clearGlobalState();
         $game.syncLocalToGlobalState( {} );
         $game.constructInventory();
@@ -116,21 +115,11 @@
             else if (message.type === 'documentSaved'){
                 $game.resetActivityTimeout();
             }
-            else if (message.type === 'currentState') {
+            else if (message.type === 'fetchedGlobalState') {
                 $game.setLocalState(message.value);
             }
             else if(message.type === 'resize'){
                 handleResize();
-            }
-            else if (message.type === "getUserFromDb") {
-                let userData = message.value;
-                console.log("User Data in Main: ", userData);
-
-                if(userData){
-                    $game.setLocalState(userData);
-                    $game.syncLocalToGlobalState();
-                    $game.constructInventory();
-                }
             }
         });
 
