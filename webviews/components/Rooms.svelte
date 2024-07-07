@@ -11,6 +11,7 @@
     import { Fishing } from "./Fishing.svelte";
     import { MiningManager } from "./Mining.svelte";
     import lootTableConfig from './lootTableConfig.json';
+    import { friendListManager, friendRequestManager } from './Social.svelte';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -359,12 +360,6 @@
     //----------------SOCIAL ROOM----------------
        
     // should have a button back and two sections (friends and requests)
-        
-        function instantiateFriends(friends, friendButton) {
-
-            let friendList = new textButtonList(friends, friends.map(() => () => {}), friendButton, 128, 16, -1, 0, 15, 0, "vertical")
-            return friendList;
-        }
 
         //TEXT INPUT BAR INSTANTIATION
         const addFriendTextBar = new generateTextInputBar(textInput, 112, 16, 'black', '#7997bc', 4, basic, 5, 1);
@@ -374,59 +369,10 @@
             tsvscode.postMessage({ type: 'sendFriendRequest', val: inputUsername });
         });
 
-        //TODO: convert to buttonlist for easier refreshing and cleanliness 🧼 
-        function instantiateFriendRequests(friends, requestIds, friendButton) {
-            let friendArray = [];
-            const buttonHeight = 17;
-                
-            for (let i = 0; i < friends.length; i++) {
-                // Create the friend button
-                let friend = new friendButton(0, 15 + 16 + (buttonHeight * i), 0, friends[i],  () => {});
-                friend.hoverWithChildren = true;
-                friend.requestID = requestIds[i];
-                friend.onHover = () => {
-                    friend.updateState('hovered');
-                    friend.initializeButtons();
-                }
 
-                friend.onStopHover = () => {
-                    friend.updateState('default');
-                    friend.children = [];
-                }
 
-                // Register child button parameters
-                const checkButton = new Button(0, 30, 1, 'checkButton', () => {
-                    tsvscode.postMessage({ type: 'handleFriendRequest', requestId: friend.requestID, action: 'accept' });
-                });
-                const rejectButton = new Button(0, 50, 1, 'rejectButton', () => {
-                    tsvscode.postMessage({ type: 'handleFriendRequest', requestId: friend.requestID, action: 'reject' });
-                });
-
-                friend.registerButtonParams([
-                    { xOffset: 40, yOffset: 3, zOffset: 10, buttonObject: checkButton, actionOnClick: () => {
-                        console.log('Check Button');
-                    }},
-                    { xOffset: 68, yOffset: 3, zOffset: 10, buttonObject: rejectButton, actionOnClick: () => {
-                        console.log('Check Button');
-                    }},
-                ]);
-
-                friendArray.push(friend);
-            }
-            return friendArray;
-        }
-
-        // INSTEAD OF THIS GET FRIENDS WITH API CALL
-        let placeholderFriends = ["everlastingflame", "kitgore", "chinapoet"];
-
-        //TODO: call this again on room load
-        let inbox = get(game).refreshInbox()["friendRequests"]
-        let requests = Object.values(inbox);
-
-        // Extract the 'fromUser' attribute from each object
-        let friendRequestUsernames = requests.map(item => item.fromUser);
-        // Extract the 'fromUId' attribute from each object
-        let friendRequestUids = requests.map(item => item.fromUid);
+        let friendListManagerInstance = new friendListManager(0, 16, 0, get(game), friendButton);
+        let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
         
         const socialTabs = ['Friends', 'Add'];
 
@@ -438,15 +384,16 @@
         //ROOM INSTANTIATION
         let friendRoom = new Room('friendRoom', 
             () => {
-                get(game).refreshInbox();
-                console.log("inbox refreshed?")
+                // get(game).syncLocalToGlobalState();
+                friendListManagerInstance.refreshFriends();
+                friendRequestManagerInstance.refreshRequests();
             },
         );
         let requestRoom = new Room('requestRoom');
 
-        friendRoom.addObject(instantiateFriends(placeholderFriends, friendButton), backToMain, socialTabList);
-
-        requestRoom.addObject(...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton), backToMain, socialTabList, 
+        friendRoom.addObject(friendListManagerInstance, backToMain, socialTabList);
+        // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
+        requestRoom.addObject(friendRequestManagerInstance, backToMain, socialTabList, 
                               inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------

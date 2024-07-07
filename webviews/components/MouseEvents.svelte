@@ -173,7 +173,7 @@
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
         if (isMouseDown) {
-            console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
+            // console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
             // Ensures hoveredObject is the one being dragged
             if (newHoveredObject && newHoveredObject === activeDragObject) {
                 // console.log("DRAGGING")

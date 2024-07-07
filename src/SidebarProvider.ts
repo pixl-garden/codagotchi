@@ -63,8 +63,6 @@ async function refreshToken(refreshToken: string, context: vscode.ExtensionConte
         await context.secrets.store("refreshToken", refresh_token);
         await context.secrets.store("idToken", id_token);
 
-        // sendFriendRequest(context, "kitgore");
-
         return { idToken: id_token, refreshToken: refresh_token };
     } catch (error) {
         console.error("Error refreshing token:", error);
@@ -85,7 +83,7 @@ async function sendFriendRequest(context: vscode.ExtensionContext, recipientUser
         });
         console.log(response.data.message);
     } catch (error) {
-        console.error('Error sending friend request:', error);
+        handleAxiosError(error);
     }
 }
 
@@ -101,24 +99,10 @@ async function handleFriendRequest(context: vscode.ExtensionContext, requestId: 
             }
         });
         console.log(response.data.message);
-    } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-            if (error.response) {
-                // Server responded with a status other than 200 range
-                console.error('Error response from server:', error.response.data.message);
-            } else if (error.request) {
-                // Request was made but no response was received
-                console.error('No response received:', error.request);
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                console.error('Error setting up request:', error.message);
-            }
-        } else {
-            console.error('An unknown error occurred:', error);
-        }
+    } catch (error) {
+        handleAxiosError(error);
     }
 }
-
 
 async function retrieveInbox(context: vscode.ExtensionContext) {
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
@@ -130,9 +114,8 @@ async function retrieveInbox(context: vscode.ExtensionContext) {
                 'Content-Type': 'application/json'
             }
         });
+        console.log("Inbox:", response.data.inbox);
 
-        // see the current state
-        console.log(getCurrentState(context));
         await overwriteFieldInState(context, 'inbox', response.data.inbox || {});
 
         if (!Object.keys(response.data.inbox).length) {
@@ -140,13 +123,13 @@ async function retrieveInbox(context: vscode.ExtensionContext) {
             // TODO: Trigger modal here if needed
         }
     } catch (error) {
-        console.error('Error sending friend request:', error);
+        handleAxiosError(error);
     }
 }
 
-// Set the Global State (with merging)
+// Update the Global State (with merging)
 // ---- Example usage: ----
-// setCurrentState(context, {
+// updateGlobalState(context, {
 //     inventory: {
 //         apple: { quantity: 7 }
 //     }
@@ -154,7 +137,7 @@ async function retrieveInbox(context: vscode.ExtensionContext) {
 // if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity 
 // and will not delete other keys in the inventory object
 
-function setCurrentState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
+function updateGlobalState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 
@@ -202,7 +185,7 @@ function removeItemFromState(context: vscode.ExtensionContext, key: string, item
     return context.globalState.update('globalInfo', currentGlobalState);
 }
 
-function getCurrentState(context: vscode.ExtensionContext): { [key: string]: any } {
+function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {
     // Retrieve and return the global state
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }
@@ -338,20 +321,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
 
-                case 'getGlobalState': {
+                case 'syncLocalToGlobalState': {
                     // console.log('----Getting globalState----');
-                    printJsonObject(getCurrentState(this.context));
+                    printJsonObject(getGlobalState(this.context));
                     this._view?.webview.postMessage({
-                        type: 'currentState',
-                        value: getCurrentState(this.context),
+                        type: 'fetchedGlobalState',
+                        value: getGlobalState(this.context),
                     });
                     break;
                 }
 
-                case 'pushToGlobalState': {
+                case 'updateGlobalState': {
                     // console.log('****Setting globalState****');
                     // printJsonObject(data.value)
-                    setCurrentState(this.context, data.value);
+                    updateGlobalState(this.context, data.value).then(() => {
+                        this._view?.webview.postMessage({
+                            type: 'fetchedGlobalState',
+                            value: getGlobalState(this.context),
+                        });
+                    });
                     break;
                 }
 
@@ -368,6 +356,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
 
+                //TODO: break into separate functions
                 case 'openOAuthURL': {
                     vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
                     // console.log('openOAuthUrl');
@@ -480,7 +469,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'retrieveInbox': {
-                    retrieveInbox(this.context);
+                    // retrieve inbox from database (updates the global state)
+                    retrieveInbox(this.context).then(() => {
+                        // align the webview local state with the global state
+                        this._view?.webview.postMessage({
+                            type: 'fetchedGlobalState',
+                            value: getGlobalState(this.context),
+                        }).then(() => {
+                            // call refresh inbox (updates game object to new local state)
+                            this._view?.webview.postMessage({
+                                type: 'refreshInbox',
+                            })
+                        });
+                    });
                     break;
                 }
             }
@@ -576,5 +577,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
+    }
+}
+
+function handleAxiosError(error: unknown) {
+    if (axios.isAxiosError(error)) {
+        if (error.response) {
+            // Server responded with a status other than 200 range
+            console.error('Error response from server:', error.response.data.message);
+        } else if (error.request) {
+            // Request was made but no response was received
+            console.error('No response received:', error.request);
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error('Error setting up request:', error.message);
+        }
+    } else {
+        console.error('An unknown error occurred:', error);
     }
 }

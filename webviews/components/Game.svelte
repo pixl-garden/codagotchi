@@ -26,7 +26,7 @@
         //function to call when player goes inactive
         handleInactivity() {
             console.log("Inactivity timeout reached.") 
-            this.currentRoom.onInactivity();
+            this.currentRoom?.onInactivity();
             this.isActive = false;
         }
 
@@ -66,13 +66,13 @@
 
         // synchronizes local state (game.localState) with global state (vscode API)
         syncLocalToGlobalState() {
-            tsvscode.postMessage({ type: 'getGlobalState'});
+            tsvscode.postMessage({ type: 'syncLocalToGlobalState'});
         };
         
-        // pushes new state info to global state (vscode API)
-        pushToGlobalState( stateInfo ) {
+        // updates global state with merging (also syncs local state to global state after global state is updated)
+        updateGlobalState( stateInfo ) {
             // TODO: Implement caching here later
-            tsvscode.postMessage({ type: 'pushToGlobalState', value: stateInfo });
+            tsvscode.postMessage({ type: 'updateGlobalState', value: stateInfo });
         };
 
         clearGlobalState() {
@@ -91,13 +91,6 @@
             }
         }
 
-        // push new data to global state and synchronize local and global states
-        pushToSaveData( stateInfo ){
-            //pushToSaveData({ "inventory": this.inventory.serialize() })
-            this.pushToGlobalState( stateInfo )
-            this.syncLocalToGlobalState();
-        }
-
         // sets local state (game.localState) to the state info (called when syncLocalToGlobalState is called)
         setLocalState( stateInfo ) {
             // console.log("Setting local state: ", stateInfo)
@@ -105,6 +98,7 @@
         }
 
         getLocalState () {
+            // console.log("Getting local state: ", game.localState);
             return game.localState
         }
 
@@ -119,6 +113,7 @@
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
         refreshInbox() {
+            // this.syncLocalToGlobalState() 
             this.inbox = new Inbox(this.getLocalState().inbox || {});
             return this.inbox
         }
@@ -128,13 +123,13 @@
         }
 
         addStackableItem(itemIdString, quantity = 1) {
-            this.pushToSaveData({ 
+            this.updateGlobalState({ 
                 "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
             });
         }
 
         addUnstackableItem(itemIdString, properties) {
-            this.pushToSaveData({ 
+            this.updateGlobalState({ 
                 "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
             });
         }
@@ -149,7 +144,7 @@
                 if(itemInstance.itemCount <= 0){
                     this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
                 } else {
-                    this.pushToSaveData({ 
+                    this.updateGlobalState({ 
                         "inventory": itemInstance.serialize()
                     });
                 }
@@ -163,6 +158,7 @@
     class Inbox {
         constructor(inboxJSON) {
             this.friendRequests = inboxJSON.friendRequests || {};
+            this.friends = inboxJSON.friends || {};
         }
 
         removeRequest(requestID) {
