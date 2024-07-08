@@ -35,6 +35,7 @@
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
                     this.showPointer = true;
+                    this.text = text;
                 }
 
                 onHover() {

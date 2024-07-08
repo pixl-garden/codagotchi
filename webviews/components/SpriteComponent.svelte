@@ -1,10 +1,11 @@
 <script context="module">
     export class Sprite {
-        constructor(matrix, x, y, z = 0) {
+        constructor(matrix, x, y, z = 0, opacity = 1) {
             this.matrix = matrix;
             this.x = x;
             this.y = y;
             this.z = z;
+            this.opacity = opacity;
         }
 
         getZ() {
