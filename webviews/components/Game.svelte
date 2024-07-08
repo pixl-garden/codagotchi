@@ -79,6 +79,8 @@
             tsvscode.postMessage({ type: 'clearGlobalState' });
         }
 
+        // removes from global state (also syncs local state to global state after global state is updated)
+        // supports nested itemIds (e.g. "friendRequest.1234")
         removeItemFromGlobalState(key, itemIdToRemove) {
             // if(this.inventory.hasItemInInstance(itemIdToRemove)){
             //     this.inventory.removeItemByIdFromInstance(itemIdToRemove);

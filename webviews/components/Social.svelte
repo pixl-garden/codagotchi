@@ -22,6 +22,7 @@
             let requestButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...requestButtonListParams)
             for (let requestButton of requestButtonList.children){
                 requestButton.hoverWithChildren = true;
+                requestButton.text = friendRequestUsernames[requestButtonList.children.indexOf(requestButton)];
                 requestButton.requestID = friendRequestUids[requestButtonList.children.indexOf(requestButton)];
                 requestButton.onHover = () => {
                     requestButton.updateState('hovered');
@@ -36,14 +37,13 @@
                 const checkButton = new Button(40, 3, 1, 'checkButton', () => {
                     tsvscode.postMessage({ type: 'handleFriendRequest', requestId: requestButton.requestID, action: 'accept' });
                     this.gameRef.removeItemFromGlobalState("inbox", `friendRequests.${requestButton.requestID}`);
-                    this.gameRef.syncLocalToGlobalState(); // TODO: This should be done in the callback of the removeItem
+                    this.gameRef.updateGlobalState({inbox: {friends: {[requestButton.requestID]: {friendUsername: requestButton.text, friendUid: requestButton.requestID}}}})
                     const newFriendRequestUids = requests.filter(item => item.fromUid !== requestButton.requestID);
                     this.refreshRequests(newFriendRequestUids);
                 });
                 const rejectButton = new Button(68, 3, 1, 'rejectButton', () => {
                     tsvscode.postMessage({ type: 'handleFriendRequest', requestId: requestButton.requestID, action: 'reject' });
                     this.gameRef.removeItemFromGlobalState("inbox", `friendRequests.${requestButton.requestID}`);
-                    this.gameRef.syncLocalToGlobalState(); // TODO: This should be done in the callback of the removeItem
                     const newFriendRequestUids = requests.filter(item => item.fromUid !== requestButton.requestID);
                     this.refreshRequests(newFriendRequestUids);
                 });

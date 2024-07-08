@@ -54,10 +54,6 @@
         const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
         const changePageButton = generateIconButtonClass(8, 16, 'transparent', 'transparent', 'transparent', 'transparent');
 
-
-
-
-
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
         const backToMain = new singleLetterButton(0, 0, 10, '<', () => {
@@ -67,11 +63,11 @@
             get(game).setCurrentRoom('mainRoom');
         });
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
-        let defaultMenuParams = ["#59585a", "#2b2a2b", "black", 2, 5, 3, 1];
+        let defaultMenuParams = ["#59585a", "#2b2a2b", Colors.black, 2, 5, 3, 1];
 
     //----------------MAIN ROOM----------------
         //STATUS BAR INSTANTIATION
-        const StatusBar = generateStatusBarClass(107, 12, 'black', 'grey', '#40D61A', 2);
+        const StatusBar = generateStatusBarClass(107, 12, Colors.black, Colors.grey, '#40D61A', 2);
         const statusBar = new StatusBar(20, 2, 0);
         //MAIN MENU INSTANTIATION
         const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Mining', 'Close'];
@@ -211,7 +207,7 @@
             let newColorButtonIcon = generateColorButtonMatrix(9, 9, color);
             colorButton.setIcon(newColorButtonIcon, newColorButtonIcon);
         },
-        '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
+        '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1);
         let defaultColorButtonIcon = generateColorButtonMatrix(9, 9, Colors.black)
         let colorButton = new paintButtonIcon(10, 0, 5, defaultColorButtonIcon, defaultColorButtonIcon, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
@@ -277,7 +273,7 @@
         let fontButtonArray = [tinyButton, gangButton, retroButton, basicButton];
 
         let fontButtonList = new ObjectGrid(1, 0, fontButtonArray.length, -1, 60, 22, 30, fontButtonArray);
-        let fontMenu = new Menu(54, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1);
+        let fontMenu = new Menu(54, 16, 12, 47, fontButtonArray.length*12+9, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1);
 
         let undoButton = new Button(37, 111, 5, 'undoButton', () => {
             postcardRendering.currentCanvas.retrievePastCanvas();   
@@ -319,7 +315,7 @@
         }
 
 
-        let testToolTip = new toolTip("black", "white", 3, 2, basic);
+        let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampArray = get(game).inventory.getItemsByType('stamp');
         let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, createStampSlot, testToolTip, null, 0, 0, 0, 10);
         // stampMenu.addChild(stampGrid);
@@ -362,7 +358,7 @@
     // should have a button back and two sections (friends and requests)
 
         //TEXT INPUT BAR INSTANTIATION
-        const addFriendTextBar = new generateTextInputBar(textInput, 112, 16, 'black', '#7997bc', 4, basic, 5, 1);
+        const addFriendTextBar = new generateTextInputBar(textInput, 112, 16, Colors.black, '#7997bc', 4, basic, 5, 1);
         let inputBar = new addFriendTextBar(0, 16, 0);
         let sendFriendRequestButton = new brushSizeButton(118, 16, 0, '>', () => {
             let inputUsername = inputBar.getUserText();
@@ -397,36 +393,6 @@
                               inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------
-        //ITEM INSTANTIATION (PLACEHOLDER)
-        // let testItem1 = new Item("coffee", 0, 0, 0);
-        // let testItem2 = new Item("tomatoSoup", 0, 0, 0)
-        // let testItem3 = new Item("fishingRod", 0, 0, 0)
-        // let testItem4 = new Item("potion", 0, 0, 0)
-        // let testItem5 = new Item("redHerring", 0, 0, 0)
-        // let testItem6 = new Item("tropicalFish", 0, 0, 0)
-        // let testItem7 = new Item("coffee", 0, 0, 0)
-        // let testItem8 = new Item("tomatoSoup", 0, 0, 0)
-        // let testItem9 = new Item("coffee", 0, 0, 0)
-        // let testItem10 = new Item("potion", 0, 0, 0)
-        // let testItem11 = new Item("tomatoSoup", 0, 0, 0)
-        // let itemArray = [testItem1, testItem2, testItem3, testItem4, testItem5, testItem6, testItem7, testItem8, testItem9, testItem10, testItem11];
-        // get(game).addStackableItem("tomatoSoup", 3);
-        // get(game).subtractStackableItem("tomatoSoup", 3);
-        // get(game).addStackableItem("coffee", 5);
-        // get(game).addStackableItem("potion", 2);
-
-        // get(game).subtractStackableItem("freshwaterSnail", 5);
-        // get(game).subtractStackableItem("starfish", 4);
-        // get(game).subtractStackableItem("clownfish", 4);
-        // get(game).subtractStackableItem("junonia", 2);
-        // get(game).subtractStackableItem("highFinBandedShark", 3);
-        // get(game).subtractStackableItem("guppy", 1);
-        // get(game).subtractStackableItem("mossBall", 2);
-        // get(game).subtractStackableItem("atlanticBass", 3);
-        // get(game).subtractStackableItem("dab", 1);
-        // get(game).subtractStackableItem("plasticBag", 2);
-        // get(game).subtractStackableItem("blueGill", 1);
-
         function addTestableItems() {
             for(let i = 2; i <= 16; i++) {
                 get(game).addStackableItem(`test${i}`, 2);
@@ -434,7 +400,6 @@
         }
 
         addTestableItems();
-        
         
         let miningItems = get(game).inventory.getItemsByType('mining');
         let itemArray = get(game).inventory.getItemsByType('food');
@@ -487,7 +452,7 @@
     
         let fishingInstance = new Fishing();
 
-        let fishingNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1)
+        let fishingNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1)
         let castLineButton = new fishingButton(90, 60, 5, "FISH", ()=>{
             if(get(game).isActive){
             castLineHandler();
@@ -564,7 +529,7 @@
 
         // ---------------- MINING ROOM ----------------
 
-        let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', "black", 2, 3, 3, 1)
+        let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1)
 
         let blockTypes = lootTableConfig["miningTiers"];
         let miningInstance = new MiningManager(64, 64, 5, 1, 8, 10, blockTypes);

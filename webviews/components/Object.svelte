@@ -67,6 +67,7 @@
             this.mouseY = null;
             this.mouseInteractions = true;
             this.showPointer = false;
+            this.opacity = 1;
         }
 
         /**
@@ -197,7 +198,7 @@
         }
         
         getSprite() {
-            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z);
+            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z, this.opacity);
         }
 
         getChildSprites() {

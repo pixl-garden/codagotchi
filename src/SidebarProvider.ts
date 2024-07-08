@@ -174,7 +174,7 @@ function overwriteFieldInState(context: vscode.ExtensionContext, field: string, 
 // Also supports deep deletion using dot notation
 // ---- Example usage: ----
 // removeItemFromState(context, 'inbox', 'friendRequest.1234');
-
+// TODO: maybe this should be done with one value instead of two? (append the key to the value)
 function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
@@ -382,7 +382,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 case 'removeItemFromState': {
                     // console.log('****Removing item from globalState****');
                     // printJsonObject(data.value)
-                    removeItemFromState(this.context, data.key, data.itemIdToRemove);
+                    removeItemFromState(this.context, data.key, data.itemIdToRemove).then(() => {
+                        this._view?.webview.postMessage({
+                            type: 'fetchedGlobalState',
+                            value: getGlobalState(this.context),
+                        });
+                    });
                     break;
                 }
 
