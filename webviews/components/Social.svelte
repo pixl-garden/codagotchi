@@ -10,8 +10,7 @@
             this.refreshRequests();
         }
 
-        refreshRequests(){
-            const inbox = this.gameRef.refreshInbox()["friendRequests"];
+        refreshRequests(inbox = this.gameRef.refreshInbox()["friendRequests"]){
             console.log(inbox)
             const requests = Object.values(inbox);
             // Extract the 'fromUser' attribute from each object
@@ -36,9 +35,17 @@
                 }
                 const checkButton = new Button(40, 3, 1, 'checkButton', () => {
                     tsvscode.postMessage({ type: 'handleFriendRequest', requestId: requestButton.requestID, action: 'accept' });
+                    this.gameRef.removeItemFromGlobalState("inbox", `friendRequests.${requestButton.requestID}`);
+                    this.gameRef.syncLocalToGlobalState(); // TODO: This should be done in the callback of the removeItem
+                    const newFriendRequestUids = requests.filter(item => item.fromUid !== requestButton.requestID);
+                    this.refreshRequests(newFriendRequestUids);
                 });
                 const rejectButton = new Button(68, 3, 1, 'rejectButton', () => {
                     tsvscode.postMessage({ type: 'handleFriendRequest', requestId: requestButton.requestID, action: 'reject' });
+                    this.gameRef.removeItemFromGlobalState("inbox", `friendRequests.${requestButton.requestID}`);
+                    this.gameRef.syncLocalToGlobalState(); // TODO: This should be done in the callback of the removeItem
+                    const newFriendRequestUids = requests.filter(item => item.fromUid !== requestButton.requestID);
+                    this.refreshRequests(newFriendRequestUids);
                 });
             }
             this.children = [requestButtonList];

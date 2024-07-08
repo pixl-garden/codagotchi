@@ -80,16 +80,22 @@
         }
 
         removeItemFromGlobalState(key, itemIdToRemove) {
-            // console.log("Removing item from global state: ", itemIdToRemove)
-            if(this.inventory.hasItemInInstance(itemIdToRemove)){
-                this.inventory.removeItemByIdFromInstance(itemIdToRemove);
-                tsvscode.postMessage({
+            // if(this.inventory.hasItemInInstance(itemIdToRemove)){
+            //     this.inventory.removeItemByIdFromInstance(itemIdToRemove);
+            //     tsvscode.postMessage({
+            //         type: 'removeItemFromState',
+            //         key: key,
+            //         itemIdToRemove: itemIdToRemove
+            //     });
+            // }
+            tsvscode.postMessage({
                     type: 'removeItemFromState',
                     key: key,
                     itemIdToRemove: itemIdToRemove
                 });
-            }
         }
+
+        
 
         // sets local state (game.localState) to the state info (called when syncLocalToGlobalState is called)
         setLocalState( stateInfo ) {

@@ -10,14 +10,14 @@ export const searchUsers = functions.https.onCall(async (data, context) => {
     return snapshot.val();
 });
 
-export const sendFriendRequest = functions.https.onRequest((req, res) => {
+export const sendFriendRequest = functions.https.onRequest(async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(403).send({success: false, message: 'Forbidden!'});
     }
 
     verifyToken(req, res, async () => {
-        console.log("req.user:", req.user);
-        console.log("req.body:", req.body);
+        // console.log("req.user:", req.user);
+        // console.log("req.body:", req.body);
 
         const senderUid = req.user.uid;
         const { recipientUsername } = req.body;
@@ -27,7 +27,6 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
         let recipientUid;
         let senderUsername;
 
-        // Get the recipient's UID from username map
         try {
             if (!idToken) {
                 return res.status(400).send('idToken is required');
@@ -40,27 +39,76 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
                 return res.status(404).send({success: false, message: 'Recipient not found'});
             }
 
-            if (recipientIdSnapshot.val().userId === senderUid) {
+            if (parseInt(recipientIdSnapshot.val().userId) === parseInt(senderUid)) {
                 return res.status(400).send({success: false, message: 'You cannot send a friend request to yourself'});
             }
 
-            // if the request has been sent already to the recipient
-            const recipientInboxRef = admin.database().ref(`users/${recipientIdSnapshot.val().userId}/protected/social/friendRequests`);
-            const recipientInboxSnapshot = await recipientInboxRef.once('value');
-            recipientInboxSnapshot.forEach((childSnapshot) => {
-                if (childSnapshot.val().fromUid === senderUid) {
-                    return res.status(400).send({success: false, message: 'Friend request already sent'});
-                }
-            });
+            const recipientProtectedRef = admin.database().ref(`users/${recipientIdSnapshot.val().userId}/protected/social`);
+            if ((await recipientProtectedRef.once('value')).exists()) {
+                    try {
+                    const recipientProtectedSnapshot = await recipientProtectedRef.once('value');
+                    const friendRequests = recipientProtectedSnapshot.child('friendRequests').val() || {};
+                    const friends = recipientProtectedSnapshot.child('friends').val() || {};
 
-            // if the recipient already sent a request to you, automatically accept it, call the accept request function
+                    if (friendRequests) {
+                        for (let requestId in friendRequests) {
+                            if (parseInt(friendRequests[requestId].fromUid) === parseInt(senderUid)) {
+                                return res.status(400).send({ success: false, message: 'Friend request already sent' });
+                            }
+                        }
+                    }
+
+                    if (friends[senderUid]) {
+                        return res.status(400).send({ success: false, message: 'You are already friends' });
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to check if friend request already sent:', error);
+                    return res.status(500).send({ success: false, message: 'Failed to check if friend request already sent' });
+                }
+            }
+            
+            // if the recipient already sent a request to you, automatically accept it
             const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/social/friendRequests`);
             const senderInboxSnapshot = await senderInboxRef.once('value');
-            senderInboxSnapshot.forEach((childSnapshot) => {
-                if (childSnapshot.val().fromUid === recipientIdSnapshot.val().userId) {
-                    //! CHECK AFTER FINISHING friend request handling
-                    handleFriendRequest({ requestId: childSnapshot.key, action: 'accept' });
-                    return res.status(200).send({ success: true, message: "Friend request accepted automatically." });
+            senderInboxSnapshot.forEach(async (childSnapshot) => {
+                if (parseInt(childSnapshot.val().fromUid) === parseInt(recipientIdSnapshot.val().userId)) {
+                    try {
+                        const recipientUid = childSnapshot.val().fromUid;
+                        const recipientUsername = childSnapshot.val().fromUser;
+
+                        // Get sender's username from their public profile
+                        const senderRef = admin.database().ref(`users/${senderUid}/public`);
+                        const senderSnapshot = await senderRef.once('value');
+                        if (!senderSnapshot.exists()) {
+                            return res.status(404).send({ success: false, message: 'Sender not found' });
+                        }
+                        const senderUsername = senderSnapshot.val().username;
+
+                        // Friend references for both sender and recipient
+                        const recipientFriendRef = admin.database().ref(`users/${recipientUid}/protected/social/friends/${senderUid}`);
+                        const senderFriendRef = admin.database().ref(`users/${senderUid}/protected/social/friends/${recipientUid}`);
+
+                        // Add each other to their friends lists
+                        await recipientFriendRef.set({ friendUsername: senderUsername, friendUid: senderUid, addedAt: admin.database.ServerValue.TIMESTAMP});
+                        await senderFriendRef.set({ friendUsername: recipientUsername, friendUid: recipientUid, addedAt: admin.database.ServerValue.TIMESTAMP});
+
+                        // Remove the request from both inboxes
+                        try {
+                            await senderInboxRef.child(childSnapshot.key).remove();
+                        } catch (error) {
+                            console.error('Error removing friend request:', error);       
+                        }
+                        try {
+                            await admin.database().ref(`users/${recipientUid}/protected/social/friendRequests/${childSnapshot.key}`).remove();
+                        } catch (error) {
+                            console.error('Error removing friend request:', error);
+                        }
+                        return res.status(200).send({ success: true, message: "Friend request accepted automatically." });
+                    } catch (error) {
+                        console.error('Error accepting friend request:', error);
+                        return res.status(500).send({ success: false, message: 'Internal server error' });
+                    }
                 }
             });
 
@@ -72,12 +120,12 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
             }
 
             // it's in userId field of the entry
-            console.log("recipientIdSnapshot:", recipientIdSnapshot.val());
+            // console.log("recipientIdSnapshot:", recipientIdSnapshot.val());
             recipientUid = recipientIdSnapshot.val().userId;
-            console.log("senderSnapshot:", senderSnapshot.val());
+            // console.log("senderSnapshot:", senderSnapshot.val());
             senderUsername = senderSnapshot.val().username;
 
-            console.log("recipientUid:", recipientUid);
+            // console.log("recipientUid:", recipientUid);
 
             
         } catch (error) {
@@ -85,7 +133,6 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
             return res.status(500).send({success: false, message: 'Failed to find recipient'});
         }
 
-        // Logic to write the friend request to the recipient's inbox
         const inboxRef = admin.database().ref(`users/${recipientUid}/protected/social/friendRequests`);
         try {
             await inboxRef.child(senderUid).set({
@@ -102,7 +149,7 @@ export const sendFriendRequest = functions.https.onRequest((req, res) => {
     });
 });
 
-export const retrieveInbox = functions.https.onRequest((req, res) => {
+export const retrieveInbox = functions.https.onRequest(async (req, res) => {
     if (req.method !== 'GET') {
         return res.status(403).send({success: false, message: 'Forbidden! Only GET requests are allowed.'});
     }
@@ -126,7 +173,7 @@ export const retrieveInbox = functions.https.onRequest((req, res) => {
     });
 });
 
-export const handleFriendRequest = functions.https.onRequest((req, res) => {
+export const handleFriendRequest = functions.https.onRequest(async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(403).send({success: false, message: 'Forbidden!'});
     }
@@ -176,12 +223,17 @@ export const handleFriendRequest = functions.https.onRequest((req, res) => {
                 try {
                     await recipientFriendRef.set({
                         friendUsername: senderUsername,
-                        friendUid: senderUid
+                        friendUid: senderUid,
+                        addedAt: admin.database.ServerValue.TIMESTAMP
                     });
                     await senderFriendRef.set({
                         friendUsername: recipientUsername,
-                        friendUid: recipientUid
+                        friendUid: recipientUid,
+                        addedAt: admin.database.ServerValue.TIMESTAMP
                     });
+                    // remove the request from the recipient's inbox
+                    await senderInboxRef.child(requestId).remove();
+
                     res.status(200).send({ success: true, message: "Friend request accepted successfully." });
                 } catch (error) {
                     res.status(500).send({success: false, message: 'Failed to accept friend request'});

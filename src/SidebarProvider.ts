@@ -171,22 +171,58 @@ function overwriteFieldInState(context: vscode.ExtensionContext, field: string, 
 // ---- Example usage: ----
 // removeItemFromState(context, 'inventory', 'apple');
 
+// Also supports deep deletion using dot notation
+// ---- Example usage: ----
+// removeItemFromState(context, 'inbox', 'friendRequest.1234');
+
 function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
-
+    console.log("TESTINGLOG");
+    
     // Check if the key exists and is an object
     if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
-        // Remove the specified item from the object
-        delete currentGlobalState[key][itemToRemove];
+        // Split itemToRemove by dots to support deep deletion
+        const keys = itemToRemove.split('.');
+        let current = currentGlobalState[key];
+
+        for (let i = 0; i < keys.length; i++) {
+            if (current.hasOwnProperty(keys[i]) && typeof current[keys[i]] === 'object') {
+                console.log('Current:', current);
+                current = current[keys[i]];
+            } else {
+                // If the path doesn't exist, exit the function
+                console.log('Path does not exist:', current);
+                return context.globalState.update('globalInfo', currentGlobalState);
+            }
+        }
+
+        deleteNestedKey(currentGlobalState[key], keys);
     }
 
     // Update the global state with the modified result
     return context.globalState.update('globalInfo', currentGlobalState);
 }
 
+// helper function that deletes target nested key in removeItemFromState
+function deleteNestedKey(obj: any, keys: string[]): void {
+    if (keys.length === 0) {
+        return;
+    } 
+
+    const lastKey = keys.pop();
+    const parent = keys.reduce((acc, key) => (acc && acc[key] !== undefined) ? acc[key] : undefined, obj);
+
+    if (parent && lastKey && parent[lastKey] !== undefined) {
+        delete parent[lastKey];
+    }
+}
+
+
 function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {
     // Retrieve and return the global state
+    console.log('----Getting globalState----');
+    printJsonObject(context.globalState.get<{ [key: string]: any }>('globalInfo', {}));
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }
 
@@ -198,7 +234,7 @@ function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
 function printJsonObject(jsonObject: { [key: string]: any }): void {
     for (const key in jsonObject) {
         if (jsonObject.hasOwnProperty(key)) {
-            // console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
         }
     }
 }
