@@ -1,6 +1,6 @@
 
 <script context="module">
-    import { PixelCanvas } from './Object.svelte';
+    import { PixelCanvas } from './PostOffice.svelte';
 
     let mouseExited = false;
     let lastHoveredObject = null;

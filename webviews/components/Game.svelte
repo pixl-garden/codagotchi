@@ -167,6 +167,7 @@
         constructor(inboxJSON) {
             this.friendRequests = inboxJSON.friendRequests || {};
             this.friends = inboxJSON.friends || {};
+            this.postcards = inboxJSON.postcards || {};
         }
 
         removeRequest(requestID) {

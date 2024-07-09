@@ -35,6 +35,7 @@ export const sendFriendRequest = functions.https.onRequest(async (req, res) => {
             const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
             const recipientIdSnapshot = await recipientRef.once('value');
 
+
             if (!recipientIdSnapshot.exists()) {
                 return res.status(404).send({success: false, message: 'Recipient not found'});
             }
@@ -120,13 +121,8 @@ export const sendFriendRequest = functions.https.onRequest(async (req, res) => {
             }
 
             // it's in userId field of the entry
-            // console.log("recipientIdSnapshot:", recipientIdSnapshot.val());
             recipientUid = recipientIdSnapshot.val().userId;
-            // console.log("senderSnapshot:", senderSnapshot.val());
             senderUsername = senderSnapshot.val().username;
-
-            // console.log("recipientUid:", recipientUid);
-
             
         } catch (error) {
             console.error('Failed to find recipient:', error);
@@ -145,6 +141,81 @@ export const sendFriendRequest = functions.https.onRequest(async (req, res) => {
         } catch (error) {
             console.error('Failed to send friend request:', error);
             res.status(500).send({success: false, message: 'Failed to send friend request'});
+        }
+    });
+});
+
+export const sendPostcard = functions.https.onRequest(async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(403).send({success: false, message: 'Forbidden! Only GET requests are allowed.'});
+    }
+
+    let recipientUid;
+    let senderUsername;
+    // const idToken = req.headers.authorization?.split('Bearer ')[1];
+
+
+    verifyToken(req, res, async () => {
+        const senderUid = req.user.uid;
+        const { recipientUsername, postcardJSON } = req.body;
+
+        try {
+            // if (!idToken) {
+            //     return res.status(400).send('idToken is required');
+            // }
+
+            const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
+            const recipientIdSnapshot = await recipientRef.once('value');
+            recipientUid = recipientIdSnapshot.val().userId
+
+            if (!recipientIdSnapshot.exists()) {
+                return res.status(404).send({success: false, message: 'Recipient not found'});
+            }
+
+            if (parseInt(recipientIdSnapshot.val().userId) === parseInt(senderUid)) {
+                return res.status(400).send({success: false, message: 'You cannot send a postcard to yourself'});
+            }
+
+            const recipientProtectedRef = admin.database().ref(`users/${recipientIdSnapshot.val().userId}/protected/social`);
+            if ((await recipientProtectedRef.once('value')).exists()) {
+                    try {
+                    const recipientProtectedSnapshot = await recipientProtectedRef.once('value');
+                    const friends = recipientProtectedSnapshot.child('friends').val() || {};
+
+                    if (!friends[senderUid]) {
+                        return res.status(400).send({ success: false, message: 'You must be friends with this user to send a postcard' });
+                    }
+                    
+                } catch (error) {
+                    return res.status(500).send({ success: false, message: 'Failed to check if friends' });
+                }
+            }
+
+            const inboxRef = admin.database().ref(`users/${recipientUid}/protected/social/postcards`);
+            const senderRef = admin.database().ref(`users/${senderUid}/public`);
+            const senderSnapshot = await senderRef.once('value');
+
+            if (!senderSnapshot.exists()) {
+                return res.status(404).send({success: false, message:'Sender not found'});
+            }
+
+            senderUsername = senderSnapshot.val().username;
+            try {
+                await inboxRef.child(senderUid).set({
+                    fromUid: senderUid,
+                    fromUser: senderUsername,
+                    type: 'postcard',
+                    postcard: postcardJSON,
+                    createdAt: admin.database.ServerValue.TIMESTAMP
+                });
+                res.status(200).send({ success: true, message: "Friend request sent successfully." });
+            } catch (error) {
+                console.error('Failed to send friend request:', error);
+                res.status(500).send({success: false, message: 'Failed to send friend request'});
+            }
+        }
+        catch (error) {
+            console.error('Failed to find recipient:', error);
         }
     });
 });
