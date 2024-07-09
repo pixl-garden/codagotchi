@@ -127,6 +127,23 @@ async function retrieveInbox(context: vscode.ExtensionContext) {
     }
 }
 
+async function sendPostcard(context: vscode.ExtensionContext, recipientUsername: string, postcardJSON: JSON) {
+    const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/sendPostcard';
+    const idToken = await context.secrets.get("idToken");
+    console.log("Sending postcard to:", recipientUsername);
+    try {
+        const response = await axios.post(functionUrl, { recipientUsername, postcardJSON }, {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log(response.data.message);
+    } catch (error) {
+        handleAxiosError(error);
+    }
+}
+
 // Update the Global State (with merging)
 // ---- Example usage: ----
 // updateGlobalState(context, {
@@ -525,6 +542,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     break;
                 }
+                case 'sendPostcard': {
+                    sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
+                    break;
+                }
+
             }
         });
     }

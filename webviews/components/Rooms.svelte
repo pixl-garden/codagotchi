@@ -1,6 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, PixelCanvas, ConfigObject, toolTip, textButtonList, activeTextRenderer, ColorMenu, postcardRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
+    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
+    import { postcardRenderer, ColorMenu, printFirstPostcard } from './PostOffice.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -134,9 +135,11 @@
         let customizeUI = new Background('customizeUI', 9, 88, -10, () => {
             if(customizeUI.y < 22){
                 customizeUI.startMovingTo(9, 88);
+                customizeUI.startOpacityTransition(0, .07);
             }
             else{
                 customizeUI.startMovingTo(9, 21);
+                customizeUI.startOpacityTransition(.9, .07);
             }
         });
 
@@ -160,30 +163,8 @@
         shopRoom.addObject(backToMain, shopBackground);
 
     //----------------PAINT ROOM----------------
-        //BACKGROUND INSTANTIATION
-        let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
-
-        //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom', 
-            false, false, () => {
-            postcardRendering.nextFrame();
-            // postcardRendering.setUserText(get(inputValue));
-        });
-
-        //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang, textInput);
-
-        // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
-        //PAINT BUTTONS INSTANTIATION
-            //TODO: MAKE INTO BUTTONLIST
-        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
-        let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
-            get(game).setCurrentRoom('mainRoom');
-            petObject.setCoordinate(36, 54, 0);
-        });
-
-        let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, 
-        [
+        
+        let colorPallete = [
             Colors.red,  
             Colors.orange,  
             Colors.green,  
@@ -199,8 +180,35 @@
             Colors.indianred,  
             Colors.lightcoral,  
             Colors.white,  
-            Colors.black
-        ],
+            Colors.black,
+            Colors.transparent
+        ];
+    
+        //BACKGROUND INSTANTIATION
+        let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
+
+        //ROOM INSTANTIATION
+        let paintRoom = new Room('paintRoom', 
+            false, false, () => {
+            postcardRendering.nextFrame();
+            // postcardRendering.setUserText(get(inputValue));
+        });
+
+        //POSTCARD RENDERER INSTANTIATION
+        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang, textInput, colorPallete);
+
+
+        // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
+        //PAINT BUTTONS INSTANTIATION
+            //TODO: MAKE INTO BUTTONLIST
+        let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
+        let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
+            get(game).setCurrentRoom('mainRoom');
+            petObject.setCoordinate(36, 54, 0);
+        });
+
+
+        let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, colorPallete,
          (color) => { 
             postcardRendering.setColor(color); 
             paintRoom.removeObject(colorMenuObj); 
@@ -223,9 +231,12 @@
         });
         let eraserButton = new paintButtonIcon(46, 0, 5, paintButtonSprites[4], paintButtonSprites[4], ()=>{
             postcardRendering.currentCanvas.setEraser();
+            printFirstPostcard(get(game), colorPallete);
+
         });
         let bucketButton = new paintButtonIcon2(64, 0, 5, paintButtonSprites[6], paintButtonSprites[6], ()=>{
             postcardRendering.currentCanvas.toggleFill();
+            postcardRendering.exportPostcard();
         });
         let clearButton = new paintButtonIcon(110, 0, 5, paintButtonSprites[5], paintButtonSprites[1], ()=>{
             postcardRendering.currentCanvas.clearCanvas();

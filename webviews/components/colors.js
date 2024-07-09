@@ -55,6 +55,7 @@ export const green = "#008000";
 export const orange = "#FFA500";
 export const red = "#FF0000";
 export const purple = "#800080";
+export const transparent = "transparent";
 
 
 
