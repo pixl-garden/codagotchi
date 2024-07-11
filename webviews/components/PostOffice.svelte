@@ -1,13 +1,15 @@
 <script context="module">
-    import { Background, GeneratedObject, Menu, ObjectGrid } from "./Object.svelte";
+    import { Background, GeneratedObject, Menu, ObjectGrid, ButtonList, Button } from "./Object.svelte";
     import { Sprite } from "./SpriteComponent.svelte";
     import { generateEmptyMatrix, generateColorButtonMatrix, overlayMatrix, setMatrix } from "./MatrixFunctions.svelte";
     import { multiLineTextRenderer } from "./Object.svelte";
+    import { Item } from "./Inventory.svelte";
     import * as Colors from './colors.js';   
     import * as pako from 'pako';
 
+    //TODO: remove postcardX/YOffset 
     export class postcardRenderer extends GeneratedObject {
-        constructor(x, y, z, width, height, postcardWidth, postcardHeight, textRenderer, textInputReference, colorArray){
+        constructor(x, y, z, width, height, postcardWidth, postcardHeight, textRenderer, textInputReference, colorArray, stampArray, textRendererArray, postcardObject = null){
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z);
             this.postcardWidth = postcardWidth;
@@ -19,7 +21,8 @@
             this.postcardYOffset = y + (height - this.postcardHeight) / 2;
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
-            this.frontPixelCanvas = new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset); // might need to change z
+            this.frontPixelCanvas = postcardObject === null ? new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
+                                                          : new RenderedCanvas(x, y, 10, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
             this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
             this.currentCanvas = this.frontPixelCanvas;
             this.children.push(this.currentCanvas);
@@ -30,11 +33,18 @@
             this.state = "front";
             this.stampItem;
             this.colorArray = colorArray;
+            this.stampArray = stampArray;
+            this.textRendererArray = textRendererArray;
+            // if(postcardObject != null){
+            //     this.backPixelCanvas.setUserText(postcardObject.text);
+
+            // }
         }
         setTextRenderer(textRenderer){
             this.textRenderer = textRenderer;
             this.backPixelCanvas.multiLineTextRenderer.textRenderer = textRenderer;
         }
+
         setTextActive(bool) {
             this.backPixelCanvas.setTextActive(bool);
         }
@@ -146,10 +156,14 @@
             return newPixels;
         }
 
-        exportPostcard() {
-            let postcard = new postCard(this.frontPixelCanvas.pixelMatrix, this.backPixelCanvas.userText, 0, 0, 0);
+        exportPostcard(userId) {
+            // Retrieve the current stamp index and position to send with the postcard
+            let currStampIndex = this.stampItem === null ? 0 : this.stampArray.indexOf(this.stampItem.itemName);
+            let currStampPos = this.backPixelCanvas.stampPosition === null ? 0 : this.backPixelCanvas.stampPosition;
+            let textRendererIndex = this.textRendererArray.indexOf(this.textRenderer);
+            let postcard = new postCard(this.frontPixelCanvas.pixelMatrix, this.backPixelCanvas.userText, 0, textRendererIndex, currStampIndex, currStampPos);
             let postcardJSON = postcard.constructSendablePostcard(this.colorArray);
-            tsvscode.postMessage({ type: 'sendPostcard', recipientUsername: "4444est", postcardJSON: postcardJSON });
+            tsvscode.postMessage({ type: 'sendPostcard', recipientUsername: userId, postcardJSON: postcardJSON });
         }
     }
 
@@ -165,10 +179,11 @@
             this.offsetX = offsetX == null ? x : offsetX;
             this.offsetY = offsetY == null ? y : offsetY;
             this.stampItem = null;
+            this.stampPosition = null;
             this.lastStampIndex = null;
             this.userText = "";
             this.multiLineTextRenderer = new multiLineTextRenderer(x + 3, y + 4, z, 78, height, 9, textRenderer, 4, 0);
-            this.textInput = new textInputReference((text) => this.setUserText(text), textRenderer.charMappingString);
+            this.textInput = textInputReference !== null ? new textInputReference((text) => this.setUserText(text), textRenderer.charMappingString) : null;
         }
 
         nextFrame(){
@@ -181,17 +196,17 @@
         }
 
         setStamp(stampItem) {
-            let randomStamp = stampItem.states["default"][Math.floor(Math.random() * (stampItem.states["default"].length - 1)) + 1];  
+            this.stampPosition = stampItem.states["default"][Math.floor(Math.random() * (stampItem.states["default"].length - 1)) + 1];  
             if(this.stampItem === stampItem) {
-                while(this.lastStampIndex === randomStamp) {
-                    randomStamp = stampItem.states["default"][Math.floor(Math.random() * (stampItem.states["default"].length - 1)) + 1];
+                while(this.lastStampIndex === this.stampPosition) {
+                    this.stampPosition = stampItem.states["default"][Math.floor(Math.random() * (stampItem.states["default"].length - 1)) + 1];
                 }
-                this.lastStampIndex = randomStamp;
+                this.lastStampIndex = this.stampPosition;
             }          
             
             this.stampItem = stampItem;
             this.clearStamp();
-            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[randomStamp], 0, 0, 87, 4);
+            this.pixelMatrix = overlayMatrix(this.pixelMatrix, this.stampItem.sprites[this.stampPosition], 0, 0, 87, 4);
         }
 
         clearStamp() {
@@ -227,6 +242,24 @@
             this.textInput.clearAll();
         }
     }
+
+    export class RenderedCanvas extends GeneratedObject {
+        constructor(x, y, z, width, height, pixelMatrix) {
+            super(pixelMatrix, { default: [0] }, x, y, z);
+            this.canvasWidth = width;
+            this.canvasHeight = height;
+            this.pixelMatrix = pixelMatrix;
+        }
+
+        getSprite() {
+            return new Sprite(this.pixelMatrix, this.x, this.y, this.z);
+        }
+
+        externalRender() {
+            return this.pixelMatrix;
+        }
+    }
+    
 
     export class PixelCanvas extends GeneratedObject {
         constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
@@ -510,13 +543,15 @@
     }
 
     export class postCard {
-        constructor(matrix, text, textColorIndex, textRendererIndex, stampIndex) {
+        constructor(matrix, text, textColorIndex, textRendererIndex, stampIndex, stampPos) {
             this.matrix = matrix;
             this.text = text;
             this.textColorIndex = textColorIndex;
             this.textRendererIndex = textRendererIndex;
             this.stampIndex = stampIndex;
+            this.stampPos = stampPos
             this.canvasString = "";
+
         }
         constructSendablePostcard(colorArray) {
             this.canvasString = imageToBase64(this.matrix, colorArray);
@@ -528,22 +563,23 @@
                 textRendererIndex: this.textRendererIndex,
                 textColorIndex: this.textColorIndex,
                 stampIndex: this.stampIndex,
+                stampPos: this.stampPos
             }
             return postcardJSON;
         }
-
-        
     }
 
     export function printFirstPostcard(gameRef, colorArray) {
-        let exportedPostcard = constructReceivedPostcard(gameRef.inbox["postcards"][0].postcard, colorArray);
+        // console.log(gameRef.inbox["postcards"]);
+        let exportedPostcard = constructReceivedPostcard(gameRef.inbox["postcards"]["87792049"].postcard, colorArray);
         console.log("sent Matrix:", exportedPostcard.matrix);
     }
+    
 
     function constructReceivedPostcard(postcardJSON, colorArray) {
-        exportedPostcard = new postCard(
+        let exportedPostcard = new postCard(
             base64ToImage(postcardJSON.frontCanvasString, colorArray, 120, 80),
-            postcardJSON.textString, postcardJSON.textColor,
+            postcardJSON.textString, postcardJSON.textColorIndex,
             postcardJSON.textRendererIndex, postcardJSON.stampIndex, colorArray);
         return exportedPostcard;
     }
@@ -618,6 +654,83 @@
         }
 
         return imageData2D;
+    }
+
+    export class postcardInboxManager extends GeneratedObject {
+        //TODO: remove textRenderer parameter and retrieve textRenderer index from postcardJSON
+        constructor(x, y, z, gameRef, buttonConstructor, colorArray, textRendererArray, stampArray){
+            super(generateEmptyMatrix(1, 1), null, x, y, z)
+            this.gameRef = gameRef;
+            this.buttonConstructor = buttonConstructor;
+            this.children = [];
+            this.colorArray = colorArray;
+            this.textRendererArray = textRendererArray;
+            this.stampArray = stampArray;
+            this.postcardButtonList = null;
+            this.refreshPostcards();
+            this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 20, colorArray, this.textRendererArray, this.stampArray, () => {
+                this.children = [this.postcardButtonList];
+            });
+        }
+
+        nextFrame(){
+            if(this.receivedPostcardDisplay.postcardRendering != null){
+                this.receivedPostcardDisplay.postcardRendering.nextFrame();
+            }
+        }
+
+        refreshPostcards(){
+            const postcards = this.gameRef.refreshInbox()["postcards"];
+            const postcardIds = Object.keys(postcards);
+            const postcardButtonListParams = postcardIds.map(postcardId => [postcards[postcardId].fromUser, () => {
+                let exportedPostcard = constructReceivedPostcard(this.gameRef.inbox["postcards"][postcardId].postcard, this.colorArray);
+                this.receivedPostcardDisplay.setPostcard(exportedPostcard);
+                this.children.push(this.receivedPostcardDisplay);
+            }]);
+            
+            console.log(postcardButtonListParams)
+            this.postcardButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...postcardButtonListParams)
+            this.children = [this.postcardButtonList];
+        }
+    }
+
+    export class receivedPostcardDisplay extends GeneratedObject {
+        constructor(x, y, z, colorArray, textRendererArray, stampArray, closeFunction) {
+            super(generateEmptyMatrix(1, 1), null, x, y, z);
+            this.colorArray = colorArray;
+            this.textRendererArray = textRendererArray;
+            this.stampArray = stampArray;
+            this.saveButton = new Button(37, 108, 5, 'saveButton', () => {
+                closeFunction();
+            });
+            this.discardButton = new Button(74, 108, 5, 'discardButton',  () => {
+                closeFunction();
+            });
+            this.flipButton = new Button(55, 108, 5, 'flipButton', () => {
+                this.postcardRendering.flipPostcard();
+            });
+            this.postcardRendering = null;
+        }
+
+        nextFrame(){
+            if(this.postcardRendering != null){
+                this.postcardRendering.nextFrame();
+            }
+        }
+        
+        setPostcard(postcardObject) {
+            this.postcardRendering = new postcardRenderer(4, 16, 10, 120, 80, 120, 80, this.textRendererArray[postcardObject.textRendererIndex], null, this.colorArray, this.stampArray, this.textRendererArray, postcardObject);
+            console.log("STAMP INDEX: ", this.stampArray[postcardObject.stampIndex]);
+            this.postcardRendering.backPixelCanvas.setStamp(new Item(this.stampArray[postcardObject.stampIndex]));
+            this.postcardRendering.setTextRenderer(this.textRendererArray[postcardObject.textRendererIndex]);
+            this.postcardRendering.backPixelCanvas.setColor(this.colorArray[postcardObject.textColorIndex]);
+            this.postcardRendering.backPixelCanvas.setUserText(postcardObject.text);
+            console.log("color="+this.colorArray[postcardObject.textColorIndex]);
+            
+
+
+            this.children = [this.saveButton, this.discardButton, this.flipButton, this.postcardRendering];
+        }
     }
 
 

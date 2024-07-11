@@ -67,6 +67,8 @@
             const friendButtonListParams = friendUsernames.map(username => [username, () => {}]);
             console.log(friendButtonListParams)
             let friendButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...friendButtonListParams)
+            
+            // This loop can be removed I think????
             for (let friendButton of friendButtonList.children){
                 friendButton.friendID = friendUids[friendButtonList.children.indexOf(friendButton)];
             }

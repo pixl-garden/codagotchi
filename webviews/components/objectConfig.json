@@ -188,6 +188,24 @@
             "hovered": [3]
         }
     },
+    "saveButton":{
+        "spriteWidth": 14,
+        "spriteHeight": 11,
+        "spriteSheet": "saveDiscard.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "discardButton":{
+        "spriteWidth": 14,
+        "spriteHeight": 11,
+        "spriteSheet": "saveDiscard.png",
+        "states": {
+            "default": [2],
+            "hovered": [3]
+        }
+    },
     "caveEntrance":{
         "spriteWidth": 128,
         "spriteHeight": 128,
