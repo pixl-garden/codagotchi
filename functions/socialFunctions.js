@@ -160,10 +160,6 @@ export const sendPostcard = functions.https.onRequest(async (req, res) => {
         const { recipientUsername, postcardJSON } = req.body;
 
         try {
-            // if (!idToken) {
-            //     return res.status(400).send('idToken is required');
-            // }
-
             const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
             const recipientIdSnapshot = await recipientRef.once('value');
             recipientUid = recipientIdSnapshot.val().userId
@@ -201,17 +197,16 @@ export const sendPostcard = functions.https.onRequest(async (req, res) => {
 
             senderUsername = senderSnapshot.val().username;
             try {
-                await inboxRef.child(senderUid).set({
+                await inboxRef.push({
                     fromUid: senderUid,
                     fromUser: senderUsername,
                     type: 'postcard',
                     postcard: postcardJSON,
                     createdAt: admin.database.ServerValue.TIMESTAMP
                 });
-                res.status(200).send({ success: true, message: "Friend request sent successfully." });
+                res.status(200).send({ success: true, message: "Postcard sent successfully." });
             } catch (error) {
-                console.error('Failed to send friend request:', error);
-                res.status(500).send({success: false, message: 'Failed to send friend request'});
+                res.status(500).send({success: false, message: 'Failed to send postcard'});
             }
         }
         catch (error) {

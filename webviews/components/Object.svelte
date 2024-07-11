@@ -250,7 +250,7 @@
 
 
                     // If the child has its own children, recursively accumulate their sprites too
-                    if (child.children.length > 0) {
+                    if (child.children.length > 0 && child.renderChildren) {
                         accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y, offsetZ + parent.z);
                     }
                 }

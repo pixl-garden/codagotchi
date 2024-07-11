@@ -1,7 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
-    import { postcardRenderer, ColorMenu, printFirstPostcard } from './PostOffice.svelte';
+    import { postcardRenderer, ColorMenu, printFirstPostcard, postcardInboxManager } from './PostOffice.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -13,6 +13,7 @@
     import { MiningManager } from "./Mining.svelte";
     import lootTableConfig from './lootTableConfig.json';
     import { friendListManager, friendRequestManager } from './Social.svelte';
+    import itemConfig from './itemConfig.json'
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -71,7 +72,7 @@
         const StatusBar = generateStatusBarClass(107, 12, Colors.black, Colors.grey, '#40D61A', 2);
         const statusBar = new StatusBar(20, 2, 0);
         //MAIN MENU INSTANTIATION
-        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Mining', 'Close'];
+        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Mining', 'PostOffice', 'Close'];
         const mainMenuButtonFunctions = [() => {get(game).setCurrentRoom('settingsRoom')}, 
         () => {get(game).setCurrentRoom('shopRoom')}, 
         () => {get(game).setCurrentRoom('customizeRoom')}, 
@@ -80,6 +81,7 @@
         () => {get(game).setCurrentRoom('inventoryRoom')}, 
         () => {get(game).setCurrentRoom('fishingRoom')},
         () => {get(game).setCurrentRoom('caveEntranceRoom')},
+        () => {get(game).setCurrentRoom('postOfficeRoom')},
         () => {
             get(game).getCurrentRoom().removeObject( mainMenu ); 
             get(game).getCurrentRoom().addObject( mainMenuButton );}
@@ -194,8 +196,22 @@
             // postcardRendering.setUserText(get(inputValue));
         });
 
-        //POSTCARD RENDERER INSTANTIATION
-        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang, textInput, colorPallete);
+        // GENERATE ARRAYS
+        function getStampStringsFromConfig() {
+            let stampArray = [];
+            for (let key in itemConfig) {
+                if (itemConfig[key].type === 'stamp') {
+                    stampArray.push(`${key}`);
+                }
+            }
+            return stampArray;
+        }
+        const stampArray = getStampStringsFromConfig();
+
+        const textRendererArray = [tiny, gang, retro, basic];
+
+        // POSTCARD RENDERER INSTANTIATION
+        let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang, textInput, colorPallete, stampArray, textRendererArray);
 
 
         // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
@@ -232,16 +248,14 @@
         let eraserButton = new paintButtonIcon(46, 0, 5, paintButtonSprites[4], paintButtonSprites[4], ()=>{
             postcardRendering.currentCanvas.setEraser();
             printFirstPostcard(get(game), colorPallete);
-
+        });
+        let clearButton = new paintButtonIcon(110, 0, 5, paintButtonSprites[5], paintButtonSprites[5], ()=>{
+            postcardRendering.currentCanvas.clearCanvas();
         });
         let bucketButton = new paintButtonIcon2(64, 0, 5, paintButtonSprites[6], paintButtonSprites[6], ()=>{
             postcardRendering.currentCanvas.toggleFill();
             postcardRendering.exportPostcard();
         });
-        let clearButton = new paintButtonIcon(110, 0, 5, paintButtonSprites[5], paintButtonSprites[1], ()=>{
-            postcardRendering.currentCanvas.clearCanvas();
-        });
-
         let sizeNumber = new activeTextRenderer(retroShadowGray, 93, 2, 5);
         sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         let sizeBackground = new paintUnhoverableButton(88, 0, 4, ' ', () => {});
@@ -265,6 +279,10 @@
                 paintRoom.addObject(fontMenu);
             }
         });
+        let sendPostcardButton = new paintButtonIcon(109, 113, 5, paintButtonSprites[8], paintButtonSprites[8], ()=>{
+            postcardRendering.exportPostcard("kitgore");
+        });
+
         let tinyButton = new fontButton(60, 60, 30, 'tiny', ()=>{
             postcardRendering.setTextRenderer(tiny);
             closeAllPaintMenus();
@@ -310,6 +328,7 @@
         });
 
         // STAMP MENU INSTANTIATION
+
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
@@ -327,14 +346,14 @@
 
 
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
-        let stampArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampArray, createStampSlot, testToolTip, null, 0, 0, 0, 10);
+        let stampInvArray = get(game).inventory.getItemsByType('stamp');
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 0, 10);
         // stampMenu.addChild(stampGrid);
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
-            stampGrid.updateItemSlots(stampArray);
+            stampGrid.updateItemSlots(stampInvArray);
         })
         let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
             if(get(shouldFocus) === false){
@@ -348,7 +367,7 @@
         })
         paintRoom.addObject(paintBackToMain, postcardRendering, postcardBackground, colorButton, eraserButton, 
                clearButton, brushSizeDown, brushSizeUp, sizeNumber, sizeBackground, undoButton, redoButton, pencilButton, 
-               flipButton, bucketButton );
+               flipButton, bucketButton, sendPostcardButton);
 
         function closeAllPaintMenus(){
             if(paintRoom.objects.includes(colorMenuObj)){
@@ -606,9 +625,23 @@
 
     miningInstance.setPhysics(8, 5, 2);
     miningRoom.addObject(backToMain2, miningBackground, miningInstance, beginMiningButton, petObject, miningNotif);
+
+    // ---------------- POST OFFICE ROOM ----------------
+
+
+
+    //ROOM INSTANTIATION
+    let receivedPostcardManagerInstance = new postcardInboxManager(0, 0, 0, get(game), friendButton, colorPallete, textRendererArray, stampArray);   
+
+    let postOfficeRoom = new Room('postOfficeRoom', () => {
+        receivedPostcardManagerInstance.refreshPostcards();
+    }, false, () => {
+        receivedPostcardManagerInstance.nextFrame();
+    });
+
+    postOfficeRoom.addObject(receivedPostcardManagerInstance, backToMain2)
+
 }
-
-
 
     export function roomMain(){
         get(game).getCurrentRoom().update();

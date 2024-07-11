@@ -3,7 +3,6 @@
         "type": "stamp",
         "displayName": "Javascript",
         "spriteSheet": "stamps_JS.png",
-        "spriteIndex": 1,
         "description": "javascript stamp",
         "spriteWidth": 32,
         "states": {
@@ -14,7 +13,6 @@
         "type": "stamp",
         "displayName": "HTML",
         "spriteSheet": "stamps_HTML.png",
-        "spriteIndex": 1,
         "description": "HTML stamp",
         "spriteWidth": 32,
         "states": {
@@ -25,7 +23,6 @@
         "type": "stamp",
         "displayName": "CSS",
         "spriteSheet": "stamps_CSS.png",
-        "spriteIndex": 1,
         "description": "CSS stamp",
         "spriteWidth": 32,
         "states": {
@@ -36,7 +33,6 @@
         "type": "stamp",
         "displayName": "C",
         "spriteSheet": "stamps_C.png",
-        "spriteIndex": 1,
         "description": "C stamp",
         "spriteWidth": 32,
         "states": {
@@ -47,7 +43,6 @@
         "type": "stamp",
         "displayName": "C++",
         "spriteSheet": "stamps_C++.png",
-        "spriteIndex": 1,
         "description": "C++ stamp",
         "spriteWidth": 32,
         "states": {
@@ -58,7 +53,6 @@
         "type": "stamp",
         "displayName": "C#",
         "spriteSheet": "stamps_C#.png",
-        "spriteIndex": 1,
         "description": "C# stamp",
         "spriteWidth": 32,
         "states": {
@@ -69,7 +63,6 @@
         "type": "stamp",
         "displayName": "Python",
         "spriteSheet": "stamps_py.png",
-        "spriteIndex": 1,
         "description": "python stamp",
         "spriteWidth": 32,
         "states": {
