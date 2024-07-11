@@ -1,7 +1,7 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
-    import { postcardRenderer, ColorMenu, printFirstPostcard, postcardInboxManager } from './PostOffice.svelte';
+    import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
@@ -196,7 +196,7 @@
             // postcardRendering.setUserText(get(inputValue));
         });
 
-        // GENERATE ARRAYS
+        // create stamp and text renderer arrays
         function getStampStringsFromConfig() {
             let stampArray = [];
             for (let key in itemConfig) {
@@ -247,7 +247,6 @@
         });
         let eraserButton = new paintButtonIcon(46, 0, 5, paintButtonSprites[4], paintButtonSprites[4], ()=>{
             postcardRendering.currentCanvas.setEraser();
-            printFirstPostcard(get(game), colorPallete);
         });
         let clearButton = new paintButtonIcon(110, 0, 5, paintButtonSprites[5], paintButtonSprites[5], ()=>{
             postcardRendering.currentCanvas.clearCanvas();
@@ -631,6 +630,7 @@
 
 
     //ROOM INSTANTIATION
+    // create postcardManagerInstance for to handle recieved postcards
     let receivedPostcardManagerInstance = new postcardInboxManager(0, 0, 0, get(game), friendButton, colorPallete, textRendererArray, stampArray);   
 
     let postOfficeRoom = new Room('postOfficeRoom', () => {

@@ -21,7 +21,7 @@
             this.postcardYOffset = y + (height - this.postcardHeight) / 2;
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
-            this.frontPixelCanvas = postcardObject === null ? new PixelCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
+            this.frontPixelCanvas = postcardObject === null ? new DrawableCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
                                                           : new RenderedCanvas(x, y, 10, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
             this.backPixelCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
             this.currentCanvas = this.frontPixelCanvas;
@@ -161,7 +161,8 @@
             let currStampIndex = this.stampItem === null ? 0 : this.stampArray.indexOf(this.stampItem.itemName);
             let currStampPos = this.backPixelCanvas.stampPosition === null ? 0 : this.backPixelCanvas.stampPosition;
             let textRendererIndex = this.textRendererArray.indexOf(this.textRenderer);
-            let postcard = new postCard(this.frontPixelCanvas.pixelMatrix, this.backPixelCanvas.userText, 0, textRendererIndex, currStampIndex, currStampPos);
+            let textColorIndex = this.colorArray.indexOf(this.backPixelCanvas.multiLineTextRenderer.color);
+            let postcard = new postCard(this.frontPixelCanvas.pixelMatrix, this.backPixelCanvas.userText, textColorIndex, textRendererIndex, currStampIndex, currStampPos);
             let postcardJSON = postcard.constructSendablePostcard(this.colorArray);
             tsvscode.postMessage({ type: 'sendPostcard', recipientUsername: userId, postcardJSON: postcardJSON });
         }
@@ -243,6 +244,8 @@
         }
     }
 
+    // RenderedCanvas is used to render a canvas that has already been drawn on (received postcard)
+        // Replaces DrawableCanvas in the postcardRenderer when a postcardObject is passed in
     export class RenderedCanvas extends GeneratedObject {
         constructor(x, y, z, width, height, pixelMatrix) {
             super(pixelMatrix, { default: [0] }, x, y, z);
@@ -261,7 +264,7 @@
     }
     
 
-    export class PixelCanvas extends GeneratedObject {
+    export class DrawableCanvas extends GeneratedObject {
         constructor(x, y, z, width, height, offsetX = null, offsetY = null) {
             const emptyMatrix = generateEmptyMatrix(width, height);
             super([emptyMatrix], { default: [0] }, x, y, z, (gridX, gridY) => {
@@ -553,10 +556,12 @@
             this.canvasString = "";
 
         }
+        // color array is passed in separately to allow for different color palletes
         constructSendablePostcard(colorArray) {
+            // convert canvas on front of postcard to base 64
             this.canvasString = imageToBase64(this.matrix, colorArray);
-            // console.log(this.canvasString);
-            // console.log(base64ToImage(this.canvasString, colorArray, this.matrix[0].length, this.matrix.length));
+
+            // create sendable object with properties of current postcard
             let postcardJSON = {
                 frontCanvasString: this.canvasString,
                 textString: this.text,
@@ -569,13 +574,7 @@
         }
     }
 
-    export function printFirstPostcard(gameRef, colorArray) {
-        // console.log(gameRef.inbox["postcards"]);
-        let exportedPostcard = constructReceivedPostcard(gameRef.inbox["postcards"]["87792049"].postcard, colorArray);
-        console.log("sent Matrix:", exportedPostcard.matrix);
-    }
-    
-
+    // Construct a postcard object from a JSON object
     function constructReceivedPostcard(postcardJSON, colorArray) {
         let exportedPostcard = new postCard(
             base64ToImage(postcardJSON.frontCanvasString, colorArray, 120, 80),
@@ -584,6 +583,7 @@
         return exportedPostcard;
     }
 
+    // Convert a 2D pixel matrix to a compressed Base64 string
     function imageToBase64(pixelMatrix, palette) {
         // Map image data to indices
         let indices = pixelMatrix.flatMap(row => row.map(pixel => palette.indexOf(pixel)));
@@ -619,6 +619,7 @@
         return base64String;
     }
 
+    // Convert a compressed Base64 string to a 2D pixel matrix
     function base64ToImage(base64String, palette, width, height) {
         // Decode Base64 string to compressed binary data
         let binaryString = atob(base64String);
@@ -656,8 +657,8 @@
         return imageData2D;
     }
 
+    // Handles displaying user's inbox and postcard rendering when inbox entries are clicked
     export class postcardInboxManager extends GeneratedObject {
-        //TODO: remove textRenderer parameter and retrieve textRenderer index from postcardJSON
         constructor(x, y, z, gameRef, buttonConstructor, colorArray, textRendererArray, stampArray){
             super(generateEmptyMatrix(1, 1), null, x, y, z)
             this.gameRef = gameRef;
@@ -668,27 +669,32 @@
             this.stampArray = stampArray;
             this.postcardButtonList = null;
             this.refreshPostcards();
-            this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 20, colorArray, this.textRendererArray, this.stampArray, () => {
-                this.children = [this.postcardButtonList];
+            this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 20, this.colorArray, this.textRendererArray, this.stampArray, () => {
+                this.children = [this.postcardButtonList]; //function to close the postcard display
             });
         }
 
+        // Function to handle postcard flipping animation
         nextFrame(){
             if(this.receivedPostcardDisplay.postcardRendering != null){
                 this.receivedPostcardDisplay.postcardRendering.nextFrame();
             }
         }
 
+        // Called on room entry to refresh the inbox from the game reference and construct inbox button array
         refreshPostcards(){
             const postcards = this.gameRef.refreshInbox()["postcards"];
             const postcardIds = Object.keys(postcards);
-            const postcardButtonListParams = postcardIds.map(postcardId => [postcards[postcardId].fromUser, () => {
-                let exportedPostcard = constructReceivedPostcard(this.gameRef.inbox["postcards"][postcardId].postcard, this.colorArray);
-                this.receivedPostcardDisplay.setPostcard(exportedPostcard);
-                this.children.push(this.receivedPostcardDisplay);
+            const postcardButtonListParams = postcardIds.map(
+                // First parameter is the from username of sender to display on button
+                postcardId => [postcards[postcardId].fromUser, 
+                // Second parameter is button click function which displays the postcard
+                () => {
+                    let exportedPostcard = constructReceivedPostcard(this.gameRef.inbox["postcards"][postcardId].postcard, this.colorArray);
+                    this.receivedPostcardDisplay.setPostcard(exportedPostcard);
+                    this.children.push(this.receivedPostcardDisplay);
             }]);
             
-            console.log(postcardButtonListParams)
             this.postcardButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...postcardButtonListParams)
             this.children = [this.postcardButtonList];
         }
@@ -717,22 +723,16 @@
                 this.postcardRendering.nextFrame();
             }
         }
-        
-        setPostcard(postcardObject) {
+
+        // Recreate postcard rendering from postcard object and modify using
+            // front drawing, set stamp, stamp position, text, text color, and text renderer
+        setPostcard(postcardObject) { 
             this.postcardRendering = new postcardRenderer(4, 16, 10, 120, 80, 120, 80, this.textRendererArray[postcardObject.textRendererIndex], null, this.colorArray, this.stampArray, this.textRendererArray, postcardObject);
-            console.log("STAMP INDEX: ", this.stampArray[postcardObject.stampIndex]);
             this.postcardRendering.backPixelCanvas.setStamp(new Item(this.stampArray[postcardObject.stampIndex]));
             this.postcardRendering.setTextRenderer(this.textRendererArray[postcardObject.textRendererIndex]);
             this.postcardRendering.backPixelCanvas.setColor(this.colorArray[postcardObject.textColorIndex]);
             this.postcardRendering.backPixelCanvas.setUserText(postcardObject.text);
-            console.log("color="+this.colorArray[postcardObject.textColorIndex]);
-            
-
-
-            this.children = [this.saveButton, this.discardButton, this.flipButton, this.postcardRendering];
+            this.children = [this.saveButton, this.discardButton, this.flipButton, this.postcardRendering]; // Adds postcard to children
         }
     }
-
-
-
 </script>
