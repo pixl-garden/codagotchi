@@ -782,11 +782,15 @@
         constructor(x, y, z, orientation, buttonSpacing, ButtonConstructor, pageLimit = null, ...buttonParameters) {
             let buttons = [];
             let columns;
+            let scrollable = false;
+
             if(pageLimit != null) {
                 columns = pageLimit;
+                scrollable = true;
             } else {
                 columns = buttons.length;
             }
+
             for (let i = 0; i < buttonParameters.length; i++) {
                 // Ensure buttonParameters[i] is an array
                 if (!Array.isArray(buttonParameters[i])) {
@@ -796,13 +800,10 @@
                 buttons.push(button);
             }
             if (orientation === "horizontal") {
-                super(columns, buttonSpacing, 1, 0, x, y, z, buttons);
+                super(columns, buttonSpacing, 1, 0, x, y, z, buttons, scrollable);
             }  else {
-                super(1, 0, columns, buttonSpacing, x, y, z, buttons);    
+                super(1, 0, columns, buttonSpacing, x, y, z, buttons, scrollable);    
             }
-            
-            this.height;
-            this.width;
         }
     }
 

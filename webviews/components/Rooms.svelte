@@ -64,6 +64,10 @@
         const backToMain2 = new singleLetterButton(0, 112, 10, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
+        // button to return to paint room
+        const backToPaintRoom = new singleLetterButton(0, 112, 10, '<', () => {
+            get(game).setCurrentRoom('paintRoom');
+        });
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
         let defaultMenuParams = ["#59585a", "#2b2a2b", Colors.black, 2, 5, 3, 1];
 
@@ -399,7 +403,7 @@
         );
         sendPostcardRoom.clearTextOnExit = false;
 
-        sendPostcardRoom.addObject(sendFriendListInstance);
+        sendPostcardRoom.addObject(sendFriendListInstance, backToPaintRoom);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
 
     //----------------SOCIAL ROOM----------------
