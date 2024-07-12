@@ -228,9 +228,10 @@
     }
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, scrollSpeed, itemX = 0, itemY = 0, itemZ = 10){
+                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10){
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer);
-            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, 0, 0, "vertical", scrollSpeed);
+            console.log("constructedItems.length"+constructedItems.length);
+            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
             this.itemSlotConstructor = itemSlotConstructor;
             this.totalSlots = rows*columns;
             this.items = items;
@@ -311,7 +312,8 @@
         updateItemSlots(itemsArray){
             let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
-            this.updateObjects(itemSlotExport);
+            this.objects = itemSlotExport;
+            this.generateObjectGrid();
             this.setHoverLogic();
         }
     }
@@ -320,7 +322,7 @@
     // maybe change this later
     function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ) {
         let inventoryGrid = [];
-        for(let i = 0; i < totalSlots; i++) {
+        for(let i = 0; i < items.length; i++) {
             let item = items[i];
             let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
             
@@ -362,33 +364,11 @@
             this.currentTabArray = this.gameRef.inventory.getItemsByType(this.currentTab);
         }
 
-        setItemsToPage(){
-            let items = this.currentTabArray.slice(this.startIndex, this.startIndex + this.totalSlots);
-            this.inventoryGrid.updateItemSlots(items);
-        }
-
         setTab(tab){
             this.currentTab = tab;
             this.currentPage = 0;
             this.currentTabArray = this.gameRef.inventory.getItemsByType(this.currentTab);
             this.inventoryGrid.updateItemSlots(this.currentTabArray)
-        }
-        
-        setNextPage() {
-            this.currentPage++;
-            if(this.startIndex + this.totalSlots <= this.currentTabArray.length) {
-                this.startIndex += this.totalSlots;
-                this.setItemsToPage()
-            }
-        }
-
-        setPrevPage() {
-            this.currentPage--;
-            if(this.startIndex - this.totalSlots >= 0) {
-                this.startIndex -= this.totalSlots;
-                this.setItemsToPage()
-            }
-            
         }
 
         whileHover(){
@@ -397,27 +377,6 @@
                 this.itemInfoDisplay.setItemInfo(this.inventoryGrid.hoveredItem.displayName);
             }
         }
-        onStopHover(){
-            // this.scaledItem.setItem(null);
-            // this.itemInfoDisplay.setItemInfo(" ");
-        }
-        setItemInfo(x, y, z) {
-
-        }
-
-        setScaledItem(x, y, z) {
-            
-        }
-
-        setPageButtons(backX, backY, backZ, forwardX, forwardY, forwardZ) {
-
-        }
-
-        setItemTabs() {
-            
-        }
-
-
     }
 
     export class itemScaler extends GeneratedObject{

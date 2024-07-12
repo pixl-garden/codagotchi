@@ -165,6 +165,8 @@
         shopRoom.addObject(backToMain, shopBackground);
 
     //----------------PAINT ROOM----------------
+
+
         
         let colorPallete = [
             Colors.red,  
@@ -185,16 +187,6 @@
             Colors.black,
             Colors.transparent
         ];
-    
-        //BACKGROUND INSTANTIATION
-        let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
-
-        //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom', 
-            false, false, () => {
-            postcardRendering.nextFrame();
-            // postcardRendering.setUserText(get(inputValue));
-        });
 
         // create stamp and text renderer arrays
         function getStampStringsFromConfig() {
@@ -209,20 +201,36 @@
         const stampArray = getStampStringsFromConfig();
 
         const textRendererArray = [tiny, gang, retro, basic];
-
+            
         // POSTCARD RENDERER INSTANTIATION
         let postcardRendering = new postcardRenderer(4, 24, 0, 120, 80, 120, 80, gang, textInput, colorPallete, stampArray, textRendererArray);
+    
+        //BACKGROUND INSTANTIATION
+        let postcardBackground = new Background('paintBackground', 0, 0, -20, () => {});
+        let postcardTextSave = "";
 
+        //ROOM INSTANTIATION
+        let paintRoom = new Room('paintRoom', 
+            () => {
+                // load saved input value from previous session with postcard
+                document.getElementById('hiddenInput').value = postcardTextSave;
+                inputValue.set(postcardTextSave);
+            }, 
+            () => {
+                // save input value for current postcard on exit
+                postcardTextSave = document.getElementById('hiddenInput').value;
+            }, () => {
+            postcardRendering.nextFrame();
+            // postcardRendering.setUserText(get(inputValue));
+        });
+        paintRoom.clearTextOnExit = false; // Prevent text clearing so text can be exported in send postcard room
 
-        // let postcardRendering.pixelCanvas = new PixelCanvas(4, 19, 0, 120, 80);
-        //PAINT BUTTONS INSTANTIATION
-            //TODO: MAKE INTO BUTTONLIST
+        // PAINT BUTTON INSTANTIATION
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
             petObject.setCoordinate(36, 54, 0);
         });
-
 
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, colorPallete,
          (color) => { 
@@ -253,7 +261,6 @@
         });
         let bucketButton = new paintButtonIcon2(64, 0, 5, paintButtonSprites[6], paintButtonSprites[6], ()=>{
             postcardRendering.currentCanvas.toggleFill();
-            postcardRendering.exportPostcard();
         });
         let sizeNumber = new activeTextRenderer(retroShadowGray, 93, 2, 5);
         sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
@@ -279,7 +286,7 @@
             }
         });
         let sendPostcardButton = new paintButtonIcon(109, 113, 5, paintButtonSprites[8], paintButtonSprites[8], ()=>{
-            postcardRendering.exportPostcard("kitgore");
+            get(game).setCurrentRoom('sendPostcardRoom');
         });
 
         let tinyButton = new fontButton(60, 60, 30, 'tiny', ()=>{
@@ -327,7 +334,6 @@
         });
 
         // STAMP MENU INSTANTIATION
-
         let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
@@ -343,11 +349,9 @@
             return output;
         }
 
-
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 0, 10);
-        // stampMenu.addChild(stampGrid);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10);
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
@@ -381,6 +385,22 @@
                 paintRoom.removeObject(stampGrid);
             }
         }
+
+    //----------------SEND POSTCARD ROOM----------------
+        let sendFriendListInstance = new friendListManager(0, 16, 0, get(game), friendButton, (username) => {
+            postcardRendering.exportPostcard(username);
+            get(game).setCurrentRoom('paintRoom');
+        });
+        let sendPostcardRoom = new Room('sendPostcardRoom', 
+            () => {
+                // get(game).syncLocalToGlobalState();
+                sendFriendListInstance.refreshFriends();
+            },
+        );
+        sendPostcardRoom.clearTextOnExit = false;
+
+        sendPostcardRoom.addObject(sendFriendListInstance);
+        // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
 
     //----------------SOCIAL ROOM----------------
        
@@ -444,7 +464,7 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, createItemSlot, null, electro, 0, 2, 2, 10);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, createItemSlot, null, electro, 2, 2, 10);
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
@@ -459,11 +479,11 @@
         );
         let itemInfoDisplayInstance = new itemInfoDisplay(53, 97, 5, tiny);
         let prevPageButton = new Button(0, 42, 5, "prevPageButton", ()=>{
-            inventoryDisplayManagerInstance.setPrevPage();
+            inventoryDisplayManagerInstance.inventoryGrid.setPrevPage();
         });
 
         let nextPageButton = new Button(120, 42, 5, "nextPageButton", ()=>{
-            inventoryDisplayManagerInstance.setNextPage();
+            inventoryDisplayManagerInstance.inventoryGrid.setNextPage();
         });
 
         
@@ -632,7 +652,12 @@
     //ROOM INSTANTIATION
     // create postcardManagerInstance for to handle recieved postcards
     let receivedPostcardManagerInstance = new postcardInboxManager(0, 0, 0, get(game), friendButton, colorPallete, textRendererArray, stampArray);   
-
+    // let nextPageButtonPostcard = new Button(0, 42, 5, "nextPageButton", ()=>{
+    //     receivedPostcardManagerInstance.inventoryGrid.setPrevPage();
+    //     });
+    // let prevPageButtonPostcard = new Button(0, 42, 5, "prevPageButton", ()=>{
+    //     receivedPostcardManagerInstance.inventoryGrid.setPrevPage();
+    // });
     let postOfficeRoom = new Room('postOfficeRoom', () => {
         receivedPostcardManagerInstance.refreshPostcards();
     }, false, () => {
