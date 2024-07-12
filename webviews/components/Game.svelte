@@ -46,7 +46,9 @@
 
         setCurrentRoom(name) {
             this.currentRoom?.exit()
-            inputValue.set(''); // Clear input field
+            if(this.currentRoom && this.currentRoom.clearTextOnExit){
+                inputValue.set('');
+            }
             if (this.rooms[name]) {
                 this.currentRoom = this.rooms[name];
                 this.currentRoomName = name;
@@ -192,6 +194,7 @@
             this.update = updateLogic || this.update;
             this.onActivity = onActivity || this.onActivity;
             this.onInactivity = onInactivity || this.onInactivity;
+            this.clearTextOnExit = true;
             get(game).updateRooms(roomName, this); // Add room to game object
         }
         addAdjacentRoom(room) {

@@ -646,8 +646,8 @@
     }
 
     export class ObjectGrid extends GeneratedObject {
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, visibleX = 0, visibleY = 0, scrollDirection = "vertical", scrollSpeed = 5) {
-            super(generateEmptyMatrix(120, 120), null, x, y, z);
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, mouseScrollable = false) {
+            super(generateEmptyMatrix(1, 1), null, x, y, z);
             this.columns = columns > 0 ? columns : objects.length;
             this.columnSpacing = columnSpacing;
             this.rows = rows > 0 ? rows : Math.ceil(objects.length / this.columns);
@@ -655,92 +655,70 @@
             this.x = x;
             this.y = y;
             this.z = z;
-            this.children = objects;
-            this.visibleX = visibleX;
-            this.visibleY = visibleY;
-            this.scrollDirection = scrollDirection;
-            this.scrollSpeed = scrollSpeed;
-            this.scrollOffsetX = 0;
-            this.scrollOffsetY = 0;
+            this.objects = objects;
+            this.children = [];
             this.renderChildren = false;
-            this.scrollable = true;
-            this.spriteWidth = 120;
-            this.spriteHeight = 120;
             this.hoverWithChildren = true;
             this.passMouseCoords = true;
             this.mouseX = null;
             this.mouseY = null;
             this.renderChildren = true;
-            this.childHeight = this.children.length > 0 ? this.children[0].getHeight() : 0;
-            this.childWidth = this.children.length > 0 ? this.children[0].getWidth() : 0;
+            this.childHeight = this.objects.length > 0 ? this.objects[0].getHeight() : 0;
+            this.childWidth = this.objects.length > 0 ? this.objects[0].getWidth() : 0;
             this.spriteWidth = (this.childWidth + this.columnSpacing) * this.columns;
             this.spriteHeight = (this.childHeight + this.rowSpacing) * this.rows;
-            this.objectTop = 0;
-            this.objectBottom = 128 - this.spriteHeight;
+            this.currentPage = 0;
+            this.pageSize = this.columns * this.rows;
+            this.totalObjects = objects.length;
+            this.scrollable = mouseScrollable;
+            this.mouseScrollable = mouseScrollable;
             this.generateObjectGrid();
         }
 
         getSprite(){
 
         }
-
-        // getSprite() {
-        //     let spritesOut = [];
-        //     if(this.children.length > 0) {
-        //         this.getChildSprites().forEach((sprite) => {
-        //             // console.log("Child sprite: ", sprite)
-        //             if (Array.isArray(sprite)) {
-        //                 spritesOut.push(...sprite);
-        //             //if not an array, push sprite
-        //             } else {
-        //                 spritesOut.push(sprite);
-        //             }
-        //         });
-        //     }
-        //     return spritesOut;
-        // }
-
+        
         onScrollUp() {
-            if (this.scrollDirection === "horizontal") {
-                this.scrollOffsetX += this.scrollSpeed;
-            } else if(this.scrollOffsetY <= this.objectTop) { // Assuming horizontal scrolling, stop at top of page
-                this.scrollOffsetY += this.scrollSpeed;
-
+            console.log("Scroll Up")
+            if(this.mouseScrollable){
+                this.setPrevPage();
             }
-            this.generateObjectGrid(); // Re-generate grid to reflect new positions
+        }
+        onScrollDown() {
+            console.log("Scroll Down")
+            if(this.mouseScrollable){
+                this.setNextPage();
+            }
         }
 
-        onScrollDown() {
-            if (this.scrollDirection === "horizontal") {
-                this.scrollOffsetX -= this.scrollSpeed;
-            } else if(this.scrollOffsetY >= this.objectBottom) { // Assuming horizontal scrolling
-                this.scrollOffsetY -= this.scrollSpeed;
-
+        setNextPage() {
+            console.log("Next Page ", this.currentPage, " ", this.pageSize, " ", this.children.length)
+            if((this.currentPage + 1) * this.pageSize < this.objects.length) {
+                this.currentPage++;
+                this.generateObjectGrid();
             }
-            this.generateObjectGrid(); // Re-generate grid to reflect new positions
+        }
+
+        setPrevPage() {
+            console.log("Prev Page ", this.currentPage, " ", this.pageSize, " ", this.children.length)
+            if(this.currentPage > 0) {
+                this.currentPage--;
+                this.generateObjectGrid();
+            }
         }
 
         generateObjectGrid() {
-            let currentX = this.scrollOffsetX;
-            let currentY = this.scrollOffsetY;
-            // console.log("CURRENTX: ", currentX, "CURRENTY: ", currentY);
-
+            this.children = this.objects.slice(this.currentPage * this.pageSize, (this.currentPage + 1) * this.pageSize);
             for (let row = 0; row < this.rows; row++) {
                 for (let column = 0; column < this.columns; column++) {
                     let index = row * this.columns + column;
                     if (index >= this.children.length) break;
-
-                    let objectX = currentX + (column * (this.childWidth + this.columnSpacing));
-                    let objectY = currentY + (row * (this.childHeight + this.rowSpacing));
+                    let objectX = (column * (this.childWidth + this.columnSpacing));
+                    let objectY = (row * (this.childHeight + this.rowSpacing));
                     this.children[index].setCoordinate(objectX, objectY, this.z);
                 }
             }
-
-        }
-
-        updateObjects(objectsArray){
-            this.children = objectsArray;
-            this.generateObjectGrid();
         }
     }
 
@@ -780,8 +758,10 @@
         }
     }
 
+    //TODO: standardize parameters to match buttonList (coordinates first)
     export class textButtonList extends ObjectGrid {
-        constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation = "vertical", scroll = false, scrollSpeed = 0, visibleX = 0, visibleY = 0) {
+        
+        constructor(buttonTexts, buttonFunctions, buttonConstructor, buttonWidth, buttonHeight, spacing, x, y, z, orientation) {
             let buttons = [];
             for(let i = 0; i < buttonTexts.length; i++){
                 let button = new buttonConstructor(x, y, z, buttonTexts[i], buttonFunctions[i], buttonWidth, buttonHeight);
@@ -791,13 +771,15 @@
                 throw new Error("There are more button functions than button texts");
             }
             if(orientation === "horizontal"){
-                super(buttons.length, spacing, 1, 0, x, y, z, buttons, visibleX, visibleY, "horizontal", scrollSpeed);
+                super(buttons.length, spacing, 1, 0, x, y, z, buttons);
             }
             else{
-                super(1, 0, buttons.length, spacing, x, y, z, buttons, visibleX, visibleY, "vertical", scrollSpeed);
+                super(1, 0, buttons.length, spacing, x, y, z, buttons);
             }
         }
     }
+
+    // export class ScrollableButtonList extends <-- finish
 
     export class ButtonList extends ObjectGrid {
         constructor(x, y, z, orientation, buttonSpacing, ButtonConstructor, ...buttonParameters) {
@@ -811,9 +793,9 @@
                 buttons.push(button);
             }
             if (orientation === "horizontal") {
-                super(buttons.length, buttonSpacing, 1, 0, x, y, z, buttons, 0, 0, "horizontal", 0);
+                super(buttons.length, buttonSpacing, 1, 0, x, y, z, buttons);
             } else {
-                super(1, 0, buttons.length, buttonSpacing, x, y, z, buttons, 0, 0, "vertical", 0);
+                super(1, 0, buttons.length, buttonSpacing, x, y, z, buttons);
             }
         }
     }

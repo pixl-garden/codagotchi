@@ -1,6 +1,6 @@
 
 <script context="module">
-    import { PixelCanvas } from './PostOffice.svelte';
+    import { DrawableCanvas } from './PostOffice.svelte';
 
     let mouseExited = false;
     let lastHoveredObject = null;
@@ -151,7 +151,7 @@
     }
 
     export function handleMouseDown(event, gameInstance) {
-        if (newHoveredObject instanceof PixelCanvas) {
+        if (newHoveredObject instanceof DrawableCanvas) {
             newHoveredObject.saveCurrentCanvas();
         }
         event.preventDefault();
@@ -177,16 +177,16 @@
             // Ensures hoveredObject is the one being dragged
             if (newHoveredObject && newHoveredObject === activeDragObject) {
                 // console.log("DRAGGING")
-                // Check if hoveredObject is an instance of PixelCanvas
-                if (newHoveredObject instanceof PixelCanvas) {
+                // Check if hoveredObject is an instance of DrawableCanvas
+                if (newHoveredObject instanceof DrawableCanvas) {
                     // console.log("DRAGGING ON CANVS")
-                    // For PixelCanvas, we use drawLine to handle dragging
+                    // For DrawableCanvas, we use drawLine to handle dragging
                     if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
                         // Draw line from last coordinates to current
                         newHoveredObject.drawLine(lastCoordinates.x, lastCoordinates.y, gridX, gridY);
                     }
                 } else {
-                    // Handle other objects that are not PixelCanvas, if necessary
+                    // Handle other objects that are not DrawableCanvas, if necessary
                 }
                 // Update lastCoordinates with the current grid coordinates
                 lastCoordinates = { x: gridX, y: gridY };

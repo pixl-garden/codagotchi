@@ -53,10 +53,11 @@
     }
 
     export class friendListManager extends GeneratedObject {
-        constructor(x, y, z, gameRef, buttonConstructor){
+        constructor(x, y, z, gameRef, buttonConstructor, buttonFunction = () => {}){
             super(generateEmptyMatrix(1, 1), null, x, y, z)
             this.gameRef = gameRef;
             this.buttonConstructor = buttonConstructor;
+            this.buttonFunction = buttonFunction;
             this.refreshFriends();
         }
 
@@ -64,7 +65,9 @@
             const friends = this.gameRef.refreshInbox()["friends"];
             const friendUsernames = Object.values(friends).map(item => item.friendUsername);
             const friendUids = Object.values(friends).map(item => item.friendUid);
-            const friendButtonListParams = friendUsernames.map(username => [username, () => {}]);
+            // const friendButtonListParams = friendUsernames.map(username => [username, this.buttonFunction(username)]);
+            const friendButtonListParams = friendUsernames.map(username => [username, () => this.buttonFunction(username)]);
+
             console.log(friendButtonListParams)
             let friendButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...friendButtonListParams)
             
