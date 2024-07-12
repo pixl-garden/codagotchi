@@ -21,9 +21,9 @@
             this.postcardYOffset = y + (height - this.postcardHeight) / 2;
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
-            this.frontDrawableCanvas = postcardObject === null ? new DrawableCanvas(this.postcardXOffset - x, this.postcardYOffset - y, z, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
+            this.frontDrawableCanvas = postcardObject === null ? new DrawableCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
                                                           : new RenderedCanvas(x, y, z, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
-            this.backDrawableCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, z, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
+            this.backDrawableCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
             this.currentCanvas = this.frontDrawableCanvas;
             this.children.push(this.currentCanvas);
             this.stateQueue = [];
@@ -668,7 +668,7 @@
             this.textRendererArray = textRendererArray;
             this.stampArray = stampArray;
             this.postcardButtonList = null;
-            this.pageLimit = 3;
+            this.pageLimit = 5;
             this.refreshPostcards();
             this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 0, this.colorArray, this.textRendererArray, this.stampArray, () => {
                 this.children = [this.postcardButtonList]; //function to close the postcard display
