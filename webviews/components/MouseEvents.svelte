@@ -27,9 +27,10 @@
         let foundObjects = [];
         let foundObjectFlag = false;
 
-        const findObjectsRecursively = (obj, parent = null, parentX = 0, parentY = 0) => {
+        const findObjectsRecursively = (obj, parent = null, parentX = 0, parentY = 0, parentZ = 0) => {
             let objX = parentX + obj.x;
             let objY = parentY + obj.y;
+            let objZ = parentZ + obj.z;
             let childFound = false;
             if(parent != null){
                 parent.hoveredChild = obj;
@@ -64,7 +65,7 @@
                 let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
                 for (let child of children) {
                     // Recursively check each child
-                    if (findObjectsRecursively(child, obj, objX, objY)) {
+                    if (findObjectsRecursively(child, obj, objX, objY, objZ)) {
                         childFound = true; // A child (or deeper descendant) is hovered, no need to check further siblings
                         break;
                     }
@@ -127,7 +128,6 @@
             }
         }
 
-        // console.log(foundObjects);
         for(let i = 0; i < foundObjects.length; i++){
             // if(foundObjects[i].passMouseCoords){
             //     foundObjects[i].mouseX = xPixelCoord;

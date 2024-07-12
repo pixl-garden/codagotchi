@@ -148,33 +148,33 @@
         }
 
         // Transition the object's opacity to a new value, transition speed is always positive
-        startOpacityTransition(newOpacity, transitionSpeed){
-            if(newOpacity < 0 || newOpacity > 1 || transitionSpeed < 0 || transitionSpeed > 1){
+        startOpacityTransition(newOpacity, transitionSpeed, curveIntensity = 0) {
+            if (newOpacity < 0 || newOpacity > 1 || transitionSpeed < 0 || transitionSpeed > 1) {
                 console.error("Opacity and transition speed must be between 0 and 1");
-            };
-            this.goalOpacity = newOpacity;
-            if(this.opacity != this.goalOpacity) {                
-                this.opacityTransitionSpeed = transitionSpeed;
-                this.isOpacityTransitioning = true;
+                return;
             }
+            this.startOpacity = this.opacity; // Save current opacity as starting point
+            this.goalOpacity = newOpacity;
+            this.opacityTransitionSpeed = transitionSpeed;
+            this.curveIntensity = Math.max(0, Math.min(curveIntensity, 1)); // Ensure curveIntensity is within [0,1]
+            this.isOpacityTransitioning = true;
+            this.transitionProgress = 0;
         }
 
-        updateOpactity(){
-            if(this.isOpacityTransitioning) {
-                if(this.opacity < this.goalOpacity){
-                    this.opacity += this.opacityTransitionSpeed;
-                    if(this.opacity >= this.goalOpacity){
-                        this.opacity = this.goalOpacity;
-                        this.isOpacityTransitioning = false;
-                    }
+
+        updateOpacity() {
+            if (this.isOpacityTransitioning) {
+                this.transitionProgress += this.opacityTransitionSpeed;
+                if (this.transitionProgress >= 1) {
+                    this.opacity = this.goalOpacity;
+                    this.isOpacityTransitioning = false;
+                    return;
                 }
-                else if(this.opacity > this.goalOpacity){
-                    this.opacity -= this.opacityTransitionSpeed;
-                    if(this.opacity <= this.goalOpacity){
-                        this.opacity = this.goalOpacity;
-                        this.isOpacityTransitioning = false;
-                    }
-                }
+
+                let sineAdjustment = Math.sin(this.transitionProgress * Math.PI / 2); // sine curve from 0 to 1 to 0
+                let transitionFactor = (1 - this.curveIntensity) * this.transitionProgress + this.curveIntensity * sineAdjustment;
+
+                this.opacity = this.startOpacity + (this.goalOpacity - this.startOpacity) * transitionFactor;
             }
         }
 
@@ -182,7 +182,7 @@
             if(this.isMoving){
                 this.updatePosition();
             }
-            this.updateOpactity();
+            this.updateOpacity();
             // Avoid unneccessary frame update if current state only has one frame and there are no queued states
             if(this.state.length <= 1 && this.stateQueue.length == 0){
                 return;
@@ -646,7 +646,7 @@
     }
 
     export class ObjectGrid extends GeneratedObject {
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, mouseScrollable = false) {
+        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, objects, scrollable = false) {
             super(generateEmptyMatrix(1, 1), null, x, y, z);
             this.columns = columns > 0 ? columns : objects.length;
             this.columnSpacing = columnSpacing;
@@ -670,8 +670,7 @@
             this.currentPage = 0;
             this.pageSize = this.columns * this.rows;
             this.totalObjects = objects.length;
-            this.scrollable = mouseScrollable;
-            this.mouseScrollable = mouseScrollable;
+            this.scrollable = scrollable
             this.generateObjectGrid();
         }
 
@@ -680,14 +679,12 @@
         }
         
         onScrollUp() {
-            console.log("Scroll Up")
-            if(this.mouseScrollable){
+            if(this.scrollable){
                 this.setPrevPage();
             }
         }
         onScrollDown() {
-            console.log("Scroll Down")
-            if(this.mouseScrollable){
+            if(this.scrollable){
                 this.setNextPage();
             }
         }
@@ -782,8 +779,14 @@
     // export class ScrollableButtonList extends <-- finish
 
     export class ButtonList extends ObjectGrid {
-        constructor(x, y, z, orientation, buttonSpacing, ButtonConstructor, ...buttonParameters) {
+        constructor(x, y, z, orientation, buttonSpacing, ButtonConstructor, pageLimit = null, ...buttonParameters) {
             let buttons = [];
+            let columns;
+            if(pageLimit != null) {
+                columns = pageLimit;
+            } else {
+                columns = buttons.length;
+            }
             for (let i = 0; i < buttonParameters.length; i++) {
                 // Ensure buttonParameters[i] is an array
                 if (!Array.isArray(buttonParameters[i])) {
@@ -793,10 +796,13 @@
                 buttons.push(button);
             }
             if (orientation === "horizontal") {
-                super(buttons.length, buttonSpacing, 1, 0, x, y, z, buttons);
-            } else {
-                super(1, 0, buttons.length, buttonSpacing, x, y, z, buttons);
+                super(columns, buttonSpacing, 1, 0, x, y, z, buttons);
+            }  else {
+                super(1, 0, columns, buttonSpacing, x, y, z, buttons);    
             }
+            
+            this.height;
+            this.width;
         }
     }
 

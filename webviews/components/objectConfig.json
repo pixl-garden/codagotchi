@@ -296,5 +296,13 @@
             "default": [0,1,2,3],
             "hovered": [0,1,2,3]
         }
+    },
+    "blackground": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "blackground.png",
+        "states": {
+            "default": [0]
+        }
     }
 }

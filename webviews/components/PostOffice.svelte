@@ -21,9 +21,9 @@
             this.postcardYOffset = y + (height - this.postcardHeight) / 2;
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
-            this.frontDrawableCanvas = postcardObject === null ? new DrawableCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
-                                                          : new RenderedCanvas(x, y, 10, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
-            this.backDrawableCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
+            this.frontDrawableCanvas = postcardObject === null ? new DrawableCanvas(this.postcardXOffset - x, this.postcardYOffset - y, z, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
+                                                          : new RenderedCanvas(x, y, z, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
+            this.backDrawableCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, z, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
             this.currentCanvas = this.frontDrawableCanvas;
             this.children.push(this.currentCanvas);
             this.stateQueue = [];
@@ -668,8 +668,9 @@
             this.textRendererArray = textRendererArray;
             this.stampArray = stampArray;
             this.postcardButtonList = null;
+            this.pageLimit = 3;
             this.refreshPostcards();
-            this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 20, this.colorArray, this.textRendererArray, this.stampArray, () => {
+            this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 0, this.colorArray, this.textRendererArray, this.stampArray, () => {
                 this.children = [this.postcardButtonList]; //function to close the postcard display
             });
         }
@@ -677,7 +678,7 @@
         // Function to handle postcard flipping animation
         nextFrame(){
             if(this.receivedPostcardDisplay.postcardRendering != null){
-                this.receivedPostcardDisplay.postcardRendering.nextFrame();
+                this.receivedPostcardDisplay.nextFrame();
             }
         }
 
@@ -695,7 +696,7 @@
                     this.children.push(this.receivedPostcardDisplay);
             }]);
             
-            this.postcardButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...postcardButtonListParams)
+            this.postcardButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, this.pageLimit, ...postcardButtonListParams)
             this.children = [this.postcardButtonList];
         }
     }
@@ -706,33 +707,43 @@
             this.colorArray = colorArray;
             this.textRendererArray = textRendererArray;
             this.stampArray = stampArray;
-            this.saveButton = new Button(37, 108, 5, 'saveButton', () => {
+            this.saveButton = new Button(37, 108, 9, 'saveButton', () => {
                 closeFunction();
+                this.blackFadeIn.opacity = 0; 
+
             });
-            this.discardButton = new Button(74, 108, 5, 'discardButton',  () => {
+            this.discardButton = new Button(74, 108, 9, 'discardButton',  () => {
                 closeFunction();
+                this.blackFadeIn.opacity = 0; 
+
             });
-            this.flipButton = new Button(55, 108, 5, 'flipButton', () => {
+            this.flipButton = new Button(55, 108, 9, 'flipButton', () => {
                 this.postcardRendering.flipPostcard();
             });
             this.postcardRendering = null;
+            this.blackFadeIn = new Background('blackground', 0, 0, 8, () => {} );
+            this.blackFadeIn.opacity = 0; 
+            // this.children.push(this.blackFadeIn);
         }
 
         nextFrame(){
-            if(this.postcardRendering != null){
+            if(this.postcardRendering != null) {
                 this.postcardRendering.nextFrame();
             }
+            this.blackFadeIn.nextFrame();
         }
 
         // Recreate postcard rendering from postcard object and modify using
             // front drawing, set stamp, stamp position, text, text color, and text renderer
         setPostcard(postcardObject) { 
+            this.blackFadeIn.opacity = 0; 
             this.postcardRendering = new postcardRenderer(4, 16, 10, 120, 80, 120, 80, this.textRendererArray[postcardObject.textRendererIndex], null, this.colorArray, this.stampArray, this.textRendererArray, postcardObject);
             this.postcardRendering.backDrawableCanvas.setStamp(new Item(this.stampArray[postcardObject.stampIndex]));
             this.postcardRendering.setTextRenderer(this.textRendererArray[postcardObject.textRendererIndex]);
             this.postcardRendering.backDrawableCanvas.setColor(this.colorArray[postcardObject.textColorIndex]);
             this.postcardRendering.backDrawableCanvas.setUserText(postcardObject.text);
-            this.children = [this.saveButton, this.discardButton, this.flipButton, this.postcardRendering]; // Adds postcard to children
+            this.children = [this.saveButton, this.discardButton, this.flipButton, this.postcardRendering, this.blackFadeIn]; // Adds postcard to children
+            this.blackFadeIn.startOpacityTransition(0.75, 0.025, 1);
         }
     }
 </script>
