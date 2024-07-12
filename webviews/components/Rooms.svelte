@@ -445,8 +445,13 @@
         function addTestableItems() {
             for(let i = 2; i <= 16; i++) {
                 get(game).addStackableItem(`test${i}`, 2);
+
             }
+            get(game).addStackableItem(`ore1`, 2);
+            get(game).addStackableItem(`ingot1`, 2);
         }
+
+
 
         addTestableItems();
         
@@ -469,7 +474,7 @@
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
         
-        let inventoryTabList = new ButtonList(26, 2, 5, "horizontal", 2, inventoryTabButton, 
+        let inventoryTabList = new ButtonList(26, 2, 5, "horizontal", 2, inventoryTabButton, null,
             [fishSprites[1], fishSprites[1], ()=>{
                 inventoryDisplayManagerInstance.setTab("food");
             }],
@@ -651,20 +656,29 @@
 
     //ROOM INSTANTIATION
     // create postcardManagerInstance for to handle recieved postcards
+
+    // let blackFadeIn = new Background('blackground', 0, 0, 6, () => {blackFadeIn.startOpacityTransition(0.5, 0.05)} );
+    // blackFadeIn.opacity = 0;
+
     let receivedPostcardManagerInstance = new postcardInboxManager(0, 0, 0, get(game), friendButton, colorPallete, textRendererArray, stampArray);   
-    // let nextPageButtonPostcard = new Button(0, 42, 5, "nextPageButton", ()=>{
-    //     receivedPostcardManagerInstance.inventoryGrid.setPrevPage();
-    //     });
-    // let prevPageButtonPostcard = new Button(0, 42, 5, "prevPageButton", ()=>{
-    //     receivedPostcardManagerInstance.inventoryGrid.setPrevPage();
-    // });
+    let nextPageButtonPostcard = new Button(100, 110, 5, "nextPageButton", ()=>{
+        receivedPostcardManagerInstance.postcardButtonList.setNextPage();
+        });
+    let prevPageButtonPostcard = new Button(20, 110, 5, "prevPageButton", ()=>{
+        receivedPostcardManagerInstance.postcardButtonList.setPrevPage();
+        // blackFadeIn.startOpacityTransition(0.5, 0.05);
+
+    });
     let postOfficeRoom = new Room('postOfficeRoom', () => {
         receivedPostcardManagerInstance.refreshPostcards();
     }, false, () => {
         receivedPostcardManagerInstance.nextFrame();
+        // blackFadeIn.nextFrame();
     });
 
-    postOfficeRoom.addObject(receivedPostcardManagerInstance, backToMain2)
+
+
+    postOfficeRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
 
 }
 

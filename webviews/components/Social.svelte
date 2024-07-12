@@ -19,7 +19,7 @@
             const friendRequestUids = requests.map(item => item.fromUid);
             // Transform into button list parameters (arrays of [username, function])
             const requestButtonListParams = friendRequestUsernames.map(username => [username, () => {}]);
-            let requestButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...requestButtonListParams)
+            let requestButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, null, ...requestButtonListParams)
             for (let requestButton of requestButtonList.children){
                 requestButton.hoverWithChildren = true;
                 requestButton.text = friendRequestUsernames[requestButtonList.children.indexOf(requestButton)];
@@ -69,7 +69,7 @@
             const friendButtonListParams = friendUsernames.map(username => [username, () => this.buttonFunction(username)]);
 
             console.log(friendButtonListParams)
-            let friendButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, ...friendButtonListParams)
+            let friendButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, null, ...friendButtonListParams)
             
             // This loop can be removed I think????
             for (let friendButton of friendButtonList.children){
