@@ -20,72 +20,66 @@
         return { gridX, gridY, pixelSize };
     }
 
-    // Get the object at the given coordinates
+    // Get the object with the highest z value at the given coordinates
+    // If singular object is found returned as [object]
+    // If object has a parent with hoverWithChildren property, returned as [object, parent]
+        // This is to allow for hover effects on parent objects when their children are hovered
+    // Click actions are performed on the first object of the returned array only
     function getObjectAt(x, y, gameInstance) {
-        // maybe switch to a hashmap for faster object lookup
         let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
-        let foundObjects = [];
-        let foundObjectFlag = false;
+        let highestFoundObject = null;
+        let highestFoundObjectZ = -1000;
+        let highestFoundObjectParent = null;
 
         const findObjectsRecursively = (obj, parent = null, parentX = 0, parentY = 0, parentZ = 0) => {
             let objX = parentX + obj.x;
             let objY = parentY + obj.y;
-            let objZ = parentZ + obj.z;
-            let childFound = false;
-            if(parent != null){
-                parent.hoveredChild = obj;
-            }
+            let objZ = parentZ + obj.z + 1; // + 1 Could be removed but helps ensure that children are above parents
+            obj.hoveredChild = null;
 
             // Check if the coordinates are within the object's bounds
             if (x >= objX && x <= objX + obj.spriteWidth && 
                 y >= objY && y <= objY + obj.spriteHeight && obj.mouseInteractions) {
-                if (parent && parent.hoverWithChildren) {
-                    // If a parent has hoverWithChildren, add both the child and the parent to foundObjects
-                    if (!foundObjects.includes(parent)) foundObjects.push(parent);
-                    // if (parent.passMouseCoords) {
-                    //     parent.mouseX = x;
-                    //     parent.mouseY = y;
-                    // }
-                }
-                // Add the object if it's directly hovered or if it's a hovered child with hoverWithChildren parent
-                foundObjects.unshift(obj);
-                foundObjectFlag = true;
-                if (parent !== null) {
-                    childFound = true;
-                }
-
-                if (obj.passMouseCoords) {
-                    obj.mouseX = x;
-                    obj.mouseY = y;
+                if(objZ > highestFoundObjectZ){
+                    highestFoundObject = obj;
+                    highestFoundObjectZ = objZ;
+                    if (parent && parent.hoverWithChildren) {
+                        // If a parent has hoverWithChildren, add both the child and the parent to foundObjects
+                        highestFoundObjectParent = parent;
+                        parent.hoveredChild = obj;
+                    }
+                    else {
+                        highestFoundObjectParent = null;
+                    }
                 }
             }
-
             // Recursively check children if they exist
             if (obj.getChildren().length > 0) {
                 let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
                 for (let child of children) {
                     // Recursively check each child
-                    if (findObjectsRecursively(child, obj, objX, objY, objZ)) {
-                        childFound = true; // A child (or deeper descendant) is hovered, no need to check further siblings
-                        break;
-                    }
+                    findObjectsRecursively(child, obj, objX, objY, objZ);
                 }
             }
-            return childFound;
         };
 
         // Loop through all objects and initiate the recursive search
-        // objects.forEach(obj => findObjectsRecursively(obj));
         for (let i = 0; i < objects.length; i++) {
             findObjectsRecursively(objects[i]);
-            if (foundObjectFlag) break;
         }
-
-        foundObjects = foundObjects.sort((a, b) => b.getZ() - a.getZ());
-        // console.log("FOUND OBJECTS: ", foundObjects)
-
-        // Return based on the returnMultiple flag
-        return foundObjects;
+        
+        if (highestFoundObject?.passMouseCoords) {
+            highestFoundObject.mouseX = x;
+            highestFoundObject.mouseY = y;
+        }
+        if (highestFoundObjectParent?.passMouseCoords) {
+            highestFoundObjectParent.mouseX = x;
+            highestFoundObjectParent.mouseY = y;
+        }
+        if(highestFoundObjectParent){
+            return [highestFoundObject, highestFoundObjectParent];
+        }
+        return [highestFoundObject];
     }
 
     // Simplifying hover logic
@@ -127,14 +121,6 @@
                 childObjects[i].whileHover();
             }
         }
-
-        for(let i = 0; i < foundObjects.length; i++){
-            // if(foundObjects[i].passMouseCoords){
-            //     foundObjects[i].mouseX = xPixelCoord;
-            //     foundObjects[i].mouseY = yPixelCoord;
-            // }
-            // console.log("FOUND OBJECT: ", foundObjects[i], "X: ", foundObjects[i].mouseX, "Y: ", foundObjects[i].mouseY);
-        }
     }
 
 
@@ -173,13 +159,10 @@
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
         if (isMouseDown) {
-            // console.log("HOVERED OBJECT: ", newHoveredObject, "ACTIVE DRAG OBJECT: ", activeDragObject)
             // Ensures hoveredObject is the one being dragged
             if (newHoveredObject && newHoveredObject === activeDragObject) {
-                // console.log("DRAGGING")
                 // Check if hoveredObject is an instance of DrawableCanvas
                 if (newHoveredObject instanceof DrawableCanvas) {
-                    // console.log("DRAGGING ON CANVS")
                     // For DrawableCanvas, we use drawLine to handle dragging
                     if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
                         // Draw line from last coordinates to current
@@ -212,7 +195,6 @@
 
     function getScrollableObjectAt(x, y, gameInstance){
         let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
-
         let foundObjects = [];
 
         const findScrollableObjectsRecursively = (obj, parent = null) => {

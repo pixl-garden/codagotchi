@@ -473,7 +473,7 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, -1, itemArray, createItemSlot, null, electro, 2, 2, 10);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, itemArray, createItemSlot, null, electro, 2, 2, 10);
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');

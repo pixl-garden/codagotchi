@@ -362,6 +362,12 @@
             this.startIndex = 0;
             this.gameRef = gameRef
             this.currentTabArray = this.gameRef.inventory.getItemsByType(this.currentTab);
+            this.inventoryGrid.whileHover = () => {
+                if(this.inventoryGrid.hoveredItem != null){
+                    this.scaledItem.setItem(this.inventoryGrid.hoveredItem);
+                    this.itemInfoDisplay.setItemInfo(this.inventoryGrid.hoveredItem.displayName);
+                }
+            }
         }
 
         setTab(tab){
@@ -372,10 +378,7 @@
         }
 
         whileHover(){
-            if(this.inventoryGrid.hoveredItem != null){
-                this.scaledItem.setItem(this.inventoryGrid.hoveredItem);
-                this.itemInfoDisplay.setItemInfo(this.inventoryGrid.hoveredItem.displayName);
-            }
+
         }
     }
 
