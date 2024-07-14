@@ -414,7 +414,7 @@
             this.itemName = itemName;
         }
         getSprite(){
-            let textSprite = this.textRenderer.renderText(this.itemName);
+            let textSprite = this.textRenderer.renderText(this.itemName, {overflowPosition: "right", position: "left"});
             return new Sprite(textSprite, this.x, this.y, this.z);
         }
     }
