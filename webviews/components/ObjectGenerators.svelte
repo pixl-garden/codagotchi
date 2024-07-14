@@ -106,10 +106,10 @@
         }
 
     
-    export function generateStatusBarClass( width, height, borderColor, bgColor, statusBarColor, roundness ) {
+    export function generateStatusBarClass( width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness ) {
         return class StatusBar extends GeneratedObject {
             constructor(x, y, z) {
-                const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, statusBarColor, roundness);
+                const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness);
 
                 // Initial state management
                 let states = {};
