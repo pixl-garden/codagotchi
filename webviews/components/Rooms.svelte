@@ -55,6 +55,12 @@
         const invisibleMiningButton = generateInvisibleButtonClass(34, 57);
         const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
         const changePageButton = generateIconButtonClass(8, 16, 'transparent', 'transparent', 'transparent', 'transparent');
+        // const mainMenuIconLarge = generateInvisibleButtonClass(25, 25);
+        // const mainMenuIconMeduim = generateInvisibleButtonClass(18, 18);
+        // const mainMenuIconSmall = generateInvisibleButtonClass(10, 10);
+
+
+
 
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
@@ -68,13 +74,53 @@
         const backToPaintRoom = new singleLetterButton(0, 112, 10, '<', () => {
             get(game).setCurrentRoom('paintRoom');
         });
+
+        // TODO: add button to friends and postcard rooms
+        // const backToPostOffice = new singleLetterButton(0, 112, 10, '<', () => {
+        //     get(game).setCurrentRoom('postOfficeRoom');
+        // });
+
+        // TODO: add button to mining and fishing rooms
+        // const backToMapRoom = new singleLetterButton(0, 112, 10, '<', () => {
+        //     get(game).setCurrentRoom('mapRoom');
+        // });
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
         let defaultMenuParams = ["#59585a", "#2b2a2b", Colors.black, 2, 5, 3, 1];
 
     //----------------MAIN ROOM----------------
-        //STATUS BAR INSTANTIATION
-        const StatusBar = generateStatusBarClass(107, 12, Colors.black, Colors.grey, '#40D61A', 2);
-        const statusBar = new StatusBar(20, 2, 0);
+        //STATUS BAR INSTANTIATIONS
+        const StatusBar = generateStatusBarClass(50, 7,  Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.green, 1);
+        const manaBar = new StatusBar(77, 53, 0);
+        const hungerBar = new StatusBar(77, 62, 0);
+        const healthBar = new StatusBar(77, 71, 0);
+
+        // // MAIN MENU ICONS
+        const manaIcon = new Background('manaIcon', 67, 50, 0);
+        const hungerIcon = new Background('hungerIcon', 65, 61, 0);
+        const healthIcon = new Background('heartIcon', 67, 71, 0);
+
+        const levelBar = new Background('levelBar', 96, 4, 0);
+        const numTest = new Background('numTest', 106, 12, 1);
+
+        const greyBackground = new Background('greyBackground', 0, 0, -20, () => {} );
+        // greyBackground.opacity = 0.7;
+
+
+        // // MAIN MENU BUTTON INSTANTIATIONS
+        const settingsButton = new Button(2, 4, 0, 'settingsIcon', () => {get(game).setCurrentRoom('settingsRoom')});
+        const inventoryButton = new Button(5, 90, 0, 'inventoryIcon', () => {get(game).setCurrentRoom('inventoryRoom')});
+        const worldButton = new Button(30, 100, 0, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
+        const skillTreeButton = new Button(53, 101, 0, 'skillTreeIcon', () => {});
+        const paintRoomButton = new Button(80, 103, 0, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
+        const postOfficeButton = new Button(102, 94, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom')});
+
+        const leftPetButton = new Button(2, 66, 0, 'leftPetArrow', () => {
+
+        });
+        const rightPetButton = new Button(54, 66, 0, 'rightPetArrow', () => {
+
+        });
+
         //MAIN MENU INSTANTIATION
         const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Mining', 'PostOffice', 'Close'];
         const mainMenuButtonFunctions = [() => {get(game).setCurrentRoom('settingsRoom')}, 
@@ -97,14 +143,17 @@
             get(game).getCurrentRoom().addObject(mainMenu);
         });
         //PET INSTANTIATION
-        let petObject = new Pet('pearguin', 36, 54, 0, get(game));
+        let petObject = new Pet('pearguin', 8, 40, 0, get(game));
         //ROOM INSTANTIATION
         let mainRoom = new Room('mainRoom', () => {
-            petObject.setCoordinate(36, 54, 0);
+            petObject.setCoordinate(8, 40, 0);
         }, false, () => {
             petObject.nextFrame();
         });
-        mainRoom.addObject(petObject, mainMenuButton, statusBar);
+        mainRoom.addObject(greyBackground, manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, levelBar, numTest, settingsButton,
+            inventoryButton, worldButton, skillTreeButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton
+        );
+        // mainRoom.addObject(petObject, mainMenuButton);
         
     //----------------SETTINGS ROOM----------------
         //SETTINGS MENU INSTANTIATION
@@ -170,8 +219,6 @@
 
     //----------------PAINT ROOM----------------
 
-
-        
         let colorPallete = [
             Colors.red,  
             Colors.orange,  
@@ -233,7 +280,6 @@
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
-            petObject.setCoordinate(36, 54, 0);
         });
 
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, colorPallete,
@@ -655,10 +701,33 @@
     miningRoom.addObject(backToMain2, miningBackground, miningInstance, beginMiningButton, petObject, miningNotif);
 
     // ---------------- POST OFFICE ROOM ----------------
+    let postOfficeRoom = new Room('postOfficeRoom', () => {}, false, () => {});
+
+    const postOfficeButtonTexts = ['Friends', 'Postcards'];
+        const postOfficeButtonFunctions = [
+        () => {get(game).setCurrentRoom('friendRoom')}, 
+        () => {get(game).setCurrentRoom('recievedPostcardsRoom')}
+    ]
+    const postOfficeButtonList = new textButtonList(postOfficeButtonTexts, postOfficeButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
+    
+
+    postOfficeRoom.addObject(postOfficeButtonList, backToMain2);
 
 
+    // // MAP ROOM INSTANTIATION
+    let mapRoom = new Room('mapRoom', () => {}, false, () => {});
 
-    //ROOM INSTANTIATION
+    const mapButtonTexts = ['Mining', 'Fishing'];
+        const mapButtonFunctions = [
+        () => {get(game).setCurrentRoom('caveEntranceRoom')}, 
+        () => {get(game).setCurrentRoom('fishingRoom')}
+    ]
+    const mapButtonList = new textButtonList(mapButtonTexts, mapButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
+    
+
+    mapRoom.addObject(mapButtonList, backToMain2);
+
+    // RECIEVED POSTCARDS ROOM INSTANTIATION
     // create postcardManagerInstance for to handle recieved postcards
 
     // let blackFadeIn = new Background('blackground', 0, 0, 6, () => {blackFadeIn.startOpacityTransition(0.5, 0.05)} );
@@ -673,16 +742,14 @@
         // blackFadeIn.startOpacityTransition(0.5, 0.05);
 
     });
-    let postOfficeRoom = new Room('postOfficeRoom', () => {
+    let recievedPostcardsRoom = new Room('recievedPostcardsRoom', () => {
         receivedPostcardManagerInstance.refreshPostcards();
     }, false, () => {
         receivedPostcardManagerInstance.nextFrame();
         // blackFadeIn.nextFrame();
     });
 
-
-
-    postOfficeRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
+    recievedPostcardsRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
 
 }
 

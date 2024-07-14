@@ -1,5 +1,7 @@
 <script context='module'>
     import { spriteReader } from "./SpriteReader.svelte";
+    import * as Colors from './colors.js';
+
 
     export function generateEmptyMatrix(width, height) {
         const sprite = [];
@@ -212,20 +214,29 @@
         return statusBarSprite;
     }
 
-    export function generateStatusBarSpriteSheet( width, height, borderColor, bgColor, statusBarColor, roundness ) {
-        let spriteSheet = [];
 
-        for (let i = 0; i < width - 2; i++) {
-            const statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, i, roundness);
-            if (i === 0) {
-                spriteSheet = statusBarSprite;
-            } else {
-                spriteSheet = concatenateMatrixes(spriteSheet, statusBarSprite);
-            }
+    export function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness) {
+    let spriteSheet = [];  // Ensure spriteSheet is an array
+    for (let i = 0; i < width - 2; i++) {
+        let statusBarSprite;
+        if (i < (width - 2) / 3) {
+            statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, firstColor, i, roundness);
+        } else if (i < (width - 2) * (2 / 3)) { 
+            statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, secondColor, i, roundness);
+        } else {
+            statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, thirdColor, i, roundness);
         }
 
-        return spriteReader(width, height, spriteSheet);
+        if (i === 0) {
+            spriteSheet = statusBarSprite;  // Initialize with the first sprite as an element in an array
+        } else {
+            spriteSheet = concatenateMatrixes(spriteSheet, statusBarSprite)  // Assume each sprite can be pushed if they are not already matrices
+        }
     }
+
+    // Assuming spriteSheet now contains an array of matrices or sprites, process it accordingly
+    return spriteReader(width, height, spriteSheet);
+}
 
     export function generateTextInputMatrix(width, height, bgColor, borderColor, textSprite, roundness, textXOffset, borderThickness = 1) {
         // Ensure the border thickness doesn't exceed half the width or height of the sprite

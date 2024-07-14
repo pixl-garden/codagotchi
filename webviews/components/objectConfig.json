@@ -304,5 +304,134 @@
         "states": {
             "default": [0]
         }
+    },
+    "postOfficeIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "paintRoomIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [2],
+            "hovered": [3]
+        }
+    },
+    "worldIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [4],
+            "hovered": [5]
+        }
+    },
+    "inventoryIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [6],
+            "hovered": [7]
+        }
+    },
+    "trophyIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [8],
+            "hovered": [9]
+        }
+    },
+    "skillTreeIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [10],
+            "hovered": [11]
+        }
+    },
+    "settingsIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [12],
+            "hovered": [13]
+        }
+    },
+    "leftPetArrow": {
+        "spriteWidth": 8,
+        "spriteHeight": 15,
+        "spriteSheet": "petArrows.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "rightPetArrow": {
+        "spriteWidth": 8,
+        "spriteHeight": 15,
+        "spriteSheet": "petArrows.png",
+        "states": {
+            "default": [2],
+            "hovered": [3]
+        }
+    },
+    "levelBar": {
+        "spriteWidth": 28,
+        "spriteHeight": 28,
+        "spriteSheet": "levelBar.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "numTest": {
+        "spriteWidth": 8,
+        "spriteHeight": 11,
+        "spriteSheet": "num2test.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "heartIcon": {
+        "spriteWidth": 10,
+        "spriteHeight": 10,
+        "spriteSheet": "statusIcons.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "hungerIcon": {
+        "spriteWidth": 10,
+        "spriteHeight": 10,
+        "spriteSheet": "statusIcons.png",
+        "states": {
+            "default": [1]
+        }
+    },
+    "manaIcon": {
+        "spriteWidth": 10,
+        "spriteHeight": 10,
+        "spriteSheet": "statusIcons.png",
+        "states": {
+            "default": [2]
+        }
+    },
+    "greyBackground": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "greyBackground.png",
+        "states": {
+            "default": [0]
+        }
     }
 }
