@@ -29,8 +29,8 @@
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(x, y, z, text, actionOnClick) {
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), bottomShadow, topShadow, layout, offset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), bottomShadowHover, topShadowHover, layout, offset );
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text, {overflowPosition: "right", position: "left", maxWidth: width-4}), bottomShadow, topShadow, layout, offset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text, {overflowPosition: "right", position: "left", maxWidth: width-4}), bottomShadowHover, topShadowHover, layout, offset );
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
@@ -54,8 +54,8 @@
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(x, y, z, text, actionOnClick, textRenderer, textYOffset = 1) {
-                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text), topShadow, bottomShadow, layout, offset, textYOffset);
-                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text), topShadowHover, bottomShadowHover, layout, offset, textYOffset);
+                    const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text,  {overflowPosition: "right", position: "left", maxWidth: width-4}), topShadow, bottomShadow, layout, offset, textYOffset);
+                    const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text,  {overflowPosition: "right", position: "left", maxWidth: width-4}), topShadowHover, bottomShadowHover, layout, offset, textYOffset);
 
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
@@ -155,7 +155,6 @@
     export function generateTextInputBar(textInputReference, width, height, borderColor, bgColor, roundness, textRenderer, textXOffset = 3, borderThickness = 1) {
         return class TextInputBar extends GeneratedObject {
             constructor(x, y, z) {
-
                 const emptyMatrix = generateEmptyMatrix(width, height);
                 super([emptyMatrix], { default: [0] }, x, y, z, () => {
                     if(get(shouldFocus) === false){
@@ -165,12 +164,12 @@
                         shouldFocus.set(false);
                     }
                 });
+                this.textRenderer = textRenderer
                 this.showPointer = true;
                 this.userText = "";
                 this.textInput = new textInputReference((text) => this.setUserText(text), textRenderer.charMappingString);
             }
             
-
             setUserText(text){
                 this.userText = text;
             }
@@ -179,11 +178,8 @@
                 return this.userText;
             }
 
-            whileHover(){
-            }
-            
             getSprite(){
-                return new Sprite(generateTextInputMatrix( width, height, bgColor, borderColor, textRenderer.renderText(this.userText), roundness, textXOffset, borderThickness ), this.x, this.y, this.z);
+                return new Sprite(generateTextInputMatrix( width, height, bgColor, borderColor, this.textRenderer.renderText(this.userText, {position: "left", overflowPosition: "left", maxWidth: (width - (textXOffset * 2))}), roundness, textXOffset, borderThickness ), this.x, this.y, this.z);
             }
         };
     };

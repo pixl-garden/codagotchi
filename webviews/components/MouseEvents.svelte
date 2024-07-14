@@ -67,7 +67,7 @@
         for (let i = 0; i < objects.length; i++) {
             findObjectsRecursively(objects[i]);
         }
-        console.log("highestFoundObject: ", highestFoundObject);
+        // console.log("highestFoundObject: ", highestFoundObject);
         if (highestFoundObject?.passMouseCoords) {
             highestFoundObject.mouseX = x;
             highestFoundObject.mouseY = y;

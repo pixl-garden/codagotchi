@@ -28,6 +28,7 @@
         let retroShadowGray = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#464e57", 1, 1);
         let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, Colors.white, Colors.black, "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
         let electro = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555"], [Colors.black, Colors.white], -1, standardCharMap);
+
         
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -456,7 +457,7 @@
        
     // should have a button back and two sections (friends and requests)
 
-        //TEXT INPUT BAR INSTANTIATION
+        //TEXT INPUT BAR INSTANTIATION        
         const addFriendTextBar = new generateTextInputBar(textInput, 112, 16, Colors.black, '#7997bc', 4, basic, 5, 1);
         let inputBar = new addFriendTextBar(0, 16, 0);
         let sendFriendRequestButton = new brushSizeButton(118, 16, 0, '>', () => {

@@ -311,7 +311,6 @@
             const emptyMatrix = generateEmptyMatrix(1, 1);
             super([emptyMatrix], { default: [0] }, x, y, z, actionOnClick);
             this.textRenderer = textRenderer;
-            this.text = "";
             this.stateQueue = [];
             this.isStateCompleted = false;
             this.maxWidth = maxWidth;
@@ -319,23 +318,18 @@
             this.textWidth = 0;
             this.position = position;
             this.overflowPosition = overflowPosition;
+            this.text = "";
         }
         setText(text) {
             this.text = text;
-            this.textWidth = this.textRenderer.measureText(text);
         }
+
+        getText() {
+            return this.text;
+        }
+
         getSprite(){
-            if(this.position === "left") {
-                return new Sprite(this.textRenderer.renderText(this.text), this.x, this.y, this.z);
-            } else if(this.position === "right") {
-                let leftMargin = this.maxWidth - this.textWidth;
-                return new Sprite(this.textRenderer.renderText(this.text), this.x + leftMargin, this.y, this.z);
-            } else if (this.position === "center") {
-                let leftMargin = Math.floor((this.maxWidth - this.textWidth) / 2);
-                return new Sprite(this.textRenderer.renderText(this.text), this.x + leftMargin, this.y, this.z);
-            } else {
-                throw new Error("Invalid activeTextRenderer position")
-            }
+            return new Sprite(this.textRenderer.renderText(this.text, {overflowPosition: this.overflowPosition, position: this.position, maxWidth: this.maxWidth}), this.x, this.y, this.z);
         }
     }
 
@@ -556,7 +550,7 @@
             this.lines.forEach(line => {
                 let renderedLine = this.color === null ? 
                     this.textRenderer.renderText(line) :
-                    this.textRenderer.renderText(line, this.color);
+                    this.textRenderer.renderText(line, {renderColor: this.color});
                 renderedLine.forEach((row, y) => {
                     if(currentY + this.lineHeight >= this.y + this.height) {
                         return;
