@@ -306,21 +306,36 @@
         }
     }
 
-    export class activeTextRenderer extends GeneratedObject {
-        constructor(textRenderer, x, y, z, actionOnClick = null) {
+    export class activeTextRenderer extends GeneratedObject { 
+        constructor(textRenderer, x, y, z, actionOnClick = null, { position = "left", overflowPosition = null, maxWidth = 128 } = {}) { 
             const emptyMatrix = generateEmptyMatrix(1, 1);
             super([emptyMatrix], { default: [0] }, x, y, z, actionOnClick);
             this.textRenderer = textRenderer;
             this.text = "";
             this.stateQueue = [];
             this.isStateCompleted = false;
+            this.maxWidth = maxWidth;
             this.updateState("default");
+            this.textWidth = 0;
+            this.position = position;
+            this.overflowPosition = overflowPosition;
         }
         setText(text) {
             this.text = text;
+            this.textWidth = this.textRenderer.measureText(text);
         }
         getSprite(){
-            return new Sprite(this.textRenderer.renderText(this.text), this.x, this.y, this.z);
+            if(this.position === "left") {
+                return new Sprite(this.textRenderer.renderText(this.text), this.x, this.y, this.z);
+            } else if(this.position === "right") {
+                let leftMargin = this.maxWidth - this.textWidth;
+                return new Sprite(this.textRenderer.renderText(this.text), this.x + leftMargin, this.y, this.z);
+            } else if (this.position === "center") {
+                let leftMargin = Math.floor((this.maxWidth - this.textWidth) / 2);
+                return new Sprite(this.textRenderer.renderText(this.text), this.x + leftMargin, this.y, this.z);
+            } else {
+                throw new Error("Invalid activeTextRenderer position")
+            }
         }
     }
 

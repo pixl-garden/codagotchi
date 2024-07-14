@@ -332,7 +332,7 @@
                 // item.mouseInteractions = false;
                 slotInstance.addChild(item);
                 if(numberTextRenderer != null){
-                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 14, 14, itemZ+10);
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, itemZ+10, ()=> {}, {maxWidth: 25, position: "center"});
                     numberRenderer.setText(item.itemCount.toString());
                     // numberRenderer.mouseInteractions = false;
                     slotInstance.addChild(numberRenderer);

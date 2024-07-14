@@ -22,7 +22,7 @@
             this.postcardFront = new Background("postcardFront", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.postcardBack = new Background("postcardBack", this.postcardXOffset, this.postcardYOffset, z, () => {});
             this.frontDrawableCanvas = postcardObject === null ? new DrawableCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset) // might need to change z
-                                                          : new RenderedCanvas(x, y, z, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
+                                                          : new RenderedCanvas(x, y, 10, this.postcardWidth, this.postcardHeight, postcardObject.matrix)
             this.backDrawableCanvas = new postcardBackCanvas(this.postcardXOffset - x, this.postcardYOffset - y, 10, this.postcardWidth, this.postcardHeight, this.postcardXOffset, this.postcardYOffset, this.textRenderer, textInputReference); 
             this.currentCanvas = this.frontDrawableCanvas;
             this.children.push(this.currentCanvas);
@@ -248,9 +248,7 @@
         // Replaces DrawableCanvas in the postcardRenderer when a postcardObject is passed in
     export class RenderedCanvas extends GeneratedObject {
         constructor(x, y, z, width, height, pixelMatrix) {
-            super(pixelMatrix, { default: [0] }, x, y, z);
-            this.canvasWidth = width;
-            this.canvasHeight = height;
+            super([pixelMatrix], { default: [0] }, x, y, z);
             this.pixelMatrix = pixelMatrix;
         }
 
@@ -667,7 +665,7 @@
             this.colorArray = colorArray;
             this.textRendererArray = textRendererArray;
             this.stampArray = stampArray;
-            this.postcardButtonList = null;
+            this.postcardButtonList = null; 
             this.pageLimit = 5;
             this.refreshPostcards();
             this.receivedPostcardDisplay = new receivedPostcardDisplay(0, 0, 0, this.colorArray, this.textRendererArray, this.stampArray, () => {
@@ -696,7 +694,7 @@
                     this.children.push(this.receivedPostcardDisplay);
             }]);
             
-            this.postcardButtonList = new ButtonList(0, 0, 0, "vertical", -1, this.buttonConstructor, this.pageLimit, ...postcardButtonListParams)
+            this.postcardButtonList = new ButtonList(0, 17, 0, "vertical", -1, this.buttonConstructor, this.pageLimit, ...postcardButtonListParams)
             this.children = [this.postcardButtonList];
         }
     }
