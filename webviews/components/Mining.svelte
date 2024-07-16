@@ -28,7 +28,6 @@
             this.blockTypes = blockTypes;
             this.spriteWidth = 16;
             this.spriteHeight = 16;
-            this.abortController = null;
             this.cancelFlag = false;
             this.scaledProbabilities = findScaledProbabilties(blockTypes);
         }

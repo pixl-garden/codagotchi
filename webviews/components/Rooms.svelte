@@ -504,10 +504,8 @@
 
 
 
-        addTestableItems();
+        // addTestableItems();
         
-        let miningItems = get(game).inventory.getItemsByType('mining');
-        let itemArray = get(game).inventory.getItemsByType('food');
 
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
@@ -520,7 +518,7 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, itemArray, createItemSlot, null, electro, 2, 2, 10);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 2, 2, 10);
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
@@ -546,6 +544,7 @@
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
+            inventoryDisplayManagerInstance.setTab("food");
             inventoryGridInstance.updateItemSlots(itemArray);
         });
         
@@ -635,14 +634,13 @@
         // ---------------- MINING ROOM ----------------
 
         let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1)
-
+        let miningEnterActive = false;
         let blockTypes = lootTableConfig["miningTiers"];
         let miningInstance = new MiningManager(64, 64, 5, 1, 8, 10, blockTypes);
         
         let beginMiningButton = new miningButton(90, 90, 5, "MINE", ()=>{
-            if(get(game).isActive){
-                // miningInstance.mineBlocks();
-                console.log("active");
+            if(miningEnterActive) {
+                miningHandler();
             }
         });
         let cancelMiningButton = new miningButton(90, 90, 5, "STOP", () => {
@@ -678,19 +676,34 @@
         }
         
         let miningRoom = new Room('miningRoom',  
+        // Enter logic
         () => {
             petObject.setCoordinate(23, 48, 0);
+            if(get(game).isActive) {
+                miningEnterActive = true;
+            }
         },
-        false,
+        // Exit logic
+        () => {
+            miningInstance.cancelMining();
+            get(game).getCurrentRoom().addObject( beginMiningButton );
+            get(game).getCurrentRoom().removeObject( cancelMiningButton );
+            miningNotif.reset();
+            console.log("miningNotif coordinates: (", miningNotif.x, miningNotif.y, miningNotif.z, ")");
+        },
+        // Update logic
         () => {
             petObject.nextFrame();
             miningNotif.nextFrame();
             miningInstance.nextFrame();
         },
+        // On Activity Logic
         ()=> {
             miningHandler();
         },
+        // On Inactivity Logic
         ()=> {
+            miningEnterActive = false;
             get(game).getCurrentRoom().addObject( beginMiningButton );
             get(game).getCurrentRoom().removeObject( cancelMiningButton );
         }
