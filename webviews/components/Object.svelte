@@ -134,17 +134,22 @@
             // Check if the object has reached (or overshot) the target position
             if ((Math.abs(this.targetX - this.x) < 1 && Math.abs(this.velocityX) < this.velocityThreshold) &&
                 (Math.abs(this.targetY - this.y) < 1 && Math.abs(this.velocityY) < this.velocityThreshold)) {
-                this.x = this.targetX;
-                this.y = this.targetY;
-
-                // Explicitly reset velocities and accumulated movements
-                this.velocityX = 0;
-                this.velocityY = 0;
-                this.accumulatedMoveX = 0;
-                this.accumulatedMoveY = 0;
-
-                this.isMoving = false;
+                    this.resetMovement();
             }
+        }
+
+        resetMovement(){
+            this.x = this.targetX;
+            this.y = this.targetY;
+
+            // Explicitly reset velocities and accumulated movements
+            this.velocityX = 0;
+            this.velocityY = 0;
+            this.accumulatedMoveX = 0;
+            this.accumulatedMoveY = 0;
+
+            this.isMoving = false;
+            console.log("movement reset");
         }
 
         // Transition the object's opacity to a new value, transition speed is always positive
@@ -856,7 +861,12 @@
             setTimeout(() => {
                 this.startMovingTo(6, -29);
                 callbackFunction();
-            }, 4000)
+            }, 4000);
+        }
+
+        reset(){
+            this.setCoordinate(6, -29, this.z);
+            this.resetMovement();
         }
     }
 

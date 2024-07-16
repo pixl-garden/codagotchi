@@ -322,7 +322,7 @@
     // maybe change this later
     function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ) {
         let inventoryGrid = [];
-        for(let i = 0; i < items.length; i++) {
+        for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
             let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
             

@@ -99,8 +99,6 @@
                 });
         }
 
-        
-
         // sets local state (game.localState) to the state info (called when syncLocalToGlobalState is called)
         setLocalState( stateInfo ) {
             // console.log("Setting local state: ", stateInfo)
@@ -108,7 +106,7 @@
         }
 
         getLocalState () {
-            // console.log("Getting local state: ", game.localState);
+            console.log("Getting local state: ", game.localState);
             return game.localState
         }
 
