@@ -117,21 +117,33 @@ async function handleFriendRequest(context: vscode.ExtensionContext, requestId: 
 async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
     const cacheKey = 'userInbox';
 
-    const lastFetchTimestamp = await cacheManager.getTimestamp(cacheKey);
+    const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
     const cachedInbox = (await cacheManager.get(cacheKey)) || {};
 
-    console.log('Last fetch timestamp:', lastFetchTimestamp);
-    console.log('Cached inbox:', cachedInbox);
+    // console.log('Last fetch timestamp:', lastFetchTimestamp);
+    // console.log('Cached inbox:', cachedInbox);
 
-    // add a 15 minue delay to the last fetch time, to prevent spamming the server
+    // ! Uncomment on production
+    // Add a 15 minute delay to the last fetch time, to prevent spamming the server
 
-    if (Date.now() - lastFetchTimestamp < 900000) {
-        console.log("Mailman hasn't arrived yet!");
-        return cachedInbox;
-    }
+    // if (Date.now() - lastFetchTimestamp < 900000) {
+    //     console.log("Mailman hasn't arrived yet (Cache updates)!");
+    //     return cachedInbox;
+    // }
 
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
     const idToken = await context.secrets.get('idToken');
+
+    // Calculate lengths for all fields in the inbox (what if there are more than 3 fields?)
+    const lengths = {} as { [key: string]: number };
+
+    for (const key in cachedInbox) {
+        if (typeof cachedInbox[key] === 'object') {
+            lengths[key] = Object.keys(cachedInbox[key] || {}).length;
+        }
+    }
+
+    // console.log('Lengths:', lengths);
 
     try {
         const response = await axios.get(functionUrl, {
@@ -140,29 +152,34 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
                 'Content-Type': 'application/json',
             },
             params: {
-                lastFetchTimestamp: lastFetchTimestamp,
+                timestamp: lastFetchTimestamp,
+                ...lengths,
             },
         });
 
-        const newInboxData = response.data.inbox || {};
-        const currentTimestamp = response.data.timestamp;
+        const { flag, inboxData, timestamp: currentTimestamp } = response.data;
+        // console.log("current timestamp", currentTimestamp);
 
-        // Merge the new data with the existing cached data
-        const mergedInbox = merge({}, cachedInbox, newInboxData);
+        let updatedInbox;
+        if (flag === 'merge') {
+            updatedInbox = merge({}, cachedInbox, inboxData);
+        } else if (flag === 'replace') {
+            updatedInbox = inboxData;
+        } else {
+            throw 'Invalid flag value in response data';
+        }
 
+        // Update the cache with the new data
         await cacheManager.set(cacheKey, {
-            data: mergedInbox,
+            data: updatedInbox,
             timestamp: currentTimestamp,
         });
 
         // Update the global state
-        await updateGlobalState(context, { inbox: mergedInbox });
+        await updateGlobalState(context, { inbox: updatedInbox });
 
-        if (!Object.keys(mergedInbox).length) {
-            console.log('No messages in inbox.');
-        }
-
-        return mergedInbox;
+        console.log(`Inbox ${flag === 'merge' ? 'merged' : 'replaced'}`);
+        return updatedInbox;
     } catch (error) {
         handleAxiosError(error);
         return cachedInbox;

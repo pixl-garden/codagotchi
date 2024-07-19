@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
-
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds (not used)
 interface CachedItem {
     data: any;
     timestamp: number;
