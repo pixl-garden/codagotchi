@@ -215,30 +215,73 @@ export const sendPostcard = functions.https.onRequest(async (req, res) => {
     });
 });
 
+// server receives timestamp of last fetch and lengths of the inbox and friends list
+//   checks the length of new data since the last fetch
+//   if length of new data + length received from client is equal to amount of data in database, send new data only (FLAG: merge)
+//   if not, send all data (FLAG: replace)
+
 export const retrieveInbox = functions.https.onRequest(async (req, res) => {
     if (req.method !== 'GET') {
-        return res.status(403).send({success: false, message: 'Forbidden! Only GET requests are allowed.'});
+        return res.status(403).send({ success: false, message: 'Forbidden! Only GET requests are allowed.' });
     }
 
     verifyToken(req, res, async () => {
         const uid = req.user.uid;
-        const lastFetchTimestamp = parseInt(req.query.lastFetchTimestamp || 0);
 
         const inboxRef = admin.database().ref(`users/${uid}/protected/social`);
         try {
-            const inboxSnapshot = await inboxRef.orderByChild('timestamp').startAfter(lastFetchTimestamp).once('value');
+            const inboxSnapshot = await inboxRef.once('value');
             const inboxData = inboxSnapshot.val() || {};
-            
+
+            const { timestamp, ...lengths } = req.params;
+            const lastFetchTime = parseInt(timestamp || 0);
+
+            let flag = 'replace';
+            let responseData = inboxData;
+
+            // Compare lengths and check for new data
+            let needsFullReplace = false;
+            for (const key in inboxData) {
+                if (typeof inboxData[key] === 'object') {
+                    const serverLength = Object.keys(inboxData[key] || {}).length;
+                    const clientLength = lengths[key] || 0;
+
+                    // Check for new data since last fetch
+                    const newData = Object.values(inboxData[key] || {}).filter((item) => item.timestamp > lastFetchTime);
+
+                    if (serverLength !== clientLength + newData.length) {
+                        needsFullReplace = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!needsFullReplace) {
+                flag = 'merge';
+                responseData = {};
+                for (const key in inboxData) {
+                    if (typeof inboxData[key] === 'object') {
+                        responseData[key] = Object.values(inboxData[key] || {})
+                            .filter((item) => item.timestamp > lastFetchTime)
+                            .reduce((acc, item) => {
+                                acc[item.id] = item;
+                                return acc;
+                            }, {});
+                    }
+                }
+            }
+
             const currentTimestamp = Date.now();
-            
+
             res.status(200).send({
                 success: true,
-                inbox: inboxData,
-                timestamp: currentTimestamp
+                flag: flag,
+                inboxData: responseData,
+                timestamp: currentTimestamp,
             });
         } catch (error) {
             console.error('Failed to retrieve inbox:', error);
-            res.status(500).send({success: false, message: 'Failed to retrieve inbox'});
+            res.status(500).send({ success: false, message: 'Failed to retrieve inbox' });
         }
     });
 });
