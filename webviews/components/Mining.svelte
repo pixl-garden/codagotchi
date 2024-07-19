@@ -5,7 +5,6 @@
     import { ObjectGrid, GeneratedObject, ConfigObject } from './Object.svelte';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
-    import { scale } from 'svelte/types/runtime/transition';
     
     export class MiningManager extends ObjectGrid{
         constructor(x = 0, y = 0, z = 0, rows = 2, columns = 8, numBlocks, blockTypes) {
@@ -17,10 +16,6 @@
             this.rows = 1;
             this.objects = objects;
             this.blocks = blocks;
-
-            // this.blocks.forEach(block => {
-            // console.log(`Name: ${block.name}}`);
-            //  });
             this.abortController = null;
             this.cancelFlag = false;
             this.sprites = ores;

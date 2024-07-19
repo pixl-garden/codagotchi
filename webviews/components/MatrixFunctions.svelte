@@ -12,6 +12,10 @@
         return sprite;
     }
 
+    export function trimSpriteMatrix(matrix, startX, endX, startY, endY) {  
+        return matrix.slice(startY, endY).map(row => row.slice(startX, endX));
+    }
+
     export function generateRectangleMatrix(width, height, color, rounding = 0) {
         const sprite = [];
 

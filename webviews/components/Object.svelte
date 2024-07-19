@@ -4,7 +4,7 @@
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
     import hatConfig from './hatConfig.json'
-    import { generateEmptyMatrix, generateTooltipSprite, generateStatusBarSprite, generateRectangleMatrix, overlayMatrix, setMatrix, generateMenuMatrix, generateColorButtonMatrix, scaleMatrix } from './MatrixFunctions.svelte';
+    import { generateEmptyMatrix, generateTooltipSprite, generateMenuMatrix, trimSpriteMatrix } from './MatrixFunctions.svelte';
     import * as Colors from './colors.js';    
     import { random } from 'lodash';
 
@@ -237,7 +237,8 @@
         }
         
         getSprite() {
-            return new Sprite(this.sprites[this.currentSpriteIndex], this.x, this.y, this.z, this.opacity);
+            return new Sprite(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], 0, this.spriteWidth, 0, this.spriteHeight), 
+                this.x, this.y, this.z, this.opacity);
         }
 
         getChildSprites() {
@@ -585,8 +586,9 @@
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
             // console.log('SPRITE MATRIX: ', spriteMatrix);
             super(spriteMatrix, config.states, x, y, z, actionOnClick);
-            this.spriteWidth = config.spriteWidth;
-            this.spriteHeight = config.spriteHeight;
+            
+            this.spriteWidth = config.trimWidth || config.spriteWidth;
+            this.spriteHeight = config.trimHeight || config.spriteHeight;
             this.objectType = objectName;
             this.config = config;
             this.children = [];
