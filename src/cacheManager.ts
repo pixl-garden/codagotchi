@@ -14,20 +14,18 @@ export class CacheManager {
         this.context = context;
     }
 
-    async set(key: string, data: any): Promise<void> {
-        const cachedItem: CachedItem = {
-            data,
-            timestamp: Date.now(),
-        };
-        await this.context.globalState.update(key, cachedItem);
+    async set(key: string, item: CachedItem): Promise<void> {
+        await this.context.globalState.update(key, item);
     }
 
     async get(key: string): Promise<any | null> {
         const cachedItem = this.context.globalState.get(key) as CachedItem | undefined;
-        if (cachedItem && Date.now() - cachedItem.timestamp < CACHE_DURATION) {
-            return cachedItem.data;
-        }
-        return null;
+        return cachedItem ? cachedItem.data : null;
+    }
+
+    async getTimestamp(key: string): Promise<number> {
+        const cachedItem = this.context.globalState.get(key) as CachedItem | undefined;
+        return cachedItem ? cachedItem.timestamp : 0;
     }
 
     async invalidate(key: string): Promise<void> {

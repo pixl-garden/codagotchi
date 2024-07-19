@@ -3,3 +3,5 @@ src/firebaseInit.ts
 seed.js
 out
 dist
+
+.env

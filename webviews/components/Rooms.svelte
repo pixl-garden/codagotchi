@@ -113,7 +113,7 @@
         const worldButton = new Button(30, 100, 0, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
         const skillTreeButton = new Button(53, 101, 0, 'skillTreeIcon', () => {});
         const paintRoomButton = new Button(80, 103, 0, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
-        const postOfficeButton = new Button(102, 94, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom')});
+        const postOfficeButton = new Button(102, 94, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
 
         const leftPetButton = new Button(2, 66, 0, 'leftPetArrow', () => {
 
@@ -715,7 +715,8 @@
     miningRoom.addObject(backToMain2, miningBackground, miningInstance, beginMiningButton, petObject, miningNotif);
 
     // ---------------- POST OFFICE ROOM ----------------
-    let postOfficeRoom = new Room('postOfficeRoom', () => {}, false, () => {});
+    let postOfficeRoom = new Room('postOfficeRoom', () => {get(game).retrieveInbox()}, false, () => {});
+
 
     const postOfficeButtonTexts = ['Friends', 'Postcards'];
         const postOfficeButtonFunctions = [

@@ -221,16 +221,20 @@ export const retrieveInbox = functions.https.onRequest(async (req, res) => {
     }
 
     verifyToken(req, res, async () => {
-        const uid = req.user.uid; // User UID from verified token
+        const uid = req.user.uid;
+        const lastFetchTimestamp = parseInt(req.query.lastFetchTimestamp || 0);
 
-        // Path to the user's inbox
         const inboxRef = admin.database().ref(`users/${uid}/protected/social`);
         try {
-            const inboxSnapshot = await inboxRef.once('value');
-            const inboxData = inboxSnapshot.val();
+            const inboxSnapshot = await inboxRef.orderByChild('timestamp').startAfter(lastFetchTimestamp).once('value');
+            const inboxData = inboxSnapshot.val() || {};
+            
+            const currentTimestamp = Date.now();
+            
             res.status(200).send({
                 success: true,
-                inbox: inboxData === null ? {} : inboxData
+                inbox: inboxData,
+                timestamp: currentTimestamp
             });
         } catch (error) {
             console.error('Failed to retrieve inbox:', error);
