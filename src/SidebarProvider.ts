@@ -300,23 +300,61 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 }
 
+// Update the Global State (with merging)
+// ---- Example usage: ----
+// updateGlobalState(context, {
+//     inventory: {
+//         apple: { quantity: 7 }
+//     }
+// });
+// if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity
+// and will not delete other keys in the inventory object
 function updateGlobalState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
+    // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
+
+    // Loop through the keys in the partial update
     for (const key of Object.keys(partialUpdate)) {
         if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
+            // If the current value is an object, merge it with the new value
             currentGlobalState[key] = merge(currentGlobalState[key], partialUpdate[key]);
         } else {
+            // If the current value is not a mergable object, just replace it
             currentGlobalState[key] = partialUpdate[key];
         }
     }
+
+    // Update the global state with the modified result
     return context.globalState.update('globalInfo', currentGlobalState);
 }
 
+function overwriteFieldInState(context: vscode.ExtensionContext, field: string, newValue: any): Thenable<void> {
+    // Retrieve the existing global state
+    const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
+
+    // Overwrite the specific field with the new value
+    currentGlobalState[field] = newValue;
+
+    // Update the global state with the modified result
+    return context.globalState.update('globalInfo', currentGlobalState);
+}
+
+// Remove an item from the Global State
+// ---- Example usage: ----
+// removeItemFromState(context, 'inventory', 'apple');
+
+// Also supports deep deletion using dot notation
+// ---- Example usage: ----
+// removeItemFromState(context, 'inbox', 'friendRequest.1234');
+// TODO: maybe this should be done with one value instead of two? (append the key to the value)
 function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
+    // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
     console.log('TESTINGLOG');
 
+    // Check if the key exists and is an object
     if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
+        // Split itemToRemove by dots to support deep deletion
         const keys = itemToRemove.split('.');
         let current = currentGlobalState[key];
 
@@ -325,6 +363,7 @@ function removeItemFromState(context: vscode.ExtensionContext, key: string, item
                 console.log('Current:', current);
                 current = current[keys[i]];
             } else {
+                // If the path doesn't exist, exit the function
                 console.log('Path does not exist:', current);
                 return context.globalState.update('globalInfo', currentGlobalState);
             }
@@ -333,9 +372,11 @@ function removeItemFromState(context: vscode.ExtensionContext, key: string, item
         deleteNestedKey(currentGlobalState[key], keys);
     }
 
+    // Update the global state with the modified result
     return context.globalState.update('globalInfo', currentGlobalState);
 }
 
+// Helper function that deletes target nested key in removeItemFromState
 function deleteNestedKey(obj: any, keys: string[]): void {
     if (keys.length === 0) {
         return;
@@ -366,3 +407,5 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
         }
     }
 }
+
+
