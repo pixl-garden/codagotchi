@@ -122,12 +122,14 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
 
     console.log('Last fetch timestamp:', lastFetchTimestamp);
     console.log('Cached inbox:', cachedInbox);
-
+    
+    // ! Uncomment on production
     // Add a 15 minute delay to the last fetch time, to prevent spamming the server
-    if (Date.now() - lastFetchTimestamp < 900000) {
-        console.log("Mailman hasn't arrived yet!");
-        return cachedInbox;
-    }
+
+    // if (Date.now() - lastFetchTimestamp < 900000) {
+    //     console.log("Mailman hasn't arrived yet!");
+    //     return cachedInbox;
+    // }
 
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
     const idToken = await context.secrets.get('idToken');
@@ -149,7 +151,7 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
             },
             params: {
                 timestamp: lastFetchTimestamp,
-                ...lengths
+                ...lengths,
             },
         });
 
@@ -161,7 +163,7 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
         } else if (flag === 'replace') {
             updatedInbox = inboxData;
         } else {
-            throw "Invalid flag value in response data";
+            throw 'Invalid flag value in response data';
         }
 
         // Update the cache with the new data
