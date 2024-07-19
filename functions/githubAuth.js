@@ -103,7 +103,7 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
 } else {
     response.status(408).send('Request timed out. User profile not created.');
 }
-    } catch (error) {
+    } catch (error) {g
         console.error('GitHub authentication error:', error);
         response.status(500).send('GitHub authentication error: ', error);
     }

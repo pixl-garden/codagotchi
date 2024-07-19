@@ -9,6 +9,8 @@ import axios from 'axios';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
+import { CacheManager } from './cacheManager';
+
 const CLIENT_ID = 'a253a1599d7b631b091a';
 const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
 const REQUESTED_SCOPES = 'user,read:user';
@@ -22,25 +24,25 @@ const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_
 async function signInWithCustomTokenViaREST(customToken: string, context: vscode.ExtensionContext) {
     const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${firebaseConfig.apiKey}`;
     const auth = getAuth();
-    console.log("Signing in with custom token")
+    console.log('Signing in with custom token');
     try {
         const response = await axios.post(signInUrl, {
             token: customToken,
-            returnSecureToken: true  // Must be true to get a refresh token
+            returnSecureToken: true, // Must be true to get a refresh token
         });
         const { idToken, refreshToken } = response.data;
-        console.log("ID Token:", idToken);
-        console.log("Refresh Token:", refreshToken);
+        console.log('ID Token:', idToken);
+        console.log('Refresh Token:', refreshToken);
 
         // Store the refresh token in VSCode's secret storage
-        await context.secrets.store("refreshToken", refreshToken);
+        await context.secrets.store('refreshToken', refreshToken);
 
         // Set Firebase Auth state in the SDK
         // await signInWithCustomToken(auth, idToken);
 
         return { idToken, refreshToken };
     } catch (error) {
-        console.error("Error signing in with custom token:", error);
+        console.error('Error signing in with custom token:', error);
         throw error;
     }
 }
@@ -53,34 +55,38 @@ async function refreshToken(refreshToken: string, context: vscode.ExtensionConte
     try {
         const response = await axios.post(refreshTokenUrl, {
             grant_type: 'refresh_token',
-            refresh_token: refreshToken
+            refresh_token: refreshToken,
         });
         const { id_token, refresh_token } = response.data;
         // console.log("New ID Token:", id_token);
         // console.log("New Refresh Token:", refresh_token);
 
         // Update the refresh token in the secret storage
-        await context.secrets.store("refreshToken", refresh_token);
-        await context.secrets.store("idToken", id_token);
+        await context.secrets.store('refreshToken', refresh_token);
+        await context.secrets.store('idToken', id_token);
 
         return { idToken: id_token, refreshToken: refresh_token };
     } catch (error) {
-        console.error("Error refreshing token:", error);
+        console.error('Error refreshing token:', error);
         throw error;
     }
 }
 
 async function sendFriendRequest(context: vscode.ExtensionContext, recipientUsername: string) {
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/sendFriendRequest';
-    const idToken = await context.secrets.get("idToken");
+    const idToken = await context.secrets.get('idToken');
 
     try {
-        const response = await axios.post(functionUrl, { recipientUsername }, {
-            headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const response = await axios.post(
+            functionUrl,
+            { recipientUsername },
+            {
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
         console.log(response.data.message);
     } catch (error) {
         handleAxiosError(error);
@@ -89,55 +95,95 @@ async function sendFriendRequest(context: vscode.ExtensionContext, recipientUser
 
 async function handleFriendRequest(context: vscode.ExtensionContext, requestId: string, action: string) {
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/handleFriendRequest';
-    const idToken = await context.secrets.get("idToken");
+    const idToken = await context.secrets.get('idToken');
 
     try {
-        const response = await axios.post(functionUrl, { requestId, action }, {
-            headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const response = await axios.post(
+            functionUrl,
+            { requestId, action },
+            {
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
         console.log(response.data.message);
     } catch (error) {
         handleAxiosError(error);
     }
 }
 
-async function retrieveInbox(context: vscode.ExtensionContext) {
+async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
+    const cacheKey = 'userInbox';
+
+    const lastFetchTimestamp = await cacheManager.getTimestamp(cacheKey);
+    const cachedInbox = (await cacheManager.get(cacheKey)) || {};
+
+    console.log('Last fetch timestamp:', lastFetchTimestamp);
+    console.log('Cached inbox:', cachedInbox);
+
+    // add a 15 minue delay to the last fetch time, to prevent spamming the server
+
+    if (Date.now() - lastFetchTimestamp < 900000) {
+        console.log("Mailman hasn't arrived yet!");
+        return cachedInbox;
+    }
+
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
-    const idToken = await context.secrets.get("idToken");
+    const idToken = await context.secrets.get('idToken');
+
     try {
         const response = await axios.get(functionUrl, {
             headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json'
-            }
+                Authorization: `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+            params: {
+                lastFetchTimestamp: lastFetchTimestamp,
+            },
         });
-        console.log("Inbox:", response.data.inbox);
 
-        await overwriteFieldInState(context, 'inbox', response.data.inbox || {});
+        const newInboxData = response.data.inbox || {};
+        const currentTimestamp = response.data.timestamp;
 
-        if (!Object.keys(response.data.inbox).length) {
-            console.log("No messages in inbox.");
-            // TODO: Trigger modal here if needed
+        // Merge the new data with the existing cached data
+        const mergedInbox = merge({}, cachedInbox, newInboxData);
+
+        await cacheManager.set(cacheKey, {
+            data: mergedInbox,
+            timestamp: currentTimestamp,
+        });
+
+        // Update the global state
+        await updateGlobalState(context, { inbox: mergedInbox });
+
+        if (!Object.keys(mergedInbox).length) {
+            console.log('No messages in inbox.');
         }
+
+        return mergedInbox;
     } catch (error) {
         handleAxiosError(error);
+        return cachedInbox;
     }
 }
 
 async function sendPostcard(context: vscode.ExtensionContext, recipientUsername: string, postcardJSON: JSON) {
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/sendPostcard';
-    const idToken = await context.secrets.get("idToken");
-    console.log("Sending postcard to:", recipientUsername);
+    const idToken = await context.secrets.get('idToken');
+    console.log('Sending postcard to:', recipientUsername);
     try {
-        const response = await axios.post(functionUrl, { recipientUsername, postcardJSON }, {
-            headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const response = await axios.post(
+            functionUrl,
+            { recipientUsername, postcardJSON },
+            {
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
         console.log(response.data.message);
     } catch (error) {
         handleAxiosError(error);
@@ -151,7 +197,7 @@ async function sendPostcard(context: vscode.ExtensionContext, recipientUsername:
 //         apple: { quantity: 7 }
 //     }
 // });
-// if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity 
+// if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity
 // and will not delete other keys in the inventory object
 
 function updateGlobalState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
@@ -195,8 +241,8 @@ function overwriteFieldInState(context: vscode.ExtensionContext, field: string, 
 function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
-    console.log("TESTINGLOG");
-    
+    console.log('TESTINGLOG');
+
     // Check if the key exists and is an object
     if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
         // Split itemToRemove by dots to support deep deletion
@@ -225,16 +271,15 @@ function removeItemFromState(context: vscode.ExtensionContext, key: string, item
 function deleteNestedKey(obj: any, keys: string[]): void {
     if (keys.length === 0) {
         return;
-    } 
+    }
 
     const lastKey = keys.pop();
-    const parent = keys.reduce((acc, key) => (acc && acc[key] !== undefined) ? acc[key] : undefined, obj);
+    const parent = keys.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
 
     if (parent && lastKey && parent[lastKey] !== undefined) {
         delete parent[lastKey];
     }
 }
-
 
 function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {
     // Retrieve and return the global state
@@ -271,11 +316,11 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
 // }
 
 async function printUserPublicData(context: vscode.ExtensionContext): Promise<void> {
-    const userId = await context.secrets.get("userId");
-    const idToken = await context.secrets.get("idToken");
+    const userId = await context.secrets.get('userId');
+    const idToken = await context.secrets.get('idToken');
 
     if (!userId || !idToken) {
-        console.error("User ID or ID Token is missing.");
+        console.error('User ID or ID Token is missing.');
         return;
     }
 
@@ -284,12 +329,12 @@ async function printUserPublicData(context: vscode.ExtensionContext): Promise<vo
     try {
         const response = await axios.get(url);
         if (response.data) {
-            console.log("Public user data:", response.data);
+            console.log('Public user data:', response.data);
         } else {
-            console.log("No public user data found.");
+            console.log('No public user data found.');
         }
     } catch (error) {
-        console.error("Error fetching public user data:", error);
+        console.error('Error fetching public user data:', error);
     }
 }
 export class SidebarProvider implements vscode.WebviewViewProvider {
@@ -302,12 +347,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
 
     private context: vscode.ExtensionContext;
+    private cacheManager: CacheManager;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
         context: vscode.ExtensionContext,
     ) {
         this.context = context;
+        this.cacheManager = new CacheManager(context);
     }
 
     private getImageUris(): { [key: string]: vscode.Uri } {
@@ -339,11 +386,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             enableScripts: true,
 
             // Include the folder containing the images in localResourceRoots
-            localResourceRoots: [
-                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')),
-                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')),
-                vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled')),
-            ],
+            localResourceRoots: [vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')), vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')), vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))],
         };
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
@@ -352,7 +395,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
-
                 // send the image URIs to the webview
                 case 'webview-ready': {
                     // Convert the image URIs using webview.asWebviewUri
@@ -367,9 +409,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         type: 'image-uris',
                         uris: webviewImageUris,
                     });
-                    refreshToken(await this.context.secrets.get("refreshToken") || '', this.context).then(() => {
+                    refreshToken((await this.context.secrets.get('refreshToken')) || '', this.context).then(() => {
                         // console.log("Token refreshed");
-                    })
+                    });
 
                     break;
                 }
@@ -442,8 +484,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         const userId = user.uid;
                                         console.log('Firebase user:', userId);
                                         console.log('userID:', userId);
-                                        await this.context.secrets.store("userId", userId);
-
+                                        await this.context.secrets.store('userId', userId);
 
                                         // Store the GitHub username in the database under the user's UID
                                         const authRef = ref(getDatabase(), `authTokens/${state}`);
@@ -512,7 +553,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 case 'getUserData': {
                     // get from db
                     let dbData = await get(ref(database, 'users/' + githubUsername));
-                    console.log("from DB: ", dbData);
+                    console.log('from DB: ', dbData);
                     this._view?.webview.postMessage({
                         type: 'userData',
                         value: dbData.val(),
@@ -528,25 +569,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
                 case 'retrieveInbox': {
                     // retrieve inbox from database (updates the global state)
-                    retrieveInbox(this.context).then(() => {
-                        // align the webview local state with the global state
+                    const inboxData = await retrieveInbox(this.context, this.cacheManager);
+                    if (inboxData) {
                         this._view?.webview.postMessage({
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
-                        }).then(() => {
-                            // call refresh inbox (updates game object to new local state)
-                            this._view?.webview.postMessage({
-                                type: 'refreshInbox',
-                            })
                         });
-                    });
+                        this._view?.webview.postMessage({
+                            type: 'refreshInbox',
+                        });
+                    }
                     break;
                 }
                 case 'sendPostcard': {
                     sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
                     break;
                 }
-
             }
         });
     }
