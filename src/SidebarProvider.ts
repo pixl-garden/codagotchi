@@ -10,7 +10,6 @@ import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
 import { CacheManager } from './cacheManager';
-import * as apiClient from './apiClient';
 
 const CLIENT_ID = 'a253a1599d7b631b091a';
 const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
