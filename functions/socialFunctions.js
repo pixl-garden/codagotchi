@@ -233,44 +233,36 @@ export const retrieveInbox = functions.https.onRequest(async (req, res) => {
             const inboxSnapshot = await inboxRef.once('value');
             const inboxData = inboxSnapshot.val() || {};
 
-            const { timestamp, ...lengths } = req.params;
+            const { timestamp, ...lengths } = req.query;
             const lastFetchTime = parseInt(timestamp || 0);
 
-            let flag = 'replace';
-            let responseData = inboxData;
+            //console.log("req query:", req.query);
+
+            let flag = 'merge';
+            let responseData = {};
 
             // Compare lengths and check for new data
-            let needsFullReplace = false;
             for (const key in inboxData) {
-                if (typeof inboxData[key] === 'object') {
-                    const serverLength = Object.keys(inboxData[key] || {}).length;
-                    const clientLength = parseInt(lengths[key]) || 0;
 
-                    const newData = Object.values(inboxData[key] || {})
-                        .filter((item) => item.timestamp && item.timestamp > lastFetchTime);
+                const serverLength = Object.keys(inboxData[key] || {}).length;
+                const clientLength = parseInt(lengths[key]) || 0;
 
-                    console.log(`Key: ${key}, Server Length: ${serverLength}, Client Length: ${clientLength}, New Data Length: ${newData.length}`);
+                // Check for new data since last fetch
+                const newData = Object.values(inboxData[key] || {})
+                    .filter((item) => item.timestamp && item.timestamp > lastFetchTime);
 
-                    if (serverLength !== clientLength + newData.length) {
-                        console.log(`Mismatch detected for ${key}. Needs full replace.`);
-                        needsFullReplace = true;
-                        break;
-                    }
-                }
-            }
+                console.log(`Key: ${key}, Server Length: ${serverLength}, Client Length: ${clientLength}, New Data Length: ${newData.length}`);
 
-            if (!needsFullReplace) {
-                flag = 'merge';
-                responseData = {};
-                for (const key in inboxData) {
-                    if (typeof inboxData[key] === 'object') {
-                        responseData[key] = Object.values(inboxData[key] || {})
-                            .filter((item) => item.timestamp > lastFetchTime)
-                            .reduce((acc, item) => {
-                                acc[item.id] = item;
-                                return acc;
-                            }, {});
-                    }
+                if (serverLength !== clientLength + newData.length) {
+                    console.log(`Mismatch detected for ${key}. Needs full replace.`);
+                    flag = 'replace';
+                    responseData = inboxData;
+                    break;
+                } else {
+                    responseData[key] = newData.reduce((acc, item) => {
+                        acc[item.id] = item;
+                        return acc;
+                    }, {});
                 }
             }
 

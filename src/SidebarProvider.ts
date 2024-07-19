@@ -120,8 +120,8 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
     const cachedInbox = (await cacheManager.get(cacheKey)) || {};
 
-    console.log('Last fetch timestamp:', lastFetchTimestamp);
-    console.log('Cached inbox:', cachedInbox);
+    // console.log('Last fetch timestamp:', lastFetchTimestamp);
+    // console.log('Cached inbox:', cachedInbox);
 
     // ! Uncomment on production
     // Add a 15 minute delay to the last fetch time, to prevent spamming the server
@@ -143,6 +143,8 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
         }
     }
 
+    // console.log('Lengths:', lengths);
+
     try {
         const response = await axios.get(functionUrl, {
             headers: {
@@ -155,7 +157,8 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
             },
         });
 
-        const { flag, inboxData, currentTimestamp } = response.data;
+        const { flag, inboxData, timestamp: currentTimestamp } = response.data;
+        // console.log("current timestamp", currentTimestamp);
 
         let updatedInbox;
         if (flag === 'merge') {
