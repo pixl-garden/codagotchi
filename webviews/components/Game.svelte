@@ -10,7 +10,7 @@
             this.rooms = {};
             this.currentRoom = null;
             this.localState = {};
-
+            
             Game.instance = this;
             this.syncLocalToGlobalState();
             this.inventory;

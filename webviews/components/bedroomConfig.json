@@ -1,0 +1,56 @@
+{
+    "wallpaper": {
+        "spriteWidth": 128,
+        "spriteHeight": 102,
+        "0" : {
+            "displayName": "grannysWallpaper",
+            "spriteSheet": "wallpapers.png"
+        },
+        "1": {
+            "displayName": "grannysWallpaper",
+            "spriteSheet": "wallpapers.png"
+        }
+    },
+    "floor": {
+        "spriteWidth": 128,
+        "spriteHeight": 42,
+        "0" : {
+            "displayName": "grannysFlooring",
+            "spriteSheet": "flooring.png",
+            "spriteIndex": 0
+        }
+    },
+    "nearFurniture": {
+        "spriteWidth": 64,
+        "spriteHeight": 64,
+        "0": {
+            "displayName": "cuckChair",
+            "spriteSheet": "furniture.png",
+            "spriteIndex": 0,
+            "xTrim": 48,
+            "yTrim": 48
+        }
+    },
+    "farFurniture": {
+        "spriteWidth": 64,
+        "spriteHeight": 64,
+        "0": {
+            "displayName": "cuckCouch",
+            "spriteSheet": "furniture.png",
+            "spriteIndex": 0,
+            "xTrim": 48,
+            "yTrim": 48
+        }
+    },
+    "wallItem": {
+        "spriteWidth": 64,
+        "spriteHeight": 64,
+        "0": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "spriteIndex": 0,
+            "xTrim": 64,
+            "yTrim": 64
+        }
+    }
+}

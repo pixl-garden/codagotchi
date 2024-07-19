@@ -3,7 +3,7 @@
     import { images, preloadedSpriteSheets } from './store.js';
 
     //takes in a pixelMatrix (of a spriteSheet) and returns an array of sprites
-    export function spriteReader(spriteWidth, spriteHeight, pixelMatrix) {
+    export function spriteReader(spriteWidth, spriteHeight, pixelMatrix, trimWidth = spriteWidth, trimHeight = spriteHeight) {
         if (!pixelMatrix || !Array.isArray(pixelMatrix) || pixelMatrix.length === 0) {
             console.error('Invalid sprite matrix provided:', pixelMatrix);
             return [];
@@ -44,7 +44,7 @@
     }
 
     //takes in a sprite sheet file name and returns an array of sprites
-    export function spriteReaderFromStore(spriteWidth, spriteHeight, spriteSheetFile) {
+    export function spriteReaderFromStore(spriteWidth, spriteHeight, spriteSheetFile, trimWidth = spriteWidth, trimHeight = spriteHeight) {
         const preloaded = get(preloadedSpriteSheets);
         if (!preloaded) {
             console.error('preloadedSpriteSheets is undefined');
@@ -57,7 +57,7 @@
             return [];
         }
 
-        return spriteReader(spriteWidth, spriteHeight, pixelSheet);
+        return spriteReader(spriteWidth, spriteHeight, pixelSheet, spriteWidth, spriteHeight);
     }
 
     export async function preloadAllSpriteSheets() {

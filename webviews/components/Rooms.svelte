@@ -240,6 +240,7 @@
             Colors.transparent
         ];
 
+        //TODO: change this to either save item names or predefine ids
         // create stamp and text renderer arrays
         function getStampStringsFromConfig() {
             let stampArray = [];
@@ -502,11 +503,8 @@
             get(game).addStackableItem(`ingot1`, 2);
         }
 
-
-
-        // addTestableItems();
+        addTestableItems();
         
-
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
             let output = new ConfigObject("smallItemSlot", 0, 0, 0);
@@ -545,7 +543,6 @@
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
             inventoryDisplayManagerInstance.setTab("food");
-            inventoryGridInstance.updateItemSlots(itemArray);
         });
         
         let inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 0, get(game), inventoryGridInstance, inventoryTabList,
@@ -553,7 +550,6 @@
         inventoryRoom.addObject(backToMain, inventoryBackground, inventoryDisplayManagerInstance);
 
         // ---------------- FISHING ROOM ----------------
-    
         let fishingInstance = new Fishing();
 
         let fishingNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1)
@@ -572,7 +568,6 @@
             get(game).getCurrentRoom().removeObject( castLineButton );
             castLineUntil();
         }
-
 
         function castLineUntil() {
             fishingInstance.castLine(get(game), 2000, 1000).then((fishItem) => {
@@ -653,13 +648,10 @@
             get(game).getCurrentRoom().addObject( cancelMiningButton );
             get(game).getCurrentRoom().removeObject( beginMiningButton );
             mineUntil();
-            
         }
 
         function mineUntil() {
             miningInstance.mineBlocks(get(game)).then((ore) => {
-                console.log("ore=" + ore);
-
                 miningNotif.callNotificationItem(ore, () => {
                     if(get(game).isActive && !miningInstance.cancelFlag){
                         mineUntil();
@@ -669,7 +661,6 @@
                 miningInstance.x = 80;
                 miningInstance.generateObjectGrid()
                 miningInstance.startMovingTo(64, 64);
-  
             }).catch((error) => {
                 console.log(error.message);
             });
@@ -743,10 +734,6 @@
 
     // RECIEVED POSTCARDS ROOM INSTANTIATION
     // create postcardManagerInstance for to handle recieved postcards
-
-    // let blackFadeIn = new Background('blackground', 0, 0, 6, () => {blackFadeIn.startOpacityTransition(0.5, 0.05)} );
-    // blackFadeIn.opacity = 0;
-
     let receivedPostcardManagerInstance = new postcardInboxManager(0, 0, 0, get(game), friendButton, colorPallete, textRendererArray, stampArray);   
     let nextPageButtonPostcard = new Button(100, 110, 5, "nextPageButton", ()=>{
         receivedPostcardManagerInstance.postcardButtonList.setNextPage();

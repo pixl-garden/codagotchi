@@ -74,7 +74,7 @@
         screen.forEach((row, y) => {
             row.forEach((color, x) => {
                 if(color === 'transparent'){
-                    ctx.clearRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    ctx.clearRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize );
                 }else{
                     ctx.fillStyle = color;
                     ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
