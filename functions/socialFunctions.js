@@ -244,12 +244,15 @@ export const retrieveInbox = functions.https.onRequest(async (req, res) => {
             for (const key in inboxData) {
                 if (typeof inboxData[key] === 'object') {
                     const serverLength = Object.keys(inboxData[key] || {}).length;
-                    const clientLength = lengths[key] || 0;
+                    const clientLength = parseInt(lengths[key]) || 0;
 
-                    // Check for new data since last fetch
-                    const newData = Object.values(inboxData[key] || {}).filter((item) => item.timestamp > lastFetchTime);
+                    const newData = Object.values(inboxData[key] || {})
+                        .filter((item) => item.timestamp && item.timestamp > lastFetchTime);
+
+                    console.log(`Key: ${key}, Server Length: ${serverLength}, Client Length: ${clientLength}, New Data Length: ${newData.length}`);
 
                     if (serverLength !== clientLength + newData.length) {
+                        console.log(`Mismatch detected for ${key}. Needs full replace.`);
                         needsFullReplace = true;
                         break;
                     }

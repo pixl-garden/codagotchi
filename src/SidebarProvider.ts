@@ -122,12 +122,12 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
 
     console.log('Last fetch timestamp:', lastFetchTimestamp);
     console.log('Cached inbox:', cachedInbox);
-    
+
     // ! Uncomment on production
     // Add a 15 minute delay to the last fetch time, to prevent spamming the server
 
     // if (Date.now() - lastFetchTimestamp < 900000) {
-    //     console.log("Mailman hasn't arrived yet!");
+    //     console.log("Mailman hasn't arrived yet (Cache updates )!");
     //     return cachedInbox;
     // }
 
