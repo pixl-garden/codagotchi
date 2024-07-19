@@ -203,6 +203,7 @@
         return item;
     }
 
+    //maybe make this the constructor for the inventory class
     export function createInventoryFromSave(savedData) {
         const inventory = new Inventory();
 

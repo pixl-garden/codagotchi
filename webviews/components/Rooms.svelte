@@ -240,6 +240,7 @@
             Colors.transparent
         ];
 
+        //TODO: change this to either save item names or predefine ids
         // create stamp and text renderer arrays
         function getStampStringsFromConfig() {
             let stampArray = [];

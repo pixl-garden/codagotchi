@@ -16,10 +16,6 @@
             this.rows = 1;
             this.objects = objects;
             this.blocks = blocks;
-
-            // this.blocks.forEach(block => {
-            // console.log(`Name: ${block.name}}`);
-            //  });
             this.abortController = null;
             this.cancelFlag = false;
             this.sprites = ores;
