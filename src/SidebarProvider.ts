@@ -116,16 +116,17 @@ async function handleFriendRequest(context: vscode.ExtensionContext, requestId: 
 
 async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
     const cacheKey = 'userInbox';
-    
-    console.log('Retrieving inbox data from cache...');
+
+    //console.log('Retrieving inbox data from cache...');
     const cachedInbox = await cacheManager.get(cacheKey);
 
     if (cachedInbox) {
-        console.log('Using cached inbox data');
+        //console.log('Using cached inbox data');
         await overwriteFieldInState(context, 'inbox', cachedInbox);
         return cachedInbox;
     }
 
+    console.log('Could not find cached inbox data. Fetching from the server...');
     const functionUrl = 'https://us-central1-codagotchi.cloudfunctions.net/retrieveInbox';
     const idToken = await context.secrets.get('idToken');
     try {
@@ -135,7 +136,7 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
                 'Content-Type': 'application/json',
             },
         });
-        console.log('Inbox:', response.data.inbox);
+        //console.log('Inbox:', response.data.inbox);
 
         const inboxData = response.data.inbox || {};
 
