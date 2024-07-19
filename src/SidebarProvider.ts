@@ -10,6 +10,7 @@ import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
 import { CacheManager } from './cacheManager';
+import * as apiClient from './apiClient';
 
 const CLIENT_ID = 'a253a1599d7b631b091a';
 const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
@@ -127,7 +128,7 @@ async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: Cac
     // Add a 15 minute delay to the last fetch time, to prevent spamming the server
 
     // if (Date.now() - lastFetchTimestamp < 900000) {
-    //     console.log("Mailman hasn't arrived yet (Cache updates )!");
+    //     console.log("Mailman hasn't arrived yet (Cache updates)!");
     //     return cachedInbox;
     // }
 
