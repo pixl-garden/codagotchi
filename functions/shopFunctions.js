@@ -18,10 +18,6 @@ import verifyToken from './verifyToken.js';
     }
 */
 
-import { verifyToken } from './verifyToken';
-import { selectGachaReward } from './gachaModule'; // We'll create this module later
-import * as functions from 'firebase-functions';
-import { admin } from './firebaseConfig';
 
 export const doPurchase = functions.https.onRequest((req, res) => {
     if (req.method !== 'POST') {
