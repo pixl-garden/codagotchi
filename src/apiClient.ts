@@ -80,7 +80,7 @@ export async function handleFriendRequest(context: vscode.ExtensionContext, requ
     }
 }
 
-// 
+// TODO: add a timeout to the request (function can only call every 5 minutes)
 export async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
     const cacheKey = 'userInbox';
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;

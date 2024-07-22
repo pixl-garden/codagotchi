@@ -1,6 +1,6 @@
-import { verifyToken } from './verifyToken';
+import { verifyToken } from './verifyToken.js';
 import * as functions from 'firebase-functions';
-import { admin } from './firebaseConfig';
+import { admin } from './firebaseConfig.js';
 
 /*
  A function to periodically sync the user's inventory with the database.

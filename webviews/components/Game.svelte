@@ -21,6 +21,14 @@
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
             this.isActive = false;
             this.inbox;
+
+            this.pendingUpdates = {
+                inventory: {},
+                xp: 0,
+                pet: {},
+                customization: {}
+            };
+            this.startPeriodicSync();
         }
 
         //function to call when player goes inactive
@@ -134,12 +142,15 @@
             this.updateGlobalState({ 
                 "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
             });
+            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + quantity;
         }
 
         addUnstackableItem(itemIdString, properties) {
             this.updateGlobalState({ 
                 "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
             });
+            // TODO: handle the properties of unstackable items
+            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + 1;
         }
 
         hasStackableItems(itemIdString, quantity = 1) {
@@ -147,7 +158,7 @@
         }
 
         subtractStackableItem(itemIdString, quantity = 1) {
-            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity)
+            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
             if(itemInstance) {
                 if(itemInstance.itemCount <= 0){
                     this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
@@ -156,11 +167,70 @@
                         "inventory": itemInstance.serialize()
                     });
                 }
-            }
-            else{
+                this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) - quantity;
             }
         }
 
+        syncUserData() {
+            console.log("Sending user data updates to server...");
+            const updates = {
+                inventoryUpdates: this.generateInventoryUpdates(),
+                xp: this.pendingUpdates.xp,
+                // petUpdates: this.generatePetUpdates(),
+                // customizationUpdates: this.generateCustomizationUpdates()
+            };
+
+            if (Object.keys(updates.inventoryUpdates).length > 0 || 
+                updates.xp !== 0 || 
+                Object.keys(updates.petUpdates).length > 0 || 
+                Object.keys(updates.customizationUpdates).length > 0) {
+
+                console.log("userData updates:", updates);
+                
+                tsvscode.postMessage({ type: 'syncUserData', userData: updates });
+                
+                // Clear pending updates after sending
+                this.pendingUpdates = {
+                    inventory: {},
+                    xp: 0,
+                    pet: {},
+                    customization: {}
+                };
+            }
+        }
+
+        generateInventoryUpdates() {
+            return Object.entries(this.pendingUpdates.inventory)
+                .filter(([_, amount]) => amount !== 0)
+                .map(([itemId, amount]) => ({ itemId, amount }));
+        }
+
+        generatePetUpdates() {
+            // Implement this method based on your pet data structure
+            return {
+                hunger: this.pet.hunger,
+                happiness: this.pet.happiness,
+                // Add other pet-related fields
+            };
+        }
+
+        generateCustomizationUpdates() {
+            // Implement this method based on your customization data structure
+            return {
+                background: this.customization.background,
+                petClothing: this.customization.petClothing,
+                // Add other customization-related fields
+            };
+        }
+
+        // Add a method to start periodic syncing
+        startPeriodicSync(interval = 60000) { // 60000 ms = 1 minute
+            setInterval(() => {
+                if (Object.keys(this.pendingUpdates.inventory).length > 0) {
+                    this.syncUserData();
+                }
+            }, interval);
+        }
     }
 
     class Inbox {
