@@ -232,6 +232,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     await apiClient.sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
                     break;
                 }
+                case 'syncUserData' : {
+                    await apiClient.syncUserData(this.context, data.userData);
+                    break;
+                }
             }
         });
     }

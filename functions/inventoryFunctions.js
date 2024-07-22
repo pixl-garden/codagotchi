@@ -2,45 +2,6 @@ import { verifyToken } from './verifyToken';
 import * as functions from 'firebase-functions';
 import { admin } from './firebaseConfig';
 
-// 0. Sync the inventory with the database
-// 1. Inventory write function
-// 2. Inventory + xp write function
-
-const singleWriteToInventory = async (userRef, itemId, amount) => {
-    if (typeof amount !== 'number') {
-        throw new Error('Amount must be a number');
-    }
-
-    const updates = {
-        [`protected/inventory/${itemId}`]: admin.database.ServerValue.increment(amount),
-    };
-
-    try {
-        await userRef.update(updates);
-    } catch (error) {
-        console.error('Error updating inventory:', error);
-        throw new Error('Failed to update inventory');
-    }
-};
-
-const singleWriteToInventoryAndXp = async (userRef, itemId, amount, xp) => {
-    if (typeof amount !== 'number' || typeof xp !== 'number') {
-        throw new Error('Amount and XP must be numbers');
-    }
-
-    const updates = {
-        [`protected/inventory/${itemId}`]: admin.database.ServerValue.increment(amount),
-        [`protected/xp`]: admin.database.ServerValue.increment(xp),
-    };
-
-    try {
-        await userRef.update(updates);
-    } catch (error) {
-        console.error('Error updating inventory and XP:', error);
-        throw new Error('Failed to update inventory and XP');
-    }
-};
-
 /*
  A function to periodically sync the user's inventory with the database.
  The function timeout is handled by the client. The client will call this function every ? minutes. 
@@ -131,9 +92,9 @@ async function processAllUpdates(userRef, inventoryUpdates, petUpdates, customiz
         ],
         "petUpdates": {
             "hunger": 80,
-            "happiness": 90
+            "happiness": 90,
+            "currentPetXp": 100
         },
-
         "customizationUpdates": {
             "background": "forest",
             "pet_clothing": "hat_001"

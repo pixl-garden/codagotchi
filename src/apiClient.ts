@@ -52,7 +52,7 @@ export async function sendFriendRequest(context: vscode.ExtensionContext, recipi
                 },
             },
         );
-        console.log("Friend Request Sent")
+        console.log('Friend Request Sent');
         return response.data.message;
     } catch (error) {
         console.error('Error sending friend request:', error);
@@ -80,6 +80,7 @@ export async function handleFriendRequest(context: vscode.ExtensionContext, requ
     }
 }
 
+// 
 export async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
     const cacheKey = 'userInbox';
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
@@ -109,7 +110,7 @@ export async function retrieveInbox(context: vscode.ExtensionContext, cacheManag
 
         let updatedInbox = flag === 'merge' ? merge({}, cachedInbox, inboxData) : inboxData;
 
-        (flag === 'merge' ? console.log("Inbox Merged") : console.log("Inbox Replaced"));
+        flag === 'merge' ? console.log('Inbox Merged') : console.log('Inbox Replaced');
 
         await cacheManager.set(cacheKey, {
             data: updatedInbox,
@@ -136,10 +137,33 @@ export async function sendPostcard(context: vscode.ExtensionContext, recipientUs
                 },
             },
         );
-        console.log("Postcard Sent")
+        console.log('Postcard Sent');
         return response.data.message;
     } catch (error) {
         console.error('Error sending postcard:', error);
+        throw error;
+    }
+}
+
+// TEST the TYPES
+export async function syncUserData(context: vscode.ExtensionContext, userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON }) {
+    const idToken = await context.secrets.get('idToken');
+    const { inventoryUpdates, petUpdates, customizationUpdates } = userData;
+    try {
+        const response = await axios.post(
+            `${BASE_URL}/syncUserData`,
+            { inventoryUpdates, petUpdates, customizationUpdates },
+            {
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        console.log('User Data Synced');
+        return response.data.message;
+    } catch (error) {
+        console.error('Error syncing user data:', error);
         throw error;
     }
 }
