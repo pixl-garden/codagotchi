@@ -30,7 +30,7 @@
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
-        $game.retrieveInbox();
+        
     }
     //main loop
     function main() {
