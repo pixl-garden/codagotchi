@@ -129,8 +129,10 @@
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
         refreshInbox() {
-            // this.syncLocalToGlobalState() 
-            this.inbox = new Inbox(this.getLocalState().inbox || {});
+            //this.syncLocalToGlobalState() 
+            console.log("local state: ", this.getLocalState());
+            console.log("global state:" , game);
+            this.inbox = new Inbox(this.getLocalState().userInbox || {});
             return this.inbox
         }
 

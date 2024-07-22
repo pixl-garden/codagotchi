@@ -86,6 +86,8 @@ export async function retrieveInbox(context: vscode.ExtensionContext, cacheManag
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
     const cachedInbox = (await cacheManager.get(cacheKey)) || {};
 
+    //console.log(cachedInbox);
+
     const lengths = {} as { [key: string]: number };
     for (const key in cachedInbox) {
         if (typeof cachedInbox[key] === 'object') {

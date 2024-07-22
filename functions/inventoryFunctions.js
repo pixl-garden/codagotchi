@@ -17,7 +17,7 @@ import { admin } from './firebaseConfig.js';
 // 3. Pet updates (hunger, happiness, clothing, etc.) - setting the user's pet data
 // 4. XP updates - updating the user's XP
 
-async function processAllUpdates(userRef, inventoryUpdates, petUpdates, customizationUpdates) {
+async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates) {
     const updates = {};
 
     // Process inventory updates
@@ -41,41 +41,40 @@ async function processAllUpdates(userRef, inventoryUpdates, petUpdates, customiz
 
         // Apply inventory changes
         for (const [itemId, amount] of Object.entries(inventoryChanges)) {
-            updates[`protected/inventory/${itemId}`] = admin.database.ServerValue.increment(amount);
+            updates[`/users/${uid}/protected/inventory/${itemId}`] = admin.database.ServerValue.increment(amount);
         }
 
         // Apply XP change
         if (xpChange !== 0) {
-            updates['protected/xp'] = admin.database.ServerValue.increment(xpChange);
+            updates[`/users/${uid}/protected/xp`] = admin.database.ServerValue.increment(xpChange);
         }
     }
 
     // Process pet updates
-    // TODO: Implement pet updates
     if (petUpdates) {
         for (const [key, value] of Object.entries(petUpdates)) {
-            updates[`protected/pet/${key}`] = value;
+            updates[`/users/${uid}/protected/pet/${key}`] = value;
         }
     }
 
     // Process customization updates
-    // TODO: Implement customization updates
     if (customizationUpdates) {
         for (const [key, value] of Object.entries(customizationUpdates)) {
-            updates[`protected/owned/${key}`] = value;
+            updates[`/users/${uid}/protected/owned/${key}`] = value;
         }
     }
 
     // Perform the update if there are any changes
     if (Object.keys(updates).length > 0) {
         try {
-            await userRef.update(updates);
+            await admin.database().ref().update(updates);
         } catch (error) {
             console.error('Error updating user data:', error);
             throw new Error('Failed to update user data');
         }
     }
 }
+
 
 /*
     Sync user data with the database.
@@ -109,15 +108,15 @@ export const syncUserData = functions.https.onRequest((req, res) => {
 
     verifyToken(req, res, async () => {
         try {
+            // console.log("req user:", req.user);
             const uid = req.user.uid;
             const { inventoryUpdates, petUpdates, customizationUpdates } = req.body;
 
-            const userRef = admin.database().ref(`users/${uid}`);
-
             // Process all updates
-            await processAllUpdates(userRef, inventoryUpdates, petUpdates, customizationUpdates);
+            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates);
 
             res.status(200).send({ success: true, message: 'User data synced successfully' });
+            
         } catch (error) {
             console.error('Sync user data error:', error);
             res.status(500).send({ success: false, message: 'An error occurred while syncing user data' });

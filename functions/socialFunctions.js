@@ -243,13 +243,13 @@ export const retrieveInbox = functions.https.onRequest(async (req, res) => {
 
             // Compare lengths and check for new data
             for (const key in inboxData) {
-
                 const serverLength = Object.keys(inboxData[key] || {}).length;
                 const clientLength = parseInt(lengths[key]) || 0;
 
-                // Check for new data since last fetch
-                const newData = Object.values(inboxData[key] || {})
-                    .filter((item) => item.timestamp && item.timestamp > lastFetchTime);
+                const newData = Object.entries(inboxData[key] || {}).filter(([_, item]) => {
+                    const itemTimestamp = item.createdAt || item.addedAt || item.sentAt;
+                    return itemTimestamp && itemTimestamp > lastFetchTime;
+                });
 
                 console.log(`Key: ${key}, Server Length: ${serverLength}, Client Length: ${clientLength}, New Data Length: ${newData.length}`);
 
@@ -259,10 +259,7 @@ export const retrieveInbox = functions.https.onRequest(async (req, res) => {
                     responseData = inboxData;
                     break;
                 } else {
-                    responseData[key] = newData.reduce((acc, item) => {
-                        acc[item.id] = item;
-                        return acc;
-                    }, {});
+                    responseData[key] = Object.fromEntries(newData);
                 }
             }
 
