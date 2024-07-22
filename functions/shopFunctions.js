@@ -2,7 +2,7 @@ import { verifyToken } from './verifyToken';
 import * as functions from 'firebase-functions';
 import { admin } from './firebaseConfig';
 
-// ! most here is claude code. Needs a lot fo testing
+// !  Needs a lot fo testing
 export const doPurchase = functions.https.onRequest((req, res) => {
     if (req.method !== 'POST') {
         return res.status(403).send({ success: false, message: 'Forbidden!' });

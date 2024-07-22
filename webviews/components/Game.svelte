@@ -15,7 +15,7 @@
             this.syncLocalToGlobalState();
             this.inventory;
             this.localUserData;
-            this.timeoutTime = 10000;// 10 minutes
+            this.timeoutTime = 10000; // 10 seconds
             this.handleInactivity = this.handleInactivity.bind(this);
             this.resetActivityTimeout = this.resetActivityTimeout.bind(this);
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
