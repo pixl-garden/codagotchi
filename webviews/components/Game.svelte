@@ -130,10 +130,17 @@
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
         refreshInbox() {
             //this.syncLocalToGlobalState() 
-            console.log("local state: ", this.getLocalState());
-            console.log("global state:" , game);
-            this.inbox = new Inbox(this.getLocalState().userInbox || {});
+            //console.log("local state: ", this.getLocalState());
+            this.inbox = new Inbox(this.getLocalState().inbox || {});
             return this.inbox
+        }
+
+        async initializeWithCache(cachedUserInbox) {
+            console.log('Initializing game with cached userInbox:', cachedUserInbox);
+            if (cachedUserInbox) {
+                this.updateGlobalState({ userInbox: cachedUserInbox });
+            }
+            console.log("Global state after initializing with cache: ", game);
         }
 
         constructUserData(){

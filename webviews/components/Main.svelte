@@ -13,15 +13,34 @@
     let screen = [];
     let hasMainLoopStarted = false;
     let currentRoom;
-    let githubUsername;
     let canvas, ctx;
     let screenWidth = 128;
+    let cacheManager;
+    let hasPreBeenCalled = false;
+    let cachedUserInbox = null;
+    let startTime, endTime;
+
+    async function initializeGame() {
+        if (!hasPreBeenCalled) {
+            await preloadAllSpriteSheets();
+            if (cachedUserInbox) {
+                await $game.initializeWithCache(cachedUserInbox);
+            }
+            pre();
+            endTime = performance.now();  // End timing
+            console.log(`Time taken: ${endTime - startTime} milliseconds`);
+            setInterval(main, Math.floor(1000 / FPS));
+            hasPreBeenCalled = true;
+        }
+    }
 
     //run once before main loop
-    function pre() {
-        // $game.clearGlobalState();
-        $game.syncLocalToGlobalState( {} );
+    async function pre() {
+        $game.clearGlobalState(); // Clear global state
+
+        $game.syncLocalToGlobalState({});
         $game.constructInventory();
+        
         // console.log("ItemByType Map: ", $game.inventory.itemsByType);
         // console.log("Stamp Items: ", $game.inventory.getItemsByType('stamp'));
         handleResize();
@@ -30,8 +49,8 @@
 
         // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
-        
     }
+
     //main loop
     function main() {
         let sprites = []; // Clear previous sprites
@@ -47,7 +66,7 @@
             if(children.length > 0 && obj.renderChildren) {
                 obj.getChildSprites().forEach((sprite) => {
                     // console.log("Child sprite: ", sprite)
-                    if (Array.isArray(sprite)) {-
+                    if (Array.isArray(sprite)) {
                         sprites.push(...sprite);
                     //if not an array, push sprite
                     } else {
@@ -84,9 +103,6 @@
     }
 
     onMount(async () => {
-        //current load time ~3.9 seconds (BAD!)
-        let startTime, endTime;
-
         canvas = document.getElementsByClassName('pixel-grid')[0];
         let screenSize = window.innerWidth;
         canvas.width = screenSize;
@@ -95,22 +111,20 @@
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
 
+        let cacheManagerReceived = false;
+        let imageUrisReceived = false;
+
         window.addEventListener('message', async (event) => {
             const message = event.data;
             if (message.type === 'image-uris') {
                 startTime = performance.now();  // Start timing
 
                 images.set(message.uris);
-                // Wait until all sprites are loaded
-                await preloadAllSpriteSheets().then(() => {
-                    // Call pre() once and start main loop
-                    pre();
-                    endTime = performance.now();  // End timing
+                imageUrisReceived = true;
 
-                    console.log(`Time taken: ${endTime - startTime} milliseconds`);
-
-                    setInterval(main, Math.floor(1000 / FPS));
-                });
+                if (cacheManagerReceived) {
+                    await initializeGame();
+                }
             }
             else if (message.type === 'documentSaved'){
                 $game.resetActivityTimeout();
@@ -121,8 +135,16 @@
             else if(message.type === 'resize'){
                 handleResize();
             }
-        });
+            else if (message.type === 'cached-user-inbox') {
+                cachedUserInbox = message.userInbox;
+                console.log('Received cached userInbox:', cachedUserInbox);
+                cacheManagerReceived = true;
 
+                if (imageUrisReceived) {
+                    await initializeGame();
+                }
+            }
+        });
 
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);

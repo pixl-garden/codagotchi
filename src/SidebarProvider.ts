@@ -89,6 +89,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     const refreshToken = (await this.context.secrets.get('refreshToken')) || '';
                     await apiClient.refreshToken(refreshToken, this.context);
+
+                    const cachedUserInbox = await this.cacheManager.get('userInbox');
+                    console.log('Cached userInbox:', cachedUserInbox);
+
+                    webviewView.webview.postMessage({
+                        type: 'cached-user-inbox',
+                        userInbox: cachedUserInbox,
+                    });
+
                     break;
                 }
 
@@ -216,15 +225,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'retrieveInbox': {
-                    const inboxData = await apiClient.retrieveInbox(this.context, this.cacheManager);
-                    if (inboxData) {
+                    const {updatedInbox} = await apiClient.retrieveInbox(this.context, this.cacheManager);
+                    //console.log("Retrieved inbox data:", updatedInbox);
+                    if (updatedInbox) {
+                        // set the global state with the updated inbox data
+                        await updateGlobalState(this.context, { inbox: updatedInbox });
+                        // update the local state with the updated inbox data
                         this._view?.webview.postMessage({
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
                         });
-                        this._view?.webview.postMessage({
-                            type: 'refreshInbox',
-                        });
+
                     }
                     break;
                 }
@@ -232,7 +243,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     await apiClient.sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
                     break;
                 }
-                case 'syncUserData' : {
+                case 'syncUserData': {
                     await apiClient.syncUserData(this.context, data.userData);
                     break;
                 }
@@ -411,5 +422,3 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
         }
     }
 }
-
-
