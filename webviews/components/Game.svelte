@@ -141,12 +141,11 @@
         }
 
         async initializeWithCache(cachedUserInbox = {}, cachedUserInventory = {}) {
-            console.log('Initializing game with cached userInbox:', cachedUserInbox);
-            if (cachedUserInbox) {
+            if (Object.keys(cachedUserInbox).length > 0) {
+                console.log('Initializing game with cached userInbox:', cachedUserInbox);
                 this.updateGlobalState({ userInbox: cachedUserInbox });
-            }
-            console.log("Initializing game with cached userInventory:", cachedUserInventory);
-            if (cachedUserInventory) {
+            } else if (Object.keys(cachedUserInventory).length > 0) {
+                console.log("Initializing game with cached userInventory:", cachedUserInventory);
                 this.updateGlobalState({ userInventory: cachedUserInventory });
             }
             console.log("Global state after initializing with cache: ", game);
