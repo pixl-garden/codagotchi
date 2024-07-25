@@ -1,6 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
-    import { Inventory, createInventoryFromSave } from './Inventory.svelte';
+    import { Inventory } from './Inventory.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -15,12 +15,20 @@
             this.syncLocalToGlobalState();
             this.inventory;
             this.localUserData;
-            this.timeoutTime = 10000;// 10 minutes
+            this.timeoutTime = 10000; // 10 seconds
             this.handleInactivity = this.handleInactivity.bind(this);
             this.resetActivityTimeout = this.resetActivityTimeout.bind(this);
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
             this.isActive = false;
             this.inbox;
+
+            this.pendingUpdates = {
+                inventory: {},
+                xp: 0,
+                pet: {},
+                customization: {}
+            };
+            this.startPeriodicSync();
         }
 
         //function to call when player goes inactive
@@ -111,19 +119,37 @@
         }
 
         constructInventory() {
-            //TODO: get from user data instead of directly in local state
-            this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
+            console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
+            this.inventory = new Inventory(this.getLocalState().userInventory || {});
+            // console.log("Inventory constructed: ", this.userInventory);
+            return this.inventory;
         }
 
         retrieveInbox() {
             tsvscode.postMessage({ type: 'retrieveInbox' });
         }
+        retrieveInventory() {
+            tsvscode.postMessage({ type: 'retrieveInventory' });
+        }
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
         refreshInbox() {
-            // this.syncLocalToGlobalState() 
-            this.inbox = new Inbox(this.getLocalState().inbox || {});
+            //this.syncLocalToGlobalState() 
+            //console.log("local state: ", this.getLocalState());
+            this.inbox = new Inbox(this.getLocalState().userInbox || {});
             return this.inbox
+        }
+
+        async initializeWithCache(cachedUserInbox = {}, cachedUserInventory = {}) {
+            console.log('Initializing game with cached userInbox:', cachedUserInbox);
+            if (cachedUserInbox) {
+                this.updateGlobalState({ userInbox: cachedUserInbox });
+            }
+            console.log("Initializing game with cached userInventory:", cachedUserInventory);
+            if (cachedUserInventory) {
+                this.updateGlobalState({ userInventory: cachedUserInventory });
+            }
+            console.log("Global state after initializing with cache: ", game);
         }
 
         constructUserData(){
@@ -134,12 +160,15 @@
             this.updateGlobalState({ 
                 "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
             });
+            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + quantity;
         }
 
         addUnstackableItem(itemIdString, properties) {
             this.updateGlobalState({ 
                 "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
             });
+            // TODO: handle the properties of unstackable items
+            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + 1;
         }
 
         hasStackableItems(itemIdString, quantity = 1) {
@@ -147,7 +176,7 @@
         }
 
         subtractStackableItem(itemIdString, quantity = 1) {
-            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity)
+            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
             if(itemInstance) {
                 if(itemInstance.itemCount <= 0){
                     this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
@@ -156,11 +185,70 @@
                         "inventory": itemInstance.serialize()
                     });
                 }
-            }
-            else{
+                this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) - quantity;
             }
         }
 
+        syncUserData() {
+            console.log("Sending user data updates to server...");
+            const updates = {
+                inventoryUpdates: this.generateInventoryUpdates(),
+                xp: this.pendingUpdates.xp,
+                // petUpdates: this.generatePetUpdates(),
+                // customizationUpdates: this.generateCustomizationUpdates()
+            };
+
+            if (Object.keys(updates.inventoryUpdates).length > 0 || 
+                updates.xp !== 0 || 
+                Object.keys(updates.petUpdates).length > 0 || 
+                Object.keys(updates.customizationUpdates).length > 0) {
+
+                console.log("userData updates:", updates);
+                
+                tsvscode.postMessage({ type: 'syncUserData', userData: updates });
+                
+                // Clear pending updates after sending
+                this.pendingUpdates = {
+                    inventory: {},
+                    xp: 0,
+                    pet: {},
+                    customization: {}
+                };
+            }
+        }
+
+        generateInventoryUpdates() {
+            return Object.entries(this.pendingUpdates.inventory)
+                .filter(([_, amount]) => amount !== 0)
+                .map(([itemId, amount]) => ({ itemId, amount }));
+        }
+
+        generatePetUpdates() {
+            // Implement this method based on your pet data structure
+            return {
+                hunger: this.pet.hunger,
+                happiness: this.pet.happiness,
+                // Add other pet-related fields
+            };
+        }
+
+        generateCustomizationUpdates() {
+            // Implement this method based on your customization data structure
+            return {
+                background: this.customization.background,
+                petClothing: this.customization.petClothing,
+                // Add other customization-related fields
+            };
+        }
+
+        // Add a method to start periodic syncing
+        startPeriodicSync(interval = 60000) { // 60000 ms = 1 minute
+            setInterval(() => {
+                if (Object.keys(this.pendingUpdates.inventory).length > 0) {
+                    this.syncUserData();
+                }
+            }, interval);
+        }
     }
 
     class Inbox {

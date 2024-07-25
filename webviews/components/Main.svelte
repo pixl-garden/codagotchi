@@ -11,11 +11,10 @@
 
     const FPS = 16; //frames per second
     let screen = [];
-    let hasMainLoopStarted = false;
     let currentRoom;
-    let githubUsername;
     let canvas, ctx;
     let screenWidth = 128;
+    let startTime, endTime;
 
     //run once before main loop
     function pre() {
@@ -27,6 +26,7 @@
         preloadObjects();
         $game.setCurrentRoom('mainRoom');
     }
+
     //main loop
     function main() {
         let sprites = []; // Clear previous sprites
@@ -34,7 +34,6 @@
         
         // Get the current room from the game object
         currentRoom = $game.getCurrentRoom();
-        hasMainLoopStarted = true;
         
         // Render objects in the current room
         for (let obj of currentRoom.getObjects()) {
@@ -42,6 +41,7 @@
             if(children.length > 0 && obj.renderChildren) {
                 obj.getChildSprites().forEach((sprite) => {
                     // console.log("Child sprite: ", sprite)
+                    if (Array.isArray(sprite)) {
                     if (Array.isArray(sprite)) {
                         sprites.push(...sprite);
                     //if not an array, push sprite
@@ -79,9 +79,6 @@
     }
 
     onMount(async () => {
-        //current load time ~3.9 seconds (BAD!)
-        let startTime, endTime;
-
         canvas = document.getElementsByClassName('pixel-grid')[0];
         let screenSize = window.innerWidth;
         canvas.width = screenSize;
@@ -94,16 +91,14 @@
             const message = event.data;
             if (message.type === 'image-uris') {
                 startTime = performance.now();  // Start timing
-
                 images.set(message.uris);
+
                 // Wait until all sprites are loaded
                 await preloadAllSpriteSheets().then(() => {
                     // Call pre() once and start main loop
                     pre();
                     endTime = performance.now();  // End timing
-
                     console.log(`Time taken: ${endTime - startTime} milliseconds`);
-
                     setInterval(main, Math.floor(1000 / FPS));
                 });
             }
@@ -116,8 +111,17 @@
             else if(message.type === 'resize'){
                 handleResize();
             }
+            else if (message.type === 'cached-user-inbox') {
+                let cachedUserInbox = message.userInbox;
+                console.log('Received cached userInbox:', cachedUserInbox);
+                await $game.initializeWithCache(cachedUserInbox);
+            }
+            else if (message.type === 'cached-user-inventory') {
+                let cachedUserInventory = message.userInventory;
+                console.log('Received cached userInventory:', cachedUserInventory);
+                await $game.initializeWithCache({}, cachedUserInventory);
+            }
         });
-
 
         tsvscode.postMessage({ type: 'webview-ready' });
         window.addEventListener('resize', handleResize);

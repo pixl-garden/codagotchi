@@ -1,7 +1,7 @@
 <!-- TODO -->
 
 <script context="module">
-  import { Inventory, createInventoryFromSave } from './Inventory.svelte';
+  import { Inventory } from './Inventory.svelte';
 
   export class LocalUserData {
     constructor(userData){
@@ -15,7 +15,7 @@
         experience: userData.profile.experience,
       };
       this.friends = userData.friends;
-      this.inventory = createInventoryFromSave(userData.owned.inventory);
+      // this.inventory = userData.inventory;
     }
   }
 </script>

@@ -89,6 +89,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     const refreshToken = (await this.context.secrets.get('refreshToken')) || '';
                     await apiClient.refreshToken(refreshToken, this.context);
+
+                    const cachedUserInbox = await this.cacheManager.get('userInbox');
+                    console.log('Cached userInbox:', cachedUserInbox);
+
+                    webviewView.webview.postMessage({
+                        type: 'cached-user-inbox',
+                        userInbox: cachedUserInbox,
+                    });
+
+                    const cachedUserInventory = await this.cacheManager.get('userInventory');
+                    console.log('Cached userInventory:', cachedUserInventory);
+
+                    webviewView.webview.postMessage({
+                        type: 'cached-user-inventory',
+                        userInventory: cachedUserInventory,
+                    });
+
                     break;
                 }
 
@@ -216,20 +233,40 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'retrieveInbox': {
-                    const inboxData = await apiClient.retrieveInbox(this.context, this.cacheManager);
-                    if (inboxData) {
+                    const {updatedInbox} = await apiClient.retrieveInbox(this.context, this.cacheManager);
+                    //console.log("Retrieved inbox data:", updatedInbox);
+                    if (updatedInbox) {
+                        // set the global state with the updated inbox data
+                        await updateGlobalState(this.context, { inbox: updatedInbox });
+                        // update the local state with the updated inbox data
                         this._view?.webview.postMessage({
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
                         });
+
+                    }
+                    break;
+                }
+                case 'retrieveInventory': {
+                    const {updatedInventory} = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    //console.log("Retrieved inventory data:", updatedInventory);
+                    if (updatedInventory) {
+                        // set the global state with the updated inventory data
+                        await updateGlobalState(this.context, { inventory: updatedInventory });
+                        // update the local state with the updated inventory data
                         this._view?.webview.postMessage({
-                            type: 'refreshInbox',
+                            type: 'fetchedGlobalState',
+                            value: getGlobalState(this.context),
                         });
                     }
                     break;
                 }
                 case 'sendPostcard': {
                     await apiClient.sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
+                    break;
+                }
+                case 'syncUserData': {
+                    await apiClient.syncUserData(this.context, data.userData);
                     break;
                 }
             }
@@ -403,9 +440,7 @@ function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
 function printJsonObject(jsonObject: { [key: string]: any }): void {
     for (const key in jsonObject) {
         if (jsonObject.hasOwnProperty(key)) {
-            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+            // console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
         }
     }
 }
-
-
