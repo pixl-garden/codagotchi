@@ -152,10 +152,10 @@
             "hovered": [1]
         }
     },
-    "itemSlot":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "itemSlot.png",
+    "itemSlotXL":{
+        "spriteWidth": 48,
+        "spriteHeight": 48,
+        "spriteSheet": "itemSlotXL.png",
         "states": {
             "default": [0],
             "hovered": [1]

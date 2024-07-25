@@ -6,8 +6,10 @@
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
-    import { ConfigObject, GeneratedObject } from './Object.svelte';
-    import bedroomConfig from './bedroomConfig.json';
+    import bedroomConfig from './config/bedroomConfig.json';
+    import { inventoryGrid } from './Inventory.svelte';
+    import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
+
 
 
     export class BedroomManager {
@@ -28,6 +30,11 @@
             return validTypes.includes(objectType);
         }
 
+        // 0000 0001 0002 0003 0004 0005 0006 0007 
+        // 
+        // 0001 1001 3
+        //[type(1)][index(3)][xCoord(3)][type(2)][index(3)][xCoord(3)][type(3)][index(3)][xCoord(3)]
+        // 
         serializeBedroom() {
             return {
                 "wallpaperIndex": this.wallpaperIndex,
@@ -46,11 +53,7 @@
             if (!this.isValidObjectType(objectType) || !['wallpaper', 'floor'].includes(objectType)) {
                 throw new Error('replaceObject: objectType must be wallpaper or floor');
             }
-            if (objectType === 'wallpaper') {
-                this.wallpaperIndex = configIndex;
-            } else if (objectType === 'floor') {
-                this.floorIndex = configIndex;
-            }
+            this[`${objectType}Index`] = configIndex;
         }
 
         // Used to add a wallItem, nearFurniture, or farFurniture
@@ -151,11 +154,34 @@
             // stash button (shows on selection)
             // item movement and border collision handling (transparent red?)
             // 
+
+    function createItemSlotXL() {
+        let output = new ConfigObject("itemSlotXL", 0, 0, 0);
+        output.hoverWithChildren = true;
+        output.passMouseCoords = true;
+        return output;
+    }
     export class BedroomEditor extends GeneratedObject {
         constructor(gameRef) {
             let emptySpriteMatrix = generateEmptyMatrix(128, 128);
             super(emptySpriteMatrix, {default: [0]}, 0, 0, 0);
+            this.menu = new Menu(10, 19, 10, 108, 108, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1);
+            this.inventoryGrid = new inventoryGrid(2, 2, 2, 2, 2, 2, 11, [], createItemSlotXL, null, null, 1, 1, 1);
+            this.menu.children = [this.inventoryGrid]
+            this.children = [this.menu];
         }
-
+        toggleInventory(){
+            if(this.menu.y < 22){
+                this.menu.startMovingTo(10, 108);
+                // this.inventoryGrid.startMovingTo(15, 113);
+            }
+            else{
+                this.menu.startMovingTo(10, 19);
+                // this.inventoryGrid.startMovingTo(15, 24);
+            }
+        }
+        nextFrame(){
+            this.children.forEach(child => child.nextFrame());
+        }
     }
 </script>

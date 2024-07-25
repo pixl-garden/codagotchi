@@ -14,7 +14,7 @@
     import lootTableConfig from './lootTableConfig.json';
     import { friendListManager, friendRequestManager } from './Social.svelte';
     import itemConfig from './itemConfig.json'
-    import { BedroomManager } from './Bedroom.svelte';
+    import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -755,7 +755,9 @@
     recievedPostcardsRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
 
     // ---------------- BEDROOM ----------------
-    let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {});
+    let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {
+        bedroomEditorInstance.nextFrame();
+    });
     let testBedroomJSON = {                 
         "wallpaperIndex": 0,
         "floorIndex": 0,
@@ -766,8 +768,13 @@
         "farFurnitureIndices": [0],
         "farFurnitureXCoords": [13] 
     }
+
     let bedroomManagerInstance = new BedroomManager(testBedroomJSON);
-    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), backToMain2);
+    let bedroomEditorInstance = new BedroomEditor(get(game));
+    let roomInvButton = new miningButton(110, 20, 5, "INV", ()=>{
+        bedroomEditorInstance.toggleInventory();
+    });
+    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), bedroomEditorInstance, backToMain2, roomInvButton);
 }
 
     export function roomMain(){

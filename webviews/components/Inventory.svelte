@@ -245,7 +245,6 @@
             this.toolTip = toolTip;
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
-            // this.setHoverLogic();
         }
 
 
@@ -290,23 +289,10 @@
         }
 
         getSprite() {
-            let spritesOut = [];
-            //output all children sprites (item slots and items)
-            if(this.children.length > 0) {
-                this.getChildSprites().forEach((sprite) => {
-                    if (Array.isArray(sprite)) {
-                        spritesOut.push(...sprite);
-                    //if not an array, push sprite
-                    } else {
-                        spritesOut.push(sprite);
-                    }
-                });
-            }
             //output tooltip sprite if displayToolTip is true
             if(this.displayToolTip && this.toolTip != null){
-                spritesOut.push(this.toolTip.getSprite());
+                return this.toolTip.getSprite();
             }
-            return spritesOut;
         }
 
         //update the item slots with new items
