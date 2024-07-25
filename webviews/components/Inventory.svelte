@@ -1,5 +1,5 @@
 <script context="module">
-    import { GeneratedObject, ObjectGrid, activeTextRenderer } from "./Object.svelte";
+    import Object, { GeneratedObject, ObjectGrid, activeTextRenderer } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
     import { generateEmptyMatrix, scaleMatrix } from "./MatrixFunctions.svelte";
@@ -67,64 +67,97 @@
     }
 
     export class Inventory {
-        constructor() {
-            this.items = new Map(); // Stores inventoryId -> item instance
-            // stackable items is redundant but is used for quick access to stackable items
-            this.stackableItems = new Map(); // Stores itemIdString -> inventoryId for stackable items
-            this.itemsByType = new Map(); // Stores itemType -> Set of inventoryIds
-        }
+        constructor(savedData) {
+            this.items = new Map(); // Stores itemName -> item instance
+            this.stackableItems = new Map(); // Stores itemName -> item instance for stackable items
+            this.itemsByType = new Map(); // Stores itemType -> Set of itemNames
+            
+            console.log('Saved Data:', savedData); // For debugging
 
-        // Get the first available ID for a new item
-        // could be optimized by storing the last used ID or using a seperate set
-        // or could keep track of free IDs and process them during low load times
-        getFirstAvailableId() {
-            let id = 0;
-            while (this.items.has(id)) {
-                id++;
+           if (savedData && typeof savedData === 'object') {
+                const sortedItems = this.sortInventory(savedData);
+                
+                for (let i = 0; i < sortedItems.length; i++) {
+                    const [itemName, count] = sortedItems[i];
+                    const item = this.createItem(itemName, count);
+                    this.items.set(itemName, item);
+
+                    if (stackableTypes.includes(item.itemType)) {
+                        this.stackableItems.set(itemName, item);
+                    }
+
+                    const typeSet = this.itemsByType.get(item.itemType) || new Set();
+                    typeSet.add(itemName);
+                    this.itemsByType.set(item.itemType, typeSet);
+                }
             }
-            return id;
         }
 
+        sortInventory(savedData) {
+            const items = [];
+            for (const itemName in savedData) {
+                if (savedData.hasOwnProperty(itemName)) {
+                    items.push([itemName, savedData[itemName]]);
+                }
+            }
+            return items.sort((a, b) => {
+                const typeA = itemConfig[a[0]]?.type || '';
+                const typeB = itemConfig[b[0]]?.type || '';
+                if (typeA !== typeB) {
+                    return typeA.localeCompare(typeB);
+                }
+                return a[0].localeCompare(b[0]);
+            });
+        }
+
+        createItem(itemName, count) {
+            const item = new Item(itemName);
+            item.itemCount = count;
+            item.stackable = stackableTypes.includes(item.itemType);
+            return item;
+        }
         // Add item to the type index (used for quick access to items of a certain type)
-        addItemToTypeIndex(item) {
-            const typeSet = this.itemsByType.get(item.itemType) || new Set();
-            typeSet.add(item.inventoryId);
-            this.itemsByType.set(item.itemType, typeSet);
-        }
-
-        addStackableItemToInstance(itemIdString, quantity = 1) {
+        addStackableItemToInstance(itemName, quantity = 1) {
             let item;
-            if (this.stackableItems.has(itemIdString)) {
-                const inventoryId = this.stackableItems.get(itemIdString);
-                item = this.items.get(inventoryId);
+            if (this.items.has(itemName)) {
+                item = this.items.get(itemName);
                 item.itemCount += quantity;
             } else {
-                const newId = this.getFirstAvailableId();
-                item = new Item(itemIdString);
-                item.inventoryId = newId;
-                item.itemCount = quantity;
-                item.stackable = true;
-
-                this.items.set(newId, item);
-                this.stackableItems.set(itemIdString, newId);
+                item = this.createItem(itemName, quantity);
+                this.items.set(itemName, item);
+                this.stackableItems.set(itemName, item);
                 this.addItemToTypeIndex(item);
             }
             return item;
         }
 
-        subtractStackableItemFromInstance(itemIdString, quantity = 1) {
-            let item;
-            if (this.stackableItems.has(itemIdString)) {
-                const inventoryId = this.stackableItems.get(itemIdString);
-                item = this.items.get(inventoryId);
+        subtractStackableItemFromInstance(itemName, quantity = 1) {
+            if (this.items.has(itemName)) {
+                const item = this.items.get(itemName);
                 item.itemCount -= quantity;
                 if (item.itemCount <= 0) {
-                    item.itemCount = 0;
+                    this.items.delete(itemName);
+                    this.stackableItems.delete(itemName);
+                    this.removeItemFromTypeIndex(item);
                 }
-            } else{
-                throw new Error(`Item ${itemIdString} not found in inventory`);
+                return item;
+            } else {
+                throw new Error(`Item ${itemName} not found in inventory`);
             }
-            return item;
+        }
+
+        addItemToTypeIndex(item) {
+            const typeSet = this.itemsByType.get(item.itemType) || new Set();
+            typeSet.add(item.itemName);
+            this.itemsByType.set(item.itemType, typeSet);
+        }
+
+        removeItemFromTypeIndex(item) {
+            const typeSet = this.itemsByType.get(item.itemType);
+            if (typeSet) {
+                typeSet.delete(item.itemName);
+                if (typeSet.size === 0) this.itemsByType.delete(item.itemType);
+            }
         }
 
         addUnstackableItemToInstance(itemIdString, properties) {
@@ -203,30 +236,6 @@
         return item;
     }
 
-    //maybe make this the constructor for the inventory class
-    export function createInventoryFromSave(savedData) {
-        const inventory = new Inventory();
-
-        // Iterate over each key in savedData, which are inventoryIds
-        Object.keys(savedData).forEach(inventoryId => {
-            const itemData = savedData[inventoryId];
-            const item = reconstructItem(itemData);
-            item.inventoryId = parseInt(inventoryId); // Ensure the inventoryId is treated as a number if needed
-
-            // Set item into the main items map
-            inventory.items.set(item.inventoryId, item);
-            if (stackableTypes.includes(item.itemType)) {
-                inventory.stackableItems.set(item.itemName, item.inventoryId);
-            }
-
-            // Update the itemsByType map
-            const typeSet = inventory.itemsByType.get(item.itemType) || new Set();
-            typeSet.add(item.inventoryId);
-            inventory.itemsByType.set(item.itemType, typeSet);
-        });
-
-        return inventory;
-    }
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
                     numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10){
@@ -245,7 +254,6 @@
             this.toolTip = toolTip;
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
-            // this.setHoverLogic();
         }
 
 
@@ -290,23 +298,10 @@
         }
 
         getSprite() {
-            let spritesOut = [];
-            //output all children sprites (item slots and items)
-            if(this.children.length > 0) {
-                this.getChildSprites().forEach((sprite) => {
-                    if (Array.isArray(sprite)) {
-                        spritesOut.push(...sprite);
-                    //if not an array, push sprite
-                    } else {
-                        spritesOut.push(sprite);
-                    }
-                });
-            }
             //output tooltip sprite if displayToolTip is true
             if(this.displayToolTip && this.toolTip != null){
-                spritesOut.push(this.toolTip.getSprite());
+                return this.toolTip.getSprite();
             }
-            return spritesOut;
         }
 
         //update the item slots with new items

@@ -10,7 +10,8 @@ export async function verifyToken(req, res, next) {
 
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        console.log("decodedToken: ", decodedToken)
+        //console.log("decodedToken: ", decodedToken)
+        console.log('Request payload size:', JSON.stringify(req.body).length, 'bytes');
 
         req.user = decodedToken;
 

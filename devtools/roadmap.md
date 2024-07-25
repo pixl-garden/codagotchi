@@ -67,8 +67,11 @@
 - ITEMS COLLECTION (just ids)
 - But all the textures and models are stored in the client
 
-### Caching
-- Caching the postcards!
+### Inventory functions
+- Store items in the inventory 
+
+### Pet functions
+- Feeding pet
 
 ### Shop Room
 - Set up shop and items on the backend so they are stored somewhere
@@ -78,6 +81,17 @@
 
 ### Customization
 - One pet at a time
+- Owned field in protected:
+```
+{
+    "owned": {
+        "backgrounds": [0, 1, 2..],
+        "accessories": [0, 1, 2..],
+        "furniture1": [0, 1, 2..],
+        "furniture2": [0, 1, 2..],
+    }
+}
+```
 
 ### Progression
 - Storing level, pet status, age, etc. syncing with client

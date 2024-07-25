@@ -10,8 +10,8 @@
             "spriteIndex": 0
         },
         "1": {
-            "displayName": "grannysWallpaper",
-            "spriteSheet": "wallpapers.png",
+            "displayName": "alimWallpaper",
+            "spriteSheet": "wallpapers.png"
             "spriteIndex": 1
         }
     },
