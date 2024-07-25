@@ -572,8 +572,8 @@
     }
 
     export class ConfigObject extends GeneratedObject {
-        constructor(objectName, x, y, z = 0, actionOnClick = null) {
-            const config = objectConfig[objectName];
+        constructor(objectName, x, y, z = 0, actionOnClick = null, objConfig = objectConfig) {
+            const config = objConfig[objectName];
             // console.log(config);
             if (!config) {
                 throw new Error(`No configuration found for object type: ${objectName}`);
@@ -582,9 +582,7 @@
             for (const state in config.states) {
                 config.states[state] = processStateFrames(config.states[state]);
             }
-
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
-            // console.log('SPRITE MATRIX: ', spriteMatrix);
             super(spriteMatrix, config.states, x, y, z, actionOnClick);
             
             this.spriteWidth = config.trimWidth || config.spriteWidth;

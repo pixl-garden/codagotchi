@@ -57,7 +57,7 @@
             return [];
         }
 
-        return spriteReader(spriteWidth, spriteHeight, pixelSheet, spriteWidth, spriteHeight);
+        return spriteReader(spriteWidth, spriteHeight, pixelSheet, trimWidth, trimHeight);
     }
 
     export async function preloadAllSpriteSheets() {
