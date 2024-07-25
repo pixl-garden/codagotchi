@@ -503,7 +503,7 @@
             get(game).addStackableItem(`ingot1`, 2);
         }
 
-        addTestableItems();
+        // addTestableItems();
         
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {
@@ -537,11 +537,11 @@
         let nextPageButton = new Button(120, 42, 5, "nextPageButton", ()=>{
             inventoryDisplayManagerInstance.inventoryGrid.setNextPage();
         });
-
         
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
+            get(game).retrieveInventory();
             inventoryDisplayManagerInstance.setTab("food");
         });
         

@@ -98,6 +98,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         userInbox: cachedUserInbox,
                     });
 
+                    const cachedUserInventory = await this.cacheManager.get('userInventory');
+                    console.log('Cached userInventory:', cachedUserInventory);
+
+                    webviewView.webview.postMessage({
+                        type: 'cached-user-inventory',
+                        userInventory: cachedUserInventory,
+                    });
+
                     break;
                 }
 
@@ -236,6 +244,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             value: getGlobalState(this.context),
                         });
 
+                    }
+                    break;
+                }
+                case 'retrieveInventory': {
+                    const {updatedInventory} = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    //console.log("Retrieved inventory data:", updatedInventory);
+                    if (updatedInventory) {
+                        // set the global state with the updated inventory data
+                        await updateGlobalState(this.context, { inventory: updatedInventory });
+                        // update the local state with the updated inventory data
+                        this._view?.webview.postMessage({
+                            type: 'fetchedGlobalState',
+                            value: getGlobalState(this.context),
+                        });
                     }
                     break;
                 }
@@ -418,7 +440,7 @@ function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
 function printJsonObject(jsonObject: { [key: string]: any }): void {
     for (const key in jsonObject) {
         if (jsonObject.hasOwnProperty(key)) {
-            console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
+            // console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
         }
     }
 }

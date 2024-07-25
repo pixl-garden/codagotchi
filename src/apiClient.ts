@@ -147,6 +147,44 @@ export async function sendPostcard(context: vscode.ExtensionContext, recipientUs
     }
 }
 
+export async function retrieveInventory(context: vscode.ExtensionContext, cacheManager: CacheManager) {
+    const cacheKey = 'userInventory';
+    const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
+    const cachedInventory = (await cacheManager.get(cacheKey)) || {};
+
+    const totalItems = Object.keys(cachedInventory).length;
+
+    const idToken = await context.secrets.get('idToken');
+    try {
+        const response = await axios.get(`${BASE_URL}/retrieveInventory`, {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+            params: {
+                timestamp: lastFetchTimestamp,
+                totalItems: totalItems,
+            },
+        });
+
+        const { flag, inventoryData, timestamp: currentTimestamp } = response.data;
+
+        let updatedInventory = flag === 'merge' ? merge({}, cachedInventory, inventoryData) : inventoryData;
+
+        flag === 'merge' ? console.log('Inventory Merged') : console.log('Inventory Replaced');
+
+        await cacheManager.set(cacheKey, {
+            data: updatedInventory,
+            timestamp: currentTimestamp,
+        });
+
+        return { updatedInventory, flag };
+    } catch (error) {
+        console.error('Error retrieving inventory:', error);
+        throw error;
+    }
+}
+
 // TEST the TYPES
 export async function syncUserData(context: vscode.ExtensionContext, userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON }) {
     const idToken = await context.secrets.get('idToken');

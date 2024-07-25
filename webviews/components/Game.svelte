@@ -1,6 +1,6 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
-    import { Inventory, createInventoryFromSave } from './Inventory.svelte';
+    import { Inventory } from './Inventory.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -119,26 +119,35 @@
         }
 
         constructInventory() {
-            //TODO: get from user data instead of directly in local state
-            this.inventory = createInventoryFromSave(this.getLocalState().inventory || {});
+            console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
+            this.inventory = new Inventory(this.getLocalState().userInventory || {});
+            // console.log("Inventory constructed: ", this.userInventory);
+            return this.inventory;
         }
 
         retrieveInbox() {
             tsvscode.postMessage({ type: 'retrieveInbox' });
+        }
+        retrieveInventory() {
+            tsvscode.postMessage({ type: 'retrieveInventory' });
         }
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
         refreshInbox() {
             //this.syncLocalToGlobalState() 
             //console.log("local state: ", this.getLocalState());
-            this.inbox = new Inbox(this.getLocalState().inbox || {});
+            this.inbox = new Inbox(this.getLocalState().userInbox || {});
             return this.inbox
         }
 
-        async initializeWithCache(cachedUserInbox) {
+        async initializeWithCache(cachedUserInbox = {}, cachedUserInventory = {}) {
             console.log('Initializing game with cached userInbox:', cachedUserInbox);
             if (cachedUserInbox) {
                 this.updateGlobalState({ userInbox: cachedUserInbox });
+            }
+            console.log("Initializing game with cached userInventory:", cachedUserInventory);
+            if (cachedUserInventory) {
+                this.updateGlobalState({ userInventory: cachedUserInventory });
             }
             console.log("Global state after initializing with cache: ", game);
         }

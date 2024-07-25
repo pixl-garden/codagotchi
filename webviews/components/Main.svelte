@@ -11,38 +11,18 @@
 
     const FPS = 16; //frames per second
     let screen = [];
-    let hasMainLoopStarted = false;
     let currentRoom;
     let canvas, ctx;
     let screenWidth = 128;
-    let cacheManager;
-    let hasPreBeenCalled = false;
-    let cachedUserInbox = null;
     let startTime, endTime;
-
-    async function initializeGame() {
-        if (!hasPreBeenCalled) {
-            await preloadAllSpriteSheets();
-            if (cachedUserInbox) {
-                await $game.initializeWithCache(cachedUserInbox);
-            }
-            pre();
-            endTime = performance.now();  // End timing
-            console.log(`Time taken: ${endTime - startTime} milliseconds`);
-            setInterval(main, Math.floor(1000 / FPS));
-            hasPreBeenCalled = true;
-        }
-    }
 
     //run once before main loop
     async function pre() {
-        $game.clearGlobalState(); // Clear global state
+        // $game.clearGlobalState(); // Clear global state
 
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
         
-        // console.log("ItemByType Map: ", $game.inventory.itemsByType);
-        // console.log("Stamp Items: ", $game.inventory.getItemsByType('stamp'));
         handleResize();
         preloadObjects();
         //prettier-ignore
@@ -58,7 +38,6 @@
         
         // Get the current room from the game object
         currentRoom = $game.getCurrentRoom();
-        hasMainLoopStarted = true;
         
         // Render objects in the current room
         for (let obj of currentRoom.getObjects()) {
@@ -111,20 +90,20 @@
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
 
-        let cacheManagerReceived = false;
-        let imageUrisReceived = false;
-
         window.addEventListener('message', async (event) => {
             const message = event.data;
             if (message.type === 'image-uris') {
                 startTime = performance.now();  // Start timing
-
                 images.set(message.uris);
-                imageUrisReceived = true;
 
-                if (cacheManagerReceived) {
-                    await initializeGame();
-                }
+                // Wait until all sprites are loaded
+                await preloadAllSpriteSheets().then(() => {
+                    // Call pre() once and start main loop
+                    pre();
+                    endTime = performance.now();  // End timing
+                    console.log(`Time taken: ${endTime - startTime} milliseconds`);
+                    setInterval(main, Math.floor(1000 / FPS));
+                });
             }
             else if (message.type === 'documentSaved'){
                 $game.resetActivityTimeout();
@@ -136,13 +115,14 @@
                 handleResize();
             }
             else if (message.type === 'cached-user-inbox') {
-                cachedUserInbox = message.userInbox;
+                let cachedUserInbox = message.userInbox;
                 console.log('Received cached userInbox:', cachedUserInbox);
-                cacheManagerReceived = true;
-
-                if (imageUrisReceived) {
-                    await initializeGame();
-                }
+                await $game.initializeWithCache(cachedUserInbox);
+            }
+            else if (message.type === 'cached-user-inventory') {
+                let cachedUserInventory = message.userInventory;
+                console.log('Received cached userInventory:', cachedUserInventory);
+                await $game.initializeWithCache({}, cachedUserInventory);
             }
         });
 

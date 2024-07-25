@@ -123,3 +123,55 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         }
     });
 });
+
+export const retrieveInventory = functions.https.onRequest(async (req, res) => {
+    if (req.method !== 'GET') {
+        return res.status(403).send({ success: false, message: 'Forbidden! Only GET requests are allowed.' });
+    }
+
+    verifyToken(req, res, async () => {
+        const uid = req.user.uid;
+
+        const inventoryRef = admin.database().ref(`users/${uid}/protected/inventory`);
+        try {
+            const inventorySnapshot = await inventoryRef.once('value');
+            const inventoryData = inventorySnapshot.val() || {};
+
+            const { timestamp, totalItems } = req.query;
+            const lastFetchTime = parseInt(timestamp || 0);
+            const clientTotalItems = parseInt(totalItems || 0);
+
+            let flag = 'merge';
+            let responseData = {};
+
+            const serverTotalItems = Object.keys(inventoryData).length;
+
+            console.log(`Server Total Items: ${serverTotalItems}, Client Total Items: ${clientTotalItems}`);
+
+            if (serverTotalItems !== clientTotalItems) {
+                console.log('Mismatch detected in total items. Needs full replace.');
+                flag = 'replace';
+                responseData = inventoryData;
+            } else {
+                // Check for new or updated items
+                const newOrUpdatedItems = Object.entries(inventoryData).filter(([_, item]) => {
+                    return item.lastUpdated && item.lastUpdated > lastFetchTime;
+                });
+
+                responseData = Object.fromEntries(newOrUpdatedItems);
+            }
+
+            const currentTimestamp = Date.now();
+
+            res.status(200).send({
+                success: true,
+                flag: flag,
+                inventoryData: responseData,
+                timestamp: currentTimestamp,
+            });
+        } catch (error) {
+            console.error('Failed to retrieve inventory:', error);
+            res.status(500).send({ success: false, message: 'Failed to retrieve inventory' });
+        }
+    });
+});
