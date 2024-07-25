@@ -268,7 +268,6 @@
                     if(itemSlot.slotItem != null){
                         this.toolTip?.setItem(itemSlot.slotItem);
                         this.hoveredItem = itemSlot.slotItem;
-                        this.scaledItemRef?.setItem(itemSlot.slotItem);
                         this.displayToolTip = true;
                     }
                     itemSlot.updateState("hovered");

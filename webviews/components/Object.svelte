@@ -284,6 +284,9 @@
         addChild(child) {
             this.children.push(child);
         }
+        removeChild(child) {
+            this.children = this.children.filter((c) => c !== child);
+        }
 
         updateChild(child, oldChild) {
             this.children[this.children.indexOf(oldChild)] = child;

@@ -155,8 +155,10 @@
             // item movement and border collision handling (transparent red?)
             // 
 
+    //furniture rendering grid
+
     function createItemSlotXL() {
-        let output = new ConfigObject("itemSlotXL", 0, 0, 0);
+        let output = new ConfigObject("itemSlots48x", 0, 0, 0);
         output.hoverWithChildren = true;
         output.passMouseCoords = true;
         return output;
@@ -165,19 +167,37 @@
         constructor(gameRef) {
             let emptySpriteMatrix = generateEmptyMatrix(128, 128);
             super(emptySpriteMatrix, {default: [0]}, 0, 0, 0);
-            this.menu = new Menu(10, 19, 10, 108, 108, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1);
-            this.inventoryGrid = new inventoryGrid(2, 2, 2, 2, 2, 2, 11, [], createItemSlotXL, null, null, 1, 1, 1);
-            this.menu.children = [this.inventoryGrid]
-            this.children = [this.menu];
+            this.menu = new Background('bedroomInventory', 0, 0, 7 );
+            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 1, 1, 1);
+            this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
+            this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
+            this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
+                [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
+                    console.log("tab 1")
+                }],
+                [this.inventoryTabSprites[1], this.inventoryTabSprites[1], ()=>{
+                    console.log("tab 2")
+                }],
+                [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
+                    console.log("tab 3")
+                }],
+                [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
+                    console.log("tab 4")
+                }]
+            );
+            this.bedroomXButton = new Button(2, 1, 7, "bedroomXButton", ()=>{
+                this.toggleInventory();
+            });
+            this.menuEnabled = false;
+            this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
         }
         toggleInventory(){
-            if(this.menu.y < 22){
-                this.menu.startMovingTo(10, 108);
-                // this.inventoryGrid.startMovingTo(15, 113);
-            }
-            else{
-                this.menu.startMovingTo(10, 19);
-                // this.inventoryGrid.startMovingTo(15, 24);
+            if(this.menuEnabled){
+                this.menuEnabled = false;
+                this.removeChild(this.menu); 
+            }else{
+                this.menuEnabled = true;
+                this.addChild(this.menu);
             }
         }
         nextFrame(){

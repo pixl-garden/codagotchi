@@ -92,6 +92,15 @@
     }
 }
 ```
+- Owned field could be binary with a 1 if an item at index is owned or 0 if not
+- ex: 101101 -> [0, 2, 3, 5]
+
+### Bedroom / Furniture
+- Tabs:
+    - Wallpaper
+    - Floor
+    - Furniture
+    - Wall items
 
 ### Progression
 - Storing level, pet status, age, etc. syncing with client
