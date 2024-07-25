@@ -11,7 +11,7 @@
         },
         "1": {
             "displayName": "alimWallpaper",
-            "spriteSheet": "wallpapers.png"
+            "spriteSheet": "wallpapers.png",
             "spriteIndex": 1
         }
     },
