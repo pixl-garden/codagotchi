@@ -17,17 +17,13 @@
     let startTime, endTime;
 
     //run once before main loop
-    async function pre() {
-        // $game.clearGlobalState(); // Clear global state
-
-        $game.syncLocalToGlobalState({});
+    function pre() {
+        //prettier-ignore
+        // $game.clearGlobalState();
+        $game.syncLocalToGlobalState( {} );
         $game.constructInventory();
-        
         handleResize();
         preloadObjects();
-        //prettier-ignore
-
-        // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
     }
 
@@ -45,6 +41,7 @@
             if(children.length > 0 && obj.renderChildren) {
                 obj.getChildSprites().forEach((sprite) => {
                     // console.log("Child sprite: ", sprite)
+                    if (Array.isArray(sprite)) {
                     if (Array.isArray(sprite)) {
                         sprites.push(...sprite);
                     //if not an array, push sprite
@@ -133,7 +130,6 @@
     $: if ($shouldFocus) {
         // console.log('Input is focused');
     }
-    // $: console.log('Input Value:', $inputValue);
 
     $: {
         const inputValueStore = $inputValue;
