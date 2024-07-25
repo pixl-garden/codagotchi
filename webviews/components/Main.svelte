@@ -18,7 +18,8 @@
 
     //run once before main loop
     async function pre() {
-        // $game.clearGlobalState(); // Clear global state
+        $game.clearGlobalState(); // Clear global state
+
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
         handleResize();

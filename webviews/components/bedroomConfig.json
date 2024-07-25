@@ -1,0 +1,69 @@
+{
+    "wallpaper": {
+        "spriteWidth": 128,
+        "spriteHeight": 102,
+        "yCoord": 0,
+        "zCoord": 2,
+        "0": {
+            "displayName": "grannysWallpaper",
+            "spriteSheet": "wallpapers.png",
+            "spriteIndex": 0
+        },
+        "1": {
+            "displayName": "alimWallpaper",
+            "spriteSheet": "wallpapers.png",
+            "spriteIndex": 1
+        }
+    },
+    "floor": {
+        "spriteWidth": 128,
+        "spriteHeight": 42,
+        "yCoord": 86,
+        "zCoord": 1,
+        "0": {
+            "displayName": "grannysFlooring",
+            "spriteSheet": "flooring.png",
+            "spriteIndex": 0
+        }
+    },
+    "nearFurniture": {
+        "spriteWidth": 64,
+        "spriteHeight": 64,
+        "yCoord": 40,
+        "zCoord": 8,
+        "0": {
+            "displayName": "cuckChair",
+            "spriteSheet": "furniture.png",
+            "spriteIndex": 0,
+            "xTrim": 31,
+            "yTrim": 48
+        }
+    },
+    "farFurniture": {
+        "spriteWidth": 64,
+        "spriteHeight": 64,
+        "yCoord": 27,
+        "zCoord": 6,
+        "0": {
+            "displayName": "cuckCouch",
+            "spriteSheet": "furniture.png",
+            "spriteIndex": 1,
+            "xTrim": 51,
+            "yTrim": 29
+        }
+    },
+    "wallItem": {
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "yCoord": 0,
+        "zCoord": 4,
+
+        "0": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "spriteIndex": 0,
+            "xTrim": 32,
+            "yTrim": 32
+        }
+    }
+}
