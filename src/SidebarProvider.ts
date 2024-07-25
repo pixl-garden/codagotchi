@@ -90,22 +90,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     const refreshToken = (await this.context.secrets.get('refreshToken')) || '';
                     await apiClient.refreshToken(refreshToken, this.context);
 
-                    const cachedUserInbox = await this.cacheManager.get('userInbox');
-                    console.log('Cached userInbox:', cachedUserInbox);
+                    const cachedInbox = await this.cacheManager.get('inbox');
 
+                    console.log('Cached inbox:', cachedInbox);
                     webviewView.webview.postMessage({
                         type: 'cached-user-inbox',
-                        userInbox: cachedUserInbox,
+                        inbox: cachedInbox ? cachedInbox || {} : {},
                     });
 
-                    const cachedUserInventory = await this.cacheManager.get('userInventory');
-                    console.log('Cached userInventory:', cachedUserInventory);
+                    const cachedInventory = await this.cacheManager.get('inventory');
+
+                    console.log('Cached inventory:', cachedInventory);
 
                     webviewView.webview.postMessage({
                         type: 'cached-user-inventory',
-                        userInventory: cachedUserInventory,
+                        inventory: cachedInventory ? cachedInventory || {} : {},
                     });
 
+                    
                     break;
                 }
 
@@ -221,7 +223,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 case 'resize': {
                     const width = data.width;
                     const height = data.height;
-                    console.log(`WebView dimensions: ${width}x${height}`);
+                    // console.log(`WebView dimensions: ${width}x${height}`);
                     break;
                 }
                 case 'sendFriendRequest': {
@@ -233,7 +235,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'retrieveInbox': {
-                    const {updatedInbox} = await apiClient.retrieveInbox(this.context, this.cacheManager);
+                    const { updatedInbox } = await apiClient.retrieveInbox(this.context, this.cacheManager);
                     //console.log("Retrieved inbox data:", updatedInbox);
                     if (updatedInbox) {
                         // set the global state with the updated inbox data
@@ -243,12 +245,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
                         });
-
                     }
                     break;
                 }
                 case 'retrieveInventory': {
-                    const {updatedInventory} = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    const { updatedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
                     //console.log("Retrieved inventory data:", updatedInventory);
                     if (updatedInventory) {
                         // set the global state with the updated inventory data
@@ -387,7 +388,6 @@ function overwriteFieldInState(context: vscode.ExtensionContext, field: string, 
 function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
-    console.log('TESTINGLOG');
 
     // Check if the key exists and is an object
     if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
@@ -428,7 +428,7 @@ function deleteNestedKey(obj: any, keys: string[]): void {
 }
 
 function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {
-    console.log('----Getting globalState----');
+    // console.log('Getting global state:')
     printJsonObject(context.globalState.get<{ [key: string]: any }>('globalInfo', {}));
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }

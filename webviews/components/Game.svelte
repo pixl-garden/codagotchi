@@ -86,6 +86,7 @@
         };
 
         clearGlobalState() {
+            console.log("Clearing global state...");
             tsvscode.postMessage({ type: 'clearGlobalState' });
         }
 
@@ -119,9 +120,9 @@
         }
 
         constructInventory() {
-            console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
-            this.inventory = new Inventory(this.getLocalState().userInventory || {});
-            // console.log("Inventory constructed: ", this.userInventory);
+            console.log("this.getLocalState().inventory: ", this.getLocalState().inventory);
+            this.inventory = new Inventory(this.getLocalState().inventory || {});
+            // console.log("Inventory constructed: ", this.inventory);
             return this.inventory;
         }
 
@@ -136,17 +137,17 @@
         refreshInbox() {
             //this.syncLocalToGlobalState() 
             //console.log("local state: ", this.getLocalState());
-            this.inbox = new Inbox(this.getLocalState().userInbox || {});
+            this.inbox = new Inbox(this.getLocalState().inbox || {});
             return this.inbox
         }
 
-        async initializeWithCache(cachedUserInbox = {}, cachedUserInventory = {}) {
-            if (Object.keys(cachedUserInbox).length > 0) {
-                console.log('Initializing game with cached userInbox:', cachedUserInbox);
-                this.updateGlobalState({ userInbox: cachedUserInbox });
-            } else if (Object.keys(cachedUserInventory).length > 0) {
-                console.log("Initializing game with cached userInventory:", cachedUserInventory);
-                this.updateGlobalState({ userInventory: cachedUserInventory });
+        async initializeWithCache(cachedInbox = {}, cachedInventory = {}) {
+            if (Object.keys(cachedInbox).length > 0) {
+                console.log('Initializing game with cachedInbox:', cachedInbox);
+                this.updateGlobalState({ inbox: cachedInbox });
+            } else if (Object.keys(cachedInventory).length > 0) {
+                console.log("Initializing game with cachedInventory:", cachedInventory);
+                this.updateGlobalState({ inventory: cachedInventory });
             }
             console.log("Global state after initializing with cache: ", game);
         }

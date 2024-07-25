@@ -82,7 +82,7 @@ export async function handleFriendRequest(context: vscode.ExtensionContext, requ
 
 // TODO: add a timeout to the request (function can only call every 5 minutes)
 export async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
-    const cacheKey = 'userInbox';
+    const cacheKey = 'inbox';
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
     const cachedInbox = (await cacheManager.get(cacheKey)) || {};
 
@@ -148,11 +148,12 @@ export async function sendPostcard(context: vscode.ExtensionContext, recipientUs
 }
 
 export async function retrieveInventory(context: vscode.ExtensionContext, cacheManager: CacheManager) {
-    const cacheKey = 'userInventory';
+    const cacheKey = 'inventory';
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
     const cachedInventory = (await cacheManager.get(cacheKey)) || {};
 
-    const totalItems = Object.keys(cachedInventory).length;
+    const totalItems = Object.values(cachedInventory).reduce((acc: number, val: any) => acc + parseInt(val), 0);
+    // console.log('Total Items: ', totalItems);
 
     const idToken = await context.secrets.get('idToken');
     try {
@@ -163,7 +164,7 @@ export async function retrieveInventory(context: vscode.ExtensionContext, cacheM
             },
             params: {
                 timestamp: lastFetchTimestamp,
-                totalItems: totalItems,
+                totalItemCount: totalItems,
             },
         });
 
@@ -190,6 +191,10 @@ export async function syncUserData(context: vscode.ExtensionContext, userData: {
     const idToken = await context.secrets.get('idToken');
     const { inventoryUpdates, petUpdates, customizationUpdates } = userData;
     try {
+        if (Object.keys(inventoryUpdates).length === 0 && Object.keys(petUpdates).length === 0 && Object.keys(customizationUpdates).length === 0) {
+            console.log('No pending updates to sync, skipping syncUserData...');
+            return;
+        }
         const response = await axios.post(
             `${BASE_URL}/syncUserData`,
             { inventoryUpdates, petUpdates, customizationUpdates },

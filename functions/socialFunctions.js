@@ -197,7 +197,8 @@ export const sendPostcard = functions.https.onRequest(async (req, res) => {
 
             senderUsername = senderSnapshot.val().username;
             try {
-                await inboxRef.push({
+                // make so id of the document is the timestamp
+                await inboxRef.child(createdAt).set({
                     fromUid: senderUid,
                     fromUser: senderUsername,
                     type: 'postcard',
@@ -243,6 +244,7 @@ export const retrieveInbox = functions.https.onRequest(async (req, res) => {
 
             // Compare lengths and check for new data
             for (const key in inboxData) {
+            
                 const serverLength = Object.keys(inboxData[key] || {}).length;
                 const clientLength = parseInt(lengths[key]) || 0;
 

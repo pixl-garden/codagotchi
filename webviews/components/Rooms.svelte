@@ -505,6 +505,7 @@
         }
 
         // addTestableItems();
+        // get(game).addStackableItem('HTMLStamp', 5);
         
         //ITEMSLOT FACTORY FUNCTION
         function createItemSlot() {

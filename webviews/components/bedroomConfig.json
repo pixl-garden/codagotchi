@@ -4,14 +4,14 @@
         "spriteHeight": 102,
         "yCoord": 0,
         "zCoord": 2,
-        "0" : {
+        "0": {
             "displayName": "grannysWallpaper",
             "spriteSheet": "wallpapers.png",
             "spriteIndex": 0
         },
         "1": {
             "displayName": "alimWallpaper",
-            "spriteSheet": "wallpapers.png"
+            "spriteSheet": "wallpapers.png",
             "spriteIndex": 1
         }
     },
@@ -20,7 +20,7 @@
         "spriteHeight": 42,
         "yCoord": 86,
         "zCoord": 1,
-        "0" : {
+        "0": {
             "displayName": "grannysFlooring",
             "spriteSheet": "flooring.png",
             "spriteIndex": 0

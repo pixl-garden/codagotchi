@@ -137,14 +137,15 @@ export const retrieveInventory = functions.https.onRequest(async (req, res) => {
             const inventorySnapshot = await inventoryRef.once('value');
             const inventoryData = inventorySnapshot.val() || {};
 
-            const { timestamp, totalItems } = req.query;
+            const { timestamp, totalItemCount, pendingItemCount } = req.query;
             const lastFetchTime = parseInt(timestamp || 0);
-            const clientTotalItems = parseInt(totalItems || 0);
+            const clientTotalItems = parseInt(totalItemCount || 0);
+            // const clientPendingItems = parseInt(pendingItemCount || 0);
 
             let flag = 'merge';
             let responseData = {};
 
-            const serverTotalItems = Object.keys(inventoryData).length;
+            const serverTotalItems = Object.values(inventoryData).reduce((acc, item) => acc + parseInt(item), 0);
 
             console.log(`Server Total Items: ${serverTotalItems}, Client Total Items: ${clientTotalItems}`);
 

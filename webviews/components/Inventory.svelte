@@ -72,9 +72,9 @@
             this.stackableItems = new Map(); // Stores itemName -> item instance for stackable items
             this.itemsByType = new Map(); // Stores itemType -> Set of itemNames
             
-            console.log('Saved Data:', savedData); // For debugging
+            // console.log('Saved Data:', savedData); // For debugging
 
-           if (savedData && typeof savedData === 'object') {
+            if (savedData && typeof savedData === 'object') {
                 const sortedItems = this.sortInventory(savedData);
                 
                 for (let i = 0; i < sortedItems.length; i++) {

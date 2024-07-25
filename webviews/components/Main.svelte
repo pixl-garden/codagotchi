@@ -18,7 +18,7 @@
 
     //run once before main loop
     async function pre() {
-        // $game.clearGlobalState(); // Clear global state
+        $game.clearGlobalState(); // Clear global state
 
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
@@ -115,14 +115,14 @@
                 handleResize();
             }
             else if (message.type === 'cached-user-inbox') {
-                let cachedUserInbox = message.userInbox;
-                console.log('Received cached userInbox:', cachedUserInbox);
-                await $game.initializeWithCache(cachedUserInbox);
+                let cachedInbox = message.inbox;
+                console.log('Received cachedInbox:', cachedInbox);
+                await $game.initializeWithCache(cachedInbox);
             }
             else if (message.type === 'cached-user-inventory') {
-                let cachedUserInventory = message.userInventory;
-                console.log('Received cached userInventory:', cachedUserInventory);
-                await $game.initializeWithCache({}, cachedUserInventory);
+                let cachedInventory = message.inventory;
+                console.log('Received cachedInventory:', cachedInventory);
+                await $game.initializeWithCache({}, cachedInventory);
             }
         });
 
