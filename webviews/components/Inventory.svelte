@@ -238,10 +238,11 @@
 
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10){
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer);
-            console.log("constructedItems.length"+constructedItems.length);
+                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, constructSlotsFunction = () => {}) {
+            let constructedItems = constructSlotsFunction(itemSlotConstructor, items, rows*columns, numberTextRenderer);
+            // console.log("constructedItems.length="+constructedItems.length);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
+            this.constructSlotsFunction = constructSlotsFunction;
             this.itemSlotConstructor = itemSlotConstructor;
             this.totalSlots = rows*columns;
             this.items = items;
@@ -254,6 +255,7 @@
             this.toolTip = toolTip;
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
+            this.updateItemSlots(items);
         }
 
 
@@ -305,7 +307,7 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
+            let itemSlotExport = this.constructSlotsFunction(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
@@ -315,7 +317,7 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ) {
+    export function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
