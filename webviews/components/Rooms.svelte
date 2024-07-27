@@ -762,7 +762,7 @@
         "wallpaperIndex": 0,
         "floorIndex": 0,
         "wallItemIndices": [0],
-        "wallItemXCoords": [10],
+        "wallItemXCoords": [50],
         "nearFurnitureIndices": [],
         "nearFurnitureXCoords": [],
         "farFurnitureIndices": [0],

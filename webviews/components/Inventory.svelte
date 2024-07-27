@@ -1,9 +1,11 @@
 <script context="module">
     import Object, { GeneratedObject, ObjectGrid, activeTextRenderer } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
+    import bedroomConfig from './config/bedroomConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
     import { generateEmptyMatrix, scaleMatrix } from "./MatrixFunctions.svelte";
     import { Sprite } from "./SpriteComponent.svelte";
+    import { compute_rest_props } from "svelte/internal";
     const stackableTypes = ["food", "stamp", "mining"]
 
     /**
@@ -15,11 +17,17 @@
          * Creates an instance of an Item.
          * @param {string} itemName - The name of the item, used to fetch its configuration.
          */
-        constructor( itemName, x = 0, y = 0, z = 0){
+        constructor( config, itemName, x = 0, y = 0, z = 0) {
+            const xTrim = config.xTrim || config.spriteWidth;
+            const yTrim = config.yTrim || config.spriteHeight || config.spriteWidth;
+
+            console.log("XTRIM=", xTrim, "YTRIM=", yTrim);
+        
             // maybe add an item count parameter?
-            const config = itemConfig[itemName];
-            if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
-            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet);
+            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet, xTrim, yTrim);
+            if(config.xTrim){
+                console.log("XTRIM=", xTrim, "YTRIM=", yTrim, "SPRITEMATRIX=", spriteMatrix);
+            }
             super(spriteMatrix, config.states, x, y, z);
             /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
@@ -36,7 +44,7 @@
             /** @property {string} displayName - The display name of the item. */
             this.displayName = config.displayName;
             /** @property {string} description - The description of the item. */
-            this.description = config.description;
+            this.description = config.description || " ";
             /** @property {string} itemType - The type category of the item. */
             this.itemType = config.type;
             /** @property {number | undefined} inventoryId - The unique ID of the item in the inventory. */
@@ -63,6 +71,28 @@
                     properties: this.properties
                 }
             };
+        }
+    }
+
+    export class InventoryItem extends Item {
+        constructor(itemName, x = 0, y = 0, z = 0) {
+            const config = itemConfig[itemName];
+            if( !config ) throw new Error(`Item ${itemName} not found in itemConfig.json`);
+            super(config, itemName, x, y, z);
+        }
+    }
+    //constructor(furnitureType, typeIndex)
+    export class BedroomItem extends Item {
+        constructor(furnitureType, typeIndex, x = 0, y = 0, z = 0) {
+            const typeConfig = bedroomConfig[furnitureType];
+            let instanceConfig = bedroomConfig[furnitureType][typeIndex];
+            if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json`);
+            instanceConfig["spriteWidth"] = typeConfig["spriteWidth"];
+            instanceConfig["spriteHeight"] = typeConfig["spriteHeight"];
+            instanceConfig["type"] = furnitureType;
+            super(instanceConfig, typeIndex, x, y, z);
+            this.yCoord = typeConfig["yCoord"];
+            this.zCoord = typeConfig["zCoord"];
         }
     }
 
@@ -111,7 +141,7 @@
         }
 
         createItem(itemName, count) {
-            const item = new Item(itemName);
+            const item = new InventoryItem(itemName);
             item.itemCount = count;
             item.stackable = stackableTypes.includes(item.itemType);
             return item;
@@ -162,7 +192,7 @@
 
         addUnstackableItemToInstance(itemIdString, properties) {
             const newId = this.getFirstAvailableId();
-            const newItem = new Item(itemIdString, properties);
+            const newItem = new InventoryItem(itemIdString, properties);
             newItem.inventoryId = newId; // Assign the first available inventory ID
             newItem.itemCount = 1;
             newItem.stackable = false;
@@ -227,7 +257,7 @@
         const config = itemConfig[itemData.itemName];
         if (!config) throw new Error(`Configuration for item ${itemData.itemName} not found`);
 
-        const item = new Item(itemData.itemName, itemData.properties);
+        const item = new InventoryItem(itemData.itemName, itemData.properties);
         item.inventoryId = itemData.inventoryId;
         item.itemCount = itemData.itemCount || 1;
         item.properties = itemData.properties || {};
@@ -307,6 +337,7 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
+            // console.log("updateItemSlots:", itemsArray);
             let itemSlotExport = this.constructSlotsFunction(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
