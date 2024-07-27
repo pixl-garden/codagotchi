@@ -7,7 +7,7 @@
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import bedroomConfig from './config/bedroomConfig.json';
-    import { inventoryGrid } from './Inventory.svelte';
+    import { inventoryGrid, constructInventoryObjects, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
 
 
@@ -30,6 +30,7 @@
             return validTypes.includes(objectType);
         }
 
+        // Serialization strategy?
         // 0000 0001 0002 0003 0004 0005 0006 0007 
         // 
         // 0001 1001 3
@@ -102,6 +103,22 @@
             );
         }
 
+        getObjectAt(xCoord, yCoord){
+            ['nearFurniture', 'wallItem'].forEach(objectType => {
+                const indices = this[`${objectType}Indices`];
+                const xCoords = this[`${objectType}XCoords`];
+                for(let i = 0; i < indices.length; i++){
+                    let currentObject = this.bedroomConfig[objectType][indices[i]];
+                    if(xCoords[i] <= xCoord && xCoords[i] + currentObject.xTrim >= xCoord &&
+                        this.bedroomConfig[objectType].yCoord <= yCoord && currentObject.yCoord + currentObject.yTrim >= yCoord){
+                        // TODO: create system to return items better
+                        return [objectType, indices[i], xCoords[i], i];
+                    }
+                }
+            });
+            return null;
+        }
+
         exportObjects() {
             const exportArray = [];
 
@@ -134,9 +151,8 @@
                 objectConfig.xTrim || objectTypeConfig.spriteWidth,
                 objectConfig.yTrim || objectTypeConfig.spriteHeight
             );
-            const spriteIndex = objectConfig.spriteIndex || 0;
             const yCoord = objectTypeConfig.yCoord + (objectConfig.yTrim ? objectTypeConfig.spriteHeight - objectConfig.yTrim : 0);
-            super(spriteMatrix, {default: [spriteIndex]}, xCoord, yCoord, objectTypeConfig.zCoord);
+            super(spriteMatrix, objectConfig.states, xCoord, yCoord, objectTypeConfig.zCoord);
             this.spriteWidth = objectConfig.xTrim || objectTypeConfig.spriteWidth;
             this.spriteHeight = objectConfig.yTrim || objectTypeConfig.spriteHeight;
         }
@@ -155,33 +171,92 @@
             // item movement and border collision handling (transparent red?)
             // 
 
+    //furniture rendering grid
+
     function createItemSlotXL() {
-        let output = new ConfigObject("itemSlotXL", 0, 0, 0);
+        let output = new ConfigObject("itemSlots48x", 0, 0, 0);
         output.hoverWithChildren = true;
         output.passMouseCoords = true;
         return output;
     }
     export class BedroomEditor extends GeneratedObject {
-        constructor(gameRef) {
-            let emptySpriteMatrix = generateEmptyMatrix(128, 128);
-            super(emptySpriteMatrix, {default: [0]}, 0, 0, 0);
-            this.menu = new Menu(10, 19, 10, 108, 108, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1);
-            this.inventoryGrid = new inventoryGrid(2, 2, 2, 2, 2, 2, 11, [], createItemSlotXL, null, null, 1, 1, 1);
-            this.menu.children = [this.inventoryGrid]
-            this.children = [this.menu];
+        constructor(gameRef, bedroomManager) {
+            const emptySpriteMatrix = generateEmptyMatrix(128, 128);
+            super([emptySpriteMatrix], {default: [0]}, 0, 0, 10);
+            this.menu = new Background('bedroomInventory', 0, 0, 7 );
+            this.editMode = false;
+            this.placementMode = false;
+            this.clickedItem;
+            this.passMouseCoords = true;
+            this.bedroomManager = bedroomManager;
+            
+            const testCouch = new BedroomItem("farFurniture", 0, 0, 0);
+            const testChair = new BedroomItem("nearFurniture", 0, 0, 0);
+            this.slotClickAction = (item) => {
+                this.enterPlacementMode(item);
+            }
+
+            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [testCouch, testChair], createItemSlotXL, null, null, 1, 1, 1, constructInventoryObjects, this.slotClickAction);
+            this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
+            this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
+            this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
+                [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
+                    console.log("tab 1")
+                }],
+                [this.inventoryTabSprites[1], this.inventoryTabSprites[1], ()=>{
+                    console.log("tab 2")
+                }],
+                [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
+                    console.log("tab 3")
+                }],
+                [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
+                    console.log("tab 4")
+                }]
+            );
+            this.bedroomXButton = new Button(2, 1, 7, "bedroomXButton", ()=>{
+                this.toggleInventory();
+            });
+            this.menuEnabled = false;
+            this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
+            // this.placementMouseDetector = new GeneratedObject([emptySpriteMatrix], {default: [0]}, 0, 0, 15);
+            // this.enterPlacementMode(testCouch);
         }
         toggleInventory(){
-            if(this.menu.y < 22){
-                this.menu.startMovingTo(10, 108);
-                // this.inventoryGrid.startMovingTo(15, 113);
-            }
-            else{
-                this.menu.startMovingTo(10, 19);
-                // this.inventoryGrid.startMovingTo(15, 24);
+            if(this.menuEnabled){
+                this.menuEnabled = false;
+                this.removeChild(this.menu); 
+            }else{
+                this.menuEnabled = true;
+                this.addChild(this.menu);
             }
         }
+
+        enterPlacementMode(item){
+            this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, 0, 0, item.zCoord);
+            this.placementMode = true;
+            this.addChild(this.clickedItem);
+        }
+
+        toggleEditMode() {
+            this.editMode = !this.editMode;
+        }
+
+        placementModeLoop(){
+            if(this.placementMode){
+                console.log(this.mouseX, this.mouseY);
+                this.clickedItem.setCoordinate(this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2), this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2));
+            }
+        }
+        whileHover(){
+            this.placementModeLoop();
+        }
+
+        clickAction(gridX, gridY) {
+            this.bedroomManager.addObject(this.clickedItem.itemType, this.clickedItem.configIndex, this.clickedItem, )
+        }
+
         nextFrame(){
-            this.children.forEach(child => child.nextFrame());
+            // this.children.forEach(child => child.nextFrame()); 
         }
     }
 </script>

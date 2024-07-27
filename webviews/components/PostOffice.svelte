@@ -3,7 +3,7 @@
     import { Sprite } from "./SpriteComponent.svelte";
     import { generateEmptyMatrix, generateColorButtonMatrix, overlayMatrix, setMatrix } from "./MatrixFunctions.svelte";
     import { multiLineTextRenderer } from "./Object.svelte";
-    import { Item } from "./Inventory.svelte";
+    import { InventoryItem } from "./Inventory.svelte";
     import * as Colors from './colors.js';   
     import * as pako from 'pako';
 
@@ -658,7 +658,7 @@
     // Handles displaying user's inbox and postcard rendering when inbox entries are clicked
     export class postcardInboxManager extends GeneratedObject {
         constructor(x, y, z, gameRef, buttonConstructor, colorArray, textRendererArray, stampArray){
-            super(generateEmptyMatrix(1, 1), null, x, y, z)
+            super([generateEmptyMatrix(1, 1)], null, x, y, z)
             this.gameRef = gameRef;
             this.buttonConstructor = buttonConstructor;
             this.children = [];
@@ -701,7 +701,7 @@
 
     export class receivedPostcardDisplay extends GeneratedObject {
         constructor(x, y, z, colorArray, textRendererArray, stampArray, closeFunction) {
-            super(generateEmptyMatrix(1, 1), null, x, y, z);
+            super([generateEmptyMatrix(1, 1)], null, x, y, z);
             this.colorArray = colorArray;
             this.textRendererArray = textRendererArray;
             this.stampArray = stampArray;
@@ -736,7 +736,7 @@
         setPostcard(postcardObject) { 
             this.blackFadeIn.opacity = 0; 
             this.postcardRendering = new postcardRenderer(4, 16, 10, 120, 80, 120, 80, this.textRendererArray[postcardObject.textRendererIndex], null, this.colorArray, this.stampArray, this.textRendererArray, postcardObject);
-            this.postcardRendering.backDrawableCanvas.setStamp(new Item(this.stampArray[postcardObject.stampIndex]));
+            this.postcardRendering.backDrawableCanvas.setStamp(new InventoryItem(this.stampArray[postcardObject.stampIndex]));
             this.postcardRendering.setTextRenderer(this.textRendererArray[postcardObject.textRendererIndex]);
             this.postcardRendering.backDrawableCanvas.setColor(this.colorArray[postcardObject.textColorIndex]);
             this.postcardRendering.backDrawableCanvas.setUserText(postcardObject.text);

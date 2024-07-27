@@ -38,36 +38,41 @@
         // Iterate over each sprite and draw it on the screen
         sprites.forEach((sprite) => {
             let spriteMatrix = sprite.getMatrix();
+            
+            // Validate if spriteMatrix is a 2D array
+            if (!Array.isArray(spriteMatrix) || !Array.isArray(spriteMatrix[0])) {
+                console.log("sprite=", sprite);
+                throw new Error('spriteMatrix is not a 2D array, sprite^');
+            }
+
             // Calculate the bounds for y and x within the screen and sprite matrix
-            if (spriteMatrix !== undefined || spriteMatrix !== null ){
-                let spriteMatrixYLen = spriteMatrix ? spriteMatrix.length : 0;
-                let spriteMatrixXLen = spriteMatrix ? spriteMatrix[0].length : 0;
-                let startY = Math.max(0, sprite.y);
-                let endY = Math.min(ySize, sprite.y + spriteMatrixYLen);
-                let startX = Math.max(0, sprite.x);
-                let endX = Math.min(xSize, sprite.x + spriteMatrixXLen);
-                
-                // Iterate over the sprite matrix and draw it on the screen
-                for (let y = startY; y < endY; y++) {
-                    let matrixY = y - sprite.y;
-                    for (let x = startX; x < endX; x++) {
-                        let matrixX = x - sprite.x;
-                        let pixelHex = spriteMatrix[matrixY][matrixX];
-                        // If sprite pixel is transparent skip it
-                        if (pixelHex !== 'transparent') {
-                            // If sprite pixel is not fully opaque blend it with the screen pixel (if it exists)
-                            if (sprite.opacity < 1 && screen[y][x] !== 'transparent') {
-                                let spritePixel = hexToRGB(pixelHex);
-                                let screenPixel = hexToRGB(screen[y][x]);
-                                // Blend the pixel with the background screen pixel
-                                let blendedPixel = blendPixels(screenPixel, spritePixel, sprite.opacity);
-                                // Convert the blended pixel back to hex
-                                let hexValue = `#${((1 << 24) + (blendedPixel.r << 16) + (blendedPixel.g << 8) + blendedPixel.b).toString(16).slice(1)}`;
-                                screen[y][x] = `#${hexValue.slice(1)}`;
-                            } else {
-                                // Fully opaque pixel, just copy it
-                                screen[y][x] = pixelHex;
-                            }
+            let spriteMatrixYLen = spriteMatrix.length;
+            let spriteMatrixXLen = spriteMatrix[0].length;
+            let startY = Math.max(0, sprite.y);
+            let endY = Math.min(ySize, sprite.y + spriteMatrixYLen);
+            let startX = Math.max(0, sprite.x);
+            let endX = Math.min(xSize, sprite.x + spriteMatrixXLen);
+
+            // Iterate over the sprite matrix and draw it on the screen
+            for (let y = startY; y < endY; y++) {
+                let matrixY = y - sprite.y;
+                for (let x = startX; x < endX; x++) {
+                    let matrixX = x - sprite.x;
+                    let pixelHex = spriteMatrix[matrixY][matrixX];
+                    // If sprite pixel is transparent skip it
+                    if (pixelHex !== 'transparent') {
+                        // If sprite pixel is not fully opaque blend it with the screen pixel (if it exists)
+                        if (sprite.opacity < 1 && screen[y][x] !== 'transparent') {
+                            let spritePixel = hexToRGB(pixelHex);
+                            let screenPixel = hexToRGB(screen[y][x]);
+                            // Blend the pixel with the background screen pixel
+                            let blendedPixel = blendPixels(screenPixel, spritePixel, sprite.opacity);
+                            // Convert the blended pixel back to hex
+                            let hexValue = `#${((1 << 24) + (blendedPixel.r << 16) + (blendedPixel.g << 8) + blendedPixel.b).toString(16).slice(1)}`;
+                            screen[y][x] = `#${hexValue.slice(1)}`;
+                        } else {
+                            // Fully opaque pixel, just copy it
+                            screen[y][x] = pixelHex;
                         }
                     }
                 }
@@ -76,6 +81,7 @@
 
         return screen;
     }
+
 
     export function handleResize() {
         updateDimensions();

@@ -217,6 +217,7 @@
         whileHover() {}
 
         clickAction(gridX, gridY) {
+            console.log(this.actionOnClick);
             this.actionOnClick(gridX, gridY);
         }
 
@@ -230,10 +231,12 @@
             return this.z;
         }
 
-        setCoordinate(newX, newY, newZ) {
+        setCoordinate(newX, newY, newZ = null) {
             this.x = newX;
             this.y = newY;
-            this.z = newZ;
+            if( newZ !== null ) {
+                this.z = newZ;
+            }
         }
         
         getSprite() {
@@ -283,6 +286,9 @@
         }
         addChild(child) {
             this.children.push(child);
+        }
+        removeChild(child) {
+            this.children = this.children.filter((c) => c !== child);
         }
 
         updateChild(child, oldChild) {

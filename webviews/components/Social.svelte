@@ -4,7 +4,7 @@
 
     export class friendRequestManager extends GeneratedObject {
         constructor(x, y, z, gameRef, buttonConstructor){
-            super(generateEmptyMatrix(1, 1), null, x, y, z)
+            super([generateEmptyMatrix(1, 1)], null, x, y, z)
             this.gameRef = gameRef;
             this.buttonConstructor = buttonConstructor;
             this.refreshRequests();
@@ -54,7 +54,7 @@
 
     export class friendListManager extends GeneratedObject {
         constructor(x, y, z, gameRef, buttonConstructor, buttonFunction = () => {}){
-            super(generateEmptyMatrix(1, 1), null, x, y, z)
+            super([generateEmptyMatrix(1, 1)], null, x, y, z)
             this.gameRef = gameRef;
             this.buttonConstructor = buttonConstructor;
             this.buttonFunction = buttonFunction;

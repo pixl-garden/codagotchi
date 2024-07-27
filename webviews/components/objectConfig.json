@@ -152,13 +152,30 @@
             "hovered": [1]
         }
     },
-    "itemSlotXL":{
+    "itemSlots48x":{
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "spriteSheet": "itemSlotXL.png",
+        "spriteSheet": "itemSlots48x.png",
         "states": {
             "default": [0],
             "hovered": [1]
+        }
+    },
+    "bedroomInventory":{
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "bedroomInventory.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "bedroomXButton":{
+        "spriteWidth": 11,
+        "spriteHeight": 12,
+        "spriteSheet": "bedroomXButton.png",
+        "states": {
+            "default": [0],
+            "hovered": [0]
         }
     },
     "flipButton":{
