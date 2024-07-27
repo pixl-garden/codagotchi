@@ -658,7 +658,7 @@
     // Handles displaying user's inbox and postcard rendering when inbox entries are clicked
     export class postcardInboxManager extends GeneratedObject {
         constructor(x, y, z, gameRef, buttonConstructor, colorArray, textRendererArray, stampArray){
-            super(generateEmptyMatrix(1, 1), null, x, y, z)
+            super([generateEmptyMatrix(1, 1)], null, x, y, z)
             this.gameRef = gameRef;
             this.buttonConstructor = buttonConstructor;
             this.children = [];
@@ -701,7 +701,7 @@
 
     export class receivedPostcardDisplay extends GeneratedObject {
         constructor(x, y, z, colorArray, textRendererArray, stampArray, closeFunction) {
-            super(generateEmptyMatrix(1, 1), null, x, y, z);
+            super([generateEmptyMatrix(1, 1)], null, x, y, z);
             this.colorArray = colorArray;
             this.textRendererArray = textRendererArray;
             this.stampArray = stampArray;

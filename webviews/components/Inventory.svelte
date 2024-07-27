@@ -20,8 +20,6 @@
         constructor( config, itemName, x = 0, y = 0, z = 0) {
             const xTrim = config.xTrim || config.spriteWidth;
             const yTrim = config.yTrim || config.spriteHeight || config.spriteWidth;
-
-            console.log("XTRIM=", xTrim, "YTRIM=", yTrim);
         
             // maybe add an item count parameter?
             const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet, xTrim, yTrim);
@@ -36,9 +34,9 @@
             /** @property {number} itemCount - The count of this item in inventory. */
             this.itemCount = 1;
             /** @property {number} spriteHeight - The height of the item's sprite. */
-            this.spriteHeight = config.spriteWidth;
+            this.spriteHeight = yTrim;
             /** @property {number} spriteWidth - The width of the item's sprite. */
-            this.spriteWidth = config.spriteWidth;
+            this.spriteWidth = xTrim;
             /** @property {Object} config - Configuration details for the item. */
             this.config = config;
             /** @property {string} displayName - The display name of the item. */
@@ -93,6 +91,8 @@
             super(instanceConfig, typeIndex, x, y, z);
             this.yCoord = typeConfig["yCoord"];
             this.zCoord = typeConfig["zCoord"];
+            this.furnitureType = furnitureType;
+            this.typeIndex = typeIndex;
         }
     }
 
@@ -268,8 +268,8 @@
 
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, constructSlotsFunction = () => {}) {
-            let constructedItems = constructSlotsFunction(itemSlotConstructor, items, rows*columns, numberTextRenderer);
+                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, constructSlotsFunction = () => {}, clickAction = () => {}) {
+            let constructedItems = constructSlotsFunction(itemSlotConstructor, items, rows*columns, numberTextRenderer, 0, 0, 0, clickAction);
             // console.log("constructedItems.length="+constructedItems.length);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
             this.constructSlotsFunction = constructSlotsFunction;
@@ -348,7 +348,7 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    export function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ) {
+    export function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ, clickAction = () => {}) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
@@ -365,6 +365,7 @@
                     // numberRenderer.mouseInteractions = false;
                     slotInstance.addChild(numberRenderer);
                 }
+                slotInstance.actionOnClick = clickAction(item);
             }
             else{
                 slotInstance.slotItem = null;

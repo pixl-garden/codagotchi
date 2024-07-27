@@ -1,11 +1,11 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
+    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, constructInventoryObjects } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
-    import { generateColorButtonMatrix } from './MatrixFunctions.svelte';
+    import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import { get } from 'svelte/store';
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
@@ -69,7 +69,7 @@
         const backToMain = new singleLetterButton(0, 0, 10, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
-        const backToMain2 = new singleLetterButton(0, 112, 10, '<', () => {
+        const backToMain2 = new singleLetterButton(0, 112, 11, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
         // button to return to paint room
@@ -601,6 +601,9 @@
             }
         );
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
+        let emptySpriteMatrix = generateEmptyMatrix(128, 128);
+        let placementMouseDetector = new GeneratedObject([emptySpriteMatrix], {default: [0]}, 0, 0, 15);
+        fishingBackground.addChild(placementMouseDetector);
         let boatFront = new Background('boatFront', 35, 89, 1, () => {} );
 
         fishingNotif.setPhysics(16, .2, 3.8);
@@ -770,11 +773,15 @@
     }
 
     let bedroomManagerInstance = new BedroomManager(testBedroomJSON);
-    let bedroomEditorInstance = new BedroomEditor(get(game));
-    let roomInvButton = new miningButton(110, 20, 5, "INV", ()=>{
+    let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
+    let roomInvButton = new miningButton(20, 112, 11, "INV", ()=>{
         bedroomEditorInstance.toggleInventory();
     });
-    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), bedroomEditorInstance, backToMain2, roomInvButton);
+    let roomEditButton = new miningButton(50, 112, 11, "EDIT", ()=>{
+        bedroomEditorInstance.toggleEditMode();
+    });
+
+    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), bedroomEditorInstance, backToMain2, roomInvButton, roomEditButton);
 }
 
     export function roomMain(){
