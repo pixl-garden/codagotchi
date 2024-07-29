@@ -20,12 +20,8 @@
         constructor( config, itemName, x = 0, y = 0, z = 0) {
             const xTrim = config.xTrim || config.spriteWidth;
             const yTrim = config.yTrim || config.spriteHeight || config.spriteWidth;
-        
             // maybe add an item count parameter?
-            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet, xTrim, yTrim);
-            if(config.xTrim){
-                console.log("XTRIM=", xTrim, "YTRIM=", yTrim, "SPRITEMATRIX=", spriteMatrix);
-            }
+            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight || config.spriteWidth, config.spriteSheet, xTrim, yTrim);
             super(spriteMatrix, config.states, x, y, z);
             /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
@@ -84,15 +80,36 @@
         constructor(furnitureType, typeIndex, x = 0, y = 0, z = 0) {
             const typeConfig = bedroomConfig[furnitureType];
             let instanceConfig = bedroomConfig[furnitureType][typeIndex];
+            console.log("TYPECONFIG=", typeConfig, "INSTANCECONFIG=", instanceConfig, "FURNITURETYPE=", furnitureType, "TYPEINDEX=", typeIndex)
             if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json`);
             instanceConfig["spriteWidth"] = typeConfig["spriteWidth"];
             instanceConfig["spriteHeight"] = typeConfig["spriteHeight"];
             instanceConfig["type"] = furnitureType;
+            console.log("INSTANCECONFIG=", instanceConfig);
             super(instanceConfig, typeIndex, x, y, z);
             this.yCoord = typeConfig["yCoord"];
             this.zCoord = typeConfig["zCoord"];
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
+            console.log(this.furnitureType, this.typeIndex, this.x, this.y, this.z, this.spriteWidth, this.spriteHeight, this.yCoord, this.zCoord);
+        }
+    }
+
+    class BedroomObject extends GeneratedObject {
+        constructor(objectType, configIndex, xCoord, config = bedroomConfig) {
+            const objectTypeConfig = config[objectType];
+            const objectConfig = objectTypeConfig[configIndex];
+            const spriteMatrix = spriteReaderFromStore(
+                objectTypeConfig.spriteWidth,
+                objectTypeConfig.spriteHeight,
+                objectConfig.spriteSheet,
+                objectConfig.xTrim || objectTypeConfig.spriteWidth,
+                objectConfig.yTrim || objectTypeConfig.spriteHeight
+            );
+            const yCoord = objectTypeConfig.yCoord + (objectConfig.yTrim ? objectTypeConfig.spriteHeight - objectConfig.yTrim : 0);
+            super(spriteMatrix, objectConfig.states, xCoord, yCoord, objectTypeConfig.zCoord);
+            this.spriteWidth = objectConfig.xTrim || objectTypeConfig.spriteWidth;
+            this.spriteHeight = objectConfig.yTrim || objectTypeConfig.spriteHeight;
         }
     }
 
@@ -268,11 +285,9 @@
 
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, constructSlotsFunction = () => {}, clickAction = () => {}) {
-            let constructedItems = constructSlotsFunction(itemSlotConstructor, items, rows*columns, numberTextRenderer, 0, 0, 0, clickAction);
-            // console.log("constructedItems.length="+constructedItems.length);
+                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, clickAction = () => {}) {
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, itemX, itemY, itemZ, clickAction);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
-            this.constructSlotsFunction = constructSlotsFunction;
             this.itemSlotConstructor = itemSlotConstructor;
             this.totalSlots = rows*columns;
             this.items = items;
@@ -286,8 +301,8 @@
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             this.updateItemSlots(items);
+            this.clickAction = clickAction;
         }
-
 
         setHoverLogic() {
             this.children.forEach((itemSlot) => {
@@ -338,17 +353,18 @@
         //update the item slots with new items
         updateItemSlots(itemsArray){
             // console.log("updateItemSlots:", itemsArray);
-            let itemSlotExport = this.constructSlotsFunction(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ, this.clickAction);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
             this.setHoverLogic();
         }
+
     }
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    export function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ, clickAction = () => {}) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ, clickAction = () => {}) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
@@ -357,15 +373,15 @@
             if(item) {
                 item.setCoordinate(itemX, itemY, itemZ);
                 slotInstance.slotItem = item;
-                // item.mouseInteractions = false;
                 slotInstance.addChild(item);
-                if(numberTextRenderer != null){
+                if(numberTextRenderer != null) {
                     let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, itemZ+10, ()=> {}, {maxWidth: 25, position: "center"});
                     numberRenderer.setText(item.itemCount.toString());
-                    // numberRenderer.mouseInteractions = false;
                     slotInstance.addChild(numberRenderer);
                 }
-                slotInstance.actionOnClick = clickAction(item);
+                slotInstance.actionOnClick = () => {
+                    clickAction(item);
+                }
             }
             else{
                 slotInstance.slotItem = null;
