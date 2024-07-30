@@ -10,6 +10,12 @@
     import { inventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
 
+
+    const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
+
+    let basic = new TextRenderer('charmap1.png', 7, 9, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
+    const smallButton = generateTextButtonClass(15, 15, basic, ...Colors.secondaryMenuColorParams);
+
     export class BedroomManager extends GeneratedObject{
         constructor(bedroomJSON) {
             super([generateEmptyMatrix(128, 128)], {default: [0]}, 0, 0, 0);
@@ -69,6 +75,7 @@
                 throw new Error('addObject: invalid objectType');
             }
             if (!this.checkCollision(item.furnitureType, item.typeIndex, item.x)) {
+                console.log("children=", this.children);
                 throw new Error(`addObject: Cannot place ${item.typeIndex} at xCoord ${item.x}`);
             }
             this[`${item.furnitureType}Items`].push(item);
@@ -82,8 +89,10 @@
                 throw new Error('removeObject: invalid objectType');
             }
             
-            this[`${item.furnitureType}Items`] = this[`${item.furnitureType}Items`].filter((item) => item !== selectedItem);
+            this[`${selectedItem.furnitureType}Items`] = this[`${selectedItem.furnitureType}Items`].filter((item) => item !== selectedItem);
+            this.exportObjects();
         }
+
 
 
         checkCollision(furnitureType, objectIndex, xCoord) {
@@ -108,16 +117,20 @@
         }
 
         getObjectAt(xCoord, yCoord) {
-            ['nearFurniture', 'farFurniture', 'wallItem'].forEach(furnitureType => {
+            const furnitureTypes = ['nearFurniture', 'farFurniture', 'wallItem'];
+            for (let furnitureType of furnitureTypes) {
                 const itemArray = this[`${furnitureType}Items`];
-                for(let i = 0; i < itemArray.length; i++){
+                for (let i = 0; i < itemArray.length; i++) {
                     let currentItem = itemArray[i];
-                    if(currentItem.x <= xCoord && currentItem.x + currentItem.spriteWidth >= xCoord &&
-                      currentItem.y <= yCoord && currentItem.y + currentItem.spriteHeight >= yCoord) {
+                    console.log(currentItem.x, currentItem.y, currentItem.spriteWidth, currentItem.spriteHeight, xCoord, yCoord);
+                    if (currentItem.x <= xCoord && currentItem.x + currentItem.spriteWidth >= xCoord &&
+                        currentItem.y <= yCoord && currentItem.y + currentItem.spriteHeight >= yCoord) {
+                        console.log("YUP");
                         return currentItem;
                     }
                 }
-            });
+            }
+            console.log("UHHH");
             return null;
         }
 
@@ -140,6 +153,14 @@
             // 
 
     //furniture rendering grid
+
+    // add wall items (y placement)
+    // finish wallpaper and floor customization
+    // add stacking to items
+    // designate wall borders in room
+    // edit mode (select and move/delete items)
+    // add x limits to furniture items
+    // add red tint to overlapping items??
 
     function createItemSlotXL() {
         let output = new ConfigObject("itemSlots48x", 0, 0, 0);
@@ -167,6 +188,11 @@
             this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 1, 1, 1, this.slotClickAction);
             this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
             this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
+            this.removeButton = new smallButton(112, 112, 11, "X", ()=>{
+                // this.bedroomManager.removeChild(this.clickedItem);
+                this.bedroomManager.removeObject(this.clickedItem);
+                this.clickedItem = null;
+            });
             this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
                 [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
                     console.log("tab 1")
@@ -215,10 +241,17 @@
 
         toggleEditMode() {
             this.editMode = !this.editMode;
+            if(this.editMode) {
+                this.addChild(this.removeButton);
+            } else {
+                this.removeChild(this.removeButton);
+            }
+            // make items clickable/hoverable
+            // allow for wall/floor selection (clickable) (will also be able to select in inventory)
         }
 
         placementModeLoop() {
-            if(this.placementMode){
+            if(this.placementMode && this.clickedItem) {
                 let yCoord = this.clickedItem.yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
                 this.clickedItem.setCoordinate(this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2), yCoord);
             }
@@ -227,11 +260,21 @@
             this.placementModeLoop();
         }
 
-        clickAction(gridX, gridY) {
-            console.log("click action");
-            this.bedroomManager.addObject(this.clickedItem);
-            this.removeChild(this.clickedItem);
-            this.placementMode = false;
+        clickAction(mouseX, mouseY) {
+            // selecting an item in edit mode
+            if(this.editMode && !this.placementMode){
+                this.clickedItem = this.bedroomManager.getObjectAt(mouseX, mouseY);
+                if(this.clickedItem) {
+                    this.placementMode = true;
+                }
+            }
+            // placing an item in placement mode
+            else if(this.placementMode && this.clickedItem) {
+                this.bedroomManager.removeObject(this.clickedItem); // to bypass collision check
+                this.bedroomManager.addObject(this.clickedItem);
+                this.removeChild(this.clickedItem);
+                this.placementMode = false;
+            }
         }
 
         nextFrame(){
