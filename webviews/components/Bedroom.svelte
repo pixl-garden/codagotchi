@@ -71,8 +71,6 @@
             if (!this.checkCollision(item.furnitureType, item.typeIndex, item.x)) {
                 throw new Error(`addObject: Cannot place ${item.typeIndex} at xCoord ${item.x}`);
             }
-            // this[`${objectType}Indices`].push(configIndex);
-            // this[`${objectType}XCoords`].push(xCoord);
             this[`${item.furnitureType}Items`].push(item);
             this.exportObjects();
             console.log(this.children)
@@ -103,11 +101,10 @@
             const xCoords = itemArray.map(item => item.x);
 
             // Check if an existing object has overlapping xCoords
-            return true;
-            // return !indices.some((itemIndex, i) => 
-            //     xCoords[i] + this.bedroomConfig[furnitureType][itemIndex].xTrim >= xCoord &&
-            //     xCoords[i] <= xCoord
-            // );
+            return !indices.some((itemIndex, i) => 
+                xCoords[i] + this.bedroomConfig[furnitureType][itemIndex].xTrim >= xCoord && // right bound
+                xCoords[i] <= xCoord + objectConfig.xTrim //left bound
+            );
         }
 
         getObjectAt(xCoord, yCoord) {
@@ -128,7 +125,7 @@
             this.children = [this.wallpaperItem, this.floorItem, ...this.nearFurnitureItems, ...this.farFurnitureItems, ...this.wallItemItems];
         }
     }
-    
+
     // handles all functionality involved with editing one's bedroom
         //bedroom instance
         //inventory instance (open with button)
@@ -190,7 +187,7 @@
             this.menuEnabled = false;
             this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
         }
-        toggleInventory(){
+        toggleInventory() {
             if(this.menuEnabled){
                 this.menuEnabled = false;
                 this.removeChild(this.menu); 
@@ -207,6 +204,9 @@
             if(['floor', 'wallpaper'].includes(item.furnitureType)) {
                 this.bedroomManager.replaceObject(item);
             } else {
+                if(this.clickedItem) {
+                    this.removeChild(this.clickedItem);
+                }
                 this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.zCoord);
                 this.placementMode = true;
                 this.addChild(this.clickedItem);
@@ -217,17 +217,20 @@
             this.editMode = !this.editMode;
         }
 
-        placementModeLoop(){
+        placementModeLoop() {
             if(this.placementMode){
-                this.clickedItem.setCoordinate(this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2), this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2));
+                let yCoord = this.clickedItem.yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                this.clickedItem.setCoordinate(this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2), yCoord);
             }
         }
-        whileHover(){
+        whileHover() {
             this.placementModeLoop();
         }
 
         clickAction(gridX, gridY) {
+            console.log("click action");
             this.bedroomManager.addObject(this.clickedItem);
+            this.removeChild(this.clickedItem);
             this.placementMode = false;
         }
 
