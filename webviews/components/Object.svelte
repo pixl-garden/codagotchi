@@ -217,7 +217,6 @@
         whileHover() {}
 
         clickAction(gridX, gridY) {
-            console.log(this.actionOnClick);
             this.actionOnClick(gridX, gridY);
         }
 
