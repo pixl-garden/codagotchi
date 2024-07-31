@@ -6,6 +6,7 @@
     import { generateEmptyMatrix, scaleMatrix } from "./MatrixFunctions.svelte";
     import { Sprite } from "./SpriteComponent.svelte";
     import { compute_rest_props } from "svelte/internal";
+    import { trimSpriteMatrix } from "./MatrixFunctions.svelte";
     const stackableTypes = ["food", "stamp", "mining"]
 
     /**
@@ -46,6 +47,7 @@
             /** @property {Object} properties - Custom properties specific to the item. */
             this.properties = {};
             this.mouseInteractions = false;
+            this.hasThumbnail = false;
         }
         getName(){
             return this.displayName;
@@ -55,6 +57,10 @@
         }
         getInventoryId(){
             return this.inventoryId;
+        }
+        getThumbnail(){
+            console.log("this.spriteMatrix=", this.sprites, "this.thumbnailStartX=", this.thumbnailStartX, "this.thumbnailEndX=", this.thumbnailEndX, "this.thumbnailStartY=", this.thumbnailStartY, "this.thumbnailEndY=", this.thumbnailEndY)
+            return trimSpriteMatrix(this.sprites[this.currentSpriteIndex], this.thumbnailStartX, this.thumbnailEndX, this.thumbnailStartY, this.thumbnailEndY);
         }
         //base serialization for backend
         serialize() {
@@ -80,7 +86,7 @@
         constructor(furnitureType, typeIndex, x = 0, y = 0, z = 0) {
             const typeConfig = bedroomConfig[furnitureType];
             let instanceConfig = bedroomConfig[furnitureType][typeIndex];
-            console.log("TYPECONFIG=", typeConfig, "INSTANCECONFIG=", instanceConfig, "FURNITURETYPE=", furnitureType, "TYPEINDEX=", typeIndex)
+            console.log("TYPECONFIG=", typeConfig, "INSTANCECONFIG=", instanceConfig, "FURNITURETYPE=", furnitureType, "TYPEINDEX=", typeIndex);
             if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json`);
             instanceConfig["spriteWidth"] = typeConfig["spriteWidth"];
             instanceConfig["spriteHeight"] = typeConfig["spriteHeight"];
@@ -92,25 +98,15 @@
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
             console.log(this.furnitureType, this.typeIndex, this.x, this.y, this.z, this.spriteWidth, this.spriteHeight, this.yCoord, this.zCoord);
+            if( ['wallpaper', 'floor'].includes(furnitureType) ) {
+                this.hasThumbnail = true;
+                this.thumbnailStartX = typeConfig["thumbnailCoords"][0];
+                this.thumbnailEndX = typeConfig["thumbnailCoords"][1];
+                this.thumbnailStartY = typeConfig["thumbnailCoords"][2];
+                this.thumbnailEndY = typeConfig["thumbnailCoords"][3];
+            }
         }
-    }
 
-    class BedroomObject extends GeneratedObject {
-        constructor(objectType, configIndex, xCoord, config = bedroomConfig) {
-            const objectTypeConfig = config[objectType];
-            const objectConfig = objectTypeConfig[configIndex];
-            const spriteMatrix = spriteReaderFromStore(
-                objectTypeConfig.spriteWidth,
-                objectTypeConfig.spriteHeight,
-                objectConfig.spriteSheet,
-                objectConfig.xTrim || objectTypeConfig.spriteWidth,
-                objectConfig.yTrim || objectTypeConfig.spriteHeight
-            );
-            const yCoord = objectTypeConfig.yCoord + (objectConfig.yTrim ? objectTypeConfig.spriteHeight - objectConfig.yTrim : 0);
-            super(spriteMatrix, objectConfig.states, xCoord, yCoord, objectTypeConfig.zCoord);
-            this.spriteWidth = objectConfig.xTrim || objectTypeConfig.spriteWidth;
-            this.spriteHeight = objectConfig.yTrim || objectTypeConfig.spriteHeight;
-        }
     }
 
     export class Inventory {
@@ -373,7 +369,9 @@
             if(item) {
                 item.setCoordinate(itemX, itemY, itemZ);
                 slotInstance.slotItem = item;
-                slotInstance.addChild(item);
+                let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, itemX, itemY, itemZ) : item;
+                displayItem.mouseInteractions = false;
+                slotInstance.addChild(displayItem);
                 if(numberTextRenderer != null) {
                     let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, itemZ+10, ()=> {}, {maxWidth: 25, position: "center"});
                     numberRenderer.setText(item.itemCount.toString());
