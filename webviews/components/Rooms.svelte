@@ -763,7 +763,7 @@
     });
     let testBedroomJSON = {                 
         "wallpaperIndex": 0,
-        "floorIndex": 0,
+        "floorIndex": 1,
         "wallItemIndices": [0],
         "wallItemXCoords": [50],
         "nearFurnitureIndices": [],

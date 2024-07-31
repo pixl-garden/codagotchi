@@ -4,6 +4,7 @@
         "spriteHeight": 102,
         "yCoord": 0,
         "zCoord": 2,
+        "thumbnailCoords": [42, 84, 28, 70],
         "0" : {
             "displayName": "grannysWallpaper",
             "spriteSheet": "wallpapers.png",
@@ -24,11 +25,26 @@
         "spriteHeight": 42,
         "yCoord": 86,
         "zCoord": 1,
+        "thumbnailCoords": [42, 84, 0, 41],
         "0" : {
-            "displayName": "grannysFlooring",
+            "displayName": "purpleFloor",
             "spriteSheet": "flooring.png",
             "states": {
                 "default": [0]
+            }
+        },
+        "1" : {
+            "displayName": "blueFloor",
+            "spriteSheet": "flooring.png",
+            "states": {
+                "default": [1]
+            }
+        },
+        "2" : {
+            "displayName": "greenFloor",
+            "spriteSheet": "flooring.png",
+            "states": {
+                "default": [2]
             }
         }
     },
@@ -37,6 +53,8 @@
         "spriteHeight": 64,
         "yCoord": 40,
         "zCoord": 8,
+        "xLeftBound": -1,
+        "xRightBound": 130,
         "0": {
             "displayName": "cuckChair",
             "spriteSheet": "furniture.png",
@@ -52,6 +70,8 @@
         "spriteHeight": 64,
         "yCoord": 27,
         "zCoord": 6,
+        "xLeftBound": 10,
+        "xRightBound": 116,
         "0": {
             "displayName": "cuckCouch",
             "spriteSheet": "furniture.png",
@@ -67,7 +87,8 @@
         "spriteHeight": 32,
         "yCoord": 0,
         "zCoord": 4,
-
+        "xLeftBound": 16,
+        "xRightBound": 111,
         "0": {
             "displayName": "starryNight",
             "spriteSheet": "wallItems.png",
