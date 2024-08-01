@@ -60,12 +60,13 @@
             if (!this.isValidObjectType(item.furnitureType) || !['wallpaper', 'floor'].includes(item.furnitureType)) {
                 throw new Error('replaceObject: objectType must be wallpaper or floor');
             }
-            this[`${item.furnitureType}Item`] = item;
+            let newItem = new BedroomItem(item.furnitureType, item.typeIndex, 0, 0);
             if(item.furnitureType === 'wallpaper') {
-                item.setCoordinate(0, 0);
+                newItem.setCoordinate(0, 0);
             } else if (item.furnitureType === 'floor') {
-                item.setCoordinate(0, 86);
+                newItem.setCoordinate(0, 86);
             }
+            this[`${item.furnitureType}Item`] = newItem;
             this.exportObjects();
         }
 
@@ -89,12 +90,9 @@
             if (!this.isValidObjectType(selectedItem.furnitureType) || ['wallpaper', 'floor'].includes(selectedItem.furnitureType)) {
                 throw new Error('removeObject: invalid objectType');
             }
-            
             this[`${selectedItem.furnitureType}Items`] = this[`${selectedItem.furnitureType}Items`].filter((item) => item !== selectedItem);
             this.exportObjects();
         }
-
-
 
         checkCollision(furnitureType, objectIndex, xCoord) {
             if (!this.isValidObjectType(furnitureType) || ['wallpaper', 'floor'].includes(furnitureType)) {
@@ -196,14 +194,23 @@
             this.placementMode = false;
             this.passMouseCoords = true;
             this.clickedItem = null;
-
+            this.currentTab = "furniture"
+            this.nearFurnitureArr = this.addFurnitureItems("nearFurniture", 10);
+            this.farFurnitureArr = this.addFurnitureItems("farFurniture", 15);
+            this.wallpaperArr = this.addFurnitureItems("wallpaper", 1);
+            this.floorArr = this.addFurnitureItems("floor", 3);
+            this.wallItemArr = this.addFurnitureItems("wallItem", 3);
+            this.stackableItemArr = this.addFurnitureItems("stackableItem", 20);
+            this.furnitureArr = [...this.nearFurnitureArr, ...this.farFurnitureArr];
+            
             this.slotClickAction = item => {
                 this.enterPlacementMode(item);
                 this.toggleInventory();
             };
-            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 1, 1, 1, this.slotClickAction);
+            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 0, 0, 1, this.slotClickAction);
             this.initializeButtons();
             this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
+            this.setTab(this.currentTab);
         }
 
         initializeButtons() {
@@ -214,33 +221,48 @@
             this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
             this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
                 [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
+                    this.setTab("wallpaper");
                 }],
                 [this.inventoryTabSprites[1], this.inventoryTabSprites[1], ()=>{
+                    this.setTab("floor");
                 }],
                 [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
+                    this.setTab("furniture");
                 }],
                 [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
+                    this.setTab("wallItem");
                 }]
             );
             this.bedroomXButton = new Button(2, 1, 7, "bedroomXButton", this.toggleInventory.bind(this));
         }
 
+        setTab(tab){
+            this.currentTab = tab;
+            this.inventoryGrid.currentPage = 0;
+            this.currentTabArray = this[`${tab}Arr`] || [];
+            this.inventoryGrid.updateItemSlots(this.currentTabArray);
+        }
+
+        addFurnitureItems(type, numItems) {
+            let items = [];
+            for(let i = 0; i < numItems; i++) {
+                items.push(new BedroomItem(type, String(i), 0, 0))
+            }
+            return items;
+        }
+
         toggleInventory() {
+            console.log("bedroom manager: ", this.bedroomManager);
             this.menuEnabled = !this.menuEnabled;
             if (this.menuEnabled) {
-                const testItems = [
-                    new BedroomItem("farFurniture", 0, 0, 0),
-                    new BedroomItem("nearFurniture", 0, 0, 0),
-                    new BedroomItem("floor", 0, 0, 0),
-                    new BedroomItem("floor", 1, 0, 0)
-                ];
-                this.inventoryGrid.updateItemSlots(testItems);
+                this.inventoryGrid.updateItemSlots(this.currentTabArray);
                 this.addChild(this.menu);
                 this.exitPlacementMode();
             } else {
                 this.removeChild(this.menu);
                 this.whileHover() // update mouse coords immediately
             }
+            console.log("bedroom manager: ", this.bedroomManager);
         }
 
         // EDIT MODE ON:
@@ -266,12 +288,13 @@
         // 
 
         enterPlacementMode(item) {
+            if(this.clickedItem !== null) {
+                this.bedroomManager.removeObject(this.clickedItem); //if in manager, remove it
+            }
             if (['floor', 'wallpaper'].includes(item.furnitureType)) {
-                this.bedroomManager.replaceObject(item);
-            } else {
-                if(this.clickedItem !== null) {
-                    this.bedroomManager.removeObject(this.clickedItem); //if in manager, remove it
-                }
+                this.bedroomManager.replaceObject(this.clickedItem);
+            } 
+            else {
                 this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.zCoord);
                 this.placementMode = true;
                 this.addChild(this.removeButton);

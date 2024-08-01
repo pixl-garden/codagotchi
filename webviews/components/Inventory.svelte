@@ -87,7 +87,7 @@
             const typeConfig = bedroomConfig[furnitureType];
             let instanceConfig = bedroomConfig[furnitureType][typeIndex];
             console.log("TYPECONFIG=", typeConfig, "INSTANCECONFIG=", instanceConfig, "FURNITURETYPE=", furnitureType, "TYPEINDEX=", typeIndex);
-            if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json`);
+            if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json: ${furnitureType}`);
             instanceConfig["spriteWidth"] = typeConfig["spriteWidth"];
             instanceConfig["spriteHeight"] = typeConfig["spriteHeight"];
             instanceConfig["type"] = furnitureType;
@@ -285,7 +285,7 @@
             let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, itemX, itemY, itemZ, clickAction);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
             this.itemSlotConstructor = itemSlotConstructor;
-            this.totalSlots = rows*columns;
+            this.totalSlots = this.objects.length;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.displayToolTip = false;
@@ -349,7 +349,7 @@
         //update the item slots with new items
         updateItemSlots(itemsArray){
             // console.log("updateItemSlots:", itemsArray);
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ, this.clickAction);
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ, this.clickAction);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
@@ -367,7 +367,11 @@
             let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
             
             if(item) {
-                item.setCoordinate(itemX, itemY, itemZ);
+                let slotDimensions = slotInstance.spriteWidth;
+                let newItemX = Math.floor((slotDimensions - item.spriteWidth) / 2);
+                let newItemY = Math.floor((slotDimensions - item.spriteHeight) / 2);
+                item.setCoordinate(newItemX, newItemY, itemZ);
+                // item.setCoordinate(itemX, itemY, itemZ);
                 slotInstance.slotItem = item;
                 let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, itemX, itemY, itemZ) : item;
                 displayItem.mouseInteractions = false;
