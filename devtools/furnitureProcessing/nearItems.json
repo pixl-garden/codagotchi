@@ -1,0 +1,112 @@
+{
+    "0": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 16,
+        "yTrim": 13,
+        "states": {
+            "default": [
+                0
+            ]
+        }
+    },
+    "1": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 36,
+        "yTrim": 19,
+        "states": {
+            "default": [
+                1
+            ]
+        }
+    },
+    "2": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 12,
+        "yTrim": 30,
+        "states": {
+            "default": [
+                2
+            ]
+        }
+    },
+    "3": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 27,
+        "yTrim": 30,
+        "states": {
+            "default": [
+                3
+            ]
+        }
+    },
+    "4": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 15,
+        "yTrim": 8,
+        "states": {
+            "default": [
+                4
+            ]
+        }
+    },
+    "5": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 11,
+        "yTrim": 24,
+        "states": {
+            "default": [
+                5
+            ]
+        }
+    },
+    "6": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 12,
+        "yTrim": 20,
+        "states": {
+            "default": [
+                6
+            ]
+        }
+    },
+    "7": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 22,
+        "yTrim": 25,
+        "states": {
+            "default": [
+                7
+            ]
+        }
+    },
+    "8": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 26,
+        "yTrim": 19,
+        "states": {
+            "default": [
+                8
+            ]
+        }
+    },
+    "9": {
+        "displayName": "",
+        "spriteSheet": "nearItems.png",
+        "xTrim": 22,
+        "yTrim": 16,
+        "states": {
+            "default": [
+                9
+            ]
+        }
+    }
+}
