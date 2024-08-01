@@ -12,6 +12,40 @@
         return sprite;
     }
 
+
+    export function roundSpriteMatrix(matrix, rounding) {
+        const width = matrix.length;
+        const height = matrix[0].length;
+        console.log("matrix: ", matrix, "width: ", width, "height: ", height);
+
+        function shouldColorPixel(x, y) {
+            // Check for corners
+            if (x < rounding && y < rounding) {  // Top-left corner
+                return (x - rounding) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
+            }
+            if (x >= width - rounding && y < rounding) {  // Top-right corner
+                return (x - (width - 1 - rounding)) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
+            }
+            if (x < rounding && y >= height - rounding) {  // Bottom-left corner
+                return (x - rounding) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
+            }
+            if (x >= width - rounding && y >= height - rounding) {  // Bottom-right corner
+                return (x - (width - 1 - rounding)) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
+            }
+            return true;  // All non-corner cases
+        }
+
+        // Iterate over each pixel to apply roundness
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                matrix[x][y] = shouldColorPixel(x, y) ? matrix[x][y] : 'transparent';
+            }
+        }
+
+        return matrix;
+    }
+
+
     export function trimSpriteMatrix(matrix, startX, endX, startY, endY) {  
         return matrix.slice(startY, endY).map(row => row.slice(startX, endX));
     }

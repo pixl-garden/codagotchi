@@ -3,11 +3,12 @@
     import itemConfig from './itemConfig.json';
     import bedroomConfig from './config/bedroomConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
-    import { generateEmptyMatrix, scaleMatrix } from "./MatrixFunctions.svelte";
+    import { generateEmptyMatrix, scaleMatrix, roundSpriteMatrix } from "./MatrixFunctions.svelte";
     import { Sprite } from "./SpriteComponent.svelte";
     import { compute_rest_props } from "svelte/internal";
     import { trimSpriteMatrix } from "./MatrixFunctions.svelte";
     const stackableTypes = ["food", "stamp", "mining"]
+    
 
     /**
      * Represents an item in the game inventory, extending functionalities from GeneratedObject.
@@ -59,8 +60,7 @@
             return this.inventoryId;
         }
         getThumbnail(){
-            console.log("this.spriteMatrix=", this.sprites, "this.thumbnailStartX=", this.thumbnailStartX, "this.thumbnailEndX=", this.thumbnailEndX, "this.thumbnailStartY=", this.thumbnailStartY, "this.thumbnailEndY=", this.thumbnailEndY)
-            return trimSpriteMatrix(this.sprites[this.currentSpriteIndex], this.thumbnailStartX, this.thumbnailEndX, this.thumbnailStartY, this.thumbnailEndY);
+            return roundSpriteMatrix(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], this.thumbnailStartX, this.thumbnailEndX, this.thumbnailStartY, this.thumbnailEndY), 4);
         }
         //base serialization for backend
         serialize() {
@@ -104,6 +104,9 @@
                 this.thumbnailEndX = typeConfig["thumbnailCoords"][1];
                 this.thumbnailStartY = typeConfig["thumbnailCoords"][2];
                 this.thumbnailEndY = typeConfig["thumbnailCoords"][3];
+            } else if( furnitureType === "wallItem") {
+                this.yTopBound = typeConfig["yTopBound"];
+                this.yBottomBound = typeConfig["yBottomBound"];
             }
         }
 
@@ -282,7 +285,7 @@
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
                     numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, clickAction = () => {}) {
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, itemX, itemY, itemZ, clickAction);
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, clickAction);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
             this.itemSlotConstructor = itemSlotConstructor;
             this.totalSlots = this.objects.length;
@@ -348,8 +351,7 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            // console.log("updateItemSlots:", itemsArray);
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ, this.clickAction);
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.clickAction);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
@@ -360,24 +362,27 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ, clickAction = () => {}) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
             let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
             
             if(item) {
-                let slotDimensions = slotInstance.spriteWidth;
-                let newItemX = Math.floor((slotDimensions - item.spriteWidth) / 2);
-                let newItemY = Math.floor((slotDimensions - item.spriteHeight) / 2);
-                item.setCoordinate(newItemX, newItemY, itemZ);
-                // item.setCoordinate(itemX, itemY, itemZ);
-                slotInstance.slotItem = item;
-                let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, itemX, itemY, itemZ) : item;
+                // if item has thumbnail set it as displayItem, otherwise use item sprite
+                let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, 0, 0, slotInstance.z + 1) : item;
+                // find x and y coordinates that will center item
+                let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2);
+                let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2);
+                displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + 1);
+                // ignore click events on the display item
                 displayItem.mouseInteractions = false;
                 slotInstance.addChild(displayItem);
+                // item ref for click action usage
+                slotInstance.slotItem = item;
+                
                 if(numberTextRenderer != null) {
-                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, itemZ+10, ()=> {}, {maxWidth: 25, position: "center"});
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, slotInstance.z + 2, ()=> {}, {maxWidth: 25, position: "center"});
                     numberRenderer.setText(item.itemCount.toString());
                     slotInstance.addChild(numberRenderer);
                 }

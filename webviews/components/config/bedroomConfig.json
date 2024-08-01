@@ -4,7 +4,7 @@
         "spriteHeight": 102,
         "yCoord": 0,
         "zCoord": 2,
-        "thumbnailCoords": [42, 84, 28, 70],
+        "thumbnailCoords": [42, 84, 29, 69],
         "0" : {
             "displayName": "grannysWallpaper",
             "spriteSheet": "wallpapers.png",
@@ -25,7 +25,7 @@
         "spriteHeight": 42,
         "yCoord": 86,
         "zCoord": 1,
-        "thumbnailCoords": [42, 84, 0, 41],
+        "thumbnailCoords": [42, 84, 1, 41],
         "0" : {
             "displayName": "purpleFloor",
             "spriteSheet": "flooring.png",
@@ -298,6 +298,8 @@
         "zCoord": 4,
         "xLeftBound": 16,
         "xRightBound": 111,
+        "yTopBound": 13,
+        "yBottomBound": 85,
         "0": {
             "displayName": "",
             "spriteSheet": "wallItems.png",
