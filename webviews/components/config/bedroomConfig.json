@@ -54,73 +54,103 @@
         "yCoord": 56,
         "zCoord": 8,
         "xLeftBound": -1,
+        "xRightBound": 130
+    },
+    "farFurniture": {
+        "spriteWidth": 48,
+        "spriteHeight": 48,
+        "yCoord": 43,
+        "zCoord": 6,
+        "xLeftBound": 10,
+        "xRightBound": 116
+    },
+    "furniture": {
+        "spriteWidth": 48,
+        "spriteHeight": 48,
+        "yCoord": 56,
+        "zCoord": 8,
+        "xLeftBound": -1,
         "xRightBound": 130,
         "0": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 16,
             "yTrim": 13,
             "states": {
-                "default": [0]
+                "default": [
+                    0
+                ]
             }
         },
         "1": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 36,
             "yTrim": 19,
             "states": {
-                "default": [1]
+                "default": [
+                    1
+                ]
             }
         },
         "2": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 12,
             "yTrim": 30,
             "states": {
-                "default": [2]
+                "default": [
+                    2
+                ]
             }
         },
         "3": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 27,
             "yTrim": 30,
             "states": {
-                "default": [3]
+                "default": [
+                    3
+                ]
             }
         },
         "4": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 15,
             "yTrim": 8,
             "states": {
-                "default": [4]
+                "default": [
+                    4
+                ]
             }
         },
         "5": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 11,
             "yTrim": 24,
             "states": {
-                "default": [5]
+                "default": [
+                    5
+                ]
             }
         },
         "6": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 12,
             "yTrim": 20,
             "states": {
-                "default": [6]
+                "default": [
+                    6
+                ]
             }
         },
         "7": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 22,
             "yTrim": 25,
             "states": {
@@ -131,163 +161,189 @@
         },
         "8": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 26,
             "yTrim": 19,
             "states": {
-                "default": [8]
+                "default": [
+                    8
+                ]
             }
         },
         "9": {
             "displayName": "",
-            "spriteSheet": "nearItems.png",
+            "spriteSheet": "furniture.png",
             "xTrim": 22,
             "yTrim": 16,
             "states": {
-                "default": [9]
-            }
-        }
-    },
-    "farFurniture": {
-        "spriteWidth": 48,
-        "spriteHeight": 48,
-        "yCoord": 43,
-        "zCoord": 6,
-        "xLeftBound": 10,
-        "xRightBound": 116,
-        "0": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 23,
-            "yTrim": 27,
-            "states": {
-                "default": [0]
-            }
-        },
-        "1": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 21,
-            "yTrim": 28,
-            "states": {
-                "default": [1]
-            }
-        },
-        "2": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 19,
-            "yTrim": 29,
-            "states": {
-                "default": [2]
-            }
-        },
-        "3": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 17,
-            "yTrim": 28,
-            "states": {
-                "default": [3]
-            }
-        },
-        "4": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 29,
-            "yTrim": 19,
-            "states": {
-                "default": [4]
-            }
-        },
-        "5": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 25,
-            "yTrim": 32,
-            "states": {
-                "default": [5]
-            }
-        },
-        "6": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 24,
-            "yTrim": 31,
-            "states": {
-                "default": [6]
-            }
-        },
-        "7": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 36,
-            "yTrim": 19,
-            "states": {
-                "default": [7]
-            }
-        },
-        "8": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 48,
-            "yTrim": 26,
-            "states": {
-                "default": [8]
-            }
-        },
-        "9": {
-            "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 31,
-            "yTrim": 13,
-            "states": {
-                "default": [9]
+                "default": [
+                    9
+                ]
             }
         },
         "10": {
             "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 32,
+            "spriteSheet": "furniture.png",
+            "xTrim": 23,
             "yTrim": 27,
             "states": {
-                "default": [10]
+                "default": [
+                    10
+                ]
             }
         },
         "11": {
             "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 41,
-            "yTrim": 24,
+            "spriteSheet": "furniture.png",
+            "xTrim": 21,
+            "yTrim": 28,
             "states": {
-                "default": [11]
+                "default": [
+                    11
+                ]
             }
         },
         "12": {
             "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 30,
-            "yTrim": 26,
+            "spriteSheet": "furniture.png",
+            "xTrim": 19,
+            "yTrim": 29,
             "states": {
-                "default": [12]
+                "default": [
+                    12
+                ]
             }
         },
         "13": {
             "displayName": "",
-            "spriteSheet": "farItems.png",
-            "xTrim": 47,
+            "spriteSheet": "furniture.png",
+            "xTrim": 17,
             "yTrim": 28,
             "states": {
-                "default": [13]
+                "default": [
+                    13
+                ]
             }
         },
         "14": {
             "displayName": "",
-            "spriteSheet": "farItems.png",
+            "spriteSheet": "furniture.png",
+            "xTrim": 29,
+            "yTrim": 19,
+            "states": {
+                "default": [
+                    14
+                ]
+            }
+        },
+        "15": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 25,
+            "yTrim": 32,
+            "states": {
+                "default": [
+                    15
+                ]
+            }
+        },
+        "16": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 24,
+            "yTrim": 31,
+            "states": {
+                "default": [
+                    16
+                ]
+            }
+        },
+        "17": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 36,
+            "yTrim": 19,
+            "states": {
+                "default": [
+                    17
+                ]
+            }
+        },
+        "18": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 48,
+            "yTrim": 26,
+            "states": {
+                "default": [
+                    18
+                ]
+            }
+        },
+        "19": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 31,
+            "yTrim": 13,
+            "states": {
+                "default": [
+                    19
+                ]
+            }
+        },
+        "20": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 32,
+            "yTrim": 27,
+            "states": {
+                "default": [
+                    20
+                ]
+            }
+        },
+        "21": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 41,
+            "yTrim": 24,
+            "states": {
+                "default": [
+                    21
+                ]
+            }
+        },
+        "22": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 30,
+            "yTrim": 26,
+            "states": {
+                "default": [
+                    22
+                ]
+            }
+        },
+        "23": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 47,
+            "yTrim": 28,
+            "states": {
+                "default": [
+                    23
+                ]
+            }
+        },
+        "24": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
             "xTrim": 22,
             "yTrim": 35,
             "states": {
-                "default": [14]
+                "default": [
+                    24
+                ]
             }
         }
     },
