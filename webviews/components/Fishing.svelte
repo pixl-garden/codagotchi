@@ -1,7 +1,7 @@
 <script context="module">
     import lootTableConfig from './lootTableConfig.json';
     import { weightedRandomSelection } from './LootGenerator.svelte';
-    import { Item } from './Inventory.svelte';
+    import { InventoryItem } from './Inventory.svelte';
     
     export class Fishing {
         constructor() {
@@ -27,7 +27,7 @@
                         reject({ message: "Fishing was cancelled" });
                     } else {
                         const fishString = this.getFish();
-                        let fish = new Item(fishString, 7, 6, 13);
+                        let fish = new InventoryItem(fishString, 7, 6, 13);
                         gameReference.addStackableItem(fishString, 1);
                         resolve(fish);
                     }

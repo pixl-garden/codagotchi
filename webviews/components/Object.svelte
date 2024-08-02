@@ -217,6 +217,7 @@
         whileHover() {}
 
         clickAction(gridX, gridY) {
+            console.log(this.actionOnClick);
             this.actionOnClick(gridX, gridY);
         }
 
@@ -230,10 +231,12 @@
             return this.z;
         }
 
-        setCoordinate(newX, newY, newZ) {
+        setCoordinate(newX, newY, newZ = null) {
             this.x = newX;
             this.y = newY;
-            this.z = newZ;
+            if( newZ !== null ) {
+                this.z = newZ;
+            }
         }
         
         getSprite() {
@@ -253,7 +256,6 @@
                         childSprite.z += offsetZ + parent.z;
                         childSprites.push(childSprite);
                     }
-
 
                     // If the child has its own children, recursively accumulate their sprites too
                     if (child.children.length > 0 && child.renderChildren) {
@@ -284,6 +286,9 @@
         }
         addChild(child) {
             this.children.push(child);
+        }
+        removeChild(child) {
+            this.children = this.children.filter((c) => c !== child);
         }
 
         updateChild(child, oldChild) {
@@ -671,7 +676,6 @@
             this.z = z;
             this.objects = objects;
             this.children = [];
-            this.renderChildren = false;
             this.hoverWithChildren = true;
             this.passMouseCoords = true;
             this.mouseX = null;

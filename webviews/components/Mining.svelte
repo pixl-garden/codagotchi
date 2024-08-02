@@ -1,7 +1,7 @@
 <script context="module">
     import lootTableConfig from './lootTableConfig.json';
     import { weightedRandomSelection } from './LootGenerator.svelte';
-    import { Item } from './Inventory.svelte';
+    import { InventoryItem } from './Inventory.svelte';
     import { ObjectGrid, GeneratedObject, ConfigObject } from './Object.svelte';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
@@ -56,7 +56,7 @@
                         let block = this.blocks.shift();
                         let object = this.objects.shift();
                         const itemString = this.getOre(block);
-                        let ore = new Item(itemString, 7, 6, 13);
+                        let ore = new InventoryItem(itemString, 7, 6, 13);
                         gameReference.addStackableItem(itemString, 1);
                         this.constructBlockItem();
                         resolve(ore);

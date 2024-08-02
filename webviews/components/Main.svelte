@@ -22,12 +22,8 @@
 
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
-        
         handleResize();
         preloadObjects();
-        //prettier-ignore
-
-        // Set the initial room in the game
         $game.setCurrentRoom('mainRoom');
     }
 
@@ -133,7 +129,6 @@
     $: if ($shouldFocus) {
         // console.log('Input is focused');
     }
-    // $: console.log('Input Value:', $inputValue);
 
     $: {
         const inputValueStore = $inputValue;

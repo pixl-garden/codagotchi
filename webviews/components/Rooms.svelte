@@ -1,11 +1,11 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification } from './Object.svelte';
+    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
+    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, constructInventoryObjects } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
-    import { generateColorButtonMatrix } from './MatrixFunctions.svelte';
+    import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import { get } from 'svelte/store';
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
@@ -14,7 +14,7 @@
     import lootTableConfig from './lootTableConfig.json';
     import { friendListManager, friendRequestManager } from './Social.svelte';
     import itemConfig from './itemConfig.json'
-    import { BedroomManager } from './Bedroom.svelte';
+    import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -69,7 +69,7 @@
         const backToMain = new singleLetterButton(0, 0, 10, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
-        const backToMain2 = new singleLetterButton(0, 112, 10, '<', () => {
+        const backToMain2 = new singleLetterButton(0, 112, 11, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
         // button to return to paint room
@@ -404,7 +404,7 @@
 
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10, constructInventoryObjects);
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
@@ -518,7 +518,7 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 2, 2, 10);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 2, 2, 10, constructInventoryObjects);
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
@@ -602,6 +602,9 @@
             }
         );
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
+        let emptySpriteMatrix = generateEmptyMatrix(128, 128);
+        let placementMouseDetector = new GeneratedObject([emptySpriteMatrix], {default: [0]}, 0, 0, 15);
+        fishingBackground.addChild(placementMouseDetector);
         let boatFront = new Background('boatFront', 35, 89, 1, () => {} );
 
         fishingNotif.setPhysics(16, .2, 3.8);
@@ -756,19 +759,30 @@
     recievedPostcardsRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
 
     // ---------------- BEDROOM ----------------
-    let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {});
+    let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {
+        bedroomEditorInstance.nextFrame();
+    });
     let testBedroomJSON = {                 
         "wallpaperIndex": 0,
         "floorIndex": 0,
         "wallItemIndices": [0],
-        "wallItemXCoords": [10],
+        "wallItemXCoords": [50],
         "nearFurnitureIndices": [],
         "nearFurnitureXCoords": [],
         "farFurnitureIndices": [0],
         "farFurnitureXCoords": [13] 
     }
+
     let bedroomManagerInstance = new BedroomManager(testBedroomJSON);
-    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), backToMain2);
+    let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
+    let roomInvButton = new miningButton(20, 112, 11, "INV", ()=>{
+        bedroomEditorInstance.toggleInventory();
+    });
+    let roomEditButton = new miningButton(50, 112, 11, "EDIT", ()=>{
+        bedroomEditorInstance.toggleEditMode();
+    });
+
+    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), bedroomEditorInstance, backToMain2, roomInvButton, roomEditButton);
 }
 
     export function roomMain(){

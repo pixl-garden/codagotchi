@@ -25,16 +25,16 @@
             for (let x = 0; x < spriteCountWidth; x++) {
                 let sprite = [];
                 // Each y level of sprite
-                for (let sy = 0; sy < spriteHeight; sy++) {
-                    if (pixelMatrix[y * spriteHeight + sy]) {
+                for (let sy = 0; sy < trimHeight; sy++) {
+                    if (pixelMatrix[y * trimHeight + sy]) {
                         // Add the x level of sprite as an array
-                        sprite.push(pixelMatrix[y * spriteHeight + sy].slice(x * spriteWidth, (x + 1) * spriteWidth));
+                        sprite.push(pixelMatrix[y * spriteHeight + sy].slice(x * spriteWidth, (x * spriteWidth) + trimWidth));
                     } else {
                         console.warn(`Invalid index y:${y + sy}`);
                         break;
                     }
                 }
-                if (sprite.length === spriteHeight) {
+                if (sprite.length === trimHeight) {
                     sprites.push(sprite);
                 }
             }
