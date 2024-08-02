@@ -97,6 +97,7 @@
             this.zCoord = typeConfig["zCoord"];
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
+            this.position = "near"; // used for determining near or far furniture
             console.log(this.furnitureType, this.typeIndex, this.x, this.y, this.z, this.spriteWidth, this.spriteHeight, this.yCoord, this.zCoord);
             if( ['wallpaper', 'floor'].includes(furnitureType) ) {
                 this.hasThumbnail = true;
