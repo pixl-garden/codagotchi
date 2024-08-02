@@ -7,154 +7,161 @@
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import bedroomConfig from './config/bedroomConfig.json';
-    import { inventoryGrid, constructInventoryObjects, BedroomItem } from './Inventory.svelte';
+    import { inventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
 
 
+    const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
 
-    export class BedroomManager {
+    let basic = new TextRenderer('charmap1.png', 7, 9, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
+    const smallButton = generateTextButtonClass(15, 15, basic, ...Colors.secondaryMenuColorParams);
+
+    export class BedroomManager extends GeneratedObject{
         constructor(bedroomJSON) {
+            super([generateEmptyMatrix(128, 128)], {default: [0]}, 0, 0, 0);
             this.bedroomConfig = bedroomConfig;
+            this.floorPos = bedroomConfig['floor']['yCoord'];
             this.wallpaperIndex = bedroomJSON["wallpaperIndex"] || 0;
             this.floorIndex = bedroomJSON["floorIndex"] || 0;
             this.wallItemIndices = bedroomJSON["wallItemIndices"] || [];
             this.wallItemXCoords = bedroomJSON["wallItemXCoords"] || [];
-            this.nearFurnitureIndices = bedroomJSON["nearFurnitureIndices"] || [];
-            this.nearFurnitureXCoords = bedroomJSON["nearFurnitureXCoords"] || [];
-            this.farFurnitureIndices = bedroomJSON["farFurnitureIndices"] || [];
-            this.farFurnitureXCoords = bedroomJSON["farFurnitureXCoords"] || [];
+
+            this.furnitureIndices = bedroomJSON["furnitureIndices"] || [];
+            this.furnitureXCoords = bedroomJSON["furnitureXCoords"] || [];
+            this.furnitureLocations = bedroomJSON["furnitureLocations"] || [];
+
+            this.wallpaperItem = new BedroomItem("wallpaper", this.wallpaperIndex, 0, 0, 0);
+            this.floorItem = new BedroomItem("floor", this.floorIndex, 0, this.floorPos, 0);
+            this.furnitureItems = [];
+            this.wallItemItems = [];
+            this.exportObjects();
         }
 
         isValidObjectType(objectType) {
-            const validTypes = ['wallpaper', 'floor', 'wallItem', 'nearFurniture', 'farFurniture'];
+            const validTypes = ['wallpaper', 'floor', 'wallItem', 'furniture'];
             return validTypes.includes(objectType);
         }
 
-        // Serialization strategy?
-        // 0000 0001 0002 0003 0004 0005 0006 0007 
-        // 
-        // 0001 1001 3
-        //[type(1)][index(3)][xCoord(3)][type(2)][index(3)][xCoord(3)][type(3)][index(3)][xCoord(3)]
-        // 
         serializeBedroom() {
             return {
                 "wallpaperIndex": this.wallpaperIndex,
                 "floorIndex": this.floorIndex,
                 "wallItemIndices": this.wallItemIndices,
                 "wallItemXCoords": this.wallItemXCoords,
-                "nearFurnitureIndices": this.nearFurnitureIndices,
-                "nearFurnitureXCoords": this.nearFurnitureXCoords,
-                "farFurnitureIndices": this.farFurnitureIndices,
-                "farFurnitureXCoords": this.farFurnitureXCoords
+                "furnitureIndices": this.furnitureIndices,
+                "furnitureXCoords": this.furnitureXCoords,
             };
         }
 
         // Used to replace the wallpaper or floor
-        replaceObject(objectType, configIndex) {
-            if (!this.isValidObjectType(objectType) || !['wallpaper', 'floor'].includes(objectType)) {
+        replaceObject(item) {
+            console.log("replaceObject => furnitureType:", item.furnitureType);
+            if (!this.isValidObjectType(item.furnitureType) || !['wallpaper', 'floor'].includes(item.furnitureType)) {
                 throw new Error('replaceObject: objectType must be wallpaper or floor');
             }
-            this[`${objectType}Index`] = configIndex;
+            let newItem = new BedroomItem(item.furnitureType, item.typeIndex, 0, 0);
+            if(item.furnitureType === 'wallpaper') {
+                newItem.setCoordinate(0, 0);
+            } else if (item.furnitureType === 'floor') {
+                newItem.setCoordinate(0, 86);
+            }
+            this[`${item.furnitureType}Item`] = newItem;
+            this.exportObjects();
         }
 
-        // Used to add a wallItem, nearFurniture, or farFurniture
-        addObject(objectType, configIndex, xCoord) {
-            if (!this.isValidObjectType(objectType) || ['wallpaper', 'floor'].includes(objectType)) {
-                throw new Error('addObject: invalid objectType');
+         // Used to add a wallItem or furniture
+        addObject(item) {
+            if (!this.isValidObjectType(item.furnitureType) || ['wallpaper', 'floor'].includes(item.furnitureType)) {
+                return false;
             }
-            if (!this.checkCollision(objectType, configIndex, xCoord)) {
-                throw new Error(`addObject: Cannot place ${objectType} at xCoord ${xCoord}`);
+            if (!this.checkCollision(item.furnitureType, item.typeIndex, item.x, item.y, item.position)) {
+                return false;
             }
-            this[`${objectType}Indices`].push(configIndex);
-            this[`${objectType}XCoords`].push(xCoord);
+
+            item.z = bedroomConfig[item.furnitureType].zCoord;
+            this[`${item.furnitureType}Items`].push(item);
+            this.exportObjects();
+            console.log(this.children)
+            return true;
         }
 
-        // Used to remove a wallItem, nearFurniture, or farFurniture
-        removeObject(objectType, objectIndex) {
-            if (!this.isValidObjectType(objectType) || ['wallpaper', 'floor'].includes(objectType)) {
+        // Used to remove a wallItem,
+        removeObject(selectedItem) {
+            if (!this.isValidObjectType(selectedItem.furnitureType) || ['wallpaper', 'floor'].includes(selectedItem.furnitureType)) {
                 throw new Error('removeObject: invalid objectType');
             }
-
-            const indices = this[`${objectType}Indices`];
-            const xCoords = this[`${objectType}XCoords`];
-
-            this[`${objectType}Indices`] = indices.filter((index) => index !== objectIndex);
-            this[`${objectType}XCoords`] = xCoords.filter((_, index) => index !== objectIndex);
+            this[`${selectedItem.furnitureType}Items`] = this[`${selectedItem.furnitureType}Items`].filter((item) => item !== selectedItem);
+            this.exportObjects();
         }
 
-
-        checkCollision(objectType, objectIndex, xCoord) {
-            if (!this.isValidObjectType(objectType) || ['wallpaper', 'floor'].includes(objectType)) {
-                throw new Error('checkAvailability: invalid objectType');
+        //maybe change to item reference to be sexier
+        checkCollision(furnitureType, objectIndex, xCoord, yCoord, position = null) {
+            if (!this.isValidObjectType(furnitureType) || ['wallpaper', 'floor'].includes(furnitureType)) {
+                throw new Error('checkCollision: invalid objectType');
             }
 
-            const objectConfig = this.bedroomConfig[objectType][objectIndex];
+            const objectConfig = this.bedroomConfig[furnitureType][objectIndex];
             if (!objectConfig.xTrim) {
-                throw new Error('checkAvailability: object must have xTrim property');
+                throw new Error('checkCollision: object must have xTrim property');
             }
+            
+            let itemArray = this[`${furnitureType}Items`];
+            if(furnitureType === "furniture") {
+                itemArray = itemArray.filter(item => item.position === position);
+            }
+            const indices = itemArray.map(item => item.typeIndex);
+            const xCoords = itemArray.map(item => item.x);
+            const yCoords = itemArray.map(item => item.y);
+            let objectType;
+            if( position === "far" ) {
+                objectType = this.bedroomConfig["farFurniture"];
+                
+            } else if( position === "near") {
+                objectType = this.bedroomConfig["nearFurniture"];
+            }else{
+                objectType = this.bedroomConfig[furnitureType];
+            }
+            const leftWallCollision = xCoord < objectType.xLeftBound;
+            const rightWallCollision = xCoord + objectConfig.xTrim > objectType.xRightBound;
+            const floorCollision = furnitureType === "wallItem" ? yCoord < objectType.yTopBound : false;
+            const ceilingCollision = furnitureType === "wallItem" ? yCoord + objectConfig.yTrim > objectType.yBottomBound : false;
+            
+             // If the object collides with any wall (or floor/ceiling if applicable)
+            if (leftWallCollision || rightWallCollision || floorCollision || ceilingCollision) {
+                return false;
+            } 
 
-            const indices = this[`${objectType}Indices`];
-            const xCoords = this[`${objectType}XCoords`];
+            // Check collision with other items
+            return !indices.some((itemIndex, i) => {
+                const item = this.bedroomConfig[furnitureType][itemIndex];
+                
+                const rightBoundCollision = xCoord < xCoords[i] + item.xTrim; // right side of item
+                const leftBoundCollision = xCoord + objectConfig.xTrim > xCoords[i]; // left side of item
+                const bottomBoundCollision = yCoord < yCoords[i] + item.yTrim; // bottom side of item
+                const topBoundCollision = yCoord + objectConfig.xTrim > yCoords[i]; // top side of item
 
-            // Check if an existing object has overlapping xCoords
-            return !indices.some((index, i) => 
-                xCoords[i] + this.bedroomConfig[objectType][index].xTrim >= xCoord &&
-                xCoords[i] <= xCoord
-            );
+                return rightBoundCollision && leftBoundCollision && topBoundCollision && bottomBoundCollision;
+            });
         }
 
-        getObjectAt(xCoord, yCoord){
-            ['nearFurniture', 'wallItem'].forEach(objectType => {
-                const indices = this[`${objectType}Indices`];
-                const xCoords = this[`${objectType}XCoords`];
-                for(let i = 0; i < indices.length; i++){
-                    let currentObject = this.bedroomConfig[objectType][indices[i]];
-                    if(xCoords[i] <= xCoord && xCoords[i] + currentObject.xTrim >= xCoord &&
-                        this.bedroomConfig[objectType].yCoord <= yCoord && currentObject.yCoord + currentObject.yTrim >= yCoord){
-                        // TODO: create system to return items better
-                        return [objectType, indices[i], xCoords[i], i];
+        getObjectAt(xCoord, yCoord) {
+            const furnitureTypes = ['furniture', 'wallItem'];
+            for (let furnitureType of furnitureTypes) {
+                const itemArray = this[`${furnitureType}Items`];
+                for (let i = 0; i < itemArray.length; i++) {
+                    let currentItem = itemArray[i];
+                    console.log(currentItem.x, currentItem.y, currentItem.spriteWidth, currentItem.spriteHeight, xCoord, yCoord);
+                    if (currentItem.x <= xCoord && currentItem.x + currentItem.spriteWidth >= xCoord &&
+                        currentItem.y <= yCoord && currentItem.y + currentItem.spriteHeight >= yCoord) {
+                        return currentItem;
                     }
                 }
-            });
+            }
             return null;
         }
 
         exportObjects() {
-            const exportArray = [];
-
-            ['wallItem', 'nearFurniture', 'farFurniture'].forEach(objectType => {
-                const indices = this[`${objectType}Indices`];
-                const xCoords = this[`${objectType}XCoords`];
-                console.log('indices:', indices);
-
-                indices.forEach((configIndex, i) => {
-                    const xCoord = xCoords[i];
-                    console.log('configIndex:', configIndex, 'xCoord:', xCoord)
-                    exportArray.push(new BedroomObject(objectType, configIndex, xCoord));
-                });
-            });
-            exportArray.push(new BedroomObject('wallpaper', this.wallpaperIndex, 0));
-            exportArray.push(new BedroomObject('floor', this.floorIndex, 0));
-
-            return exportArray;
-        }
-    }
-
-    class BedroomObject extends GeneratedObject {
-        constructor(objectType, configIndex, xCoord, config = bedroomConfig) {
-            const objectTypeConfig = config[objectType];
-            const objectConfig = objectTypeConfig[configIndex];
-            const spriteMatrix = spriteReaderFromStore(
-                objectTypeConfig.spriteWidth,
-                objectTypeConfig.spriteHeight,
-                objectConfig.spriteSheet,
-                objectConfig.xTrim || objectTypeConfig.spriteWidth,
-                objectConfig.yTrim || objectTypeConfig.spriteHeight
-            );
-            const yCoord = objectTypeConfig.yCoord + (objectConfig.yTrim ? objectTypeConfig.spriteHeight - objectConfig.yTrim : 0);
-            super(spriteMatrix, objectConfig.states, xCoord, yCoord, objectTypeConfig.zCoord);
-            this.spriteWidth = objectConfig.xTrim || objectTypeConfig.spriteWidth;
-            this.spriteHeight = objectConfig.yTrim || objectTypeConfig.spriteHeight;
+            this.children = [this.wallpaperItem, this.floorItem, ...this.furnitureItems, ...this.wallItemItems];
         }
     }
 
@@ -173,90 +180,207 @@
 
     //furniture rendering grid
 
+    // add stacking to items
+    // protruding items trimmed to be smaller (allow items to exist closer and behind protusion)?
+    // add range for item tracking in placement mode
+    //
+
     function createItemSlotXL() {
         let output = new ConfigObject("itemSlots48x", 0, 0, 0);
         output.hoverWithChildren = true;
         output.passMouseCoords = true;
         return output;
     }
+    
     export class BedroomEditor extends GeneratedObject {
         constructor(gameRef, bedroomManager) {
             const emptySpriteMatrix = generateEmptyMatrix(128, 128);
-            super([emptySpriteMatrix], {default: [0]}, 0, 0, 10);
-            this.menu = new Background('bedroomInventory', 0, 0, 7 );
+            super([emptySpriteMatrix], { default: [0] }, 0, 0, 10);
+            this.bedroomManager = bedroomManager;
+            this.initializeComponents();
+            this.menuEnabled = false;
+        }
+
+        initializeComponents() {
+            this.menu = new Background('bedroomInventory', 0, 0, 10);
             this.editMode = false;
             this.placementMode = false;
-            this.clickedItem;
             this.passMouseCoords = true;
-            this.bedroomManager = bedroomManager;
+            this.clickedItem = null;
+            this.currentTab = "furniture"
+            this.furnitureArr = this.addFurnitureItems("furniture", 25);
+            this.wallpaperArr = this.addFurnitureItems("wallpaper", 1);
+            this.floorArr = this.addFurnitureItems("floor", 3);
+            this.wallItemArr = this.addFurnitureItems("wallItem", 3);
+            this.stackableItemArr = this.addFurnitureItems("stackableItem", 20);
             
-            const testCouch = new BedroomItem("farFurniture", 0, 0, 0);
-            const testChair = new BedroomItem("nearFurniture", 0, 0, 0);
-            this.slotClickAction = (item) => {
+            this.slotClickAction = item => {
                 this.enterPlacementMode(item);
-            }
+                this.toggleInventory();
+            };
+            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 0, 0, 1, this.slotClickAction);
+            this.initializeButtons();
+            this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
+            this.setTab(this.currentTab);
+        }
 
-            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [testCouch, testChair], createItemSlotXL, null, null, 1, 1, 1, constructInventoryObjects, this.slotClickAction);
+        initializeButtons() {
+            this.removeButton = new smallButton(112, 112, 11, "X", () => {
+                this.exitPlacementMode();
+            });
             this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
             this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
             this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
                 [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
-                    console.log("tab 1")
+                    this.setTab("wallpaper");
                 }],
                 [this.inventoryTabSprites[1], this.inventoryTabSprites[1], ()=>{
-                    console.log("tab 2")
+                    this.setTab("floor");
                 }],
                 [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
-                    console.log("tab 3")
+                    this.setTab("furniture");
                 }],
                 [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
-                    console.log("tab 4")
+                    this.setTab("wallItem");
                 }]
             );
-            this.bedroomXButton = new Button(2, 1, 7, "bedroomXButton", ()=>{
-                this.toggleInventory();
-            });
-            this.menuEnabled = false;
-            this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
-            // this.placementMouseDetector = new GeneratedObject([emptySpriteMatrix], {default: [0]}, 0, 0, 15);
-            // this.enterPlacementMode(testCouch);
+            this.bedroomXButton = new Button(2, 1, 7, "bedroomXButton", this.toggleInventory.bind(this));
+            // const editorButton = generateIconButtonClass(22, 22, ...Colors.secondaryMenuColorParams);
+            const editorButton = generateIconButtonClass(22, 22, 'transparent', 'transparent', 'transparent', 'transparent');
+            const editorButtonSprites = spriteReaderFromStore(22, 22, "bedroomIcons.png");
+            this.inventoryButton = new editorButton(85, 106, 7, editorButtonSprites[0], editorButtonSprites[1], this.toggleInventory.bind(this));
+            this.editButton = new editorButton(106, 107, 7, editorButtonSprites[2], editorButtonSprites[3], this.toggleEditMode());
+            this.children.push(this.inventoryButton, this.editButton);
         }
-        toggleInventory(){
-            if(this.menuEnabled){
-                this.menuEnabled = false;
-                this.removeChild(this.menu); 
-            }else{
-                this.menuEnabled = true;
+
+        setTab(tab){
+            this.currentTab = tab;
+            this.inventoryGrid.currentPage = 0;
+            this.currentTabArray = this[`${tab}Arr`] || [];
+            this.inventoryGrid.updateItemSlots(this.currentTabArray);
+        }
+
+        addFurnitureItems(type, numItems) {
+            let items = [];
+            for(let i = 0; i < numItems; i++) {
+                items.push(new BedroomItem(type, String(i), 0, 0))
+            }
+            return items;
+        }
+
+        toggleInventory() {
+            this.menuEnabled = !this.menuEnabled;
+            if (this.menuEnabled) {
+                this.inventoryGrid.updateItemSlots(this.currentTabArray);
                 this.addChild(this.menu);
+                this.exitPlacementMode();
+            } else {
+                this.removeChild(this.menu);
+                this.whileHover() // update mouse coords immediately
             }
         }
 
-        enterPlacementMode(item){
-            this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, 0, 0, item.zCoord);
-            this.placementMode = true;
-            this.addChild(this.clickedItem);
+        // EDIT MODE ON:
+            // items = clickable
+                // -> if clicked --> enterPlacementMode
+                    // PLACEMENT MODE:
+                        // furniture -
+                            // moved
+                            // placed (collision detection passes)
+                                // checks for collision
+                                    // if passed --> places (clickedItem child removed) & exits placement mode
+                                    // else stays in placement mode & does not place
+                            // stashed (X'ed)
+                                // exit placement mode
+                                // clickedItem child removed
+                        // walls and floor
+                            // clicked on
+                            // replaced
+        // EDIT MODE OFF:
+            // items not clickable
+
+        // CLICKED FROM INVENTORY -> enterPlacementMode
+        // 
+
+        enterPlacementMode(item) {
+            if(this.clickedItem !== null) {
+                this.bedroomManager.removeObject(this.clickedItem); //if in manager, remove it
+            }
+            if (['floor', 'wallpaper'].includes(item.furnitureType)) {
+                this.bedroomManager.replaceObject(item);
+            }
+            else {
+                this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.zCoord);
+                this.placementMode = true;
+                this.addChild(this.removeButton);
+                this.addChild(this.clickedItem);
+            }
+        }
+
+        exitPlacementMode() {
+            this.placementMode = false;
+            this.removeChild(this.clickedItem);
+            this.removeChild(this.removeButton);
+            this.clickedItem = null;
         }
 
         toggleEditMode() {
             this.editMode = !this.editMode;
         }
 
-        placementModeLoop(){
-            if(this.placementMode){
-                console.log(this.mouseX, this.mouseY);
-                this.clickedItem.setCoordinate(this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2), this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2));
-            }
+        placementModeLoop() {
+            if (this.placementMode && this.clickedItem) {
+                let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
+                let yCoord = this.clickedItem.yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
+                if( this.clickedItem.furnitureType === "wallItem" ) {
+                    yCoord = this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2);
+                    this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
+                } else if( this.clickedItem.furnitureType === "furniture" ) {
+                    if(this.mouseY > 94){
+                        this.clickedItem.position = "near";
+                        let yCoord = bedroomConfig["nearFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                        this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
+                    }else{
+                        this.clickedItem.position = "far";
+                        let yCoord = bedroomConfig["farFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                        this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
+                    }
+                
+                }
+                else {
+                    this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
+                }
+                if(!this.bedroomManager.checkCollision(this.clickedItem.furnitureType, this.clickedItem.typeIndex, xCoord, yCoord, this.clickedItem.position)) {
+                    this.clickedItem.opacity = .7;
+                } else {
+                    this.clickedItem.opacity = 1;
+                }
+            } 
         }
-        whileHover(){
+
+        whileHover() {
             this.placementModeLoop();
         }
 
-        clickAction(gridX, gridY) {
-            this.bedroomManager.addObject(this.clickedItem.itemType, this.clickedItem.configIndex, this.clickedItem, )
+        clickAction(mouseX, mouseY) {
+            // selecting item object
+            if (this.editMode && !this.placementMode) {
+                this.clickedItem = this.bedroomManager.getObjectAt(mouseX, mouseY);
+                if(this.clickedItem) {
+                    this.enterPlacementMode(this.clickedItem);
+                }
+            // placing item 
+            } else if (this.placementMode && this.clickedItem) {
+                if(this.bedroomManager.addObject(this.clickedItem)) {
+                    this.exitPlacementMode()
+                }
+            }
         }
 
-        nextFrame(){
-            // this.children.forEach(child => child.nextFrame()); 
+        nextFrame() {
+            // Perform frame-specific updates here
         }
     }
+
 </script>

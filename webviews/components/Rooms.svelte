@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, constructInventoryObjects } from './Inventory.svelte';
+    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -404,7 +404,7 @@
 
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10, constructInventoryObjects);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10 );
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
@@ -518,7 +518,7 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 2, 2, 10, constructInventoryObjects);
+        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 2, 2, 10);
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
@@ -764,7 +764,7 @@
     });
     let testBedroomJSON = {                 
         "wallpaperIndex": 0,
-        "floorIndex": 0,
+        "floorIndex": 1,
         "wallItemIndices": [0],
         "wallItemXCoords": [50],
         "nearFurnitureIndices": [],
@@ -775,14 +775,14 @@
 
     let bedroomManagerInstance = new BedroomManager(testBedroomJSON);
     let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
-    let roomInvButton = new miningButton(20, 112, 11, "INV", ()=>{
-        bedroomEditorInstance.toggleInventory();
-    });
-    let roomEditButton = new miningButton(50, 112, 11, "EDIT", ()=>{
-        bedroomEditorInstance.toggleEditMode();
-    });
+    // let roomInvButton = new miningButton(20, 112, 11, "INV", ()=>{
+    //     bedroomEditorInstance.toggleInventory();
+    // });
+    // let roomEditButton = new miningButton(50, 112, 11, "EDIT", ()=>{
+    //     bedroomEditorInstance.toggleEditMode();
+    // });
 
-    bedroomRoom.addObject(...bedroomManagerInstance.exportObjects(), bedroomEditorInstance, backToMain2, roomInvButton, roomEditButton);
+    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain2);
 }
 
     export function roomMain(){

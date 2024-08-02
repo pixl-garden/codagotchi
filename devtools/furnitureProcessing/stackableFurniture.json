@@ -1,0 +1,222 @@
+{
+    "0": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 17,
+        "yTrim": 13,
+        "states": {
+            "default": [
+                0
+            ]
+        }
+    },
+    "1": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 14,
+        "yTrim": 14,
+        "states": {
+            "default": [
+                1
+            ]
+        }
+    },
+    "2": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 13,
+        "yTrim": 8,
+        "states": {
+            "default": [
+                2
+            ]
+        }
+    },
+    "3": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 20,
+        "yTrim": 12,
+        "states": {
+            "default": [
+                3
+            ]
+        }
+    },
+    "4": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 13,
+        "yTrim": 12,
+        "states": {
+            "default": [
+                4
+            ]
+        }
+    },
+    "5": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 11,
+        "yTrim": 9,
+        "states": {
+            "default": [
+                5
+            ]
+        }
+    },
+    "6": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 11,
+        "yTrim": 12,
+        "states": {
+            "default": [
+                6
+            ]
+        }
+    },
+    "7": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 13,
+        "yTrim": 13,
+        "states": {
+            "default": [
+                7
+            ]
+        }
+    },
+    "8": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 16,
+        "yTrim": 7,
+        "states": {
+            "default": [
+                8
+            ]
+        }
+    },
+    "9": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 13,
+        "yTrim": 18,
+        "states": {
+            "default": [
+                9
+            ]
+        }
+    },
+    "10": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 19,
+        "yTrim": 20,
+        "states": {
+            "default": [
+                10
+            ]
+        }
+    },
+    "11": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 9,
+        "yTrim": 16,
+        "states": {
+            "default": [
+                11
+            ]
+        }
+    },
+    "12": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 19,
+        "yTrim": 20,
+        "states": {
+            "default": [
+                12
+            ]
+        }
+    },
+    "13": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 30,
+        "yTrim": 20,
+        "states": {
+            "default": [
+                13
+            ]
+        }
+    },
+    "14": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 17,
+        "yTrim": 14,
+        "states": {
+            "default": [
+                14
+            ]
+        }
+    },
+    "15": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 21,
+        "yTrim": 21,
+        "states": {
+            "default": [
+                15
+            ]
+        }
+    },
+    "16": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 17,
+        "yTrim": 12,
+        "states": {
+            "default": [
+                16
+            ]
+        }
+    },
+    "17": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 6,
+        "yTrim": 11,
+        "states": {
+            "default": [
+                17
+            ]
+        }
+    },
+    "18": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 14,
+        "yTrim": 17,
+        "states": {
+            "default": [
+                18
+            ]
+        }
+    },
+    "19": {
+        "displayName": "",
+        "spriteSheet": "stackableFurniture.png",
+        "xTrim": 14,
+        "yTrim": 18,
+        "states": {
+            "default": [
+                19
+            ]
+        }
+    }
+}

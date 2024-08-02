@@ -56,4 +56,13 @@ function listenForDocumentSave(context: vscode.ExtensionContext): void {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate(context: vscode.ExtensionContext) {
+    // post a syncUserData message to the webview 
+
+    if (sidebarProvider._view?.webview) {
+        sidebarProvider._view?.webview.postMessage({
+            type: 'syncUserData',
+            value: context.globalState.get('globalInfo'),
+        });
+    }
+}

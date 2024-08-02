@@ -3,10 +3,12 @@
     import itemConfig from './itemConfig.json';
     import bedroomConfig from './config/bedroomConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
-    import { generateEmptyMatrix, scaleMatrix } from "./MatrixFunctions.svelte";
+    import { generateEmptyMatrix, scaleMatrix, roundSpriteMatrix } from "./MatrixFunctions.svelte";
     import { Sprite } from "./SpriteComponent.svelte";
     import { compute_rest_props } from "svelte/internal";
+    import { trimSpriteMatrix } from "./MatrixFunctions.svelte";
     const stackableTypes = ["food", "stamp", "mining"]
+    
 
     /**
      * Represents an item in the game inventory, extending functionalities from GeneratedObject.
@@ -20,12 +22,8 @@
         constructor( config, itemName, x = 0, y = 0, z = 0) {
             const xTrim = config.xTrim || config.spriteWidth;
             const yTrim = config.yTrim || config.spriteHeight || config.spriteWidth;
-        
             // maybe add an item count parameter?
-            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteWidth, config.spriteSheet, xTrim, yTrim);
-            if(config.xTrim){
-                console.log("XTRIM=", xTrim, "YTRIM=", yTrim, "SPRITEMATRIX=", spriteMatrix);
-            }
+            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight || config.spriteWidth, config.spriteSheet, xTrim, yTrim);
             super(spriteMatrix, config.states, x, y, z);
             /** @property {string} itemName - The internal name of the item. */
             this.itemName = itemName;
@@ -50,6 +48,7 @@
             /** @property {Object} properties - Custom properties specific to the item. */
             this.properties = {};
             this.mouseInteractions = false;
+            this.hasThumbnail = false;
         }
         getName(){
             return this.displayName;
@@ -59,6 +58,9 @@
         }
         getInventoryId(){
             return this.inventoryId;
+        }
+        getThumbnail(){
+            return roundSpriteMatrix(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], this.thumbnailStartX, this.thumbnailEndX, this.thumbnailStartY, this.thumbnailEndY), 4);
         }
         //base serialization for backend
         serialize() {
@@ -84,16 +86,31 @@
         constructor(furnitureType, typeIndex, x = 0, y = 0, z = 0) {
             const typeConfig = bedroomConfig[furnitureType];
             let instanceConfig = bedroomConfig[furnitureType][typeIndex];
-            if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json`);
+            console.log("TYPECONFIG=", typeConfig, "INSTANCECONFIG=", instanceConfig, "FURNITURETYPE=", furnitureType, "TYPEINDEX=", typeIndex);
+            if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json: ${furnitureType}`);
             instanceConfig["spriteWidth"] = typeConfig["spriteWidth"];
             instanceConfig["spriteHeight"] = typeConfig["spriteHeight"];
             instanceConfig["type"] = furnitureType;
+            console.log("INSTANCECONFIG=", instanceConfig);
             super(instanceConfig, typeIndex, x, y, z);
             this.yCoord = typeConfig["yCoord"];
             this.zCoord = typeConfig["zCoord"];
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
+            this.position = "near"; // used for determining near or far furniture
+            console.log(this.furnitureType, this.typeIndex, this.x, this.y, this.z, this.spriteWidth, this.spriteHeight, this.yCoord, this.zCoord);
+            if( ['wallpaper', 'floor'].includes(furnitureType) ) {
+                this.hasThumbnail = true;
+                this.thumbnailStartX = typeConfig["thumbnailCoords"][0];
+                this.thumbnailEndX = typeConfig["thumbnailCoords"][1];
+                this.thumbnailStartY = typeConfig["thumbnailCoords"][2];
+                this.thumbnailEndY = typeConfig["thumbnailCoords"][3];
+            } else if( furnitureType === "wallItem") {
+                this.yTopBound = typeConfig["yTopBound"];
+                this.yBottomBound = typeConfig["yBottomBound"];
+            }
         }
+
     }
 
     export class Inventory {
@@ -268,13 +285,11 @@
 
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, constructSlotsFunction = () => {}, clickAction = () => {}) {
-            let constructedItems = constructSlotsFunction(itemSlotConstructor, items, rows*columns, numberTextRenderer, 0, 0, 0, clickAction);
-            // console.log("constructedItems.length="+constructedItems.length);
+                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, clickAction = () => {}) {
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, clickAction);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
-            this.constructSlotsFunction = constructSlotsFunction;
             this.itemSlotConstructor = itemSlotConstructor;
-            this.totalSlots = rows*columns;
+            this.totalSlots = this.objects.length;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.displayToolTip = false;
@@ -286,8 +301,8 @@
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             this.updateItemSlots(items);
+            this.clickAction = clickAction;
         }
-
 
         setHoverLogic() {
             this.children.forEach((itemSlot) => {
@@ -337,35 +352,44 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            // console.log("updateItemSlots:", itemsArray);
-            let itemSlotExport = this.constructSlotsFunction(this.itemSlotConstructor, itemsArray, this.totalSlots, this.numberTextRenderer, this.itemX, this.itemY, this.itemZ);
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.clickAction);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
             this.setHoverLogic();
         }
+
     }
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    export function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, itemX, itemY, itemZ, clickAction = () => {}) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
             let slotInstance = createSlotInstance(); // Use the factory function to create a new instance
             
             if(item) {
-                item.setCoordinate(itemX, itemY, itemZ);
+                // if item has thumbnail set it as displayItem, otherwise use item sprite
+                let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, 0, 0, slotInstance.z + 1) : item;
+                // find x and y coordinates that will center item
+                let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2);
+                let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2);
+                displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + 1);
+                // ignore click events on the display item
+                displayItem.mouseInteractions = false;
+                slotInstance.addChild(displayItem);
+                // item ref for click action usage
                 slotInstance.slotItem = item;
-                // item.mouseInteractions = false;
-                slotInstance.addChild(item);
-                if(numberTextRenderer != null){
-                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, itemZ+10, ()=> {}, {maxWidth: 25, position: "center"});
+                
+                if(numberTextRenderer != null) {
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, slotInstance.z + 2, ()=> {}, {maxWidth: 25, position: "center"});
                     numberRenderer.setText(item.itemCount.toString());
-                    // numberRenderer.mouseInteractions = false;
                     slotInstance.addChild(numberRenderer);
                 }
-                slotInstance.actionOnClick = clickAction(item);
+                slotInstance.actionOnClick = () => {
+                    clickAction(item);
+                }
             }
             else{
                 slotInstance.slotItem = null;

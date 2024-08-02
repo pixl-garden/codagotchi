@@ -217,7 +217,6 @@
         whileHover() {}
 
         clickAction(gridX, gridY) {
-            console.log(this.actionOnClick);
             this.actionOnClick(gridX, gridY);
         }
 
@@ -708,7 +707,7 @@
         }
 
         setNextPage() {
-            console.log("Next Page ", this.currentPage, " ", this.pageSize, " ", this.children.length)
+            console.log("Next Page ", this.currentPage, " ", this.pageSize, " ", this.children.length, "objects.length", this.objects.length)
             if((this.currentPage + 1) * this.pageSize < this.objects.length) {
                 this.currentPage++;
                 this.generateObjectGrid();
@@ -716,7 +715,7 @@
         }
 
         setPrevPage() {
-            console.log("Prev Page ", this.currentPage, " ", this.pageSize, " ", this.children.length)
+            console.log("Prev Page ", this.currentPage, " ", this.pageSize, " ", this.children.length, "objects.length", this.objects.length)
             if(this.currentPage > 0) {
                 this.currentPage--;
                 this.generateObjectGrid();
