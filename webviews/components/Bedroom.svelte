@@ -71,14 +71,20 @@
 
          // Used to add a wallItem or furniture
         addObject(item) {
+            console.log("ADDED ITEM: ", item)
             if (!this.isValidObjectType(item.furnitureType) || ['wallpaper', 'floor'].includes(item.furnitureType)) {
                 return false;
             }
             if (!this.checkCollision(item.furnitureType, item.typeIndex, item.x, item.y, item.position)) {
                 return false;
             }
-
-            item.z = bedroomConfig[item.furnitureType].zCoord;
+            if(item.position === "far") {
+                item.z = bedroomConfig["farFurniture"].zCoord;
+            } else if(item.position = "near") {
+                item.z = bedroomConfig["nearFurniture"].zCoord;
+            } else {
+                item.z = bedroomConfig[item.furnitureType].zCoord;
+            }
             this[`${item.furnitureType}Items`].push(item);
             this.exportObjects();
             console.log(this.children)
@@ -104,7 +110,6 @@
             if (!objectConfig.xTrim) {
                 throw new Error('checkCollision: object must have xTrim property');
             }
-            
             let itemArray = this[`${furnitureType}Items`];
             if(furnitureType === "furniture") {
                 itemArray = itemArray.filter(item => item.position === position);
@@ -112,10 +117,10 @@
             const indices = itemArray.map(item => item.typeIndex);
             const xCoords = itemArray.map(item => item.x);
             const yCoords = itemArray.map(item => item.y);
+            console.log("position:", position, "xCoord:", xCoord, "yCoord:", yCoord, "objectConfig:", objectConfig, "indices:", indices, "xCoords:", xCoords, "yCoords:", yCoords)
             let objectType;
             if( position === "far" ) {
                 objectType = this.bedroomConfig["farFurniture"];
-                
             } else if( position === "near") {
                 objectType = this.bedroomConfig["nearFurniture"];
             }else{
@@ -310,7 +315,7 @@
                 this.bedroomManager.replaceObject(item);
             }
             else {
-                this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.zCoord);
+                this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.z);
                 this.placementMode = true;
                 this.addChild(this.removeButton);
                 this.addChild(this.clickedItem);
@@ -331,22 +336,24 @@
         placementModeLoop() {
             if (this.placementMode && this.clickedItem) {
                 let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
-                let yCoord = this.clickedItem.yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                let yCoord = this.clickedItem.y + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
                 let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
                 if( this.clickedItem.furnitureType === "wallItem" ) {
                     yCoord = this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2);
                     this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
                 } else if( this.clickedItem.furnitureType === "furniture" ) {
-                    if(this.mouseY > 94){
+                    if(this.mouseY > 94){ // center between near and far y levls
                         this.clickedItem.position = "near";
-                        let yCoord = bedroomConfig["nearFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                        yCoord = bedroomConfig["nearFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                        zCoord = bedroomConfig["nearFurniture"].zCoord;
                         this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
                     }else{
+                        console.log("FAR CALLED")
                         this.clickedItem.position = "far";
-                        let yCoord = bedroomConfig["farFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                        yCoord = bedroomConfig["farFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                        zCoord = bedroomConfig["farFurniture"].zCoord;
                         this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
                     }
-                
                 }
                 else {
                     this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
@@ -356,6 +363,7 @@
                 } else {
                     this.clickedItem.opacity = 1;
                 }
+                console.log("position:", this.clickedItem.position, )
             } 
         }
 

@@ -93,11 +93,11 @@
             instanceConfig["type"] = furnitureType;
             console.log("INSTANCECONFIG=", instanceConfig);
             super(instanceConfig, typeIndex, x, y, z);
-            this.yCoord = typeConfig["yCoord"];
-            this.zCoord = typeConfig["zCoord"];
+            this.y = typeConfig["yCoord"];
+            this.z = typeConfig["zCoord"];
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
-            this.position = "near"; // used for determining near or far furniture
+            this.position = null; // used for determining near or far furniture
             console.log(this.furnitureType, this.typeIndex, this.x, this.y, this.z, this.spriteWidth, this.spriteHeight, this.yCoord, this.zCoord);
             if( ['wallpaper', 'floor'].includes(furnitureType) ) {
                 this.hasThumbnail = true;
@@ -108,6 +108,8 @@
             } else if( furnitureType === "wallItem") {
                 this.yTopBound = typeConfig["yTopBound"];
                 this.yBottomBound = typeConfig["yBottomBound"];
+            } else if( furnitureType === "furniture") {
+                this.position = "near";
             }
         }
 
