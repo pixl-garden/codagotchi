@@ -170,12 +170,12 @@
         }
     },
     "bedroomXButton":{
-        "spriteWidth": 11,
-        "spriteHeight": 12,
+        "spriteWidth": 13,
+        "spriteHeight": 14,
         "spriteSheet": "bedroomXButton.png",
         "states": {
             "default": [0],
-            "hovered": [0]
+            "hovered": [1]
         }
     },
     "flipButton":{
@@ -383,6 +383,24 @@
         "states": {
             "default": [12],
             "hovered": [13]
+        }
+    },
+    "bedroomIcon": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [14],
+            "hovered": [15]
+        }
+    },
+    "bedroomIcon2": {
+        "spriteWidth": 25,
+        "spriteHeight": 25,
+        "spriteSheet": "mainMenuIcons02.png",
+        "states": {
+            "default": [16],
+            "hovered": [17]
         }
     },
     "leftPetArrow": {
