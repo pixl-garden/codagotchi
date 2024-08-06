@@ -112,7 +112,7 @@
         const settingsButton = new Button(2, 4, 0, 'settingsIcon', () => {get(game).setCurrentRoom('settingsRoom')});
         const inventoryButton = new Button(5, 90, 0, 'inventoryIcon', () => {get(game).setCurrentRoom('inventoryRoom')});
         const worldButton = new Button(30, 100, 0, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
-        const skillTreeButton = new Button(53, 101, 0, 'skillTreeIcon', () => {get(game).setCurrentRoom('bedroomRoom')});
+        const bedroomButton = new Button(53, 101, 0, 'bedroomIcon2', () => {get(game).setCurrentRoom('bedroomRoom')});
         const paintRoomButton = new Button(80, 103, 0, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
         const postOfficeButton = new Button(102, 94, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
 
@@ -153,7 +153,7 @@
             petObject.nextFrame();
         });
         mainRoom.addObject(greyBackground, manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, levelBar, numTest, settingsButton,
-            inventoryButton, worldButton, skillTreeButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton
+            inventoryButton, worldButton, bedroomButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton
         );
         // mainRoom.addObject(petObject, mainMenuButton);
         
