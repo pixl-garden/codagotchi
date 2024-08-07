@@ -6,7 +6,7 @@
     import { generateEmptyMatrix, scaleMatrix, roundSpriteMatrix } from "./MatrixFunctions.svelte";
     import { Sprite } from "./SpriteComponent.svelte";
     import { compute_rest_props } from "svelte/internal";
-    import { trimSpriteMatrix } from "./MatrixFunctions.svelte";
+    import { trimSpriteMatrix, flipMatrixByAxis } from "./MatrixFunctions.svelte";
     const stackableTypes = ["food", "stamp", "mining"]
     
 
@@ -98,7 +98,7 @@
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
             this.position = null; // used for determining near or far furniture
-            console.log(this.furnitureType, this.typeIndex, this.x, this.y, this.z, this.spriteWidth, this.spriteHeight, this.yCoord, this.zCoord);
+            this.isFlipped = false;
             if( ['wallpaper', 'floor'].includes(furnitureType) ) {
                 this.hasThumbnail = true;
                 this.thumbnailStartX = typeConfig["thumbnailCoords"][0];
@@ -108,11 +108,25 @@
             } else if( furnitureType === "wallItem") {
                 this.yTopBound = typeConfig["yTopBound"];
                 this.yBottomBound = typeConfig["yBottomBound"];
-            } else if( furnitureType === "furniture") {
+            } else if( furnitureType === "furniture" || furnitureType === "stackableItem") {
                 this.position = "near";
+                if(instanceConfig["stackDimensions"]) {
+                    this.stackYCoord = instanceConfig["stackDimensions"][0];
+                    this.stackLeftBound = instanceConfig["stackDimensions"][1];
+                    this.stackRightBound = instanceConfig["stackDimensions"][2];
+                }
             }
         }
+        getSprite(){
+            let matrix = this.isFlipped ? 
+                flipMatrixByAxis(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], 0, this.spriteWidth, 0, this.spriteHeight), "x") :
+                trimSpriteMatrix(this.sprites[this.currentSpriteIndex], 0, this.spriteWidth, 0, this.spriteHeight);
+            return new Sprite(matrix, this.x, this.y, this.z, this.opacity);
+        }
 
+        flip() {
+            this.isFlipped = !this.isFlipped;
+        }
     }
 
     export class Inventory {

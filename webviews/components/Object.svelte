@@ -620,20 +620,13 @@
             this.updateState("default");
             this.showPointer = true;
         }
-
         onHover() {
-            // console.log('Button is hovered!');
+
             this.updateState('hovered');
-            // Add any button-specific hover effects or logic here
         }
-
         onStopHover() {
-            // console.log('Button hover stopped!');
             this.updateState('default');
-            // Reset any button-specific hover effects here
         }
-
-
     }
 
     export class Background extends ConfigObject {
