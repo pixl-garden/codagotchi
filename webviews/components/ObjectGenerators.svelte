@@ -88,12 +88,12 @@
                 }
 
                 onHover() {
-                    super.onHover(); // Call parent's hover function
+                    super.onHover();
                     this.updateState('hovered');
                 }
 
                 onStopHover() {
-                    super.onStopHover(); // Call parent's stop hover function
+                    super.onStopHover();
                     this.updateState('default');
                 }
 

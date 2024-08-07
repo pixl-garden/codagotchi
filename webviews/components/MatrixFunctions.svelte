@@ -12,6 +12,25 @@
         return sprite;
     }
 
+     export function flipMatrixByAxis(matrix, axis = "x") {
+        // Validate input is a non-empty 2D array
+        if (!Array.isArray(matrix) || matrix.length === 0 || !Array.isArray(matrix[0])) {
+            throw new Error('Invalid matrix input');
+        }
+
+        if( axis === "x"){
+            matrix.forEach(row => row.reverse());
+        }
+        else if( axis === "y"){
+            matrix.reverse();
+        }
+        else{
+            throw new Error('Invalid axis input');
+        }
+
+        return matrix;
+    }
+
 
     export function roundSpriteMatrix(matrix, rounding) {
         const width = matrix.length;
