@@ -761,6 +761,7 @@
     let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {
         bedroomEditorInstance.nextFrame();
     });
+    //TODO: initialize all furniture from this json
     let testBedroomJSON = {                 
         "wallpaperIndex": 0,
         "floorIndex": 1,
@@ -768,8 +769,10 @@
         "wallItemXCoords": [50],
         "nearFurnitureIndices": [],
         "nearFurnitureXCoords": [],
-        "farFurnitureIndices": [0],
-        "farFurnitureXCoords": [13] 
+        "farFurnitureIndices": [],
+        "farFurnitureXCoords": [] ,
+        "stackableItemIndices": [],
+        "stackableItemXCoords": []
     }
 
     let bedroomManagerInstance = new BedroomManager(testBedroomJSON);

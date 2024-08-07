@@ -29,16 +29,19 @@
             this.furnitureIndices = bedroomJSON["furnitureIndices"] || [];
             this.furnitureXCoords = bedroomJSON["furnitureXCoords"] || [];
             this.furnitureLocations = bedroomJSON["furnitureLocations"] || [];
+            this.stackableItemIndices = bedroomJSON["stackableItemIndices"] || [];
+            this.stackableItemXCoords = bedroomJSON["stackableItemXCoords"] || [];
 
             this.wallpaperItem = new BedroomItem("wallpaper", this.wallpaperIndex, 0, 0, 0);
             this.floorItem = new BedroomItem("floor", this.floorIndex, 0, this.floorPos, 0);
             this.furnitureItems = [];
             this.wallItemItems = [];
+            this.stackableItemItems = []; // on construction of stackable item, check if on top of furniture and add to furnitures count
             this.exportObjects();
         }
 
         isValidObjectType(objectType) {
-            const validTypes = ['wallpaper', 'floor', 'wallItem', 'furniture'];
+            const validTypes = ['wallpaper', 'floor', 'wallItem', 'furniture', 'stackableItem'];
             return validTypes.includes(objectType);
         }
 
@@ -97,18 +100,31 @@
             this.exportObjects();
         }
 
-        //maybe change to item reference to be sexier
+        //maybe change to item reference to be sexier (returns true if there is no collision)
         checkCollision(furnitureType, objectIndex, xCoord, yCoord, position = null) {
             if (!this.isValidObjectType(furnitureType) || ['wallpaper', 'floor'].includes(furnitureType)) {
                 throw new Error('checkCollision: invalid objectType');
             }
 
-            const objectConfig = this.bedroomConfig[furnitureType][objectIndex];
+            let objectConfig = this.bedroomConfig[furnitureType][objectIndex];
             if (!objectConfig.xTrim) {
                 throw new Error('checkCollision: object must have xTrim property');
             }
+
             let itemArray = this[`${furnitureType}Items`];
-            if(furnitureType === "furniture") {
+
+            if(furnitureType === "stackableItem") {
+                let furniture = this[`furnitureItems`].filter(item => item.position === position && item.stackYCoord !== undefined);
+                itemArray = this[`furnitureItems`].filter(item => item.position === position);
+                for( const item of furniture) {
+                    // check stackable item is within bounds of item that is stackable
+                    if((xCoord > item.x + item.stackLeftBound && xCoord + objectConfig.xTrim < item.x + item.stackRightBound)) {
+                        itemArray = this[`stackableItemItems`];
+                    } 
+                }
+            }
+
+            if(furnitureType === "furniture" || furnitureType === "stackableItem") {
                 itemArray = itemArray.filter(item => item.position === position);
             }
             const indices = itemArray.map(item => item.typeIndex);
@@ -130,7 +146,7 @@
              // If the object collides with any wall (or floor/ceiling if applicable)
             if (leftWallCollision || rightWallCollision || floorCollision || ceilingCollision) {
                 return false;
-            } 
+            }
 
             // Check collision with other items
             return !indices.some((itemIndex, i) => {
@@ -146,12 +162,12 @@
         }
 
         getObjectAt(xCoord, yCoord) {
-            const furnitureTypes = ['furniture', 'wallItem'];
+            const furnitureTypes = ['furniture', 'wallItem', 'stackableItem'];
             for (let furnitureType of furnitureTypes) {
                 const itemArray = this[`${furnitureType}Items`];
                 for (let i = 0; i < itemArray.length; i++) {
                     let currentItem = itemArray[i];
-                    // console.log(currentItem.x, currentItem.y, currentItem.spriteWidth, currentItem.spriteHeight, xCoord, yCoord);
+                    console.log(currentItem.x, currentItem.y, currentItem.spriteWidth, currentItem.spriteHeight, xCoord, yCoord);
                     if (currentItem.x <= xCoord && currentItem.x + currentItem.spriteWidth >= xCoord &&
                         currentItem.y <= yCoord && currentItem.y + currentItem.spriteHeight >= yCoord) {
                         return currentItem;
@@ -161,8 +177,28 @@
             return null;
         }
 
+        calculateStackableY(stackableItem){
+            let position = stackableItem.position;
+            console.log("this.furnitureITems: ", this.furnitureItems, "stackableItem: ", stackableItem)
+            let furniture = this.furnitureItems.filter(item => (item.position === position && item.stackYCoord !== undefined));
+            console.log("furniture: ", furniture)
+            let stackableItemY = 128;
+            furniture.forEach(item => {
+                console.log("checking: ", item)
+                // if(stackableItem.x > item.x + item.stackLeftBound && item.x + item.stackRightBound > stackableItem.x + stackableItem.spriteWidth){
+                //     stackableItemY = (item.y + item.stackYCoord - stackableItem.spriteHeight) < stackableItemY ? item.y + item.stackYCoord - stackableItem.spriteHeight : stackableItemY;
+                // }
+                if(stackableItem.x + stackableItem.spriteWidth > item.x + item.stackLeftBound && stackableItem.x < item.x + item.stackRightBound ){
+                    stackableItemY = (item.y + item.stackYCoord - stackableItem.spriteHeight) < stackableItemY ? item.y + item.stackYCoord - stackableItem.spriteHeight : stackableItemY;
+                }
+
+            });
+            return stackableItemY === 128 ? null : stackableItemY;
+        }
+
         exportObjects() {
-            this.children = [this.wallpaperItem, this.floorItem, ...this.furnitureItems, ...this.wallItemItems];
+            this.children = [this.wallpaperItem, this.floorItem, ...this.furnitureItems, ...this.wallItemItems, ...this.stackableItemItems];
+            console.log(this.children);
         }
     }
 
@@ -226,7 +262,6 @@
         }
 
         initializeButtons() {
-
             this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
             this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
             this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
@@ -241,6 +276,9 @@
                 }],
                 [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
                     this.setTab("wallItem");
+                }],
+                [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
+                    this.setTab("stackableItem");
                 }]
             );
             this.bedroomXButton = new Button(1, 0, 7, "bedroomXButton", this.toggleInventory.bind(this));
@@ -309,37 +347,38 @@
             this.editMode = !this.editMode;
         }
 
+        // calculates coords to center item on mouse
+        calculateAdjustedCoords() {
+            let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
+            let yCoord = this.mouseY + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+            let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
+            return { xCoord, yCoord, zCoord };
+        }
+
+        setFurnitureCoordinates() {
+            let { xCoord, yCoord, zCoord } = this.calculateAdjustedCoords();
+            if (this.clickedItem.furnitureType === "wallItem") {
+                yCoord = this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2);
+            } else if (this.clickedItem.furnitureType === "furniture" || this.clickedItem.furnitureType === "stackableItem") { // extra y/z adjustments for near/far furniture
+                this.clickedItem.position = this.mouseY > 94 ? "near" : "far";
+                yCoord = bedroomConfig[`${this.clickedItem.position}Furniture`].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+                zCoord = bedroomConfig[`${this.clickedItem.position}Furniture`].zCoord - this.z + 1;
+            }
+            if(this.clickedItem.furnitureType === "stackableItem") {
+                yCoord = this.bedroomManager.calculateStackableY(this.clickedItem) || yCoord + 16; // add 16 to account for difference between sizes of stackable and furniture
+            }
+            this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
+        }
+
         placementModeLoop() {
             if (this.placementMode && this.clickedItem) {
-                let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
-                let yCoord = this.clickedItem.y + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
-                let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
-                
-                if( this.clickedItem.furnitureType === "wallItem" ) {
-                    yCoord = this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2);
-                    this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
-                } else if( this.clickedItem.furnitureType === "furniture" ) {
-                    if(this.mouseY > 94){ // center between near and far y levls
-                        this.clickedItem.position = "near";
-                        yCoord = bedroomConfig["nearFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
-                        zCoord = bedroomConfig["nearFurniture"].zCoord - this.z + 1;
-                        this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
-                    }else{
-                        this.clickedItem.position = "far";
-                        yCoord = bedroomConfig["farFurniture"].yCoord + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
-                        zCoord = bedroomConfig["farFurniture"].zCoord - this.z + 1;
-                        this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
-                    }
-                }
-                else {
-                    this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
-                }
-                if(!this.bedroomManager.checkCollision(this.clickedItem.furnitureType, this.clickedItem.typeIndex, xCoord, yCoord, this.clickedItem.position)) {
-                    this.clickedItem.opacity = .7;
+                this.setFurnitureCoordinates();
+                if (!this.bedroomManager.checkCollision(this.clickedItem.furnitureType, this.clickedItem.typeIndex, this.clickedItem.x, this.clickedItem.y, this.clickedItem.position)) {
+                    this.clickedItem.opacity = 0.7;
                 } else {
                     this.clickedItem.opacity = 1;
                 }
-            } 
+            }
         }
 
         whileHover() {

@@ -80,7 +80,8 @@
                 "default": [
                     0
                 ]
-            }
+            },
+            "stackDimensions": [0, 0, 16]
         },
         "1": {
             "displayName": "",
@@ -91,7 +92,8 @@
                 "default": [
                     1
                 ]
-            }
+            },
+            "stackDimensions": [0, 0, 36]
         },
         "2": {
             "displayName": "",
@@ -102,7 +104,8 @@
                 "default": [
                     2
                 ]
-            }
+            },
+            "stackDimensions": [0, 0, 12]
         },
         "3": {
             "displayName": "",
@@ -353,9 +356,9 @@
         "yCoord": 16,
         "zCoord": 4,
         "xLeftBound": 16,
-        "xRightBound": 111,
+        "xRightBound": 112,
         "yTopBound": 13,
-        "yBottomBound": 85,
+        "yBottomBound": 86,
         "0": {
             "displayName": "",
             "spriteSheet": "wallItems.png",
@@ -387,6 +390,7 @@
     "stackableItem": {
         "spriteWidth": 32,
         "spriteHeight": 32,
+        "yCoord": 16,
         "zCoord": 8,
         "xLeftBound": -1,
         "xRightBound": 130,

@@ -108,11 +108,15 @@
             } else if( furnitureType === "wallItem") {
                 this.yTopBound = typeConfig["yTopBound"];
                 this.yBottomBound = typeConfig["yBottomBound"];
-            } else if( furnitureType === "furniture") {
+            } else if( furnitureType === "furniture" || furnitureType === "stackableItem") {
                 this.position = "near";
+                if(instanceConfig["stackDimensions"]) {
+                    this.stackYCoord = instanceConfig["stackDimensions"][0];
+                    this.stackLeftBound = instanceConfig["stackDimensions"][1];
+                    this.stackRightBound = instanceConfig["stackDimensions"][2];
+                }
             }
         }
-
     }
 
     export class Inventory {
