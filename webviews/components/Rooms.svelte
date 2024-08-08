@@ -770,7 +770,7 @@
         "nearFurnitureIndices": [],
         "nearFurnitureXCoords": [],
         "farFurnitureIndices": [],
-        "farFurnitureXCoords": [] ,
+        "farFurnitureXCoords": [],
         "stackableItemIndices": [],
         "stackableItemXCoords": []
     }
