@@ -9,7 +9,7 @@
     import bedroomConfig from './config/bedroomConfig.json';
     import { inventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
-
+    import * as pako from 'pako';
 
     const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
 
@@ -20,19 +20,29 @@
         constructor(bedroomJSON) {
             super([generateEmptyMatrix(128, 128)], {default: [0]}, 0, 0, 0);
             this.bedroomConfig = bedroomConfig;
-            this.floorPos = bedroomConfig['floor']['yCoord'];
-            this.wallpaperIndex = bedroomJSON["wallpaperIndex"] || 0;
-            this.floorIndex = bedroomJSON["floorIndex"] || 0;
-            this.wallItemIndices = bedroomJSON["wallItemIndices"] || [];
-            this.wallItemXCoords = bedroomJSON["wallItemXCoords"] || [];
+            this.wallpaperIndex = bedroomJSON["wallpaperIndex"] || 0; //0-255
+            this.floorIndex = bedroomJSON["floorIndex"] || 0;         //0-255
 
-            this.furnitureIndices = bedroomJSON["furnitureIndices"] || [];
-            this.furnitureXCoords = bedroomJSON["furnitureXCoords"] || [];
-            this.furnitureLocations = bedroomJSON["furnitureLocations"] || [];
-            this.stackableItemIndices = bedroomJSON["stackableItemIndices"] || [];
-            this.stackableItemXCoords = bedroomJSON["stackableItemXCoords"] || [];
+            //numOfItems 0-31
+            this.wallItemIndices = bedroomJSON["wallItemIndices"] || []; //0-511
+            this.wallItemXCoords = bedroomJSON["wallItemXCoords"] || []; // 0-127
+            this.wallItemYCoords = bedroomJSON["wallItemYCoords"] || []; // 0-127
+            this.wallItemFlipped = bedroomJSON["wallItemFlipped"] || []; // 0-1
+
+            //numOfItems 0-31
+            this.furnitureIndices = bedroomJSON["furnitureIndices"] || []; //0-511
+            this.furnitureXCoords = bedroomJSON["furnitureXCoords"] || []; // 0-127
+            this.furnitureLocations = bedroomJSON["furnitureLocations"] || []; // 0-1
+            this.furnitureFlipped = bedroomJSON["furnitureFlipped"] || []; // 0-1
+
+            //numOfItems 0-31
+            this.stackableItemIndices = bedroomJSON["stackableItemIndices"] || []; //0-511
+            this.stackableItemXCoords = bedroomJSON["stackableItemXCoords"] || []; // 0-127
+            this.stackableItemLocations = bedroomJSON["stackableItemLocations"] || []; // 0-1
+            this.stackableItemFlipped = bedroomJSON["stackableItemFlipped"] || []; // 0-1
 
             this.wallpaperItem = new BedroomItem("wallpaper", this.wallpaperIndex, 0, 0, 0);
+            this.floorPos = bedroomConfig['floor']['yCoord'];
             this.floorItem = new BedroomItem("floor", this.floorIndex, 0, this.floorPos, 0);
             this.furnitureItems = [];
             this.wallItemItems = [];
@@ -45,15 +55,22 @@
             return validTypes.includes(objectType);
         }
 
+        numberToBinary(number, length) {
+            if (number < 0) {
+                throw new Error('Only non-negative integers are supported.');
+            }
+            
+            let binaryString = number.toString(2);
+            while (binaryString.length < length) {
+                binaryString = '0' + binaryString;
+            }
+
+            return binaryString;
+            }
+
         serializeBedroom() {
-            return {
-                "wallpaperIndex": this.wallpaperIndex,
-                "floorIndex": this.floorIndex,
-                "wallItemIndices": this.wallItemIndices,
-                "wallItemXCoords": this.wallItemXCoords,
-                "furnitureIndices": this.furnitureIndices,
-                "furnitureXCoords": this.furnitureXCoords,
-            };
+            
+            return "hi";
         }
 
         // Used to replace the wallpaper or floor
@@ -362,7 +379,7 @@
 
         // calculates coords to center item on mouse
         calculateAdjustedCoords() {
-            let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
+              let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
             let yCoord = this.mouseY + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
             let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
             return { xCoord, yCoord, zCoord };
@@ -418,5 +435,194 @@
             // Perform frame-specific updates here
         }
     }
+
+
+
+    function encodeFurnitureData(data) {
+        const buffer = [];
+        
+        // Helper function to add bits to buffer
+        function addBits(value, bits) {
+            let currentByte = buffer.length ? buffer.pop() : 0;
+            let bitCount = 8 - (currentBit % 8);
+            currentBit += bits;
+
+            while (bits > 0) {
+                if (bits < bitCount) {
+                    currentByte = (currentByte << bits) | value;
+                    bitCount -= bits;
+                    bits = 0;
+                } else {
+                    currentByte = (currentByte << bitCount) | (value >> (bits - bitCount));
+                    value &= (1 << (bits - bitCount)) - 1;
+                    bits -= bitCount;
+                    buffer.push(currentByte);
+                    currentByte = 0;
+                    bitCount = 8;
+                }
+            }
+
+            buffer.push(currentByte);
+        }
+        
+        // Start encoding
+        let currentBit = 0;
+        addBits(data.wallpaperIndex, 8);
+        addBits(data.floorIndex, 8);
+        
+        // Encode items with x and y coordinates
+        function encodeXYItems(items, indexBits, coordBits, flipBits) {
+            addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
+            items.forEach(item => {
+                addBits(item.index, indexBits);
+                addBits(item.x, coordBits);
+                addBits(item.y, coordBits);
+                addBits(item.flipped, flipBits);
+            });
+        }
+
+        // Encode items with x coordinate and position
+        function encodeXPosItems(items, indexBits, coordBits, posBits, flipBits) {
+            addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
+            items.forEach(item => {
+                addBits(item.index, indexBits);
+                addBits(item.x, coordBits);
+                addBits(item.position, posBits);
+                addBits(item.flipped, flipBits);
+            });
+        }
+        
+        // Encode various items
+        encodeXYItems(data.wallItems, 9, 7, 1);
+        encodeXPosItems(data.furnitureItems, 9, 7, 1, 1);
+        encodeXPosItems(data.stackableItems, 9, 7, 1, 1);
+
+        // Convert buffer to Uint8Array
+        let byteArray = new Uint8Array(buffer);
+        
+        // Compress the byte array using pako
+        let compressedArray = pako.deflate(byteArray);
+        
+        // Encode compressed binary data to Base64
+        let binaryString = String.fromCharCode.apply(null, compressedArray);
+        let base64String = btoa(binaryString);
+        
+        return base64String;
+    }
+
+    function decodeFurnitureData(base64String) {
+        // Decode Base64 to binary array
+        let binaryString = atob(base64String);
+        let compressedArray = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            compressedArray[i] = binaryString.charCodeAt(i);
+        }
+
+        // Decompress the binary data
+        let byteArray = pako.inflate(compressedArray);
+
+        let buffer = byteArray;
+        let currentBit = 0;
+
+        // Helper function to read bits from buffer
+        function readBits(bits) {
+            let value = 0;
+            let bitCount = 0;
+            while (bitCount < bits) {
+                let byteIndex = Math.floor(currentBit / 8);
+                let availableBits = 8 - (currentBit % 8);
+                let readBits = Math.min(bits - bitCount, availableBits);
+                let mask = (1 << readBits) - 1;
+                let shift = availableBits - readBits;
+                value = (value << readBits) | ((buffer[byteIndex] >> shift) & mask);
+                currentBit += readBits;
+                bitCount += readBits;
+            }
+            return value;
+        }
+
+        let data = {
+            wallpaperIndex: readBits(8),
+            floorIndex: readBits(8),
+            wallItems: [],
+            furnitureItems: [],
+            stackableItems: []
+        };
+
+        // Decode items with x and y coordinates
+        function decodeXYItems(count, indexBits, coordBits, flipBits) {
+            let items = [];
+            for (let i = 0; i < count; i++) {
+                items.push({
+                    index: readBits(indexBits),
+                    x: readBits(coordBits),
+                    y: readBits(coordBits),
+                    flipped: readBits(flipBits)
+                });
+            }
+            return items;
+        }
+
+        // Decode items with x coordinate and position
+        function decodeXPosItems(count, indexBits, coordBits, posBits, flipBits) {
+            let items = [];
+            for (let i = 0; i < count; i++) {
+                items.push({
+                    index: readBits(indexBits),
+                    x: readBits(coordBits),
+                    position: readBits(posBits),
+                    flipped: readBits(flipBits)
+                });
+            }
+            return items;
+        }
+
+        // Decode wall items
+        let wallItemCount = readBits(5);
+        data.wallItems = decodeXYItems(wallItemCount, 9, 7, 1);
+
+        // Decode furniture items
+        let furnitureItemCount = readBits(5);
+        data.furnitureItems = decodeXPosItems(furnitureItemCount, 9, 7, 1, 1);
+
+        // Decode stackable items
+        let stackableItemCount = readBits(5);
+        data.stackableItems = decodeXPosItems(stackableItemCount, 9, 7, 1, 1);
+
+        return data;
+    }
+
+    // Example usage
+    let furnitureData = {
+        "wallpaperIndex": 123,
+        "floorIndex": 200,
+        "wallItems": [
+            {"index": 45, "x": 12, "y": 34, "flipped": 1},
+            {"index": 120, "x": 56, "y": 78, "flipped": 0},
+            {"index": 300, "x": 90, "y": 12, "flipped": 1},
+            {"index": 511, "x": 34, "y": 56, "flipped": 0},
+            {"index": 250, "x": 78, "y": 90, "flipped": 1}
+        ],
+        "furnitureItems": [
+            {"index": 400, "x": 64, "position": 0, "flipped": 1},
+            {"index": 350, "x": 32, "position": 1, "flipped": 0},
+            {"index": 410, "x": 96, "position": 0, "flipped": 1},
+            {"index": 475, "x": 128, "position": 1, "flipped": 0},
+            {"index": 300, "x": 127, "position": 0, "flipped": 1}
+        ],
+        "stackableItems": [
+            {"index": 200, "x": 50, "position": 1, "flipped": 0},
+            {"index": 215, "x": 75, "position": 0, "flipped": 1},
+            {"index": 230, "x": 100, "position": 1, "flipped": 0},
+            {"index": 245, "x": 125, "position": 0, "flipped": 1},
+            {"index": 260, "x": 25, "position": 1, "flipped": 0}
+        ]
+    }
+
+    let encodedData = encodeFurnitureData(furnitureData);
+    console.log("ENCODED DATA", encodedData);
+
+    let decodedData = decodeFurnitureData(encodedData);
+    console.log("DECODED DATA", decodedData);
 
 </script>
