@@ -55,19 +55,6 @@
             return validTypes.includes(objectType);
         }
 
-        numberToBinary(number, length) {
-            if (number < 0) {
-                throw new Error('Only non-negative integers are supported.');
-            }
-            
-            let binaryString = number.toString(2);
-            while (binaryString.length < length) {
-                binaryString = '0' + binaryString;
-            }
-
-            return binaryString;
-            }
-
         serializeBedroom() {
             
             return "hi";
@@ -88,7 +75,7 @@
             this.exportObjects();
         }
 
-         // Used to add a wallItem or furniture
+        // Used to add a wallItem or furniture
         addObject(item) {
             if (!this.isValidObjectType(item.furnitureType) || ['wallpaper', 'floor'].includes(item.furnitureType)) {
                 return false;
@@ -136,6 +123,7 @@
             // get array of items to check collision with
             let itemArray = this[`${furnitureType}Items`];
             if(furnitureType === "furniture" || furnitureType === "stackableItem") {
+                // itemArray = [...this.furnitureItems, ...this.stackableItemItems]
                 itemArray = itemArray.filter(item => item.position === position);
             }
 
@@ -162,15 +150,28 @@
                 throw new Error('checkCollision: object must have xTrim property');
             }
             
-            // if item is stackable set furniture type that it will check against depending on current position
-            if(furnitureType === "stackableItem") {
-                let furniture = this[`furnitureItems`].filter(item => item.position === position && item.stackYCoord !== undefined);
-                furnitureType = "furniture";
-                for( const item of furniture) {
-                    // check stackable item is within bounds of item that is stackable
-                    if((xCoord >= item.x + item.stackLeftBound && xCoord + objectConfig.xTrim <= item.x + item.stackRightBound)) {
-                        furnitureType = "stackableItem";
-                    } 
+            // Check and handle collision for stackable items.
+            if (furnitureType === "stackableItem") {
+                let furnitureItems = this.furnitureItems.filter(item => item.position === position);
+
+                // Iterate through each furniture item at the current position.
+                for (const item of furnitureItems) {
+                    if (item.stackYCoord !== undefined) {
+                        // Check if the item is colliding with the edges of a stackable item.
+                            //If item is within the edges (stacking), collide with other stackable items
+                        const collidesWithLeftEdge = xCoord < item.x + item.stackLeftBound && xCoord + objectConfig.xTrim > item.x + item.stackLeftBound;
+                        const collidesWithRightEdge = xCoord + objectConfig.xTrim > item.x + item.stackRightBound && xCoord < item.x + item.stackRightBound;
+                        if (collidesWithLeftEdge || collidesWithRightEdge) {
+                            furnitureType = "furniture";
+                        }
+                    } else {
+                        // Check if the item is within the bounds of a non-stackable item.
+                        const isColliding = (xCoord <= item.x + item.spriteWidth && xCoord + objectConfig.xTrim >= item.x) ||
+                                                        (xCoord + objectConfig.xTrim >= item.x && xCoord <= item.x + item.spriteWidth);
+                        if (isColliding) {
+                            furnitureType = "furniture";
+                        }
+                    }
                 }
             }
 
@@ -198,7 +199,7 @@
         }
 
         // retrieve y coord for stackable items using modified mouse coordinates
-        calculateStackableY(stackableItem, xCoord, yCoord){
+        calculateStackableY(stackableItem, xCoord, yCoord) {
             let position = stackableItem.position;
             let furniture = this.furnitureItems.filter(item => (item.position === position && item.stackYCoord !== undefined));
             let stackableItemY = 128;
@@ -261,7 +262,7 @@
             this.clickedItem = null;
             this.currentTab = "furniture"
             this.furnitureArr = this.addFurnitureItems("furniture", 25);
-            this.wallpaperArr = this.addFurnitureItems("wallpaper", 1);
+            this.wallpaperArr = this.addFurnitureItems("wallpaper", 3);
             this.floorArr = this.addFurnitureItems("floor", 3);
             this.wallItemArr = this.addFurnitureItems("wallItem", 3);
             this.stackableItemArr = this.addFurnitureItems("stackableItem", 20);
@@ -430,13 +431,7 @@
                 }
             }
         }
-
-        nextFrame() {
-            // Perform frame-specific updates here
-        }
     }
-
-
 
     function encodeFurnitureData(data) {
         const buffer = [];
@@ -470,32 +465,26 @@
         addBits(data.wallpaperIndex, 8);
         addBits(data.floorIndex, 8);
         
-        // Encode items with x and y coordinates
-        function encodeXYItems(items, indexBits, coordBits, flipBits) {
+        // Encode items with additional 'variation' parameter
+        function encodeItems(items, indexBits, coordBits, posBits, flipBits, variationBits) {
             addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
             items.forEach(item => {
                 addBits(item.index, indexBits);
                 addBits(item.x, coordBits);
-                addBits(item.y, coordBits);
+                if ('y' in item) {
+                    addBits(item.y, coordBits); // For wall items with y coordinate
+                } else {
+                    addBits(item.position, posBits); // For items with position instead of y
+                }
                 addBits(item.flipped, flipBits);
-            });
-        }
-
-        // Encode items with x coordinate and position
-        function encodeXPosItems(items, indexBits, coordBits, posBits, flipBits) {
-            addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
-            items.forEach(item => {
-                addBits(item.index, indexBits);
-                addBits(item.x, coordBits);
-                addBits(item.position, posBits);
-                addBits(item.flipped, flipBits);
+                addBits(item.variation, variationBits); // New variation field
             });
         }
         
-        // Encode various items
-        encodeXYItems(data.wallItems, 9, 7, 1);
-        encodeXPosItems(data.furnitureItems, 9, 7, 1, 1);
-        encodeXPosItems(data.stackableItems, 9, 7, 1, 1);
+        // Encode various items with variation
+        encodeItems(data.wallItems, 9, 7, 0, 1, 16); // No position bits for wallItems
+        encodeItems(data.furnitureItems, 9, 7, 1, 1, 16);
+        encodeItems(data.stackableItems, 9, 7, 1, 1, 16);
 
         // Convert buffer to Uint8Array
         let byteArray = new Uint8Array(buffer);
@@ -510,87 +499,79 @@
         return base64String;
     }
 
+
     function decodeFurnitureData(base64String) {
-        // Decode Base64 to binary array
-        let binaryString = atob(base64String);
-        let compressedArray = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            compressedArray[i] = binaryString.charCodeAt(i);
-        }
-
-        // Decompress the binary data
-        let byteArray = pako.inflate(compressedArray);
-
-        let buffer = byteArray;
-        let currentBit = 0;
-
-        // Helper function to read bits from buffer
-        function readBits(bits) {
-            let value = 0;
-            let bitCount = 0;
-            while (bitCount < bits) {
-                let byteIndex = Math.floor(currentBit / 8);
-                let availableBits = 8 - (currentBit % 8);
-                let readBits = Math.min(bits - bitCount, availableBits);
-                let mask = (1 << readBits) - 1;
-                let shift = availableBits - readBits;
-                value = (value << readBits) | ((buffer[byteIndex] >> shift) & mask);
-                currentBit += readBits;
-                bitCount += readBits;
-            }
-            return value;
-        }
-
-        let data = {
-            wallpaperIndex: readBits(8),
-            floorIndex: readBits(8),
-            wallItems: [],
-            furnitureItems: [],
-            stackableItems: []
-        };
-
-        // Decode items with x and y coordinates
-        function decodeXYItems(count, indexBits, coordBits, flipBits) {
-            let items = [];
-            for (let i = 0; i < count; i++) {
-                items.push({
-                    index: readBits(indexBits),
-                    x: readBits(coordBits),
-                    y: readBits(coordBits),
-                    flipped: readBits(flipBits)
-                });
-            }
-            return items;
-        }
-
-        // Decode items with x coordinate and position
-        function decodeXPosItems(count, indexBits, coordBits, posBits, flipBits) {
-            let items = [];
-            for (let i = 0; i < count; i++) {
-                items.push({
-                    index: readBits(indexBits),
-                    x: readBits(coordBits),
-                    position: readBits(posBits),
-                    flipped: readBits(flipBits)
-                });
-            }
-            return items;
-        }
-
-        // Decode wall items
-        let wallItemCount = readBits(5);
-        data.wallItems = decodeXYItems(wallItemCount, 9, 7, 1);
-
-        // Decode furniture items
-        let furnitureItemCount = readBits(5);
-        data.furnitureItems = decodeXPosItems(furnitureItemCount, 9, 7, 1, 1);
-
-        // Decode stackable items
-        let stackableItemCount = readBits(5);
-        data.stackableItems = decodeXPosItems(stackableItemCount, 9, 7, 1, 1);
-
-        return data;
+    // Decode Base64 to binary array
+    let binaryString = atob(base64String);
+    let compressedArray = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        compressedArray[i] = binaryString.charCodeAt(i);
     }
+
+    // Decompress the binary data
+    let byteArray = pako.inflate(compressedArray);
+
+    let buffer = byteArray;
+    let currentBit = 0;
+
+    // Helper function to read bits from buffer
+    function readBits(bits) {
+        let value = 0;
+        let bitCount = 0;
+        while (bitCount < bits) {
+            let byteIndex = Math.floor(currentBit / 8);
+            let availableBits = 8 - (currentBit % 8);
+            let readBits = Math.min(bits - bitCount, availableBits);
+            let mask = (1 << readBits) - 1;
+            let shift = availableBits - readBits;
+            value = (value << readBits) | ((buffer[byteIndex] >> shift) & mask);
+            currentBit += readBits;
+            bitCount += readBits;
+        }
+        return value;
+    }
+
+    let data = {
+        wallpaperIndex: readBits(8),
+        floorIndex: readBits(8),
+        wallItems: [],
+        furnitureItems: [],
+        stackableItems: []
+    };
+
+    // Decode items including 'variation' parameter
+    function decodeItems(count, indexBits, coordBits, posBits, flipBits, variationBits) {
+        let items = [];
+        for (let i = 0; i < count; i++) {
+            let item = {
+                index: readBits(indexBits),
+                x: readBits(coordBits),
+                variation: readBits(variationBits),
+                flipped: readBits(flipBits)
+            };
+            if (posBits) {
+                item.position = readBits(posBits);
+            } else {
+                item.y = readBits(coordBits);
+            }
+            items.push(item);
+        }
+        return items;
+    }
+
+    // Decode all item types
+    let wallItemCount = readBits(5);
+    data.wallItems = decodeItems(wallItemCount, 9, 7, 0, 1, 16);
+
+    let furnitureItemCount = readBits(5);
+    data.furnitureItems = decodeItems(furnitureItemCount, 9, 7, 1, 1, 16);
+
+    let stackableItemCount = readBits(5);
+    data.stackableItems = decodeItems(stackableItemCount, 9, 7, 1, 1, 16);
+
+    return data;
+}
+
 
     // Example usage
     let furnitureData = {

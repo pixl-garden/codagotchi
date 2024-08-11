@@ -6,17 +6,24 @@
         "zCoord": 2,
         "thumbnailCoords": [42, 84, 29, 69],
         "0" : {
-            "displayName": "grannysWallpaper",
+            "displayName": "pissRed",
             "spriteSheet": "wallpapers.png",
             "states": {
                 "default": [0]
             }
         },
         "1": {
-            "displayName": "alimWallpaper",
+            "displayName": "purp",
             "spriteSheet": "wallpapers.png",
             "states": {
-                "default": [0]
+                "default": [1]
+            }
+        },
+        "2": {
+            "displayName": "green",
+            "spriteSheet": "wallpapers.png",
+            "states": {
+                "default": [2]
             }
         }
     },
