@@ -58,7 +58,7 @@
     "nearFurniture": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "yCoord": 56,
+        "yCoord": 104,
         "zCoord": 8,
         "xLeftBound": -1,
         "xRightBound": 130
@@ -66,15 +66,15 @@
     "farFurniture": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "yCoord": 43,
+        "yCoord": 91,
         "zCoord": 6,
         "xLeftBound": 10,
         "xRightBound": 116
     },
-    "furniture": {
+    "furnitureItems": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "yCoord": 56,
+        "yCoord": 104,
         "zCoord": 8,
         "xLeftBound": -1,
         "xRightBound": 130,
@@ -357,7 +357,7 @@
             }
         }
     },
-    "wallItem": {
+    "wallItems": {
         "spriteWidth": 32,
         "spriteHeight": 32,
         "yCoord": 16,
@@ -394,7 +394,7 @@
             }
         }
     },
-    "stackableItem": {
+    "stackableItems": {
         "spriteWidth": 32,
         "spriteHeight": 32,
         "yCoord": 16,

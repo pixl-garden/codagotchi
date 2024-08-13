@@ -35,7 +35,6 @@
     export function roundSpriteMatrix(matrix, rounding) {
         const width = matrix.length;
         const height = matrix[0].length;
-        console.log("matrix: ", matrix, "width: ", width, "height: ", height);
 
         function shouldColorPixel(x, y) {
             // Check for corners

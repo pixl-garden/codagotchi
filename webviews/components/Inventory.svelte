@@ -83,18 +83,14 @@
     }
     //constructor(furnitureType, typeIndex)
     export class BedroomItem extends Item {
-        constructor(furnitureType, typeIndex, x = 0, y = 0, z = 0) {
+        constructor(furnitureType, typeIndex, x = 0, y = bedroomConfig[furnitureType]["yCoord"], z = bedroomConfig[furnitureType]["zCoord"]) {
             const typeConfig = bedroomConfig[furnitureType];
             let instanceConfig = bedroomConfig[furnitureType][typeIndex];
-            console.log("TYPECONFIG=", typeConfig, "INSTANCECONFIG=", instanceConfig, "FURNITURETYPE=", furnitureType, "TYPEINDEX=", typeIndex);
             if( !instanceConfig ) throw new Error(`Item ${typeIndex} not found in bedroomConfig.json: ${furnitureType}`);
             instanceConfig["spriteWidth"] = typeConfig["spriteWidth"];
             instanceConfig["spriteHeight"] = typeConfig["spriteHeight"];
             instanceConfig["type"] = furnitureType;
-            console.log("INSTANCECONFIG=", instanceConfig);
             super(instanceConfig, typeIndex, x, y, z);
-            this.y = typeConfig["yCoord"];
-            this.z = typeConfig["zCoord"];
             this.furnitureType = furnitureType;
             this.typeIndex = typeIndex;
             this.position = null; // used for determining near or far furniture
@@ -108,7 +104,7 @@
             } else if( furnitureType === "wallItem") {
                 this.yTopBound = typeConfig["yTopBound"];
                 this.yBottomBound = typeConfig["yBottomBound"];
-            } else if( furnitureType === "furniture" || furnitureType === "stackableItem") {
+            } else if( furnitureType === "furnitureItems" || furnitureType === "stackableItems") {
                 this.position = "near";
                 if(instanceConfig["stackDimensions"]) {
                     this.stackYCoord = instanceConfig["stackDimensions"][0];
@@ -126,6 +122,29 @@
 
         flip() {
             this.isFlipped = !this.isFlipped;
+        }
+        getJSON(){
+            if(this.furnitureType === "wallItems"){
+                return {
+                    "index": this.typeIndex,
+                    "x": this.x,
+                    "y": this.y,
+                    "flipped": this.isFlipped ? 1 : 0,
+                    "variation": 0 //TODO: add variation
+                }
+            }
+            else if(this.furnitureType === "furnitureItems" || this.furnitureType === "stackableItems"){
+                return {
+                    "index": this.typeIndex,
+                    "x": this.x,
+                    "position": this.position == "near" ? 1 : 0,
+                    "flipped": this.isFlipped ? 1 : 0,
+                    "variation": 0 //TODO: add variation
+                }
+            }
+            else{
+                console.error("Invalid furniture type");
+            }
         }
     }
 
