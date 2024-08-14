@@ -281,7 +281,7 @@
         }
 
         updateSave() {
-            console.log("serializing bedroom", decodeFurnitureData(this.bedroomManager.serializeBedroom()));
+            console.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
             this.gameRef.updateGlobalState({"bedroomData": this.bedroomManager.serializeBedroom()})
         }
 
