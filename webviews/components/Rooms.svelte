@@ -761,28 +761,9 @@
     let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {
         bedroomEditorInstance.nextFrame();
     });
-    //TODO: initialize all furniture from this json
-    let testBedroomJSON = {                 
-        "wallpaperIndex": 0,
-        "floorIndex": 1,
-        "wallItemIndices": [0],
-        "wallItemXCoords": [50],
-        "nearFurnitureIndices": [],
-        "nearFurnitureXCoords": [],
-        "farFurnitureIndices": [],
-        "farFurnitureXCoords": [],
-        "stackableItemIndices": [],
-        "stackableItemXCoords": []
-    }
 
-    let bedroomManagerInstance = new BedroomManager(testBedroomJSON);
+    let bedroomManagerInstance = new BedroomManager();
     let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
-    // let roomInvButton = new miningButton(20, 112, 11, "INV", ()=>{
-    //     bedroomEditorInstance.toggleInventory();
-    // });
-    // let roomEditButton = new miningButton(50, 112, 11, "EDIT", ()=>{
-    //     bedroomEditorInstance.toggleEditMode();
-    // });
 
     bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain2);
 }

@@ -10,6 +10,7 @@
     import { inventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
     import * as pako from 'pako';
+    import { add } from 'lodash';
 
     const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
 
@@ -17,60 +18,101 @@
     const smallButton = generateTextButtonClass(15, 15, basic, ...Colors.secondaryMenuColorParams);
 
     export class BedroomManager extends GeneratedObject{
-        constructor(bedroomJSON) {
+        constructor() {
             super([generateEmptyMatrix(128, 128)], {default: [0]}, 0, 0, 0);
             this.bedroomConfig = bedroomConfig;
-            this.wallpaperIndex = bedroomJSON["wallpaperIndex"] || 0; //0-255
-            this.floorIndex = bedroomJSON["floorIndex"] || 0;         //0-255
-
-            //numOfItems 0-31
-            this.wallItemIndices = bedroomJSON["wallItemIndices"] || []; //0-511
-            this.wallItemXCoords = bedroomJSON["wallItemXCoords"] || []; // 0-127
-            this.wallItemYCoords = bedroomJSON["wallItemYCoords"] || []; // 0-127
-            this.wallItemFlipped = bedroomJSON["wallItemFlipped"] || []; // 0-1
-
-            //numOfItems 0-31
-            this.furnitureIndices = bedroomJSON["furnitureIndices"] || []; //0-511
-            this.furnitureXCoords = bedroomJSON["furnitureXCoords"] || []; // 0-127
-            this.furnitureLocations = bedroomJSON["furnitureLocations"] || []; // 0-1
-            this.furnitureFlipped = bedroomJSON["furnitureFlipped"] || []; // 0-1
-
-            //numOfItems 0-31
-            this.stackableItemIndices = bedroomJSON["stackableItemIndices"] || []; //0-511
-            this.stackableItemXCoords = bedroomJSON["stackableItemXCoords"] || []; // 0-127
-            this.stackableItemLocations = bedroomJSON["stackableItemLocations"] || []; // 0-1
-            this.stackableItemFlipped = bedroomJSON["stackableItemFlipped"] || []; // 0-1
-
-            this.wallpaperItem = new BedroomItem("wallpaper", this.wallpaperIndex, 0, 0, 0);
+            this.wallpaper = new BedroomItem("wallpaper", 0, 0, 0, 0);
             this.floorPos = bedroomConfig['floor']['yCoord'];
-            this.floorItem = new BedroomItem("floor", this.floorIndex, 0, this.floorPos, 0);
+            this.floor = new BedroomItem("floor", 0, 0, this.floorPos, 0);
             this.furnitureItems = [];
-            this.wallItemItems = [];
-            this.stackableItemItems = []; // on construction of stackable item, check if on top of furniture and add to furnitures count
+            this.wallItems = [];
+            this.stackableItems = []; //TODO: on construction of stackable item, check if on top of furniture and add to furnitures count
+            this.exportObjects();
+            
+        }
+
+        constructFromSerialization(serializedData){
+            this.constructItemsFromJSON(decodeFurnitureData(serializedData));
             this.exportObjects();
         }
 
         isValidObjectType(objectType) {
-            const validTypes = ['wallpaper', 'floor', 'wallItem', 'furniture', 'stackableItem'];
+            const validTypes = ['wallpaper', 'floor', 'wallItems', 'furnitureItems', 'stackableItems'];
             return validTypes.includes(objectType);
         }
 
-        numberToBinary(number, length) {
-            if (number < 0) {
-                throw new Error('Only non-negative integers are supported.');
-            }
-            
-            let binaryString = number.toString(2);
-            while (binaryString.length < length) {
-                binaryString = '0' + binaryString;
-            }
-
-            return binaryString;
-            }
-
         serializeBedroom() {
-            
-            return "hi";
+            let furnitureData = this.constructBedroomJSON();
+            let encodedData = encodeFurnitureData(furnitureData);
+            return encodedData;
+        }
+
+        //TODO: add variation
+        constructItemsFromJSON(furnitureJSON) {
+            this.wallpaper = new BedroomItem("wallpaper", furnitureJSON.wallpaperIndex, 0);
+            this.floor = new BedroomItem("floor", furnitureJSON.floorIndex, 0);
+
+            for(const type of ["furnitureItems", "wallItems", "stackableItems"]) {
+                for( const item of furnitureJSON[type]) {
+                    let newItem;
+                    if(type === "furnitureItems" || type === "stackableItems") {
+                        const position = item.position === 0 ? "far" : "near";
+                        const yCoord = this.bedroomConfig[`${position}Furniture`].yCoord - this.bedroomConfig[type][item["index"]].yTrim;
+                        newItem = new BedroomItem(type, item["index"], item["x"], yCoord, this.bedroomConfig[`${position}Furniture`].zCoord);
+                        newItem.position = position;
+                        if(type === "stackableItems") {
+                            newItem.y = this.calculateStackableY(newItem, item["x"], yCoord);
+                        }
+                    } else if(type === "wallItems"){
+                        newItem = new BedroomItem(type, item["index"], item["x"], item["y"], this.bedroomConfig["wallItems"].zCoord);
+                    } else {
+                        throw new Error("Invalid type");
+                    }
+                    newItem.isFlipped = item.flipped === 0 ? false : true;
+                    if(!this.addObject(newItem)){
+                        console.error("Error adding item to bedroom:")
+                        console.log(newItem);
+                    }
+                }
+            }
+        }
+
+
+    //     let furnitureData = {
+    //     "wallpaperIndex": 123,
+    //     "floorIndex": 200,
+    //     "wallItems": [
+    //         {"index": 45, "x": 12, "y": 34, "flipped": 1, "variation": 2},
+    //         {"index": 120, "x": 56, "y": 78, "flipped": 0, "variation": 2},
+    //         {"index": 300, "x": 90, "y": 12, "flipped": 1, "variation": 2},
+    //         {"index": 511, "x": 34, "y": 56, "flipped": 0, "variation": 2},
+    //         {"index": 250, "x": 78, "y": 90, "flipped": 1, "variation": 2}
+    //     ],
+    //     "furnitureItems": [
+    //         {"index": 400, "x": 64, "position": 0, "flipped": 1, "variation": 2},
+    //         {"index": 350, "x": 32, "position": 1, "flipped": 0, "variation": 2},
+    //         {"index": 410, "x": 96, "position": 0, "flipped": 1, "variation": 2},
+    //         {"index": 475, "x": 128, "position": 1, "flipped": 0, "variation": 2},
+    //         {"index": 300, "x": 127, "position": 0, "flipped": 1, "variation": 2}
+    //     ],
+    //     "stackableItems": [
+    //         {"index": 200, "x": 50, "position": 1, "flipped": 0, "variation": 2},
+    //         {"index": 215, "x": 75, "position": 0, "flipped": 1, "variation": 2},
+    //         {"index": 230, "x": 100, "position": 1, "flipped": 0, "variation": 2},
+    //         {"index": 245, "x": 125, "position": 0, "flipped": 1, "variation": 2},
+    //         {"index": 260, "x": 25, "position": 1, "flipped": 0, "variation": 2}
+    //     ]
+    // }
+
+        constructBedroomJSON() {
+            let data = {
+                "wallpaperIndex": this.wallpaper.typeIndex,
+                "floorIndex": this.floor.typeIndex,
+                "wallItems": this.wallItems.map(item => item.getJSON()),
+                "furnitureItems": this.furnitureItems.map(item => item.getJSON()),
+                "stackableItems": this.stackableItems.map(item => item.getJSON())
+            };
+            return data;
         }
 
         // Used to replace the wallpaper or floor
@@ -78,17 +120,17 @@
             if (!this.isValidObjectType(item.furnitureType) || !['wallpaper', 'floor'].includes(item.furnitureType)) {
                 throw new Error('replaceObject: objectType must be wallpaper or floor');
             }
-            let newItem = new BedroomItem(item.furnitureType, item.typeIndex, 0, 0);
+            let newItem = new BedroomItem(item.furnitureType, item.typeIndex, 0);
             if(item.furnitureType === 'wallpaper') {
                 newItem.setCoordinate(0, 0);
             } else if (item.furnitureType === 'floor') {
                 newItem.setCoordinate(0, 86);
             }
-            this[`${item.furnitureType}Item`] = newItem;
+            this[item.furnitureType] = newItem;
             this.exportObjects();
         }
 
-         // Used to add a wallItem or furniture
+        // Used to add a wallItem or furniture
         addObject(item) {
             if (!this.isValidObjectType(item.furnitureType) || ['wallpaper', 'floor'].includes(item.furnitureType)) {
                 return false;
@@ -103,7 +145,7 @@
             } else {
                 item.z = bedroomConfig[item.furnitureType].zCoord;
             }
-            this[`${item.furnitureType}Items`].push(item);
+            this[item.furnitureType].push(item);
             this.exportObjects();
             return true;
         }
@@ -113,7 +155,7 @@
             if (!this.isValidObjectType(selectedItem.furnitureType) || ['wallpaper', 'floor'].includes(selectedItem.furnitureType)) {
                 throw new Error('removeObject: invalid objectType');
             }
-            this[`${selectedItem.furnitureType}Items`] = this[`${selectedItem.furnitureType}Items`].filter((item) => item !== selectedItem);
+            this[selectedItem.furnitureType] = this[selectedItem.furnitureType].filter((item) => item !== selectedItem);
             this.exportObjects();
         }
 
@@ -126,27 +168,25 @@
             }
             const leftWallCollision = xCoord < bounds.xLeftBound;
             const rightWallCollision = xCoord + objectConfig.xTrim > bounds.xRightBound;
-            const floorCollision = furnitureType === "wallItem" && yCoord < bounds.yTopBound;
-            const ceilingCollision = furnitureType === "wallItem" && yCoord + objectConfig.yTrim > bounds.yBottomBound;
+            const floorCollision = furnitureType === "wallItems" && yCoord < bounds.yTopBound;
+            const ceilingCollision = furnitureType === "wallItems" && yCoord + objectConfig.yTrim > bounds.yBottomBound;
 
             return leftWallCollision || rightWallCollision || floorCollision || ceilingCollision;
         }
 
         isCollisionWithOtherItems(xCoord, yCoord, objectConfig, furnitureType, position) {
             // get array of items to check collision with
-            let itemArray = this[`${furnitureType}Items`];
-            if(furnitureType === "furniture" || furnitureType === "stackableItem") {
+            let itemArray = this[furnitureType];
+            if(furnitureType === "furnitureItems" || furnitureType === "stackableItems") {
                 itemArray = itemArray.filter(item => item.position === position);
             }
 
             return !itemArray.some(item => {
-                // get config for item
                 const configItem = this.bedroomConfig[furnitureType][item.typeIndex];
-                // check left and right bounds for all items
                 const rightBoundCollision = xCoord < item.x + configItem.xTrim;
                 const leftBoundCollision = xCoord + objectConfig.xTrim > item.x;
                 // check top and bottom bounds for wall items only
-                const verticalCollision = furnitureType === "wallItem" ?
+                const verticalCollision = furnitureType === "wallItems" ?
                     ((yCoord < item.y + configItem.yTrim) && (yCoord + objectConfig.yTrim > item.y)) : true;
                 return rightBoundCollision && leftBoundCollision && verticalCollision;
             });
@@ -162,15 +202,28 @@
                 throw new Error('checkCollision: object must have xTrim property');
             }
             
-            // if item is stackable set furniture type that it will check against depending on current position
-            if(furnitureType === "stackableItem") {
-                let furniture = this[`furnitureItems`].filter(item => item.position === position && item.stackYCoord !== undefined);
-                furnitureType = "furniture";
-                for( const item of furniture) {
-                    // check stackable item is within bounds of item that is stackable
-                    if((xCoord >= item.x + item.stackLeftBound && xCoord + objectConfig.xTrim <= item.x + item.stackRightBound)) {
-                        furnitureType = "stackableItem";
-                    } 
+            // Check and handle collision for stackable items.
+            if (furnitureType === "stackableItems") {
+                let furnitureItems = this.furnitureItems.filter(item => item.position === position);
+
+                // Iterate through each furniture item at the current position.
+                for (const item of furnitureItems) {
+                    if (item.stackYCoord !== undefined) {
+                        // Check if the item is colliding with the edges of a stackable item.
+                            //If item is within the edges (stacking), collide with other stackable items
+                        const collidesWithLeftEdge = xCoord < item.x + item.stackLeftBound && xCoord + objectConfig.xTrim > item.x + item.stackLeftBound;
+                        const collidesWithRightEdge = xCoord + objectConfig.xTrim > item.x + item.stackRightBound && xCoord < item.x + item.stackRightBound;
+                        if (collidesWithLeftEdge || collidesWithRightEdge) {
+                            furnitureType = "furnitureItems";
+                        }
+                    } else {
+                        // Check if the item is within the bounds of a non-stackable item.
+                        const isColliding = (xCoord <= item.x + item.spriteWidth && xCoord + objectConfig.xTrim >= item.x) ||
+                                                        (xCoord + objectConfig.xTrim >= item.x && xCoord <= item.x + item.spriteWidth);
+                        if (isColliding) {
+                            furnitureType = "furnitureItems";
+                        }
+                    }
                 }
             }
 
@@ -182,12 +235,11 @@
         }
 
         getObjectAt(xCoord, yCoord) {
-            const furnitureTypes = ['furniture', 'wallItem', 'stackableItem'];
+            const furnitureTypes = ['furnitureItems', 'wallItems', 'stackableItems'];
             for (let furnitureType of furnitureTypes) {
-                const itemArray = this[`${furnitureType}Items`];
+                const itemArray = this[furnitureType];
                 for (let i = 0; i < itemArray.length; i++) {
                     let currentItem = itemArray[i];
-                    console.log(currentItem.x, currentItem.y, currentItem.spriteWidth, currentItem.spriteHeight, xCoord, yCoord);
                     if (currentItem.x <= xCoord && currentItem.x + currentItem.spriteWidth >= xCoord &&
                         currentItem.y <= yCoord && currentItem.y + currentItem.spriteHeight >= yCoord) {
                         return currentItem;
@@ -198,7 +250,7 @@
         }
 
         // retrieve y coord for stackable items using modified mouse coordinates
-        calculateStackableY(stackableItem, xCoord, yCoord){
+        calculateStackableY(stackableItem, xCoord, yCoord) {
             let position = stackableItem.position;
             let furniture = this.furnitureItems.filter(item => (item.position === position && item.stackYCoord !== undefined));
             let stackableItemY = 128;
@@ -206,51 +258,38 @@
                 if(xCoord + stackableItem.spriteWidth > item.x + item.stackLeftBound && xCoord < item.x + item.stackRightBound ){
                     stackableItemY = (item.y + item.stackYCoord - stackableItem.spriteHeight) < stackableItemY ? item.y + item.stackYCoord - stackableItem.spriteHeight : stackableItemY;
                 }
-
             });
             return stackableItemY === 128 ? yCoord : stackableItemY;
         }
 
         exportObjects() {
-            this.children = [this.wallpaperItem, this.floorItem, ...this.furnitureItems, ...this.wallItemItems, ...this.stackableItemItems];
-            console.log(this.children);
+            this.children = [this.wallpaper, this.floor, ...this.furnitureItems, ...this.wallItems, ...this.stackableItems];
         }
     }
 
-    // handles all functionality involved with editing one's bedroom
-        //bedroom instance
-        //inventory instance (open with button)
-            // 2x2 grid of furniture items (more tiles for smaller items?)
-            // tabs for different item types
-            // wallpaper/floor selection using premade thumbnails
-            // maybe flipping functionality?
-        //mouse selection area
-            // item selection/deselection (maybe white border highlight?)
-            // stash button (shows on selection)
-            // item movement and border collision handling (transparent red?)
-            // 
 
-    //furniture rendering grid
-
-    // add stacking to items
-    // protruding items trimmed to be smaller (allow items to exist closer and behind protusion)?
-    // add range for item tracking in placement mode
-    //
-
-    function createItemSlotXL() {
-        let output = new ConfigObject("itemSlots48x", 0, 0, 0);
-        output.hoverWithChildren = true;
-        output.passMouseCoords = true;
-        return output;
-    }
     
     export class BedroomEditor extends GeneratedObject {
         constructor(gameRef, bedroomManager) {
             const emptySpriteMatrix = generateEmptyMatrix(128, 128);
             super([emptySpriteMatrix], { default: [0] }, 0, 0, 10);
+            this.gameRef = gameRef;
             this.bedroomManager = bedroomManager;
+            this.retrieveSave();
             this.initializeComponents();
             this.menuEnabled = false;
+        }
+
+        updateSave() {
+            console.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
+            this.gameRef.updateGlobalState({"bedroomData": this.bedroomManager.serializeBedroom()})
+        }
+
+        retrieveSave() {
+            const saveData = this.gameRef.getLocalState()["bedroomData"]
+            if(saveData){
+                this.bedroomManager.constructFromSerialization(saveData);
+            }
         }
 
         initializeComponents() {
@@ -259,17 +298,23 @@
             this.placementMode = false;
             this.passMouseCoords = true;
             this.clickedItem = null;
-            this.currentTab = "furniture"
-            this.furnitureArr = this.addFurnitureItems("furniture", 25);
-            this.wallpaperArr = this.addFurnitureItems("wallpaper", 1);
+            this.currentTab = "furnitureItems"
+            this.furnitureItemsArr = this.addFurnitureItems("furnitureItems", 25);
+            this.wallpaperArr = this.addFurnitureItems("wallpaper", 3);
             this.floorArr = this.addFurnitureItems("floor", 3);
-            this.wallItemArr = this.addFurnitureItems("wallItem", 3);
-            this.stackableItemArr = this.addFurnitureItems("stackableItem", 20);
+            this.wallItemsArr = this.addFurnitureItems("wallItems", 3);
+            this.stackableItemsArr = this.addFurnitureItems("stackableItems", 20);
             
             this.slotClickAction = item => {
                 this.enterPlacementMode(item);
                 this.toggleInventory();
             };
+            function createItemSlotXL() {
+                let output = new ConfigObject("itemSlots48x", 0, 0, 0);
+                output.hoverWithChildren = true;
+                output.passMouseCoords = true;
+                return output;
+            }
             this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 0, 0, 1, this.slotClickAction);
             this.initializeButtons();
             this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
@@ -287,13 +332,13 @@
                     this.setTab("floor");
                 }],
                 [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
-                    this.setTab("furniture");
+                    this.setTab("furnitureItems");
                 }],
                 [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
-                    this.setTab("wallItem");
+                    this.setTab("wallItems");
                 }],
                 [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
-                    this.setTab("stackableItem");
+                    this.setTab("stackableItems");
                 }]
             );
             this.bedroomXButton = new Button(1, 0, 7, "bedroomXButton", this.toggleInventory.bind(this));
@@ -303,7 +348,7 @@
             this.editButton = new editorButton(106, 107, 7, editorButtonSprites[2], editorButtonSprites[3], () => {
                 this.toggleEditMode();
                 if(this.editMode){
-                    this.editButton.states = {default: [1], hovered: [1]}
+                    this.editButton.states = {default: [1], hovered: [1]} //locks button to hover sprite
                 } else{
                     this.editButton.states = {default: [0], hovered: [1]}
                 }
@@ -320,6 +365,7 @@
             this.inventoryGrid.updateItemSlots(this.currentTabArray);
         }
 
+        //TODO: remove (used for testing)
         addFurnitureItems(type, numItems) {
             let items = [];
             for(let i = 0; i < numItems; i++) {
@@ -347,11 +393,14 @@
         }
 
         enterPlacementMode(item) {
+            console.log("clickedItem", item)
             if(this.clickedItem !== null) {
                 this.bedroomManager.removeObject(this.clickedItem); //if in manager, remove it
+                this.updateSave();
             }
             if (['floor', 'wallpaper'].includes(item.furnitureType)) {
                 this.bedroomManager.replaceObject(item);
+                this.updateSave();
             }
             else {
                 this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.z);
@@ -375,27 +424,28 @@
 
         toggleEditMode() {
             this.editMode = !this.editMode;
+            this.bedroomManager.serializeBedroom();
         }
 
         // calculates coords to center item on mouse
         calculateAdjustedCoords() {
-              let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
-            let yCoord = this.mouseY + (bedroomConfig[this.clickedItem.furnitureType].spriteHeight - this.clickedItem.spriteHeight);
+            let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
+            let yCoord = this.mouseY - this.clickedItem.spriteHeight;
             let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
             return { xCoord, yCoord, zCoord };
         }
 
         setFurnitureCoordinates() {
             let { xCoord, yCoord, zCoord } = this.calculateAdjustedCoords();
-            if (this.clickedItem.furnitureType === "wallItem") {
+            if (this.clickedItem.furnitureType === "wallItems") {
                 yCoord = this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2);
-            } else if (this.clickedItem.furnitureType === "furniture" || this.clickedItem.furnitureType === "stackableItem") { // extra y/z adjustments for near/far furniture
+            } else if (this.clickedItem.furnitureType === "furnitureItems" || this.clickedItem.furnitureType === "stackableItems") { // extra y/z adjustments for near/far furniture
                 this.clickedItem.position = this.mouseY > 94 ? "near" : "far";
                 let positionConfig = bedroomConfig[`${this.clickedItem.position}Furniture`];
-                yCoord = positionConfig.yCoord + positionConfig.spriteHeight - this.clickedItem.spriteHeight;
+                yCoord = positionConfig.yCoord - this.clickedItem.spriteHeight;
                 zCoord = positionConfig.zCoord - this.z + 1;
             }
-            if(this.clickedItem.furnitureType === "stackableItem") {
+            if(this.clickedItem.furnitureType === "stackableItems") {
                 yCoord = this.bedroomManager.calculateStackableY(this.clickedItem, xCoord, yCoord);
             }
             this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
@@ -405,7 +455,7 @@
             if (this.placementMode && this.clickedItem) {
                 this.setFurnitureCoordinates();
                 if (!this.bedroomManager.checkCollision(this.clickedItem.furnitureType, this.clickedItem.typeIndex, this.clickedItem.x, this.clickedItem.y, this.clickedItem.position)) {
-                    this.clickedItem.opacity = 0.7;
+                    this.clickedItem.opacity = 0.65;
                 } else {
                     this.clickedItem.opacity = 1;
                 }
@@ -426,21 +476,23 @@
             // placing item 
             } else if (this.placementMode && this.clickedItem) {
                 if(this.bedroomManager.addObject(this.clickedItem)) {
-                    this.exitPlacementMode()
+                    this.exitPlacementMode();
+                    this.updateSave();
                 }
             }
         }
-
-        nextFrame() {
-            // Perform frame-specific updates here
-        }
     }
 
-
+    const indexBitSize = 9;
+    const coordBitSize = 7;
+    const positionBitSize = 1;
+    const flipBitSize = 1;
+    const variationBitSize = 4;
 
     function encodeFurnitureData(data) {
         const buffer = [];
-        
+        let currentBit = 0;
+
         // Helper function to add bits to buffer
         function addBits(value, bits) {
             let currentByte = buffer.length ? buffer.pop() : 0;
@@ -464,38 +516,39 @@
 
             buffer.push(currentByte);
         }
-        
-        // Start encoding
-        let currentBit = 0;
-        addBits(data.wallpaperIndex, 8);
-        addBits(data.floorIndex, 8);
+
         
         // Encode items with x and y coordinates
-        function encodeXYItems(items, indexBits, coordBits, flipBits) {
+        function encodeXYItems(items, indexBits, coordBits, flipBits, variationBits) {
             addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
             items.forEach(item => {
                 addBits(item.index, indexBits);
                 addBits(item.x, coordBits);
                 addBits(item.y, coordBits);
                 addBits(item.flipped, flipBits);
+                addBits(item.variation, variationBits);
             });
         }
 
         // Encode items with x coordinate and position
-        function encodeXPosItems(items, indexBits, coordBits, posBits, flipBits) {
+        function encodeXPosItems(items, indexBits, coordBits, posBits, flipBits, variationBits) {
             addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
             items.forEach(item => {
                 addBits(item.index, indexBits);
                 addBits(item.x, coordBits);
                 addBits(item.position, posBits);
                 addBits(item.flipped, flipBits);
+                addBits(item.variation, variationBits);
             });
         }
+
+        // Start encoding
+        addBits(data.wallpaperIndex, 8);
+        addBits(data.floorIndex, 8);
         
-        // Encode various items
-        encodeXYItems(data.wallItems, 9, 7, 1);
-        encodeXPosItems(data.furnitureItems, 9, 7, 1, 1);
-        encodeXPosItems(data.stackableItems, 9, 7, 1, 1);
+        encodeXYItems(data.wallItems, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
+        encodeXPosItems(data.furnitureItems, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
+        encodeXPosItems(data.stackableItems, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
 
         // Convert buffer to Uint8Array
         let byteArray = new Uint8Array(buffer);
@@ -550,28 +603,30 @@
         };
 
         // Decode items with x and y coordinates
-        function decodeXYItems(count, indexBits, coordBits, flipBits) {
+        function decodeXYItems(count, indexBits, coordBits, flipBits, variationBits) {
             let items = [];
             for (let i = 0; i < count; i++) {
                 items.push({
                     index: readBits(indexBits),
                     x: readBits(coordBits),
                     y: readBits(coordBits),
-                    flipped: readBits(flipBits)
+                    flipped: readBits(flipBits),
+                    variation: readBits(variationBits)
                 });
             }
             return items;
         }
 
         // Decode items with x coordinate and position
-        function decodeXPosItems(count, indexBits, coordBits, posBits, flipBits) {
+        function decodeXPosItems(count, indexBits, coordBits, posBits, flipBits, variationBits) {
             let items = [];
             for (let i = 0; i < count; i++) {
                 items.push({
                     index: readBits(indexBits),
                     x: readBits(coordBits),
                     position: readBits(posBits),
-                    flipped: readBits(flipBits)
+                    flipped: readBits(flipBits),
+                    variation: readBits(variationBits)
                 });
             }
             return items;
@@ -579,50 +634,17 @@
 
         // Decode wall items
         let wallItemCount = readBits(5);
-        data.wallItems = decodeXYItems(wallItemCount, 9, 7, 1);
+        data.wallItems = decodeXYItems(wallItemCount, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
 
         // Decode furniture items
         let furnitureItemCount = readBits(5);
-        data.furnitureItems = decodeXPosItems(furnitureItemCount, 9, 7, 1, 1);
+        data.furnitureItems = decodeXPosItems(furnitureItemCount, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
 
         // Decode stackable items
         let stackableItemCount = readBits(5);
-        data.stackableItems = decodeXPosItems(stackableItemCount, 9, 7, 1, 1);
+        data.stackableItems = decodeXPosItems(stackableItemCount, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
 
         return data;
     }
-
-    // Example usage
-    let furnitureData = {
-        "wallpaperIndex": 123,
-        "floorIndex": 200,
-        "wallItems": [
-            {"index": 45, "x": 12, "y": 34, "flipped": 1},
-            {"index": 120, "x": 56, "y": 78, "flipped": 0},
-            {"index": 300, "x": 90, "y": 12, "flipped": 1},
-            {"index": 511, "x": 34, "y": 56, "flipped": 0},
-            {"index": 250, "x": 78, "y": 90, "flipped": 1}
-        ],
-        "furnitureItems": [
-            {"index": 400, "x": 64, "position": 0, "flipped": 1},
-            {"index": 350, "x": 32, "position": 1, "flipped": 0},
-            {"index": 410, "x": 96, "position": 0, "flipped": 1},
-            {"index": 475, "x": 128, "position": 1, "flipped": 0},
-            {"index": 300, "x": 127, "position": 0, "flipped": 1}
-        ],
-        "stackableItems": [
-            {"index": 200, "x": 50, "position": 1, "flipped": 0},
-            {"index": 215, "x": 75, "position": 0, "flipped": 1},
-            {"index": 230, "x": 100, "position": 1, "flipped": 0},
-            {"index": 245, "x": 125, "position": 0, "flipped": 1},
-            {"index": 260, "x": 25, "position": 1, "flipped": 0}
-        ]
-    }
-
-    let encodedData = encodeFurnitureData(furnitureData);
-    console.log("ENCODED DATA", encodedData);
-
-    let decodedData = decodeFurnitureData(encodedData);
-    console.log("DECODED DATA", decodedData);
-
+    
 </script>

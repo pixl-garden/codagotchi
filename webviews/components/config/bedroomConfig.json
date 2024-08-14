@@ -6,17 +6,24 @@
         "zCoord": 2,
         "thumbnailCoords": [42, 84, 29, 69],
         "0" : {
-            "displayName": "grannysWallpaper",
+            "displayName": "pissRed",
             "spriteSheet": "wallpapers.png",
             "states": {
                 "default": [0]
             }
         },
         "1": {
-            "displayName": "alimWallpaper",
+            "displayName": "purp",
             "spriteSheet": "wallpapers.png",
             "states": {
-                "default": [0]
+                "default": [1]
+            }
+        },
+        "2": {
+            "displayName": "green",
+            "spriteSheet": "wallpapers.png",
+            "states": {
+                "default": [2]
             }
         }
     },
@@ -51,7 +58,7 @@
     "nearFurniture": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "yCoord": 56,
+        "yCoord": 104,
         "zCoord": 8,
         "xLeftBound": -1,
         "xRightBound": 130
@@ -59,15 +66,15 @@
     "farFurniture": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "yCoord": 43,
+        "yCoord": 91,
         "zCoord": 6,
         "xLeftBound": 10,
         "xRightBound": 116
     },
-    "furniture": {
+    "furnitureItems": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "yCoord": 56,
+        "yCoord": 104,
         "zCoord": 8,
         "xLeftBound": -1,
         "xRightBound": 130,
@@ -350,7 +357,7 @@
             }
         }
     },
-    "wallItem": {
+    "wallItems": {
         "spriteWidth": 32,
         "spriteHeight": 32,
         "yCoord": 16,
@@ -387,7 +394,7 @@
             }
         }
     },
-    "stackableItem": {
+    "stackableItems": {
         "spriteWidth": 32,
         "spriteHeight": 32,
         "yCoord": 16,

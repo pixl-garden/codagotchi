@@ -81,7 +81,6 @@
         
         // updates global state with merging (also syncs local state to global state after global state is updated)
         updateGlobalState( stateInfo ) {
-            // TODO: Implement caching here later
             tsvscode.postMessage({ type: 'updateGlobalState', value: stateInfo });
         };
 
