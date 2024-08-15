@@ -20,7 +20,7 @@
     function pre() {
         //prettier-ignore
         // $game.clearGlobalState();
-        $game.syncLocalToGlobalState( {} );
+        $game.syncLocalToGlobalState();
         $game.constructInventory();
         handleResize();
         preloadObjects();

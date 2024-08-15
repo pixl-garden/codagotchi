@@ -159,45 +159,51 @@
         
     //----------------SETTINGS ROOM----------------
         //SETTINGS MENU INSTANTIATION
+    let settingsMenuButtonTexts = ['GitHub Log in', 'Notifs', 'Display', '\<BACK'];
 
-        // check the bedroom data to see if the user is logged in
-        let isLoggedIn = get(game).getLocalState().isLoggedIn;
-        // console.log('isLoggedIn:', isLoggedIn);
-
-        let settingsMenuButtonTexts 
-        function setSettingsMenu(){
-            settingsMenuButtonTexts= [
-                isLoggedIn ? 'GitHub Log out' : 'GitHub Log in',
-                'Notifs',
-                'Display',
-                '\<BACK'
-            ];
+    function updateSettingsMenuTexts() {
+        const isLoggedIn = get(game).getLocalState().isLoggedIn;
+        settingsMenuButtonTexts[0] = isLoggedIn ? 'GitHub Log out' : 'GitHub Log in';
+        if (settingsMenu) {
+            settingsMenu.updateButtonTexts(settingsMenuButtonTexts);
         }
-        setSettingsMenu();
-        
+    } 
 
-        const settingsMenuButtonFunctions = [
-            isLoggedIn ? () => {handleGitHubLogout(); isLoggedIn = !isLoggedIn; setSettingsMenu()}: () => {handleGitHubLogin(); isLoggedIn = !isLoggedIn; setSettingsMenu()} ,
-            () => {},
-            () => {},
-            () => {get(game).setCurrentRoom('mainRoom')}
-        ];
+    const settingsMenuButtonFunctions = [
+        () => {
+            const isLoggedIn = get(game).getLocalState().isLoggedIn;
+            if (isLoggedIn) {
+                handleGitHubLogout();
+            } else {
+                handleGitHubLogin();
+            }
+            
+            updateSettingsMenuTexts();
+        },
+        () => {},
+        () => {},
+        () => {get(game).setCurrentRoom('mainRoom')}
+    ];
 
-        const settingsTitle = new settingsTitleButton(0, 0, 0, 'Settings', () => {});
-        const settingsMenu = new textButtonList(
-            settingsMenuButtonTexts,
-            settingsMenuButtonFunctions,
-            settingsMenuButton,
-            58,
-            12,
-            -1,
-            0,
-            12,
-            0
-        );
-        //ROOM INSTANTIATION
-        let settingsRoom = new Room('settingsRoom');
-         settingsRoom.addObject(settingsTitle, settingsMenu);
+    const settingsTitle = new settingsTitleButton(0, 0, 0, 'Settings', () => {});
+    const settingsMenu = new textButtonList(
+        settingsMenuButtonTexts,
+        settingsMenuButtonFunctions,
+        settingsMenuButton,
+        58,
+        12,
+        -1,
+        0,
+        12,
+        0
+    );
+
+    //ROOM INSTANTIATION
+    let settingsRoom = new Room('settingsRoom', () => {
+        // Call updateSettingsMenuTexts when entering the settings room
+        updateSettingsMenuTexts();
+    });
+    settingsRoom.addObject(settingsTitle, settingsMenu);
     
     //----------------CUSTOMIZE ROOM----------------
         //BACKGROUND INSTANTIATION
@@ -714,7 +720,7 @@
             get(game).getCurrentRoom().addObject( beginMiningButton );
             get(game).getCurrentRoom().removeObject( cancelMiningButton );
             miningNotif.reset();
-            console.log("miningNotif coordinates: (", miningNotif.x, miningNotif.y, miningNotif.z, ")");
+            // console.log("miningNotif coordinates: (", miningNotif.x, miningNotif.y, miningNotif.z, ")");
         },
         // Update logic
         () => {

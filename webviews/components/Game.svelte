@@ -91,14 +91,6 @@
         // removes from global state (also syncs local state to global state after global state is updated)
         // supports nested itemIds (e.g. "friendRequest.1234")
         removeItemFromGlobalState(key, itemIdToRemove) {
-            // if(this.inventory.hasItemInInstance(itemIdToRemove)){
-            //     this.inventory.removeItemByIdFromInstance(itemIdToRemove);
-            //     tsvscode.postMessage({
-            //         type: 'removeItemFromState',
-            //         key: key,
-            //         itemIdToRemove: itemIdToRemove
-            //     });
-            // }
             tsvscode.postMessage({
                     type: 'removeItemFromState',
                     key: key,
@@ -113,12 +105,11 @@
         }
 
         getLocalState () {
-            console.log("Getting local state: ", game.localState);
+            // console.log("Getting local state: ", game.localState);
             return game.localState
         }
 
         constructInventory() {
-            console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
             this.inventory = new Inventory(this.getLocalState().userInventory || {});
             // console.log("Inventory constructed: ", this.userInventory);
             return this.inventory;
@@ -154,36 +145,36 @@
             this.localUserData = this.getLocalState().userData || {};
         }
 
-        addStackableItem(itemIdString, quantity = 1) {
+        addStackableItem(itemName, quantity = 1) {
             this.updateGlobalState({ 
-                "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
+                "userInventory": (this.inventory.addStackableItemToInstance(itemName, quantity)).serialize()
             });
-            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + quantity;
+            this.pendingUpdates.inventory[itemName] = (this.pendingUpdates.inventory[itemName] || 0) + quantity;
         }
 
-        addUnstackableItem(itemIdString, properties) {
+        addUnstackableItem(itemName, properties) {
             this.updateGlobalState({ 
-                "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
+                "userInventory": (this.inventory.addUnstackableItemToInstance(itemName, properties)).serialize()
             });
             // TODO: handle the properties of unstackable items
-            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + 1;
+            this.pendingUpdates.inventory[itemName] = (this.pendingUpdates.inventory[itemName] || 0) + 1;
         }
 
-        hasStackableItems(itemIdString, quantity = 1) {
-            return this.inventory.hasStackableItemsInInstance(itemIdString, quantity);
+        hasStackableItems(itemName, quantity = 1) {
+            return this.inventory.hasStackableItemsInInstance(itemName, quantity);
         }
 
-        subtractStackableItem(itemIdString, quantity = 1) {
-            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
+        subtractStackableItem(itemName, quantity = 1) {
+            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemName, quantity);
             if(itemInstance) {
                 if(itemInstance.itemCount <= 0){
-                    this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
+                    this.removeItemFromGlobalState("userInventory", itemInstance.inventoryId);
                 } else {
                     this.updateGlobalState({ 
-                        "inventory": itemInstance.serialize()
+                        "userInventory": itemInstance.serialize()
                     });
                 }
-                this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) - quantity;
+                this.pendingUpdates.inventory[itemName] = (this.pendingUpdates.inventory[itemName] || 0) - quantity;
             }
         }
 

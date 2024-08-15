@@ -29,6 +29,7 @@
                         const fishString = this.getFish();
                         let fish = new InventoryItem(fishString, 7, 6, 13);
                         gameReference.addStackableItem(fishString, 1);
+                        console.log("Local state after fishing:", gameReference.getLocalState());
                         resolve(fish);
                     }
                 }, timeToBite);

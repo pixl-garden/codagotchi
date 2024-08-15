@@ -7,6 +7,9 @@ import { initializeFirebase } from './firebaseInit';
 import { CacheManager } from './cacheManager';
 import * as apiClient from './apiClient';
 import { generateOAuthURL, generateState } from './config';
+
+import { Logger } from './logger';
+import { sync } from 'glob';
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -55,7 +58,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     public resolveWebviewView(webviewView: vscode.WebviewView) {
         this._view = webviewView;
 
-
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')), vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')), vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))],
@@ -64,6 +66,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
         this._onDidViewReady.fire();
+
+        webviewView.onDidDispose(async () => {
+            vscode.window.showInformationMessage('Webview is being disposed');
+            try {
+                await updateGlobalState(this.context, { test: 'test' });
+                vscode.window.showInformationMessage('Global state updated');
+            } catch (error) {
+                vscode.window.showErrorMessage(`Error updating global state: ${error}`);
+            }
+        });
 
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
@@ -101,7 +113,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 case 'syncLocalToGlobalState': {
-                    printJsonObject(getGlobalState(this.context));
+                    // printJsonObject(getGlobalState(this.context));
                     this._view?.webview.postMessage({
                         type: 'fetchedGlobalState',
                         value: getGlobalState(this.context),
@@ -209,7 +221,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     //console.log("Retrieved inbox data:", updatedInbox);
                     if (updatedInbox) {
                         // set the global state with the updated inbox data
-                        await updateGlobalState(this.context, { inbox: updatedInbox });
+                        await updateGlobalState(this.context, { userInbox: updatedInbox });
                         // update the local state with the updated inbox data
                         this._view?.webview.postMessage({
                             type: 'fetchedGlobalState',
@@ -223,7 +235,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     //console.log("Retrieved inventory data:", updatedInventory);
                     if (updatedInventory) {
                         // set the global state with the updated inventory data
-                        await updateGlobalState(this.context, { inventory: updatedInventory });
+                        await updateGlobalState(this.context, { userInventory : updatedInventory });
                         // update the local state with the updated inventory data
                         this._view?.webview.postMessage({
                             type: 'fetchedGlobalState',
@@ -238,6 +250,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
                 case 'syncUserData': {
                     await apiClient.syncUserData(this.context, data.userData);
+                    break;
+                }
+                case 'extensionDeactivated': {
+                    updateGlobalState(this.context, { test: 'test' });
                     break;
                 }
             }
@@ -395,7 +411,7 @@ function deleteNestedKey(obj: any, keys: string[]): void {
 }
 
 function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {
-    console.log('----Getting globalState----');
+    // console.log('----Getting globalState----');
     printJsonObject(context.globalState.get<{ [key: string]: any }>('globalInfo', {}));
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }

@@ -784,6 +784,10 @@
                 super(1, 0, buttons.length, spacing, x, y, z, buttons);
             }
         }
+
+        updateButtonTexts(newTexts) {
+            this.buttonTexts = newTexts;
+        }
     }
 
     // export class ScrollableButtonList extends <-- finish

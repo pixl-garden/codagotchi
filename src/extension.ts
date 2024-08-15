@@ -1,16 +1,37 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
 import { Logger } from './logger';
+import * as apiClient from './apiClient';
+import { generateUpdates } from './deactivateUtils';
 
-const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
+const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60; // cap to 10 min
+
 let sidebarProvider: SidebarProvider;
 let logger: Logger;
+let globalContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext) {
     logger = new Logger(context);
 
+    logger.log('Extension activated');
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+        logger.handleUncaughtException(error);
+        vscode.window.showErrorMessage(`An error occurred in Codagotchi. Check the log file at ${logger.getLogDir()}`);
+    });
+
+    // Handle unhandled rejections
+    process.on('unhandledRejection', (reason) => {
+        logger.handleUnhandledRejection(reason);
+        vscode.window.showErrorMessage(`An error occurred in Codagotchi. Check the log file at ${logger.getLogDir()}`);
+    });
+
     try {
         sidebarProvider = new SidebarProvider(context.extensionUri, context);
+
+        globalContext = context;
+
         listenForDocumentSave(context);
         context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
         context.subscriptions.push(
@@ -59,7 +80,7 @@ function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
     return context.globalState.update('globalInfo', {});
 }
 
-function getElapsedTimeInSeconds(lastSaveTime: Date | undefined): number{
+function getElapsedTimeInSeconds(lastSaveTime: Date | undefined): number {
     let now = new Date();
     if (lastSaveTime) {
         let elapsedTime = now.getTime() - lastSaveTime.getTime();
@@ -73,7 +94,7 @@ function getLastSaveTime(context: vscode.ExtensionContext): Date | undefined {
     return context.globalState.get<Date>('lastSaveTime');
 }
 
-function setLastSaveTime(context: vscode.ExtensionContext, date: Date = new Date()){
+function setLastSaveTime(context: vscode.ExtensionContext, date: Date = new Date()) {
     context.globalState.update('lastSaveTime', date);
 }
 
@@ -84,7 +105,7 @@ function listenForDocumentSave(context: vscode.ExtensionContext): void {
             const lastSaveDate = lastSaveTime ? new Date(lastSaveTime) : undefined; // Restores to original format (date object)
             setLastSaveTime(context); // Sets the global to the current time after retrieved
             const elapsedTimeInSeconds = getElapsedTimeInSeconds(lastSaveDate);
-            console.log(elapsedTimeInSeconds + " Seconds");
+            console.log(elapsedTimeInSeconds + ' Seconds');
 
             // Use postMessage to communicate with the webview
             if (sidebarProvider._view?.webview) {
@@ -98,6 +119,18 @@ function listenForDocumentSave(context: vscode.ExtensionContext): void {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {
-    logger.log('Extension deactivated');
+export function deactivate(): Thenable<void> {
+    logger.log('Extension being deactivated');
+
+    return apiClient
+        .syncUserData(globalContext, generateUpdates(globalContext))
+        .then(() => {
+            logger.log('Update successfully synced');
+        })
+        .catch((error) => {
+            logger.log('Error during final sync:', error);
+        })
+        .finally(() => {
+            logger.log('Deactivation process completed');
+        });
 }

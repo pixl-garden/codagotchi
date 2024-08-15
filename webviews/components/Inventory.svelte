@@ -64,13 +64,8 @@
         }
         //base serialization for backend
         serialize() {
-            return {
-                [this.inventoryId]: {
-                    itemName: this.itemName,
-                    itemCount: this.itemCount,
-                    properties: this.properties
-                }
-            };
+            
+            return { [this.itemName]: this.itemCount };
         }
     }
 
