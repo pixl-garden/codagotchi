@@ -2,9 +2,10 @@ import axios from 'axios';
 import * as vscode from 'vscode';
 import { merge } from 'lodash';
 import { CacheManager } from './cacheManager';
-import { firebaseConfig } from './firebaseInit';
-
-const BASE_URL = 'https://us-central1-codagotchi.cloudfunctions.net';
+import { firebaseConfig, getFirebaseDatabase } from './firebaseInit';
+import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
+import { ref, set, onValue, off } from 'firebase/database';
+import { generateState, generateOAuthURL, BASE_URL } from './config';
 
 export async function signInWithCustomTokenViaREST(customToken: string, context: vscode.ExtensionContext) {
     const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${firebaseConfig.apiKey}`;
@@ -20,6 +21,66 @@ export async function signInWithCustomTokenViaREST(customToken: string, context:
         console.error('Error signing in with custom token:', error);
         throw error;
     }
+}
+
+export function initiateOAuthProcess(): { oauthUrl: string; state: string } {
+    const state = generateState();
+    const oauthUrl = generateOAuthURL(state);
+    return { oauthUrl, state };
+}
+
+export async function listenForAuthToken(state: string): Promise<{ token: string; githubUsername: string }> {
+    const database = getFirebaseDatabase();
+    const tokenRef = ref(database, 'authTokens/' + state);
+
+    return new Promise((resolve, reject) => {
+        const tokenListener = onValue(
+            tokenRef,
+            (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.status === 'ready') {
+                    off(tokenRef, 'value', tokenListener);
+                    resolve({ token: data.token, githubUsername: data.githubUsername });
+                }
+            },
+            (error) => {
+                off(tokenRef, 'value', tokenListener);
+                reject(error);
+            },
+        );
+    });
+}
+
+export async function completeAuthProcess(state: string, userId: string): Promise<void> {
+    const database = getFirebaseDatabase();
+    const authRef = ref(database, `authTokens/${state}`);
+    await set(authRef, { status: 'complete' });
+}
+
+export async function signInWithFirebase(firebaseToken: string): Promise<string> {
+    const auth = getAuth();
+    try {
+        const userCredential = await signInWithCustomToken(auth, firebaseToken);
+        return userCredential.user.uid;
+    } catch (error) {
+        console.error('Firebase signInWithCustomToken error:', error);
+        throw error;
+    }
+}
+
+export async function logout(context: vscode.ExtensionContext): Promise<void> {
+    await context.secrets.delete('refreshToken');
+    await context.secrets.delete('idToken');
+    await context.secrets.delete('userId');
+
+    const auth = getAuth();
+    await signOut(auth);
+
+    // Clear any other stored data if necessary
+    // For example, if you're using the globalState to store user data:
+    await context.globalState.update('userInfo', undefined);
+
+    console.log('User logged out successfully');
 }
 
 export async function refreshToken(refreshToken: string, context: vscode.ExtensionContext) {

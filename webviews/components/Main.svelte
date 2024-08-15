@@ -88,37 +88,57 @@
 
         window.addEventListener('message', async (event) => {
             const message = event.data;
-            if (message.type === 'image-uris') {
-                startTime = performance.now();  // Start timing
-                images.set(message.uris);
+            switch (message.type) {
+                case 'image-uris':
+                    startTime = performance.now();  // Start timing
+                    images.set(message.uris);
+                    
+                    // Wait until all sprites are loaded
+                    await preloadAllSpriteSheets().then(() => {
+                        // Call pre() once and start main loop
+                        pre();
+                        endTime = performance.now();  // End timing
+                        console.log(`Time taken: ${endTime - startTime} milliseconds`);
+                        setInterval(main, Math.floor(1000 / FPS));
+                    });
+                    break;
 
-                // Wait until all sprites are loaded
-                await preloadAllSpriteSheets().then(() => {
-                    // Call pre() once and start main loop
-                    pre();
-                    endTime = performance.now();  // End timing
-                    console.log(`Time taken: ${endTime - startTime} milliseconds`);
-                    setInterval(main, Math.floor(1000 / FPS));
-                });
-            }
-            else if (message.type === 'documentSaved'){
-                $game.resetActivityTimeout();
-            }
-            else if (message.type === 'fetchedGlobalState') {
-                $game.setLocalState(message.value);
-            }
-            else if(message.type === 'resize'){
-                handleResize();
-            }
-            else if (message.type === 'cached-user-inbox') {
-                let cachedUserInbox = message.userInbox;
-                console.log('Received cached userInbox:', cachedUserInbox);
-                await $game.initializeWithCache(cachedUserInbox);
-            }
-            else if (message.type === 'cached-user-inventory') {
-                let cachedUserInventory = message.userInventory;
-                console.log('Received cached userInventory:', cachedUserInventory);
-                await $game.initializeWithCache({}, cachedUserInventory);
+                case 'documentSaved':
+                    $game.resetActivityTimeout();
+                    break;
+
+                case 'fetchedGlobalState':
+                    $game.setLocalState(message.value);
+                    break;
+
+                case 'resize':
+                    handleResize();
+                    break;
+
+                case 'cached-user-inbox':
+                    let cachedUserInbox = message.userInbox;
+                    console.log('Received cached userInbox:', cachedUserInbox);
+                    await $game.initializeWithCache(cachedUserInbox);
+                    break;
+
+                case 'cached-user-inventory':
+                    let cachedUserInventory = message.userInventory;
+                    console.log('Received cached userInventory:', cachedUserInventory);
+                    await $game.initializeWithCache({}, cachedUserInventory);
+                    break;
+
+                case 'logoutSuccess':
+                    $game.updateGlobalState({isLoggedIn: false});
+
+                    break;
+
+                case 'loginSuccess':
+                    $game.updateGlobalState({isLoggedIn: true});
+                    // console.log('User logged in successfully');
+                    break;
+
+                default:
+                    console.log('Unhandled message type:', message.type);
             }
         });
 

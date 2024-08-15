@@ -3,24 +3,10 @@ import { merge } from 'lodash';
 import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { database, firebaseConfig } from './firebaseInit';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
-import { getDatabase, ref, set, onValue, off } from 'firebase/database';
-
+import { initializeFirebase } from './firebaseInit';
 import { CacheManager } from './cacheManager';
 import * as apiClient from './apiClient';
-
-const CLIENT_ID = 'a253a1599d7b631b091a';
-const REDIRECT_URI = encodeURIComponent('https://us-central1-codagotchi.cloudfunctions.net/handleGitHubRedirect');
-const REQUESTED_SCOPES = 'user,read:user';
-let githubUsername = '';
-
-// Generate a unique state value
-const state = uuidv4();
-
-const O_AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${REQUESTED_SCOPES}&state=${state}`;
-
+import { generateOAuthURL, generateState } from './config';
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -39,6 +25,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     ) {
         this.context = context;
         this.cacheManager = new CacheManager(context);
+
+        try {
+            initializeFirebase();
+        } catch (error) {
+            console.error('Failed to initialize Firebase:', error);
+            vscode.window.showErrorMessage('Failed to initialize Firebase. Some features may not work.');
+        }
     }
 
     private getImageUris(): { [key: string]: vscode.Uri } {
@@ -62,8 +55,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     public resolveWebviewView(webviewView: vscode.WebviewView) {
         this._view = webviewView;
 
-        // Store the state value temporarily in globalState
-        vscode.commands.executeCommand('setContext', 'oauthState', state);
 
         webviewView.webview.options = {
             enableScripts: true,
@@ -144,63 +135,43 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 case 'openOAuthURL': {
-                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(O_AUTH_URL));
+                    const state = generateState();
+                    const oauthUrl = generateOAuthURL(state);
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(oauthUrl));
 
-                    const tokenRef = ref(database, 'authTokens/' + state);
-                    const tokenListener = onValue(
-                        tokenRef,
-                        (snapshot) => {
-                            const data = snapshot.val();
+                    // Store the state value temporarily in globalState
+                    vscode.commands.executeCommand('setContext', 'oauthState', state);
 
-                            if (data && data.status === 'ready') {
-                                const firebaseToken = data.token;
-                                githubUsername = data.githubUsername;
-                                console.log('Received token:', firebaseToken);
-                                console.log('Received username:', githubUsername);
+                    try {
+                        const { token: firebaseToken, githubUsername } = await apiClient.listenForAuthToken(state);
+                        console.log('Received token:', firebaseToken);
+                        console.log('Received username:', githubUsername);
 
-                                const auth = getAuth();
+                        const userId = await apiClient.signInWithFirebase(firebaseToken);
+                        console.log('Firebase user:', userId);
+                        await this.context.secrets.store('userId', userId);
 
-                                signInWithCustomToken(auth, firebaseToken)
-                                    .then(async (userCredential) => {
-                                        const user = userCredential.user;
-                                        const userId = user.uid;
-                                        console.log('Firebase user:', userId);
-                                        console.log('userID:', userId);
-                                        await this.context.secrets.store('userId', userId);
+                        await apiClient.completeAuthProcess(state, userId);
+                        console.log('User data stored in the database.');
 
-                                        const authRef = ref(getDatabase(), `authTokens/${state}`);
-                                        try {
-                                            await set(authRef, {
-                                                status: 'complete',
-                                            });
-                                            console.log('User data stored in the database.');
-                                        } catch (error) {
-                                            console.error('Error storing user data in the database:', error);
-                                        }
+                        await apiClient.signInWithCustomTokenViaREST(firebaseToken, this.context);
 
-                                        apiClient.signInWithCustomTokenViaREST(firebaseToken, this.context);
+                        this._view?.webview.postMessage({ type: 'loginSuccess' });
+                    } catch (error: any) {
+                        console.error('Error in OAuth process:', error);
+                        vscode.window.showErrorMessage(`Error in OAuth process: ${error.message}`);
+                    }
+                    break;
+                }
 
-                                        off(tokenRef, 'value', tokenListener);
-                                    })
-                                    .catch((error) => {
-                                        const errorCode = error.code;
-                                        const errorMessage = error.message;
-                                        console.error('Firebase signInWithCustomToken error:', errorCode, errorMessage);
-
-                                        off(tokenRef, 'value', tokenListener);
-
-                                        vscode.window.showErrorMessage(`Error signing in: ${errorMessage}`);
-                                    });
-                            } else {
-                                console.log(`No token found for state ${state}`);
-                            }
-                        },
-                        (error) => {
-                            console.error('Firebase onValue listener error:', error);
-                            vscode.window.showErrorMessage(`Error listening for token: ${error.message}`);
-                        },
-                    );
-
+                case 'logout': {
+                    try {
+                        await apiClient.logout(this.context);
+                        this._view?.webview.postMessage({ type: 'logoutSuccess' });
+                    } catch (error) {
+                        console.error('Error during logout:', error);
+                        vscode.window.showErrorMessage('Error during logout');
+                    }
                     break;
                 }
 
@@ -232,8 +203,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     await apiClient.handleFriendRequest(this.context, data.requestId, data.action);
                     break;
                 }
+
                 case 'retrieveInbox': {
-                    const {updatedInbox} = await apiClient.retrieveInbox(this.context, this.cacheManager);
+                    const { updatedInbox } = await apiClient.retrieveInbox(this.context, this.cacheManager);
                     //console.log("Retrieved inbox data:", updatedInbox);
                     if (updatedInbox) {
                         // set the global state with the updated inbox data
@@ -243,12 +215,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
                         });
-
                     }
                     break;
                 }
                 case 'retrieveInventory': {
-                    const {updatedInventory} = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    const { updatedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
                     //console.log("Retrieved inventory data:", updatedInventory);
                     if (updatedInventory) {
                         // set the global state with the updated inventory data
@@ -282,10 +253,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             type: 'currentRoom',
             value: roomName,
         });
-    }
-
-    public getGithubUsername() {
-        return githubUsername;
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {

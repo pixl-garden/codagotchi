@@ -1,16 +1,58 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
-const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
+import { Logger } from './logger';
 
+const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
 let sidebarProvider: SidebarProvider;
+let logger: Logger;
 
 export function activate(context: vscode.ExtensionContext) {
-    sidebarProvider = new SidebarProvider(context.extensionUri, context);
-    listenForDocumentSave(context);
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
-    context.subscriptions.push(vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
-        clearGlobalState(context);
-    }));
+    logger = new Logger(context);
+
+    try {
+        sidebarProvider = new SidebarProvider(context.extensionUri, context);
+        listenForDocumentSave(context);
+        context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
+        context.subscriptions.push(
+            vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
+                clearGlobalState(context);
+            }),
+        );
+
+        // Add a command to view logs
+        context.subscriptions.push(
+            vscode.commands.registerCommand('codagotchi.viewLogs', () => {
+                const logs = logger.getLogContent();
+                vscode.workspace.openTextDocument({ content: logs }).then((doc) => {
+                    vscode.window.showTextDocument(doc);
+                });
+            }),
+        );
+
+        // Add a command to clear logs
+        context.subscriptions.push(
+            vscode.commands.registerCommand('codagotchi.clearLogs', () => {
+                logger.clearLog();
+                vscode.window.showInformationMessage('Codagotchi logs cleared.');
+            }),
+        );
+
+        // Set up global error handling
+        process.on('uncaughtException', (error) => {
+            logger.log('Uncaught Exception', error);
+            vscode.window.showErrorMessage(`Codagotchi encountered an error. Please check the logs.`);
+        });
+
+        process.on('unhandledRejection', (reason, promise) => {
+            logger.log('Unhandled Rejection', reason instanceof Error ? reason : new Error(String(reason)));
+            vscode.window.showErrorMessage(`Codagotchi encountered an error. Please check the logs.`);
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            logger.log('Activation Error', error);
+            vscode.window.showErrorMessage(`Codagotchi failed to activate. Error: ${error.message}`);
+        }
+    }
 }
 
 function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
@@ -56,4 +98,6 @@ function listenForDocumentSave(context: vscode.ExtensionContext): void {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+    logger.log('Extension deactivated');
+}
