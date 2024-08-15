@@ -6,7 +6,7 @@ export class Logger {
     private logFile: string;
 
     constructor(context: vscode.ExtensionContext) {
-        this.logFile = path.join(context.extensionPath, 'codagotchi-crash.log');
+        this.logFile = path.join(context.extensionPath + '/crashlogs', `${new Date().toISOString().replace(/:/g, '-')}.log`);
     }
 
     public log(message: string, error?: Error): void {
