@@ -5,3 +5,5 @@ out
 dist
 
 .env
+
+*.log

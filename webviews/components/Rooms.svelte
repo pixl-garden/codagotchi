@@ -1,5 +1,5 @@
 <script context='module'>
-    import { game, Room, shouldFocus, handleGitHubLogin, inputValue, textInput } from './Game.svelte';
+    import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
@@ -159,12 +159,42 @@
         
     //----------------SETTINGS ROOM----------------
         //SETTINGS MENU INSTANTIATION
-        // TODO: const firstButtonThatChanges = [{text: "Git Login", function: () => {handleGitHubLogin()}}, {text: "Logged In!", function: () => {}}];
 
-        const settingsMenuButtonTexts = ['Git Login', 'Notifs', 'Display', '<BACK'];
-        const settingsMenuButtonFunctions = [() => {handleGitHubLogin()}, () => {}, () => {}, () => {get(game).setCurrentRoom('mainRoom')}]
+        // check the bedroom data to see if the user is logged in
+        let isLoggedIn = get(game).getLocalState().isLoggedIn;
+        // console.log('isLoggedIn:', isLoggedIn);
+
+        let settingsMenuButtonTexts 
+        function setSettingsMenu(){
+            settingsMenuButtonTexts= [
+                isLoggedIn ? 'GitHub Log out' : 'GitHub Log in',
+                'Notifs',
+                'Display',
+                '\<BACK'
+            ];
+        }
+        setSettingsMenu();
+        
+
+        const settingsMenuButtonFunctions = [
+            isLoggedIn ? () => {handleGitHubLogout(); isLoggedIn = !isLoggedIn; setSettingsMenu()}: () => {handleGitHubLogin(); isLoggedIn = !isLoggedIn; setSettingsMenu()} ,
+            () => {},
+            () => {},
+            () => {get(game).setCurrentRoom('mainRoom')}
+        ];
+
         const settingsTitle = new settingsTitleButton(0, 0, 0, 'Settings', () => {});
-        const settingsMenu = new textButtonList(settingsMenuButtonTexts, settingsMenuButtonFunctions, settingsMenuButton, 58, 12, -1, 0, 12, 0);
+        const settingsMenu = new textButtonList(
+            settingsMenuButtonTexts,
+            settingsMenuButtonFunctions,
+            settingsMenuButton,
+            58,
+            12,
+            -1,
+            0,
+            12,
+            0
+        );
         //ROOM INSTANTIATION
         let settingsRoom = new Room('settingsRoom');
          settingsRoom.addObject(settingsTitle, settingsMenu);

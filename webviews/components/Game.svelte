@@ -123,7 +123,7 @@
             // console.log("Inventory constructed: ", this.userInventory);
             return this.inventory;
         }
-
+  
         retrieveInbox() {
             tsvscode.postMessage({ type: 'retrieveInbox' });
         }
@@ -265,6 +265,10 @@
 
     export function handleGitHubLogin() {
         tsvscode.postMessage({ type: 'openOAuthURL', value: '${O_AUTH_URL}' });
+    };
+
+    export function handleGitHubLogout() {
+        tsvscode.postMessage({ type: 'logout' });
     };
 
     export class Room {

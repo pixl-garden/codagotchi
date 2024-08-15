@@ -94,6 +94,7 @@ const handleGitHubRedirect = functions.runWith({}).https.onRequest(async (reques
             console.log('User data found:', loggedInUserData.val());
             response.status(200).send({
                 message: 'Auth successful. User logged in.',
+                // ! Should we show the full user data here?
                 data: loggedInUserData.val(),
             });
         } else {
