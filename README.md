@@ -1,8 +1,5 @@
-![codagotchiHeader](https://github.com/kitgore/codagotchi/assets/116697167/ec4fa4ac-e5c0-4bf9-83ab-34d0a3dd8c02)
 
-<br/>
-
-![subhead](https://github.com/kitgore/codagotchi/assets/116697167/848ae79c-6843-4810-9b97-4f9293cec6cc)
+![codagotchiHeader](https://github.com/user-attachments/assets/db328a4a-d7c7-4fbb-a353-199f6a44eaeb)<?xml version="1.0" encoding="UTF-8"?>
 
 <br/>
 
