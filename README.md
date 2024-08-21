@@ -2,56 +2,42 @@
 
 <br/>
 
-# Codagotchi
+Codagotchi is a free VSCode extension that gamifies your development journey, incentivizing regular coding to keep your virtual pet happy
 
-#### Version: 0.1.0
+## Features:
+### Customization
+*Customize your pet’s room and wardrobe with unique furniture and clothing that can be earned as you code.*
 
-## Description:
+### Skill Progression
+*Gain experience and earn items as you code with your pet*
 
-The problem of irregular coding practice and lack of motivation to write code impacts a wide range of programmers, from brand-new learners to experienced developers, resulting in skill stagnation and reduced productivity. This lack of consistency hinders skill development, wastes time, and can impact software quality, incurring additional costs and missed opportunities for career growth. 
+### Friends
+*Earn programming language stamps to send postcards to your friends and earn special rewards*
 
-For VSCode users seeking consistent coding practice and skill improvement, Codagotchi is a free VSCode extension that gamifies learning and development, incentivizing regular coding to keep a virtual pet alive and happy. Unlike traditional learning methods, our product transforms coding into an engaging and interactive experience, fostering skill growth through motivation and rewards. Codagotchi empowers programmers to maintain consistent engagement in learning and skill development.
-
-By transforming coding into an enjoyable experience where a virtual pet thrives through regular code-writing, Codagotchi offers a compelling incentive for programmers to stay motivated and active.
 
 ### Why Codagotchi?
 * Interactive & Fun: Makes coding sessions lively with a virtual pet.
-* Encourages Consistent Practice: Your pet's well-being depends on your coding consistency.
-* Gamified Learning: Earn rewards and see your pet evolve as you code more.
+* Gamified Learning: Helps build healthy coding habits as you earn rewards and watch your pet evolve.
+* Progress with Friends: Share your progress with friends as you learn new skills and programming languages
 
-## Getting Started
-Installation:
- * At the current stage, Codagotchi is only able to be run as a developer in VSCode.
- * To begin, fork the repository and then clone it. See CONTRIBUTING.md for more details.
- * Once inside the cloned repository, run ```npm install concurrently``` in the CLI.
- * Next, run ```npm run watch```
- * Then, hit F5 or run the extension through the VSCode GUI and you are ready to start your adventure!
-   
-### Prerequisites
-
-What you need to use Codagotchi:
-
-```
-Visual Studio Code
-GitHub (optional)
-```
 
 ## Contributing
 Please look at our [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you can contribute.
 
 ## Authors
-* **Ben Griepp** - **Product & Repo Owner**
-* **Noah Gooby** 
-* **Payton Watts**
-* **Forrest Hartley**
+* **Ben Griepp** - [@kitgore](https://github.com/kitgore/)
+* **Forrest Hartley** [@4444est](https://github.com/4444est/)
 * **Alim Kassymov** [@notalim](https://github.com/notalim/)
-* **Charles Booth** 
+
+## With Help From
+* **Noah Gooby** - [@goobyn](https://github.com/goobyn)
+* **Payton Watts** [@psw35](https://github.com/psw35)
+* **Charles Booth** [@everlastingflame](https://github.com/everlastingflame)
+
+## Contact Us
+Visit our website [pixl.garden](https://pixl.garden/).
+
 
 ## Licensing
 This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for more information.
 
-## Acknowledgements
-* Our user story interviewees
-* Tamagotchi (Of course!)
-* Dr. Palmer
-* Big Oil (for giving us a reason to fight)
