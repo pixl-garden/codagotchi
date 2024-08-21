@@ -1,5 +1,4 @@
-
-![codagotchiHeader](https://github.com/user-attachments/assets/db328a4a-d7c7-4fbb-a353-199f6a44eaeb)<?xml version="1.0" encoding="UTF-8"?>
+![CodagotchiHeader](https://github.com/user-attachments/assets/a8dd7805-0a31-4431-84a3-87c110fc99ea)
 
 <br/>
 
