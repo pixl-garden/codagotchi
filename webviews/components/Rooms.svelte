@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay } from './Inventory.svelte';
+    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -400,6 +400,9 @@
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         });
 
+        let testStampItem = new InventoryItem('CStamp', 0, 0, 0)
+        postcardRendering.setStamp(testStampItem);
+
         let flipButton = new Button(55, 111, 5, 'flipButton', () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
@@ -417,9 +420,9 @@
         });
 
         // STAMP MENU INSTANTIATION
-        let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
+        let stampMenu = new Background('box_canvas', 9, 17, 5, () => {});
         function createStampSlot() {
-            let output = new ItemSlot("stampSlot", 0, 0, 0, () => {
+            let output = new ItemSlot("stampSlot", 0, 0, 25, () => {
                 if(output.slotItem){
                     output.onStopHover();
                     stampGrid.displayToolTip = false;
@@ -434,7 +437,7 @@
 
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 13, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10 );
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 25, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10 );
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
