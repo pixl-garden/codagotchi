@@ -2,24 +2,24 @@
 
 <br/>
 
-Codagotchi is a free VSCode extension that gamifies your development journey, incentivizing regular coding to keep your virtual pet happy
+Codagotchi is an **in development** free VSCode extension that gamifies your development journey, incentivizing regular coding to keep your virtual pet happy
 
 ## Features:
 ### Customization
-![image](https://github.com/user-attachments/assets/4e7d32ba-355f-48d4-9640-3079d51819c9)
-![image](https://github.com/user-attachments/assets/8be17157-ee3a-4d88-8ae6-040d8647f366)
+<img src="https://github.com/user-attachments/assets/4e7d32ba-355f-48d4-9640-3079d51819c9" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/8be17157-ee3a-4d88-8ae6-040d8647f366" width="400" height="400"> 
 
 *Customize your pet’s room and wardrobe with unique furniture and clothing that can be earned as you code.*
 
 ### Skill Progression
-![image](https://github.com/user-attachments/assets/59113dd9-bc55-4d78-b70e-0694ad4e54e8)
-![image](https://github.com/user-attachments/assets/5063d6e6-9780-4500-ac5a-9ca0df6ed294)
+<img src="https://github.com/user-attachments/assets/5063d6e6-9780-4500-ac5a-9ca0df6ed294" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/59113dd9-bc55-4d78-b70e-0694ad4e54e8" width="400" height="400"> 
 
 *Gain experience and earn items as you code with your pet*
 
 ### Friends
-![image](https://github.com/user-attachments/assets/c903287d-15cb-4ed0-863c-4316aa7f3679)
-![image](https://github.com/user-attachments/assets/53ef1a2f-3068-4085-8a8e-ca795da6b91c)
+<img src="https://github.com/user-attachments/assets/c903287d-15cb-4ed0-863c-4316aa7f3679" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/53ef1a2f-3068-4085-8a8e-ca795da6b91c" width="400" height="400"> 
 
 *Earn programming language stamps to send postcards to your friends and earn special rewards*
 
@@ -44,7 +44,7 @@ Please look at our [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you
 * **Charles Booth** [@everlastingflame](https://github.com/everlastingflame)
 
 ## Contact Us
-Visit our website [pixl.garden](https://pixl.garden/).
+Visit our website [pixl.garden](https://pixl.garden/)
 
 
 ## Licensing
