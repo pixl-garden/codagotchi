@@ -2,7 +2,7 @@
 
 <br/>
 
-Codagotchi is an **in development** free VSCode extension that gamifies your development journey, incentivizing regular coding to keep your virtual pet happy
+Codagotchi is an **_in development_** free VSCode extension that gamifies your development journey, incentivizing regular coding to keep your virtual pet happy
 
 ## Features:
 
@@ -36,13 +36,13 @@ Please look at our [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you
 
 ## Authors
 * **Ben Griepp** - [@kitgore](https://github.com/kitgore/)
-* **Forrest Hartley** [@4444est](https://github.com/4444est/)
-* **Alim Kassymov** [@notalim](https://github.com/notalim/)
+* **Forrest Hartley** - [@4444est](https://github.com/4444est/)
+* **Alim Kassymov** - [@notalim](https://github.com/notalim/)
 
 ## With Help From
 * **Noah Gooby** - [@goobyn](https://github.com/goobyn)
-* **Payton Watts** [@psw35](https://github.com/psw35)
-* **Charles Booth** [@everlastingflame](https://github.com/everlastingflame)
+* **Charles Booth** - [@everlastingflame](https://github.com/everlastingflame)
+* **Payton Watts** - [@psw35](https://github.com/psw35)
 
 ## Contact Us
 Visit our website [pixl.garden](https://pixl.garden/)
