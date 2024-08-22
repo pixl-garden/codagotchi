@@ -95,6 +95,7 @@
             this.typeIndex = typeIndex;
             this.position = null; // used for determining near or far furniture
             this.isFlipped = false;
+            this.stackedChildren = [];
             if( ['wallpaper', 'floor'].includes(furnitureType) ) {
                 this.hasThumbnail = true;
                 this.thumbnailStartX = typeConfig["thumbnailCoords"][0];
@@ -113,6 +114,14 @@
                 }
             }
         }
+        addChild(child) {
+            this.stackedChildren.push(child);
+        }
+
+        removeChild(child) {
+            this.stackedChildren = this.stackedChildren.filter(item => item !== child);
+        }
+
         getSprite(){
             let matrix = this.isFlipped ? 
                 flipMatrixByAxis(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], 0, this.spriteWidth, 0, this.spriteHeight), "x") :
