@@ -50,4 +50,3 @@ Visit our website [pixl.garden](https://pixl.garden/)
 
 ## Licensing
 This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for more information.
-
