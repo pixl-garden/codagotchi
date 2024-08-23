@@ -372,7 +372,7 @@
             this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
             this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
             this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
-                [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
+                [this.inventoryTabSprites[0], this.inventoryTabSprites[0], ()=>{
                     this.setTab("wallpaper");
                 }],
                 [this.inventoryTabSprites[1], this.inventoryTabSprites[1], ()=>{
@@ -384,7 +384,7 @@
                 [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
                     this.setTab("wallItems");
                 }],
-                [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
+                [this.inventoryTabSprites[6], this.inventoryTabSprites[6], ()=>{
                     this.setTab("stackableItems");
                 }]
             );
@@ -401,7 +401,7 @@
                 }
             });
             this.removeButton = new editorButton(106, 107, 7, editorButtonSprites[4], editorButtonSprites[5], this.exitPlacementMode.bind(this));
-            this.flipButton = new editorButton(62, 107, 7, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
+            this.flipButton = new editorButton(63, 107, 7, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
             this.children.push(this.inventoryButton, this.editButton);
         }
 
