@@ -419,6 +419,7 @@
                 // find x and y coordinates that will center item
                 let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2);
                 let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2);
+
                 displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + 1);
                 // ignore click events on the display item
                 displayItem.mouseInteractions = false;
