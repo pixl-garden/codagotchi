@@ -581,5 +581,27 @@
                 "default": [19]
             }
         }
+    },
+    "rug": {
+        "spriteWidth": 128,
+        "spriteHeight": 42,
+        "yCoord": 86,
+        "zCoord": 1,
+        "xLeftBound": 0,
+        "xRightBound": 128,
+        "0": {
+            "displayName": "rug",
+            "spriteSheet": "rugs.png",
+            "states": {
+                "default": [0]
+            }
+        },
+        "1": {
+            "displayName": "rug",
+            "spriteSheet": "rugs.png",
+            "states": {
+                "default": [1]
+            }
+        }
     }
 }

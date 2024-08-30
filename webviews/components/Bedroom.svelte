@@ -10,12 +10,6 @@
     import { inventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
     import * as pako from 'pako';
-    import { add } from 'lodash';
-
-    const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
-
-    let basic = new TextRenderer('charmap1.png', 7, 9, Colors.white, Colors.black, Colors.black, 1, standardCharMap);
-    const smallButton = generateTextButtonClass(15, 15, basic, ...Colors.secondaryMenuColorParams);
 
     export class BedroomManager extends GeneratedObject{
         constructor() {
@@ -23,12 +17,12 @@
             this.bedroomConfig = bedroomConfig;
             this.wallpaper = new BedroomItem("wallpaper", 0, 0, 0, 0);
             this.floorPos = bedroomConfig['floor']['yCoord'];
-            this.floor = new BedroomItem("floor", 0, 0, this.floorPos, 0);
+            this.floor = new BedroomItem("floor", 0, 0, this.floorPos, 1);
+            this.rug = new BedroomItem("rug", 0, 0, 0, 0);
             this.furnitureItems = [];
             this.wallItems = [];
-            this.stackableItems = []; //TODO: on construction of stackable item, check if on top of furniture and add to furnitures count
+            this.stackableItems = [];
             this.exportObjects();
-            
         }
 
         constructFromSerialization(serializedData){
@@ -37,7 +31,7 @@
         }
 
         isValidObjectType(objectType) {
-            const validTypes = ['wallpaper', 'floor', 'wallItems', 'furnitureItems', 'stackableItems'];
+            const validTypes = ['wallpaper', 'floor', 'rug', 'wallItems', 'furnitureItems', 'stackableItems'];
             return validTypes.includes(objectType);
         }
 
@@ -51,6 +45,7 @@
         constructItemsFromJSON(furnitureJSON) {
             this.wallpaper = new BedroomItem("wallpaper", furnitureJSON.wallpaperIndex, 0, 0, 0);
             this.floor = new BedroomItem("floor", furnitureJSON.floorIndex, 0, this.floorPos, 0);
+            this.rug = new BedroomItem("rug", furnitureJSON.rugIndex, 0, this.floorPos, 1);
 
             // First, create all furniture items
             for (const item of furnitureJSON.furnitureItems) {
@@ -88,37 +83,11 @@
             this.exportObjects();
         }
 
-
-    //     let furnitureData = {
-    //     "wallpaperIndex": 123,
-    //     "floorIndex": 200,
-    //     "wallItems": [
-    //         {"index": 45, "x": 12, "y": 34, "flipped": 1, "variation": 2},
-    //         {"index": 120, "x": 56, "y": 78, "flipped": 0, "variation": 2},
-    //         {"index": 300, "x": 90, "y": 12, "flipped": 1, "variation": 2},
-    //         {"index": 511, "x": 34, "y": 56, "flipped": 0, "variation": 2},
-    //         {"index": 250, "x": 78, "y": 90, "flipped": 1, "variation": 2}
-    //     ],
-    //     "furnitureItems": [
-    //         {"index": 400, "x": 64, "position": 0, "flipped": 1, "variation": 2},
-    //         {"index": 350, "x": 32, "position": 1, "flipped": 0, "variation": 2},
-    //         {"index": 410, "x": 96, "position": 0, "flipped": 1, "variation": 2},
-    //         {"index": 475, "x": 128, "position": 1, "flipped": 0, "variation": 2},
-    //         {"index": 300, "x": 127, "position": 0, "flipped": 1, "variation": 2}
-    //     ],
-    //     "stackableItems": [
-    //         {"index": 200, "x": 50, "position": 1, "flipped": 0, "variation": 2},
-    //         {"index": 215, "x": 75, "position": 0, "flipped": 1, "variation": 2},
-    //         {"index": 230, "x": 100, "position": 1, "flipped": 0, "variation": 2},
-    //         {"index": 245, "x": 125, "position": 0, "flipped": 1, "variation": 2},
-    //         {"index": 260, "x": 25, "position": 1, "flipped": 0, "variation": 2}
-    //     ]
-    // }
-
         constructBedroomJSON() {
             let data = {
                 "wallpaperIndex": this.wallpaper.typeIndex,
                 "floorIndex": this.floor.typeIndex,
+                "rugIndex": this.rug.typeIndex,
                 "wallItems": this.wallItems.map(item => item.getJSON()),
                 "furnitureItems": this.furnitureItems.map(item => item.getJSON()),
                 "stackableItems": this.stackableItems.map(item => item.getJSON())
@@ -128,7 +97,7 @@
 
         // Used to replace the wallpaper or floor
         replaceObject(item) {
-            if (!this.isValidObjectType(item.furnitureType) || !['wallpaper', 'floor'].includes(item.furnitureType)) {
+            if (!this.isValidObjectType(item.furnitureType) || !['wallpaper', 'floor', 'rug'].includes(item.furnitureType)) {
                 throw new Error('replaceObject: objectType must be wallpaper or floor');
             }
             let newItem = new BedroomItem(item.furnitureType, item.typeIndex, 0);
@@ -146,6 +115,12 @@
             if (!this.isValidObjectType(item.furnitureType) || ['wallpaper', 'floor'].includes(item.furnitureType)) {
                 return false;   
             }
+            //if rug, replace rug and exit
+            if (item.furnitureType === "rug") {
+                this.rug = item;
+                this.exportObjects();
+                return true;
+            }
             if (!this.checkCollision(item)) {
                 return false;
             }
@@ -159,6 +134,7 @@
                 }
             }
 
+            
             if(item.position === "far") {
                 item.z = bedroomConfig["farFurniture"].zCoord;
             } else if(item.position === "near") {
@@ -177,12 +153,19 @@
             if (!this.isValidObjectType(selectedItem.furnitureType) || ['wallpaper', 'floor'].includes(selectedItem.furnitureType)) {
                 throw new Error('removeObject: invalid objectType');
             }
+            // if rug is selected, reset rug to default (empty rug object)
+            if(selectedItem.furnitureType === "rug") {
+                this.rug = new BedroomItem("rug", 0, 0, this.floorPos, 1);
+            }
+            else{
+                if (selectedItem.parent) {
+                    selectedItem.parent.removeChild(selectedItem);
+                }
             
-            if (selectedItem.parent) {
-                selectedItem.parent.removeChild(selectedItem);
+                this[selectedItem.furnitureType] = this[selectedItem.furnitureType].filter((item) => item !== selectedItem);
             }
             
-            this[selectedItem.furnitureType] = this[selectedItem.furnitureType].filter((item) => item !== selectedItem);
+
             this.exportObjects();
         }
 
@@ -234,6 +217,9 @@
             if (!this.isValidObjectType(furnitureType) || ['wallpaper', 'floor'].includes(furnitureType)) {
                 throw new Error('checkCollision: invalid objectType');
             }
+            if(furnitureType === "rug"){
+                return true;
+            }
             let objectConfig = this.bedroomConfig[furnitureType][newItem.typeIndex];
             if (!objectConfig.xTrim) {
                 throw new Error('checkCollision: object must have xTrim property');
@@ -272,10 +258,11 @@
 
 
         getObjectAt(xCoord, yCoord) {
-            const furnitureTypes = ['furnitureItems', 'wallItems', 'stackableItems'];
+            const furnitureTypes = ['furnitureItems', 'wallItems', 'stackableItems', 'rug'];
             
             for (let furnitureType of furnitureTypes) {
-                const itemArray = this[furnitureType];
+                // If rug, place in an array, otherwise use the object array
+                const itemArray = furnitureType === "rug" ? [this.rug] : this[furnitureType];
                 for (let i = 0; i < itemArray.length; i++) {
                     let currentItem = itemArray[i];
                     if (currentItem.x <= xCoord && currentItem.x + currentItem.spriteWidth >= xCoord &&
@@ -307,6 +294,7 @@
             this.children = [
                 this.wallpaper, 
                 this.floor, 
+                this.rug,
                 ...this.furnitureItems, 
                 ...this.wallItems, 
                 ...this.stackableItems
@@ -348,7 +336,7 @@
             this.currentTab = "furnitureItems"
             this.furnitureItemsArr = this.addFurnitureItems("furnitureItems", 25);
             this.wallpaperArr = this.addFurnitureItems("wallpaper", 3);
-            this.floorArr = this.addFurnitureItems("floor", 3);
+            this.floorArr = [...this.addFurnitureItems("floor", 3), ...this.addFurnitureItems("rug", 2)];
             this.wallItemsArr = this.addFurnitureItems("wallItems", 3);
             this.stackableItemsArr = this.addFurnitureItems("stackableItems", 20);
             
@@ -440,7 +428,6 @@
         }
 
         enterPlacementMode(item) {
-            console.log("clickedItem", item)
             if(this.clickedItem !== null) {
                 this.bedroomManager.removeObject(this.clickedItem); //if in manager, remove it
                 this.updateSave();
@@ -458,6 +445,7 @@
                 this.removeChild(this.editButton);
                 this.addChild(this.clickedItem);
             }
+            this.whileHover();
         }
 
         exitPlacementMode() {
@@ -476,7 +464,7 @@
 
         // calculates coords to center item on mouse
         calculateAdjustedCoords() {
-            let xCoord = this.mouseX - Math.floor(this.clickedItem.spriteWidth / 2);
+            let xCoord = this.mouseX- Math.floor(this.clickedItem.spriteWidth / 2);
             let yCoord = this.mouseY - this.clickedItem.spriteHeight;
             let zCoord = bedroomConfig[this.clickedItem.furnitureType].zCoord - this.z + 1;
             return { xCoord, yCoord, zCoord };
@@ -493,10 +481,15 @@
                 let positionConfig = bedroomConfig[`${this.clickedItem.position}Furniture`];
                 yCoord = positionConfig.yCoord - this.clickedItem.spriteHeight;
                 zCoord = positionConfig.zCoord - this.z + 1;
-            }
-            if (this.clickedItem.furnitureType === "stackableItems") {
-                yCoord = this.bedroomManager.calculateStackableY(this.clickedItem, xCoord, yCoord);
-            }
+                if (this.clickedItem.furnitureType === "stackableItems") {
+                    yCoord = this.bedroomManager.calculateStackableY(this.clickedItem, xCoord, yCoord);
+                }
+            } else if(this.clickedItem.furnitureType === "rug") {
+                // keep rug in same position
+                xCoord = 0;
+                yCoord = 86;
+                zCoord = 1;
+            } 
             this.clickedItem.setCoordinate(xCoord, yCoord, zCoord);
         }
 
@@ -595,6 +588,7 @@
         // Start encoding
         addBits(data.wallpaperIndex, 8);
         addBits(data.floorIndex, 8);
+        addBits(data.rugIndex, 8);
         
         encodeXYItems(data.wallItems, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
         encodeXPosItems(data.furnitureItems, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
@@ -647,6 +641,7 @@
         let data = {
             wallpaperIndex: readBits(8),
             floorIndex: readBits(8),
+            rugIndex: readBits(8),
             wallItems: [],
             furnitureItems: [],
             stackableItems: []
@@ -694,6 +689,7 @@
         let stackableItemCount = readBits(5);
         data.stackableItems = decodeXPosItems(stackableItemCount, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
 
+    
         return data;
     }
     
