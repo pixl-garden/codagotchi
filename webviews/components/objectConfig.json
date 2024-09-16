@@ -169,13 +169,13 @@
             "default": [0]
         }
     },
-    "bedroomXButton":{
-        "spriteWidth": 13,
-        "spriteHeight": 14,
-        "spriteSheet": "bedroomXButton.png",
+    "bedroomBackButton":{
+        "spriteWidth": 16,
+        "spriteHeight": 16,
+        "spriteSheet": "bedroomBackButton.png",
         "states": {
             "default": [0],
-            "hovered": [1]
+            "hovered": [0]
         }
     },
     "flipButton":{
