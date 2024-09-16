@@ -336,7 +336,8 @@
             this.currentTab = "furnitureItems"
             this.furnitureItemsArr = this.addFurnitureItems("furnitureItems", 25);
             this.wallpaperArr = this.addFurnitureItems("wallpaper", 3);
-            this.floorArr = [...this.addFurnitureItems("floor", 3), ...this.addFurnitureItems("rug", 2)];
+            this.floorArr = this.addFurnitureItems("floor", 3);
+            this.rugsArr = this.addFurnitureItems("rug", 2);
             this.wallItemsArr = this.addFurnitureItems("wallItems", 3);
             this.stackableItemsArr = this.addFurnitureItems("stackableItems", 20);
             
@@ -352,14 +353,16 @@
             }
             this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 0, 0, 1, this.slotClickAction);
             this.initializeButtons();
-            this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.bedroomXButton];
+            this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.secondaryTab, this.menuCloseButton];
             this.setTab(this.currentTab);
         }
+
+        
 
         initializeButtons() {
             this.inventoryTabSprites = spriteReaderFromStore(16, 16, "bedroomTabs.png", 16, 16);
             this.inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
-            this.inventoryTabList = new ButtonList(15, 2, 1, "horizontal", 2, this.inventoryTabButton, null,
+            this.inventoryTabList = new ButtonList(12, 2, 1, "horizontal", 3, this.inventoryTabButton, null,
                 [this.inventoryTabSprites[0], this.inventoryTabSprites[4], ()=>{
                     this.setTab("wallpaper");
                 }],
@@ -368,15 +371,20 @@
                 }],
                 [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
                     this.setTab("furnitureItems");
-                }],
-                [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
-                    this.setTab("wallItems");
-                }],
-                [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
-                    this.setTab("stackableItems");
                 }]
+                // [this.inventoryTabSprites[3], this.inventoryTabSprites[3], ()=>{
+                //     this.setTab("wallItems");
+                // }],
+                // [this.inventoryTabSprites[2], this.inventoryTabSprites[2], ()=>{
+                //     this.setTab("stackableItems");
+                // }]
             );
-            this.bedroomXButton = new Button(1, 0, 7, "bedroomXButton", this.toggleInventory.bind(this));
+            this.secondaryTabArray = [new this.inventoryTabButton(75, 2, 1, this.inventoryTabSprites[3], this.inventoryTabSprites[3], () => { this.setTab("wallItems") }),
+                                      new this.inventoryTabButton(75, 2, 1, this.inventoryTabSprites[6], this.inventoryTabSprites[6], () => { this.setTab("rugs") }),
+                                      new this.inventoryTabButton(75, 2, 1, this.inventoryTabSprites[5], this.inventoryTabSprites[5], () => { this.setTab("stackableItems") })];
+            this.secondaryTab = this.secondaryTabArray[0];
+            // this.menuCloseButton = new Button(1, 0, 7, "bedroomXButton", this.toggleInventory.bind(this));
+            this.menuCloseButton = new Button(97, 1, 7, "bedroomBackButton", this.toggleInventory.bind(this));
             const editorButton = generateIconButtonClass(22, 22, 'transparent', 'transparent', 'transparent', 'transparent');
             const editorButtonSprites = spriteReaderFromStore(22, 22, "bedroomIcons.png");
             this.inventoryButton = new editorButton(85, 106, 7, editorButtonSprites[0], editorButtonSprites[1], this.toggleInventory.bind(this));
@@ -397,7 +405,21 @@
             this.currentTab = tab;
             this.inventoryGrid.currentPage = 0;
             this.currentTabArray = this[`${tab}Arr`] || [];
+            this.setSecondaryTab();
             this.inventoryGrid.updateItemSlots(this.currentTabArray);
+        }
+
+        setSecondaryTab(){
+            if(this.currentTab === "wallpaper"){
+                this.menu.updateChild(this.secondaryTabArray[0], this.secondaryTab);
+                this.secondaryTab = this.secondaryTabArray[0];
+            } else if(this.currentTab === "floor"){
+                this.menu.updateChild(this.secondaryTabArray[1], this.secondaryTab);
+                this.secondaryTab = this.secondaryTabArray[1];
+            } else if(this.currentTab === "furnitureItems"){
+                this.menu.updateChild(this.secondaryTabArray[2], this.secondaryTab);
+                this.secondaryTab = this.secondaryTabArray[2];
+            }
         }
 
         //TODO: remove (used for testing)
