@@ -397,7 +397,7 @@
                 }
             });
             this.removeButton = new editorButton(106, 107, 7, editorButtonSprites[4], editorButtonSprites[5], this.exitPlacementMode.bind(this));
-            this.flipButton = new editorButton(62, 107, 7, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
+            this.flipButton = new editorButton(63, 107, 7, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
             this.children.push(this.inventoryButton, this.editButton);
         }
 
