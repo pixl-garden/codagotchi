@@ -52,6 +52,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         return uris;
     }
 
+    private readSpriteData(): string {
+        const spriteDataPath = path.join(this._extensionUri.fsPath, 'media', 'spriteData.bin');
+        const spriteData = fs.readFileSync(spriteDataPath);
+        return spriteData.toString('base64');
+    }
+
     public resolveWebviewView(webviewView: vscode.WebviewView) {
         this._view = webviewView;
 
