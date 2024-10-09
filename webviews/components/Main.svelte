@@ -4,7 +4,7 @@
     import { images } from './store.js';
     import { Room, game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
-    import { preloadAllSpriteSheets } from './SpriteReader.svelte';
+    import { loadSpriteData } from './SpriteReader.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { getPixelSize } from './ScreenManager.svelte';
     import { get } from 'svelte/store';
@@ -22,8 +22,10 @@
         // $game.clearGlobalState();
         $game.syncLocalToGlobalState( {} );
         $game.constructInventory();
+        console.log("Constructed inventory")
         handleResize();
         preloadObjects();
+        console.log("Preloaded objects")
         $game.setCurrentRoom('mainRoom');
     }
 
@@ -89,13 +91,24 @@
         window.addEventListener('message', async (event) => {
             const message = event.data;
             switch (message.type) {
-                case 'image-uris':
-                    startTime = performance.now();  // Start timing
-                    images.set(message.uris);
+                // case 'image-uris':
+                //     startTime = performance.now();  // Start timing
+                //     images.set(message.uris);
                     
-                    // Wait until all sprites are loaded
-                    await preloadAllSpriteSheets().then(() => {
-                        // Call pre() once and start main loop
+                //     // Wait until all sprites are loaded
+                //     await preloadAllSpriteSheets().then(() => {
+                //         // Call pre() once and start main loop
+                //         pre();
+                //         endTime = performance.now();  // End timing
+                //         console.log(`Time taken: ${endTime - startTime} milliseconds`);
+                //         setInterval(main, Math.floor(1000 / FPS));
+                //     });
+                //     break;
+
+                case 'sprite-data':
+                    startTime = performance.now();  // Start timing
+                    loadSpriteData(message.data).then(() => {
+                        console.log('Sprite data loaded and parsed');
                         pre();
                         endTime = performance.now();  // End timing
                         console.log(`Time taken: ${endTime - startTime} milliseconds`);

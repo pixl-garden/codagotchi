@@ -63,20 +63,41 @@ export class TextRenderer {
     // return the text with overflow characters at the specified position if the text exceeds the maxWidth
     getOverflowText(text, overflowPosition, maxWidth) {
         let resultText = text;
-        let concatText = text
-        // remove characters until ellipses will fit within max width
-        while (this.measureText(resultText) > maxWidth) {
-                if(overflowPosition === "left") {
-                    concatText = concatText.slice(1);  // continuously remove the first character
-                    resultText = "..." + concatText;
-                } else if(overflowPosition === "right") {
-                    concatText = concatText.slice(0, -1);  // continuously remove the last character
-                    resultText = concatText + "...";
-                } else {
-                    throw Error("Invalid overflow position, please select either left or right")
-                }
+        let concatText = text;
+        let iterations = 0;
+        const maxIterations = text.length + 3; // Allow for ellipsis
+        
+        console.log("Starting getOverflowText for:", text, "maxWidth:", maxWidth);
+        console.log("Initial text width:", this.measureText(resultText));
+        
+        while (this.measureText(resultText) > maxWidth && iterations < maxIterations) {
+            iterations++;
+            let oldLength = resultText.length;
+            
+            if (overflowPosition === "left") {
+                concatText = concatText.slice(1);
+                resultText = "..." + concatText;
+            } else if (overflowPosition === "right") {
+                concatText = concatText.slice(0, -1);
+                resultText = concatText + "...";
+            } else {
+                throw Error("Invalid overflow position, please select either left or right");
             }
-        return resultText
+            
+            console.log(`Iteration ${iterations}: resultText = "${resultText}", width = ${this.measureText(resultText)}`);
+            
+            if (resultText.length === oldLength) {
+                console.warn("Text length didn't change, breaking loop");
+                break;
+            }
+        }
+        
+        if (iterations >= maxIterations) {
+            console.warn("Max iterations reached in getOverflowText");
+        }
+        
+        console.log("Final overflow text:", resultText, "width:", this.measureText(resultText));
+        return resultText;
     }
 
     // function for trimming excess pixels from the sides of the character sprites (used for non-monospaced font rendering)
@@ -121,6 +142,7 @@ export class TextRenderer {
      * @returns {string[][]} Matrix of pixels (color strings) representing the rendered text
      */
     renderText(text, { renderColor = this.renderColor, textShadowColor = this.textShadowColor, position = "left", overflowPosition = null, maxWidth = 128 } = {}) {
+        console.log("rendering string: ", text)
         if (typeof text !== 'string') {
             throw new Error('renderText: Text must be a string');
         }
@@ -128,6 +150,9 @@ export class TextRenderer {
             throw new Error('renderText: renderColor must be an array of the same length as the renderer\'s renderColor for multi-color text rendering');
         }
         this.text = text;
+
+        console.log("rendering text: ", text)
+        console.log("this.textRenderer: ", this)
         
         // Used to calculate the x position of each character in the rendered text
         let currentWidth = 0;
@@ -139,6 +164,8 @@ export class TextRenderer {
         } else {
             this.displayedText = text;
         }
+
+        console.log("got overflow text: ", this.displayedText)
 
         // Set characterOffsets for each character in the text
         for (let i = 0; i < this.displayedText.length; i++) {
@@ -175,6 +202,8 @@ export class TextRenderer {
             }
         }
 
+        console.log("created matrix")
+
         this.displayedText.split('').forEach((char, i) => {
             const spriteIndex = this.charToSpriteIndex[char];
             const sprite = this.currentCharSprites[spriteIndex];
@@ -206,6 +235,8 @@ export class TextRenderer {
                 });
             });
         });
+
+        console.log("rendered text successfully")
         
         // move text to specified position
         // Add padding to left for center and right positioning
@@ -220,6 +251,7 @@ export class TextRenderer {
         } else if(position !== "left"){
             throw Error("Invalid position, please select either left, center or right")
         }
+        console.log("rendered text successfully")
         return matrix;
     }
 
@@ -228,14 +260,25 @@ export class TextRenderer {
      * @param {string} text The text to measure
      * @returns {number} The width of the text in pixels as integer
      */
-    measureText(text){
+     measureText(text) {
         if (typeof text !== 'string') {
             throw new Error('measureText: Text must be a string');
         }
         let textLength = 0;
-        for(let i = 0; i < text.length; i++){
-            textLength += this.characterWidths.get(text[i]) + this.letterSpacing;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const charWidth = this.characterWidths.get(char);
+            if (charWidth === undefined) {
+                console.warn(`No width found for character '${char}', using default width of 1`);
+                textLength += 1;
+            } else {
+                textLength += charWidth;
+            }
+            if (i > 0) {
+                textLength += this.letterSpacing;
+            }
         }
+        console.log(`measureText: "${text}" = ${textLength}`);
         return textLength;
     }
 }

@@ -5,14 +5,16 @@ const zlib = require('zlib');
 
 const SPRITE_DIR = path.join(__dirname, '..', 'images');
 const OUTPUT_FILE = path.join(__dirname, '..', 'media', 'spriteData.bin');
-const MAX_PALETTE_SIZE = 8192;
+const MAX_PALETTE_SIZE = 16777216; // 2^24, maximum possible colors in 24-bit RGB
+const FILE_NAME_LENGTH = 32;
+const TRANSPARENT_INDEX = 0;
 
-function rgbaToRGB565(r, g, b, a) {
-    if (a < 128) return 0;
-    const r5 = (r >> 3) & 0x1F;
-    const g6 = (g >> 2) & 0x3F;
-    const b5 = (b >> 3) & 0x1F;
-    return (r5 << 11) | (g6 << 5) | b5;
+function rgbaToHex(r, g, b, a) {
+    // Return a special value for fully transparent pixels
+    if (a === 0) {
+        return 'transparent';
+    }
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
 }
 
 function calculateBitsNeeded(numColors) {
@@ -45,7 +47,10 @@ function packIndices(indices, bitsPerIndex) {
 async function convertSprites() {
     const sprites = {};
     const palette = new Map();
-    let paletteIndex = 0;
+    let paletteIndex = 1; // Start at 1, reserving 0 for transparent
+
+    // Add transparent color as the first entry in the palette
+    palette.set('transparent', TRANSPARENT_INDEX);
 
     const files = fs.readdirSync(SPRITE_DIR).filter(file => file.endsWith('.png'));
 
@@ -59,21 +64,26 @@ async function convertSprites() {
 
         const spriteData = [];
         for (let i = 0; i < imageData.data.length; i += 4) {
-            const color = rgbaToRGB565(
+            const color = rgbaToHex(
                 imageData.data[i],
                 imageData.data[i + 1],
                 imageData.data[i + 2],
                 imageData.data[i + 3]
             );
 
-            let index = palette.get(color);
-            if (index === undefined) {
-                if (paletteIndex >= MAX_PALETTE_SIZE) {
-                    console.warn(`Warning: Palette size exceeds ${MAX_PALETTE_SIZE} colors. Some colors will be approximated.`);
-                    index = Math.floor(Math.random() * MAX_PALETTE_SIZE);
-                } else {
-                    index = paletteIndex++;
-                    palette.set(color, index);
+            let index;
+            if (color === 'transparent') {
+                index = TRANSPARENT_INDEX;
+            } else {
+                index = palette.get(color);
+                if (index === undefined) {
+                    if (paletteIndex >= MAX_PALETTE_SIZE) {
+                        console.warn(`Warning: Palette size exceeds ${MAX_PALETTE_SIZE} colors. Some colors will be approximated.`);
+                        index = Math.floor(Math.random() * (MAX_PALETTE_SIZE - 1)) + 1; // Avoid using 0
+                    } else {
+                        index = paletteIndex++;
+                        palette.set(color, index);
+                    }
                 }
             }
             spriteData.push(index);
@@ -86,7 +96,7 @@ async function convertSprites() {
         };
     }
 
-    const paletteArray = Array.from(palette.keys());
+    const paletteArray = Array.from(palette.entries()).sort((a, b) => a[1] - b[1]).map(([color]) => color);
     const bitsPerIndex = calculateBitsNeeded(paletteArray.length);
 
     // Prepare binary data
@@ -99,16 +109,28 @@ async function convertSprites() {
     chunks.push(headerBuffer);
 
     // Write palette
-    const paletteBuffer = Buffer.alloc(paletteArray.length * 2);
+    const paletteBuffer = Buffer.alloc(paletteArray.length * 4); // 4 bytes per color (RGBA)
     paletteArray.forEach((color, index) => {
-        paletteBuffer.writeUInt16LE(color, index * 2);
+        if (color === 'transparent') {
+            // Write a special value for transparent (all zeros)
+            paletteBuffer.writeUInt32LE(0, index * 4);
+        } else {
+            const r = parseInt(color.substr(1, 2), 16);
+            const g = parseInt(color.substr(3, 2), 16);
+            const b = parseInt(color.substr(5, 2), 16);
+            const a = parseInt(color.substr(7, 2), 16);
+            paletteBuffer.writeUInt8(r, index * 4);
+            paletteBuffer.writeUInt8(g, index * 4 + 1);
+            paletteBuffer.writeUInt8(b, index * 4 + 2);
+            paletteBuffer.writeUInt8(a, index * 4 + 3);
+        }
     });
     chunks.push(paletteBuffer);
 
     // Write sprites
     for (const [name, sprite] of Object.entries(sprites)) {
-        const nameBuffer = Buffer.alloc(8);
-        nameBuffer.write(name.padEnd(8, '\0'), 0, 8);
+        const nameBuffer = Buffer.alloc(FILE_NAME_LENGTH);
+        nameBuffer.write(name.slice(0, FILE_NAME_LENGTH - 1), 0, FILE_NAME_LENGTH - 1);
         chunks.push(nameBuffer);
 
         const sizeBuffer = Buffer.alloc(4);
@@ -123,7 +145,7 @@ async function convertSprites() {
     const combinedBuffer = Buffer.concat(chunks);
     const compressedBuffer = zlib.deflateSync(combinedBuffer);
 
-    fs.writeFileSync(OUTPUT_FILE, combinedBuffer);
+    fs.writeFileSync(OUTPUT_FILE, compressedBuffer);
     console.log(`Compressed sprite data written to ${OUTPUT_FILE}`);
     console.log(`Total colors in palette: ${paletteArray.length}`);
     console.log(`Bits per index: ${bitsPerIndex}`);

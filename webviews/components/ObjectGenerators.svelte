@@ -29,13 +29,15 @@
         topShadow = null, bottomShadow = null, topShadowHover = null, bottomShadowHover = null, layout = 'center', offset = 0) {
             return class Button extends GeneratedObject {
                 constructor(x, y, z, text, actionOnClick) {
+                    console.log("Generating text button class")
                     const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text, {overflowPosition: "right", position: "left", maxWidth: width-4}), bottomShadow, topShadow, layout, offset);
                     const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text, {overflowPosition: "right", position: "left", maxWidth: width-4}), bottomShadowHover, topShadowHover, layout, offset );
-
+                    console.log("Default sprite generated")
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
                     this.showPointer = true;
                     this.text = text;
+                    console.log("Text button class generated")
                 }
 
                 onHover() {

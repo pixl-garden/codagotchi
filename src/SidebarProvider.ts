@@ -74,16 +74,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
                 case 'webview-ready': {
-                    const imageUris = this.getImageUris();
-                    const webviewImageUris: { [key: string]: string } = {};
-                    for (const key in imageUris) {
-                        webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
-                    }
-
+                    const spriteData = this.readSpriteData();
                     webviewView.webview.postMessage({
-                        type: 'image-uris',
-                        uris: webviewImageUris,
+                        type: 'sprite-data',
+                        data: spriteData,
                     });
+
                     const refreshToken = (await this.context.secrets.get('refreshToken')) || '';
                     await apiClient.refreshToken(refreshToken, this.context);
 
