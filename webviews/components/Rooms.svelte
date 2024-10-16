@@ -17,8 +17,6 @@
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     
     export function preloadObjects() {
-        console.log("Preloading objects");
-        try{
     //----------------FONT RENDERERS----------------
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
@@ -313,11 +311,9 @@
 
         // PAINT BUTTON INSTANTIATION
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
-        console.log("paintbutton sprites loaded")
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
-        console.log("square paint text button loaded")
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, colorPallete,
          (color) => { 
             postcardRendering.setColor(color); 
@@ -326,7 +322,6 @@
             colorButton.setIcon(newColorButtonIcon, newColorButtonIcon);
         },
         '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1);
-        console.log("color menu loaded")
         let defaultColorButtonIcon = generateColorButtonMatrix(9, 9, Colors.black)
         let colorButton = new paintButtonIcon(10, 0, 5, defaultColorButtonIcon, defaultColorButtonIcon, ()=>{
             if(paintRoom.objects.includes(colorMenuObj)){
@@ -337,7 +332,6 @@
                 paintRoom.addObject(colorMenuObj);
             }
         });
-        console.log("color button loaded")
         let pencilButton = new paintButtonIcon(28, 0, 5, paintButtonSprites[0], paintButtonSprites[0], ()=>{
             postcardRendering.currentCanvas.setToPencilColor()
         });
@@ -361,8 +355,6 @@
             postcardRendering.currentCanvas.incrementSize();
             sizeNumber.setText((postcardRendering.currentCanvas.brushSize / 2).toString());
         });
-
-        console.log("paint buttons loaded")
 
         // FONT MENU INSTANTIATION
         let fontMenuButton = new paintButtonIcon2(64, 0, 5, paintButtonSprites[7], paintButtonSprites[7], ()=>{
@@ -425,8 +417,6 @@
             closeAllPaintMenus();
             postcardRendering.flipPostcard();
         });
-
-        console.log("more buttons loaded")
 
         // STAMP MENU INSTANTIATION
         let stampMenu = new Background('box_canvas', 9, 17, 5, () => {});
@@ -726,7 +716,6 @@
             get(game).getCurrentRoom().addObject( beginMiningButton );
             get(game).getCurrentRoom().removeObject( cancelMiningButton );
             miningNotif.reset();
-            console.log("miningNotif coordinates: (", miningNotif.x, miningNotif.y, miningNotif.z, ")");
         },
         // Update logic
         () => {
@@ -808,12 +797,6 @@
     let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
 
     bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain2);
-    
-    console.log('preload complete');
-    }
-    catch (error) {
-        console.log('preload error:', error);
-    }
 }
 
     export function roomMain(){

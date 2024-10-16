@@ -25,7 +25,6 @@
         console.log("Constructed inventory")
         handleResize();
         preloadObjects();
-        console.log("Preloaded objects")
         $game.setCurrentRoom('mainRoom');
     }
 
@@ -91,20 +90,6 @@
         window.addEventListener('message', async (event) => {
             const message = event.data;
             switch (message.type) {
-                // case 'image-uris':
-                //     startTime = performance.now();  // Start timing
-                //     images.set(message.uris);
-                    
-                //     // Wait until all sprites are loaded
-                //     await preloadAllSpriteSheets().then(() => {
-                //         // Call pre() once and start main loop
-                //         pre();
-                //         endTime = performance.now();  // End timing
-                //         console.log(`Time taken: ${endTime - startTime} milliseconds`);
-                //         setInterval(main, Math.floor(1000 / FPS));
-                //     });
-                //     break;
-
                 case 'sprite-data':
                     startTime = performance.now();  // Start timing
                     loadSpriteData(message.data).then(() => {

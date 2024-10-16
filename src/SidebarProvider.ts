@@ -14,8 +14,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
 
-    private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
-
     private context: vscode.ExtensionContext;
     private cacheManager: CacheManager;
 
@@ -32,24 +30,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             console.error('Failed to initialize Firebase:', error);
             vscode.window.showErrorMessage('Failed to initialize Firebase. Some features may not work.');
         }
-    }
-
-    private getImageUris(): { [key: string]: vscode.Uri } {
-        const imageDir = path.join(this._extensionUri.fsPath, 'images');
-        const imageNames = fs.readdirSync(imageDir);
-        const uris: { [key: string]: vscode.Uri } = {};
-
-        for (const imageName of imageNames) {
-            const uri = vscode.Uri.file(path.join(imageDir, imageName));
-            uris[imageName] = uri;
-        }
-
-        // Convert the URIs using webview.asWebviewUri
-        for (const key in uris) {
-            this.webviewImageUris[key] = this._view?.webview.asWebviewUri(uris[key]).toString() || '';
-        }
-
-        return uris;
     }
 
     private readSpriteData(): string {

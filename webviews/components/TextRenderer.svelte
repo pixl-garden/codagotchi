@@ -67,9 +67,6 @@ export class TextRenderer {
         let iterations = 0;
         const maxIterations = text.length + 3; // Allow for ellipsis
         
-        console.log("Starting getOverflowText for:", text, "maxWidth:", maxWidth);
-        console.log("Initial text width:", this.measureText(resultText));
-        
         while (this.measureText(resultText) > maxWidth && iterations < maxIterations) {
             iterations++;
             let oldLength = resultText.length;
@@ -84,8 +81,6 @@ export class TextRenderer {
                 throw Error("Invalid overflow position, please select either left or right");
             }
             
-            console.log(`Iteration ${iterations}: resultText = "${resultText}", width = ${this.measureText(resultText)}`);
-            
             if (resultText.length === oldLength) {
                 console.warn("Text length didn't change, breaking loop");
                 break;
@@ -95,8 +90,7 @@ export class TextRenderer {
         if (iterations >= maxIterations) {
             console.warn("Max iterations reached in getOverflowText");
         }
-        
-        console.log("Final overflow text:", resultText, "width:", this.measureText(resultText));
+
         return resultText;
     }
 
@@ -142,7 +136,6 @@ export class TextRenderer {
      * @returns {string[][]} Matrix of pixels (color strings) representing the rendered text
      */
     renderText(text, { renderColor = this.renderColor, textShadowColor = this.textShadowColor, position = "left", overflowPosition = null, maxWidth = 128 } = {}) {
-        console.log("rendering string: ", text)
         if (typeof text !== 'string') {
             throw new Error('renderText: Text must be a string');
         }
@@ -150,9 +143,6 @@ export class TextRenderer {
             throw new Error('renderText: renderColor must be an array of the same length as the renderer\'s renderColor for multi-color text rendering');
         }
         this.text = text;
-
-        console.log("rendering text: ", text)
-        console.log("this.textRenderer: ", this)
         
         // Used to calculate the x position of each character in the rendered text
         let currentWidth = 0;
@@ -164,8 +154,6 @@ export class TextRenderer {
         } else {
             this.displayedText = text;
         }
-
-        console.log("got overflow text: ", this.displayedText)
 
         // Set characterOffsets for each character in the text
         for (let i = 0; i < this.displayedText.length; i++) {
@@ -202,8 +190,6 @@ export class TextRenderer {
             }
         }
 
-        console.log("created matrix")
-
         this.displayedText.split('').forEach((char, i) => {
             const spriteIndex = this.charToSpriteIndex[char];
             const sprite = this.currentCharSprites[spriteIndex];
@@ -235,8 +221,6 @@ export class TextRenderer {
                 });
             });
         });
-
-        console.log("rendered text successfully")
         
         // move text to specified position
         // Add padding to left for center and right positioning
@@ -251,7 +235,7 @@ export class TextRenderer {
         } else if(position !== "left"){
             throw Error("Invalid position, please select either left, center or right")
         }
-        console.log("rendered text successfully")
+
         return matrix;
     }
 
@@ -278,7 +262,7 @@ export class TextRenderer {
                 textLength += this.letterSpacing;
             }
         }
-        console.log(`measureText: "${text}" = ${textLength}`);
+
         return textLength;
     }
 }

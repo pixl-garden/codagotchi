@@ -189,7 +189,6 @@ export function spriteReaderFromStore(spriteWidth, spriteHeight, spriteSheetFile
         console.error('Sprite sheet not found:', spriteSheetFile);
         return [];
     }
-    console.log("Reading sprite: ", spriteSheetFile, " pixel matrix: ", pixelMatrix)
 
     return spriteReader(spriteWidth, spriteHeight, pixelMatrix, trimWidth, trimHeight);
 }
