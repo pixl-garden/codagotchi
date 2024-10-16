@@ -51,11 +51,13 @@
   }
 
   .pixel-grid {
-    width: var(--screen-width, 100px);
-    height: var(--screen-width, 100px);
+    width: 100vw;
+    height: 100vw;
     display: flex;
     flex-wrap: none;
     margin: 0 auto;
+    /* image-rendering: pixelated; */
+    image-rendering: crisp-edges;
   }
   
   .pixel {

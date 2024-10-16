@@ -12,5 +12,19 @@
             {
                 
             }
+    },
+    "pearguin2": {
+        "spriteWidth": 48,
+        "spriteHeight": 48,
+        "spriteSheet": "pearguin3.png",
+        "states":
+            {
+                "default": [0],
+                "flop": [0]
+            },
+        "stateGroups":
+            {
+                
+            }
     }
 }
