@@ -314,7 +314,6 @@
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
-
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, colorPallete,
          (color) => { 
             postcardRendering.setColor(color); 
@@ -717,7 +716,6 @@
             get(game).getCurrentRoom().addObject( beginMiningButton );
             get(game).getCurrentRoom().removeObject( cancelMiningButton );
             miningNotif.reset();
-            console.log("miningNotif coordinates: (", miningNotif.x, miningNotif.y, miningNotif.z, ")");
         },
         // Update logic
         () => {

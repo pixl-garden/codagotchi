@@ -14,8 +14,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
 
-    private webviewImageUris: { [key: string]: string } = {}; // Store the image URIs
-
     private context: vscode.ExtensionContext;
     private cacheManager: CacheManager;
 
@@ -34,22 +32,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private getImageUris(): { [key: string]: vscode.Uri } {
-        const imageDir = path.join(this._extensionUri.fsPath, 'images');
-        const imageNames = fs.readdirSync(imageDir);
-        const uris: { [key: string]: vscode.Uri } = {};
-
-        for (const imageName of imageNames) {
-            const uri = vscode.Uri.file(path.join(imageDir, imageName));
-            uris[imageName] = uri;
-        }
-
-        // Convert the URIs using webview.asWebviewUri
-        for (const key in uris) {
-            this.webviewImageUris[key] = this._view?.webview.asWebviewUri(uris[key]).toString() || '';
-        }
-
-        return uris;
+    private readSpriteData(): string {
+        const spriteDataPath = path.join(this._extensionUri.fsPath, 'media', 'spriteData.bin');
+        const spriteData = fs.readFileSync(spriteDataPath);
+        return spriteData.toString('base64');
     }
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -68,16 +54,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
                 case 'webview-ready': {
-                    const imageUris = this.getImageUris();
-                    const webviewImageUris: { [key: string]: string } = {};
-                    for (const key in imageUris) {
-                        webviewImageUris[key] = webviewView.webview.asWebviewUri(imageUris[key]).toString();
-                    }
-
+                    const spriteData = this.readSpriteData();
                     webviewView.webview.postMessage({
-                        type: 'image-uris',
-                        uris: webviewImageUris,
+                        type: 'sprite-data',
+                        data: spriteData,
                     });
+
                     const refreshToken = (await this.context.secrets.get('refreshToken')) || '';
                     await apiClient.refreshToken(refreshToken, this.context);
 

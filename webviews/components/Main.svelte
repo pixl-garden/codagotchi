@@ -4,7 +4,7 @@
     import { images } from './store.js';
     import { Room, game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
-    import { preloadAllSpriteSheets } from './SpriteReader.svelte';
+    import { loadSpriteData } from './SpriteReader.svelte';
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { getPixelSize } from './ScreenManager.svelte';
     import { get } from 'svelte/store';
@@ -22,6 +22,7 @@
         // $game.clearGlobalState();
         $game.syncLocalToGlobalState( {} );
         $game.constructInventory();
+        console.log("Constructed inventory")
         handleResize();
         preloadObjects();
         $game.setCurrentRoom('mainRoom');
@@ -89,13 +90,10 @@
         window.addEventListener('message', async (event) => {
             const message = event.data;
             switch (message.type) {
-                case 'image-uris':
+                case 'sprite-data':
                     startTime = performance.now();  // Start timing
-                    images.set(message.uris);
-                    
-                    // Wait until all sprites are loaded
-                    await preloadAllSpriteSheets().then(() => {
-                        // Call pre() once and start main loop
+                    loadSpriteData(message.data).then(() => {
+                        console.log('Sprite data loaded and parsed');
                         pre();
                         endTime = performance.now();  // End timing
                         console.log(`Time taken: ${endTime - startTime} milliseconds`);

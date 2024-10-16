@@ -31,7 +31,6 @@
                 constructor(x, y, z, text, actionOnClick) {
                     const defaultSprite = generateButtonMatrix( width, height, bgColor, borderColor, textRenderer.renderText(text, {overflowPosition: "right", position: "left", maxWidth: width-4}), bottomShadow, topShadow, layout, offset);
                     const hoverSprite = generateButtonMatrix( width, height, bgColorHovered, borderColorHovered, textRenderer.renderText(text, {overflowPosition: "right", position: "left", maxWidth: width-4}), bottomShadowHover, topShadowHover, layout, offset );
-
                     // State management: 0 for default sprite and 1 for hover sprite
                     super([defaultSprite, hoverSprite], { default: [0], hovered: [1] }, x, y, z, actionOnClick);
                     this.showPointer = true;
