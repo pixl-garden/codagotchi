@@ -421,26 +421,32 @@
         // STAMP MENU INSTANTIATION
         let stampMenu = new Background('box_canvas', 9, 17, 5, () => {});
         function createStampSlot() {
-            let output = new ItemSlot("stampSlot", 0, 0, 25, () => {
-                if(output.slotItem){
-                    output.onStopHover();
-                    stampGrid.displayToolTip = false;
-                    postcardRendering.setStamp(output.slotItem);
-                    closeAllPaintMenus();
-                }
-            });
+            let output = new ItemSlot("stampSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
             return output;
         }
 
+        const stampSlotClickAction = (item) => {
+            if(item !== null){
+                // output.onStopHover();
+                stampGrid.displayToolTip = false;
+                postcardRendering.setStamp(item);
+                closeAllPaintMenus();
+            }
+        }
+
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 25, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10 );
+        console.log("stampInvArray", stampInvArray);
+        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 15, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10, stampSlotClickAction);
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
+            console.log("stamp grid", stampGrid, stampGrid.children)
+            console.log(get(game));
             get(game).getCurrentRoom().addObject( stampGrid );
+            console.log("room: ", get(game).getCurrentRoom(), get(game).getCurrentRoom().objects);
             stampGrid.updateItemSlots(stampInvArray);
         })
         let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
@@ -535,6 +541,7 @@
             get(game).addStackableItem(`ore1`, 2);
             get(game).addStackableItem(`ingot1`, 2);
         }
+        get(game).addStackableItem('HTMLStamp', 2);
 
         // addTestableItems();
         

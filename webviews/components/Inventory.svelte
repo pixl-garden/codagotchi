@@ -346,6 +346,7 @@
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             this.updateItemSlots(items);
             this.clickAction = clickAction;
+            this.renderChildren = true;
         }
 
         setHoverLogic() {
@@ -397,6 +398,7 @@
         //update the item slots with new items
         updateItemSlots(itemsArray){
             let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.clickAction);
+            console.log("ItemSlotExport", itemSlotExport)
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();

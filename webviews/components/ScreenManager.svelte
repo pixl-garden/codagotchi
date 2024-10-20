@@ -92,7 +92,6 @@
     const internalResolution = 512; // Fixed high internal resolution
 
     export function initWebGL(canvas) {
-        // Set the canvas to our high internal resolution
         canvas.width = internalResolution;
         canvas.height = internalResolution;
 

@@ -7,7 +7,7 @@
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
 
-    const FPS = 16; //frames per second
+    const FPS = 40; //frames per second
     let screen = [];
     let currentRoom;
     let canvas;
@@ -15,12 +15,9 @@
     let startTime, endTime;
     let webglContext;
 
-
-
     function pre() {
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
-        console.log("Constructed inventory");
         preloadObjects();
         $game.setCurrentRoom('mainRoom');
     }
