@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
+    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -439,7 +439,7 @@
         console.log("stampInvArray", stampInvArray);
         // let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 15, stampInvArray, createStampSlot, testToolTip, null, 4, 4, 10, stampSlotClickAction);
 
-        const stampGrid = new inventoryGrid({
+        const stampGrid = new InventoryGrid({
             columns: 3, rows: 3,
             spacing: { x: 3, y: 3 },
             position: { x: 24, y: 24, z: 15 },
@@ -569,8 +569,8 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        const inventoryGridInstance = new inventoryGrid({
-            columns: 5, rows: 2,
+        const inventoryGridInstance = new InventoryGrid({
+            columns: 5, rows: 3,
             spacing: { x: 2, y: 2 },
             position: { x: 15, y: 21, z: 1 },
             items: [],

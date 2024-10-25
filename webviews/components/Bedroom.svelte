@@ -7,7 +7,7 @@
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import bedroomConfig from './config/bedroomConfig.json';
-    import { inventoryGrid, BedroomItem } from './Inventory.svelte';
+    import { InventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
     import * as pako from 'pako';
 
@@ -351,7 +351,7 @@
                 output.passMouseCoords = true;
                 return output;
             }
-            this.inventoryGrid = new inventoryGrid({
+            this.inventoryGrid = new InventoryGrid({
                 columns: 2, rows: 2,
                 spacing: { x: 4, y: 3 },
                 position: { x: 14, y: 21, z: 11 },

@@ -328,14 +328,16 @@
         return item;
     }
 
-    export class inventoryGrid extends ObjectGrid{
+    export class InventoryGrid extends ObjectGrid{
         constructor({columns, rows, spacing, position, items, slotFactory, 
                 toolTip, numberTextRenderer, slotClickAction = () => {}, 
-                itemOffset = { x: 0, y: 0, z: 1 }}) {
+                itemOffset = { x: 0, y: 0, z: 1 }, renderEmpty = true, scrollable = true, emptyHover = true}) {
             let constructedItems = constructInventoryObjects(slotFactory, items, rows*columns, numberTextRenderer, slotClickAction, itemOffset.x, itemOffset.y, itemOffset.z);
-            super(columns, spacing.x, rows, spacing.y, position.x, position.y, position.z, constructedItems, true);
+            super(columns, spacing.x, rows, spacing.y, position.x, position.y, position.z, constructedItems, scrollable);
             this.slotFactory = slotFactory;
-            this.totalSlots = this.objects.length;
+            this.renderEmpty = renderEmpty;
+            this.emptyHover = emptyHover;
+            this.pageSize = rows*columns;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.displayToolTip = false;
@@ -350,7 +352,6 @@
             this.clickAction = () => {};
             this.slotClickAction = (item)=>{slotClickAction(item); this.displayToolTip = false; this.hoveredItem = null; this.hoveredChild = null; this.onStopHover()};
             this.renderChildren = true;
-            this.renderEmpty = false;
         }
 
         setHoverLogic() {
@@ -365,8 +366,10 @@
                         this.toolTip?.setItem(itemSlot.slotItem);
                         this.hoveredItem = itemSlot.slotItem;
                         this.displayToolTip = true;
+                        itemSlot.updateState("hovered");
+                    } else if(this.emptyHover) {
+                        itemSlot.updateState("hovered");
                     }
-                    itemSlot.updateState("hovered");
                 }
                 //on itemSlot stop hover, hide the tooltip
                 itemSlot.onStopHover = () => {
@@ -401,8 +404,9 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            let itemSlotExport = constructInventoryObjects(this.slotFactory, itemsArray, itemsArray.length, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
-            console.log("ItemSlotExport", itemSlotExport)
+            this.items = itemsArray;
+            this.totalSlots = this.renderEmpty ? (this.pageSize - this.items.length % this.pageSize) + this.items.length : this.items.length;
+            let itemSlotExport = constructInventoryObjects(this.slotFactory, itemsArray, this.totalSlots, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
@@ -444,6 +448,11 @@
             }
             else{
                 slotInstance.slotItem = null;
+                slotInstance.actionOnClick = () => {};
+                slotInstance.whileHover = () => {};
+                slotInstance.onHover = () => {};
+                slotInstance.onStopHover = () => {};
+                slotInstance.hoverWithChildren = false;
             }
             inventoryGrid.push(slotInstance);
         }
