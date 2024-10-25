@@ -308,6 +308,7 @@
         }
 
         getItemsByType(itemType) {
+            console.log("ItemsByType", this.itemsByType, "type", this.itemsByType.get(itemType));
             const inventoryIds = this.itemsByType.get(itemType) || new Set();
             return Array.from(inventoryIds).map(id => this.items.get(id));
         }
@@ -329,8 +330,8 @@
 
     export class inventoryGrid extends ObjectGrid{
         constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, clickAction = () => {}) {
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, clickAction);
+                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, slotClickAction = () => {}) {
+            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, slotClickAction, itemX, itemY, itemZ);
             super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
             this.itemSlotConstructor = itemSlotConstructor;
             this.totalSlots = this.objects.length;
@@ -345,8 +346,10 @@
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             this.updateItemSlots(items);
-            this.clickAction = clickAction;
+            this.clickAction = () => {};
+            this.slotClickAction = (item)=>{slotClickAction(item); this.displayToolTip = false; this.hoveredItem = null; this.hoveredChild = null; this.onStopHover()};
             this.renderChildren = true;
+            this.renderEmpty = false;
         }
 
         setHoverLogic() {
@@ -397,7 +400,7 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.clickAction);
+            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
             console.log("ItemSlotExport", itemSlotExport)
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
@@ -409,7 +412,7 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}, itemX = 0, itemY = 0, itemZ = 1) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
@@ -419,10 +422,10 @@
                 // if item has thumbnail set it as displayItem, otherwise use item sprite
                 let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, 0, 0, slotInstance.z + 1) : item;
                 // find x and y coordinates that will center item
-                let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2);
-                let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2);
+                let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2) + itemX;
+                let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2) + itemY;
 
-                displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + 1);
+                displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + itemZ);
                 // ignore click events on the display item
                 displayItem.mouseInteractions = false;
                 slotInstance.addChild(displayItem);
