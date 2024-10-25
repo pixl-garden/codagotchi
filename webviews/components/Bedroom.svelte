@@ -7,7 +7,7 @@
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import bedroomConfig from './config/bedroomConfig.json';
-    import { inventoryGrid, BedroomItem } from './Inventory.svelte';
+    import { InventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
     import * as pako from 'pako';
 
@@ -351,7 +351,17 @@
                 output.passMouseCoords = true;
                 return output;
             }
-            this.inventoryGrid = new inventoryGrid(2, 4, 2, 3, 14, 21, 11, [], createItemSlotXL, null, null, 0, 0, 1, this.slotClickAction);
+            this.inventoryGrid = new InventoryGrid({
+                columns: 2, rows: 2,
+                spacing: { x: 4, y: 3 },
+                position: { x: 14, y: 21, z: 11 },
+                items: [],
+                slotFactory: createItemSlotXL,
+                tooltip: null,
+                numberTextRenderer: null,
+                slotClickAction: this.slotClickAction,
+                itemOffset: { x: 0, y: 0, z: 1 }
+            });
             this.initializeButtons();
             this.menu.children = [this.inventoryGrid, this.inventoryTabList, this.secondaryTab, this.menuCloseButton];
             this.setTab(this.currentTab);

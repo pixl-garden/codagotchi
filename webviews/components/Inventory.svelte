@@ -308,6 +308,7 @@
         }
 
         getItemsByType(itemType) {
+            console.log("ItemsByType", this.itemsByType, "type", this.itemsByType.get(itemType));
             const inventoryIds = this.itemsByType.get(itemType) || new Set();
             return Array.from(inventoryIds).map(id => this.items.get(id));
         }
@@ -327,25 +328,30 @@
         return item;
     }
 
-    export class inventoryGrid extends ObjectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, clickAction = () => {}) {
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, clickAction);
-            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
-            this.itemSlotConstructor = itemSlotConstructor;
-            this.totalSlots = this.objects.length;
+    export class InventoryGrid extends ObjectGrid{
+        constructor({columns, rows, spacing, position, items, slotFactory, 
+                toolTip, numberTextRenderer, slotClickAction = () => {}, 
+                itemOffset = { x: 0, y: 0, z: 1 }, renderEmpty = true, scrollable = true, emptyHover = true}) {
+            let constructedItems = constructInventoryObjects(slotFactory, items, rows*columns, numberTextRenderer, slotClickAction, itemOffset.x, itemOffset.y, itemOffset.z);
+            super(columns, spacing.x, rows, spacing.y, position.x, position.y, position.z, constructedItems, scrollable);
+            this.slotFactory = slotFactory;
+            this.renderEmpty = renderEmpty;
+            this.emptyHover = emptyHover;
+            this.pageSize = rows*columns;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.displayToolTip = false;
             this.hoverWithChildren = true;
-            this.itemX = itemX;
-            this.itemY = itemY;
-            this.itemZ = itemZ;
+            this.itemX = itemOffset.x;
+            this.itemY = itemOffset.y;
+            this.itemZ = itemOffset.z;
             this.toolTip = toolTip;
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
             this.updateItemSlots(items);
-            this.clickAction = clickAction;
+            this.clickAction = () => {};
+            this.slotClickAction = (item)=>{slotClickAction(item); this.displayToolTip = false; this.hoveredItem = null; this.hoveredChild = null; this.onStopHover()};
+            this.renderChildren = true;
         }
 
         setHoverLogic() {
@@ -360,8 +366,10 @@
                         this.toolTip?.setItem(itemSlot.slotItem);
                         this.hoveredItem = itemSlot.slotItem;
                         this.displayToolTip = true;
+                        itemSlot.updateState("hovered");
+                    } else if(this.emptyHover) {
+                        itemSlot.updateState("hovered");
                     }
-                    itemSlot.updateState("hovered");
                 }
                 //on itemSlot stop hover, hide the tooltip
                 itemSlot.onStopHover = () => {
@@ -396,7 +404,9 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.clickAction);
+            this.items = itemsArray;
+            this.totalSlots = this.renderEmpty ? (this.pageSize - this.items.length % this.pageSize) + this.items.length : this.items.length;
+            let itemSlotExport = constructInventoryObjects(this.slotFactory, itemsArray, this.totalSlots, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
@@ -407,7 +417,7 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}, itemX = 0, itemY = 0, itemZ = 1) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
@@ -417,10 +427,10 @@
                 // if item has thumbnail set it as displayItem, otherwise use item sprite
                 let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, 0, 0, slotInstance.z + 1) : item;
                 // find x and y coordinates that will center item
-                let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2);
-                let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2);
+                let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2) + itemX;
+                let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2) + itemY;
 
-                displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + 1);
+                displayItem.setCoordinate(newItemX, newItemY, slotInstance.z + itemZ);
                 // ignore click events on the display item
                 displayItem.mouseInteractions = false;
                 slotInstance.addChild(displayItem);
@@ -438,6 +448,11 @@
             }
             else{
                 slotInstance.slotItem = null;
+                slotInstance.actionOnClick = () => {};
+                slotInstance.whileHover = () => {};
+                slotInstance.onHover = () => {};
+                slotInstance.onStopHover = () => {};
+                slotInstance.hoverWithChildren = false;
             }
             inventoryGrid.push(slotInstance);
         }

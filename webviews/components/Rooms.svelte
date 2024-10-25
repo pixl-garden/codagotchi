@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, inventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
+    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -399,9 +399,6 @@
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         });
 
-        let testStampItem = new InventoryItem('CStamp', 0, 0, 0)
-        postcardRendering.setStamp(testStampItem);
-
         let flipButton = new Button(55, 111, 5, 'flipButton', () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
@@ -419,28 +416,48 @@
         });
 
         // STAMP MENU INSTANTIATION
-        let stampMenu = new Background('box_canvas', 9, 17, 5, () => {});
+        let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
         function createStampSlot() {
-            let output = new ItemSlot("stampSlot", 0, 0, 25, () => {
-                if(output.slotItem){
-                    output.onStopHover();
-                    stampGrid.displayToolTip = false;
-                    postcardRendering.setStamp(output.slotItem);
-                    closeAllPaintMenus();
-                }
-            });
+            let output = new ItemSlot("stampSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
             return output;
         }
 
+        const stampSlotClickAction = (item) => {
+            if(item !== null){
+                stampGrid.displayToolTip = false;
+                postcardRendering.setStamp(item);
+                closeAllPaintMenus();
+                stampGrid.onStopHover();
+            }
+        }
+
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 25, stampInvArray, createStampSlot, testToolTip, null, 0, 0, 10 );
+        console.log("inventory", get(game).inventory, get(game).inventory.items);
+        console.log("stampInvArray", stampInvArray);
+        // let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 15, stampInvArray, createStampSlot, testToolTip, null, 4, 4, 10, stampSlotClickAction);
+
+        const stampGrid = new InventoryGrid({
+            columns: 3, rows: 3,
+            spacing: { x: 3, y: 3 },
+            position: { x: 24, y: 24, z: 15 },
+            items: stampInvArray,
+            slotFactory: createStampSlot,
+            toolTip: testToolTip,
+            numberTextRenderer: null,
+            slotClickAction: stampSlotClickAction,
+            itemOffset: { x: 4, y: 4, z: 10 }
+        });
+        
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
+            console.log("stamp grid", stampGrid, stampGrid.children)
+            console.log(get(game));
             get(game).getCurrentRoom().addObject( stampGrid );
+            console.log("room: ", get(game).getCurrentRoom(), get(game).getCurrentRoom().objects);
             stampGrid.updateItemSlots(stampInvArray);
         })
         let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
@@ -535,6 +552,9 @@
             get(game).addStackableItem(`ore1`, 2);
             get(game).addStackableItem(`ingot1`, 2);
         }
+        get(game).addStackableItem('HTMLStamp', 2);
+        get(game).addStackableItem('CStamp', 2);
+        get(game).addStackableItem('CSSStamp', 2);
 
         // addTestableItems();
         
@@ -549,7 +569,17 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 2, 2, 10);
+        const inventoryGridInstance = new InventoryGrid({
+            columns: 5, rows: 3,
+            spacing: { x: 2, y: 2 },
+            position: { x: 15, y: 21, z: 1 },
+            items: [],
+            slotFactory: createItemSlot,
+            tooltip: null,
+            numberTextRenderer: electro,
+            slotClickAction: () => {},
+            itemOffset: { x: 0, y: 0, z: 1 }
+        });
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');

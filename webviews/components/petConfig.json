@@ -1,5 +1,5 @@
 {
-    "pearguin": {
+    "pearguin2": {
         "spriteWidth": 48,
         "spriteHeight": 48,
         "spriteSheet": "pearguin.png",
@@ -13,10 +13,10 @@
                 
             }
     },
-    "pearguin2": {
+    "pearguin": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "spriteSheet": "pearguin3.png",
+        "spriteSheet": "pearguin6.png",
         "states":
             {
                 "default": [0],
