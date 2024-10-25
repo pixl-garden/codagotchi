@@ -399,9 +399,6 @@
             postcardRendering.currentCanvas.retrieveFutureCanvas();
         });
 
-        let testStampItem = new InventoryItem('CStamp', 0, 0, 0)
-        postcardRendering.setStamp(testStampItem);
-
         let flipButton = new Button(55, 111, 5, 'flipButton', () => {
             if(postcardRendering.state === 'front'){
                 get(game).getCurrentRoom().addObject( postcardTextInputButton );
@@ -440,7 +437,20 @@
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
         console.log("inventory", get(game).inventory, get(game).inventory.items);
         console.log("stampInvArray", stampInvArray);
-        let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 15, stampInvArray, createStampSlot, testToolTip, null, 4, 4, 10, stampSlotClickAction);
+        // let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 15, stampInvArray, createStampSlot, testToolTip, null, 4, 4, 10, stampSlotClickAction);
+
+        const stampGrid = new inventoryGrid({
+            columns: 3, rows: 3,
+            spacing: { x: 3, y: 3 },
+            position: { x: 24, y: 24, z: 15 },
+            items: stampInvArray,
+            slotFactory: createStampSlot,
+            toolTip: testToolTip,
+            numberTextRenderer: null,
+            slotClickAction: stampSlotClickAction,
+            itemOffset: { x: 4, y: 4, z: 10 }
+        });
+        
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             get(game).getCurrentRoom().addObject( stampMenu );
@@ -559,7 +569,17 @@
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
-        let inventoryGridInstance = new inventoryGrid(5, 2, 3, 2, 15, 21, 1, [], createItemSlot, null, electro, 0, 0, 1);
+        const inventoryGridInstance = new inventoryGrid({
+            columns: 5, rows: 2,
+            spacing: { x: 2, y: 2 },
+            position: { x: 15, y: 21, z: 1 },
+            items: [],
+            slotFactory: createItemSlot,
+            tooltip: null,
+            numberTextRenderer: electro,
+            slotClickAction: () => {},
+            itemOffset: { x: 0, y: 0, z: 1 }
+        });
         
         let fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
         let testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');

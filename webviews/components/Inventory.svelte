@@ -329,19 +329,20 @@
     }
 
     export class inventoryGrid extends ObjectGrid{
-        constructor(columns, columnSpacing, rows, rowSpacing, x, y, z, items, itemSlotConstructor, toolTip, 
-                    numberTextRenderer, itemX = 0, itemY = 0, itemZ = 10, slotClickAction = () => {}) {
-            let constructedItems = constructInventoryObjects(itemSlotConstructor, items, rows*columns, numberTextRenderer, slotClickAction, itemX, itemY, itemZ);
-            super(columns, columnSpacing, rows, rowSpacing, x, y, z, constructedItems, true);
-            this.itemSlotConstructor = itemSlotConstructor;
+        constructor({columns, rows, spacing, position, items, slotFactory, 
+                toolTip, numberTextRenderer, slotClickAction = () => {}, 
+                itemOffset = { x: 0, y: 0, z: 1 }}) {
+            let constructedItems = constructInventoryObjects(slotFactory, items, rows*columns, numberTextRenderer, slotClickAction, itemOffset.x, itemOffset.y, itemOffset.z);
+            super(columns, spacing.x, rows, spacing.y, position.x, position.y, position.z, constructedItems, true);
+            this.slotFactory = slotFactory;
             this.totalSlots = this.objects.length;
             this.items = items;
             this.numberTextRenderer = numberTextRenderer;
             this.displayToolTip = false;
             this.hoverWithChildren = true;
-            this.itemX = itemX;
-            this.itemY = itemY;
-            this.itemZ = itemZ;
+            this.itemX = itemOffset.x;
+            this.itemY = itemOffset.y;
+            this.itemZ = itemOffset.z;
             this.toolTip = toolTip;
             this.hoveredItem = null;
             this.toolTip?.setCoordinate(0, 0, this.itemZ+1);
@@ -400,7 +401,7 @@
 
         //update the item slots with new items
         updateItemSlots(itemsArray){
-            let itemSlotExport = constructInventoryObjects(this.itemSlotConstructor, itemsArray, itemsArray.length, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
+            let itemSlotExport = constructInventoryObjects(this.slotFactory, itemsArray, itemsArray.length, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
             console.log("ItemSlotExport", itemSlotExport)
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
