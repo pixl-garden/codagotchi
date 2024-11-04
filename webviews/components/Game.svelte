@@ -192,14 +192,16 @@
             const updates = {
                 inventoryUpdates: this.generateInventoryUpdates(),
                 xp: this.pendingUpdates.xp,
-                // petUpdates: this.generatePetUpdates(),
-                // customizationUpdates: this.generateCustomizationUpdates()
+                bedroomUpdates: { value: this.pendingUpdates.bedroomUpdates },
+                petUpdates: {},
+                customizationUpdates: {}
             };
 
             if (Object.keys(updates.inventoryUpdates).length > 0 || 
                 updates.xp !== 0 || 
                 Object.keys(updates.petUpdates).length > 0 || 
-                Object.keys(updates.customizationUpdates).length > 0) {
+                Object.keys(updates.customizationUpdates).length > 0 || 
+                Object.keys(updates.bedroomUpdates).value !== "") {
 
                 console.log("userData updates:", updates);
                 
@@ -210,7 +212,8 @@
                     inventory: {},
                     xp: 0,
                     pet: {},
-                    customization: {}
+                    customization: {},
+                    bedroomUpdates: {}
                 };
             }
         }
@@ -240,11 +243,11 @@
         }
 
         // Add a method to start periodic syncing
-        startPeriodicSync(interval = 60000) { // 60000 ms = 1 minute
+        startPeriodicSync(interval = 10000) { // 60000 ms = 1 minute
             setInterval(() => {
-                if (Object.keys(this.pendingUpdates.inventory).length > 0) {
+                // if (Object.keys(this.pendingUpdates.inventory).length > 0) {
                     this.syncUserData();
-                }
+                // }
             }, interval);
         }
     }

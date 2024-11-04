@@ -7,7 +7,7 @@
     import { preloadObjects, roomMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
 
-    const FPS = 40; //frames per second
+    const FPS = 20; //frames per second
     let screen = [];
     let currentRoom;
     let canvas;

@@ -458,6 +458,8 @@
         }
         return inventoryGrid;
     }
+
+    // Used for main inventory display, managing tabs and scaled item display
     export class inventoryDisplayManager extends GeneratedObject{
         constructor(x, y, z, gameRef, inventoryGrid, tabs, scaledItem, itemInfoDisplay, prevPageButton, nextPageButton) {
             let emptyMatrix = generateEmptyMatrix(128, 128);

@@ -1,6 +1,7 @@
 import { verifyToken } from './verifyToken.js';
 import * as functions from 'firebase-functions';
 import { admin } from './firebaseConfig.js';
+import { log } from "firebase-functions/logger"
 
 /*
  A function to periodically sync the user's inventory with the database.
@@ -17,7 +18,7 @@ import { admin } from './firebaseConfig.js';
 // 3. Pet updates (hunger, happiness, clothing, etc.) - setting the user's pet data
 // 4. XP updates - updating the user's XP
 
-async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates) {
+async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates) {
     const updates = {};
 
     // Process inventory updates
@@ -61,6 +62,14 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
     if (customizationUpdates) {
         for (const [key, value] of Object.entries(customizationUpdates)) {
             updates[`/users/${uid}/protected/owned/${key}`] = value;
+        }
+    }
+
+    // Process bedroom updates
+    if(bedroomUpdates) {
+        log("bedroom updates", bedroomUpdates)
+        for (const [key, value] of Object.entries(customizationUpdates)) {
+            updates[`/users/${uid}/public/bedroom`] = value;
         }
     }
 
@@ -110,10 +119,10 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         try {
             // console.log("req user:", req.user);
             const uid = req.user.uid;
-            const { inventoryUpdates, petUpdates, customizationUpdates } = req.body;
+            const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = req.body;
 
             // Process all updates
-            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates);
+            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates);
 
             res.status(200).send({ success: true, message: 'User data synced successfully' });
             

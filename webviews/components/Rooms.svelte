@@ -552,9 +552,9 @@
             get(game).addStackableItem(`ore1`, 2);
             get(game).addStackableItem(`ingot1`, 2);
         }
-        get(game).addStackableItem('HTMLStamp', 2);
-        get(game).addStackableItem('CStamp', 2);
-        get(game).addStackableItem('CSSStamp', 2);
+        // get(game).addStackableItem('HTMLStamp', 2);
+        // get(game).addStackableItem('CStamp', 2);
+        // get(game).addStackableItem('CSSStamp', 2);
 
         // addTestableItems();
         
@@ -593,11 +593,11 @@
             }]
         );
         let itemInfoDisplayInstance = new itemInfoDisplay(53, 97, 5, tiny);
-        let prevPageButton = new Button(0, 42, 5, "prevPageButton", ()=>{
+        let prevPageButton = new Button(0, 42, 5, "prevPageButton", ()=> {
             inventoryDisplayManagerInstance.inventoryGrid.setPrevPage();
         });
 
-        let nextPageButton = new Button(120, 42, 5, "nextPageButton", ()=>{
+        let nextPageButton = new Button(120, 42, 5, "nextPageButton", ()=> {
             inventoryDisplayManagerInstance.inventoryGrid.setNextPage();
         });
         
