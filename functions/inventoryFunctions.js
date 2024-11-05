@@ -21,6 +21,8 @@ import { log } from "firebase-functions/logger"
 async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates) {
     const updates = {};
 
+    log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "customization updates", customizationUpdates, "bedroom updates", bedroomUpdates)
+
     // Process inventory updates
     if (inventoryUpdates && inventoryUpdates.length > 0) {
         const inventoryChanges = {};
@@ -68,9 +70,7 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
     // Process bedroom updates
     if(bedroomUpdates) {
         log("bedroom updates", bedroomUpdates)
-        for (const [key, value] of Object.entries(customizationUpdates)) {
-            updates[`/users/${uid}/public/bedroom`] = value;
-        }
+        updates[`/users/${uid}/public/bedroom`] = bedroomUpdates;
     }
 
     // Perform the update if there are any changes

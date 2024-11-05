@@ -247,13 +247,14 @@ export async function retrieveInventory(context: vscode.ExtensionContext, cacheM
 }
 
 // TEST the TYPES
-export async function syncUserData(context: vscode.ExtensionContext, userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON }) {
+export async function syncUserData(context: vscode.ExtensionContext, 
+    userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON; bedroomUpdates: JSON}) {
     const idToken = await context.secrets.get('idToken');
-    const { inventoryUpdates, petUpdates, customizationUpdates } = userData;
+    const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = userData;
     try {
         const response = await axios.post(
             `${BASE_URL}/syncUserData`,
-            { inventoryUpdates, petUpdates, customizationUpdates },
+            { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates },
             {
                 headers: {
                     Authorization: `Bearer ${idToken}`,
