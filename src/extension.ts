@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
 import { Logger } from './logger';
+import { set } from 'lodash';
 
 const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
 let sidebarProvider: SidebarProvider;
@@ -98,6 +99,12 @@ function listenForDocumentSave(context: vscode.ExtensionContext): void {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {
+export function deactivate(context: vscode.ExtensionContext) {
+    logger.log('Extension deactivating...');
+    try{
+        setLastSaveTime(context);
+    } catch (error) {
+        logger.log('Error setting last save time', error as Error);
+    }
     logger.log('Extension deactivated');
 }

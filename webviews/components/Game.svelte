@@ -243,7 +243,7 @@
         }
 
         // Add a method to start periodic syncing
-        startPeriodicSync(interval = 60000) { // 60000 ms = 1 minute
+        startPeriodicSync(interval = 10000) { // 60000 ms = 1 minute
             setInterval(() => {
                 // if (Object.keys(this.pendingUpdates.inventory).length > 0) {
                     this.syncUserData();
