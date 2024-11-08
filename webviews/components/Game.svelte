@@ -206,6 +206,7 @@
                 console.log("userData updates:", updates);
                 
                 tsvscode.postMessage({ type: 'syncUserData', userData: updates });
+                tsvscode.postMessage({ type: 'handleDatabaseUpdates', updates: updates});
                 
                 // Clear pending updates after sending
                 this.pendingUpdates = {

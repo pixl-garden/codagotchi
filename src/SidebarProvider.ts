@@ -222,6 +222,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     await apiClient.syncUserData(this.context, data.userData);
                     break;
                 }
+                case 'handleDatabaseUpdates': {
+                    handleDatabaseUpdates(this.context, data.updates);
+                    break;
+                }
             }
         });
     }
@@ -293,7 +297,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 //         apple: { quantity: 7 }
 //     }
 // });
-// if apple already exists in the inventory, it will overwrite the new quantity with the existing quantity
+// if apple already exists in the inventory, it will overwrite the existing quantity with the new quantity
 // and will not delete other keys in the inventory object
 function updateGlobalState(context: vscode.ExtensionContext, partialUpdate: { [key: string]: any }): Thenable<void> {
     // Retrieve the existing global state
@@ -392,4 +396,22 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
             // console.log(`Key: ${key}, Value: ${jsonObject[key]}`);
         }
     }
+}
+
+let pendingUpdatesCount = 0;
+function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: { bedroomUpdates: string, xp: number, inventoryUpdates: JSON}) {
+    const currentState = getGlobalState(context).databaseUpdates
+    Object.keys(currentState.inventoryUpdates).filter(key => key in updatesJSON.inventoryUpdates).forEach(key => {
+        currentState.inventoryUpdates[key] += updatesJSON.inventoryUpdates[key];
+    });
+        
+
+
+    updateGlobalState(context, { databaseUpdates: { [pendingUpdatesCount]: {
+        bedroomUpdates: updatesJSON.bedroomUpdates,
+        xp: currentState + updatesJSON.xp
+    } }})
+    pendingUpdatesCount++;
+    
+    console.log(JSON.stringify(getGlobalState(context)));
 }
