@@ -398,19 +398,63 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
     }
 }
 
-let pendingUpdatesCount = 0;
-function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: { bedroomUpdates: string, xp: number, inventoryUpdates: JSON}) {
-    const currentState = getGlobalState(context).databaseUpdates
-    Object.keys(currentState.inventoryUpdates).filter(key => key in updatesJSON.inventoryUpdates).forEach(key => {
-        currentState.inventoryUpdates[key] += updatesJSON.inventoryUpdates[key];
+// let pendingUpdatesCount = 0;
+// function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: { bedroomUpdates: string, xp: number, inventoryUpdates: JSON}) {
+//     const currentState = getGlobalState(context).databaseUpdates
+       
+//     // Update inventory: stack items if they already exist, add new ones if not
+//     Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
+//         if (currentState.inventoryUpdates[key]) {
+//             currentState.inventoryUpdates[key] += updatesJSON.inventoryUpdates[key];
+//         } else {
+//             currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
+//         }
+//     });
+
+
+//     updateGlobalState(context, { databaseUpdates: { [pendingUpdatesCount]: {
+//         bedroomUpdates: updatesJSON.bedroomUpdates,
+//         xp: currentState + updatesJSON.xp
+//     } }})
+//     pendingUpdatesCount++;
+    
+//     console.log(JSON.stringify(getGlobalState(context)));
+// }
+
+
+let pendingUpdatesCount = 0; // Assuming this is defined outside the function if it's used globally
+
+interface DatabaseUpdates {
+    bedroomUpdates: string;
+    xp: number;
+    inventoryUpdates: Record<string, number>;
+    petUpdates: JSON;
+    customizationUpdates: JSON;
+}
+
+function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: DatabaseUpdates): void {
+    const currentState = getGlobalState(context).databaseUpdates as DatabaseUpdates;
+
+    // Update inventory: stack items if they already exist, add new ones if not
+    Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
+        if (currentState.inventoryUpdates[key] !== undefined) {
+            currentState.inventoryUpdates[key] += updatesJSON.inventoryUpdates[key];
+        } else {
+            currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
+        }
     });
-        
 
-
-    updateGlobalState(context, { databaseUpdates: { [pendingUpdatesCount]: {
-        bedroomUpdates: updatesJSON.bedroomUpdates,
-        xp: currentState + updatesJSON.xp
-    } }})
+    // Update other parts of the global state
+    updateGlobalState(context, { 
+        databaseUpdates: { 
+            [pendingUpdatesCount]: {
+                bedroomUpdates: updatesJSON.bedroomUpdates,
+                xp: currentState.xp + updatesJSON.xp, // Correct xp addition
+                inventoryUpdates: currentState.inventoryUpdates // Ensure inventory is saved with updates
+            }
+        } 
+    });
+    
     pendingUpdatesCount++;
     
     console.log(JSON.stringify(getGlobalState(context)));
