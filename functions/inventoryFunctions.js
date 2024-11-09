@@ -29,22 +29,27 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
         let xpChange = 0;
 
         for (const update of inventoryUpdates) {
-            if (Array.isArray(update.items)) {
-                for (const item of update.items) {
-                    inventoryChanges[item.id] = (inventoryChanges[item.id] || 0) + item.amount;
-                }
-            } else if (update.itemId) {
-                inventoryChanges[update.itemId] = (inventoryChanges[update.itemId] || 0) + update.amount;
-            }
+            //REMOVE THIS PROBABLY??
+            // if (Array.isArray(update.items)) {
+            //     for (const item of update.items) {
+            //         inventoryChanges[item.id] = (inventoryChanges[item.id] || 0) + item.amount;
+            //     }
+            // } else 
 
-            if (update.xp) {
-                xpChange += update.xp;
+            if (update.itemId) {
+                if(update.amount === 0) {
+                    inventoryChanges[update.itemId] = null; // removes the key from the inventory json
+                } else {
+                    inventoryChanges[update.itemId] = update.amount;
+                }
             }
         }
 
+        
+
         // Apply inventory changes
         for (const [itemId, amount] of Object.entries(inventoryChanges)) {
-            updates[`/users/${uid}/protected/inventory/${itemId}`] = admin.database.ServerValue.increment(amount);
+            updates[`/users/${uid}/protected/inventory/${itemId}`] = amount;
         }
 
         // Apply XP change

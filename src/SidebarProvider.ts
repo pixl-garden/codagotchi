@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { merge } from 'lodash';
+import { merge, update } from 'lodash';
 import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -78,6 +78,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         type: 'cached-user-inventory',
                         userInventory: cachedUserInventory,
                     });
+
+                    startPeriodicSync(this.context);
 
                     break;
                 }
@@ -219,7 +221,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'syncUserData': {
-                    await apiClient.syncUserData(this.context, data.userData);
+                    // await apiClient.syncUserData(this.context, );
                     break;
                 }
                 case 'handleDatabaseUpdates': {
@@ -318,12 +320,12 @@ function updateGlobalState(context: vscode.ExtensionContext, partialUpdate: { [k
     return context.globalState.update('globalInfo', currentGlobalState);
 }
 
-function overwriteFieldInState(context: vscode.ExtensionContext, field: string, newValue: any): Thenable<void> {
+function overwriteFieldInState(context: vscode.ExtensionContext, key: string, value: any): Thenable<void> {
     // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 
     // Overwrite the specific field with the new value
-    currentGlobalState[field] = newValue;
+    currentGlobalState[key] = value;
 
     // Update the global state with the modified result
     return context.globalState.update('globalInfo', currentGlobalState);
@@ -398,64 +400,38 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
     }
 }
 
-// let pendingUpdatesCount = 0;
-// function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: { bedroomUpdates: string, xp: number, inventoryUpdates: JSON}) {
-//     const currentState = getGlobalState(context).databaseUpdates
-       
-//     // Update inventory: stack items if they already exist, add new ones if not
-//     Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
-//         if (currentState.inventoryUpdates[key]) {
-//             currentState.inventoryUpdates[key] += updatesJSON.inventoryUpdates[key];
-//         } else {
-//             currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
-//         }
-//     });
-
-
-//     updateGlobalState(context, { databaseUpdates: { [pendingUpdatesCount]: {
-//         bedroomUpdates: updatesJSON.bedroomUpdates,
-//         xp: currentState + updatesJSON.xp
-//     } }})
-//     pendingUpdatesCount++;
-    
-//     console.log(JSON.stringify(getGlobalState(context)));
-// }
-
-
-let pendingUpdatesCount = 0; // Assuming this is defined outside the function if it's used globally
-
-interface DatabaseUpdates {
-    bedroomUpdates: string;
-    xp: number;
-    inventoryUpdates: Record<string, number>;
-    petUpdates: JSON;
-    customizationUpdates: JSON;
-}
-
-function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: DatabaseUpdates): void {
-    const currentState = getGlobalState(context).databaseUpdates as DatabaseUpdates;
+function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: apiClient.DatabaseUpdates): void {
+    const currentState = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
 
     // Update inventory: stack items if they already exist, add new ones if not
     Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
-        if (currentState.inventoryUpdates[key] !== undefined) {
-            currentState.inventoryUpdates[key] += updatesJSON.inventoryUpdates[key];
-        } else {
-            currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
-        }
+        currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
     });
 
     // Update other parts of the global state
     updateGlobalState(context, { 
         databaseUpdates: { 
-            [pendingUpdatesCount]: {
-                bedroomUpdates: updatesJSON.bedroomUpdates,
-                xp: currentState.xp + updatesJSON.xp, // Correct xp addition
-                inventoryUpdates: currentState.inventoryUpdates // Ensure inventory is saved with updates
-            }
+            bedroomUpdates: updatesJSON.bedroomUpdates,
+            xp: currentState.xp + updatesJSON.xp, // Correct xp addition
+            inventoryUpdates: currentState.inventoryUpdates // Ensure inventory is saved with updates
         } 
     });
-    
-    pendingUpdatesCount++;
-    
-    console.log(JSON.stringify(getGlobalState(context)));
+}
+
+function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) { // 60000 ms = 1 minute\
+    const baseJSON = {
+        inventoryUpdates: {},
+        xp: 0,
+        petUpdates: {},
+        customizationUpdates: {},
+        bedroomUpdates: ""
+    }
+    setInterval(() => {
+        let databaseUpdates = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
+        if( JSON.stringify(databaseUpdates) !== JSON.stringify(baseJSON) ) {
+            apiClient.syncUserData(context, databaseUpdates).then(() => {
+                overwriteFieldInState(context, "databaseUpdates", baseJSON);
+            })
+        }
+    }, interval);
 }

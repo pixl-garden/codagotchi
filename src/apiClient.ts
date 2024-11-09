@@ -247,10 +247,48 @@ export async function retrieveInventory(context: vscode.ExtensionContext, cacheM
 }
 
 // TEST the TYPES
-export async function syncUserData(context: vscode.ExtensionContext, 
-    userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON; bedroomUpdates: JSON}) {
+// export async function syncUserData(context: vscode.ExtensionContext, 
+//     userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON; bedroomUpdates: JSON}) {
+//     const idToken = await context.secrets.get('idToken');
+//     const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = userData;
+//     try {
+//         const response = await axios.post(
+//             `${BASE_URL}/syncUserData`,
+//             { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates },
+//             {
+//                 headers: {
+//                     Authorization: `Bearer ${idToken}`,
+//                     'Content-Type': 'application/json',
+//                 },
+//             },
+//         );
+//         console.log('User Data Synced');
+//         return response.data.message;
+//     } catch (error) {
+//         console.error('Error syncing user data:', error);
+//         throw error;
+//     }
+// }
+
+export interface DatabaseUpdates {
+    bedroomUpdates: string;
+    xp: number;
+    inventoryUpdates: Record<string, number>;
+    petUpdates: JSON;
+    customizationUpdates: JSON;
+}
+
+export async function syncUserData(context: vscode.ExtensionContext, databaseUpdates: DatabaseUpdates ) {
     const idToken = await context.secrets.get('idToken');
-    const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = userData;
+    console.log("databaseUpdates", JSON.stringify(databaseUpdates));
+    const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
+    const petUpdates = databaseUpdates.petUpdates || {};
+    const customizationUpdates = databaseUpdates.customizationUpdates || {};
+    const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
+    const xp = databaseUpdates.xp || 0;
+
+
+    console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'customizationUpdates:', customizationUpdates, 'bedroomUpdates:', bedroomUpdates, 'xp:', xp);
     try {
         const response = await axios.post(
             `${BASE_URL}/syncUserData`,
@@ -263,6 +301,7 @@ export async function syncUserData(context: vscode.ExtensionContext,
             },
         );
         console.log('User Data Synced');
+
         return response.data.message;
     } catch (error) {
         console.error('Error syncing user data:', error);

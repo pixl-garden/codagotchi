@@ -318,7 +318,7 @@
         updateSave() {
             console.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
             this.gameRef.updateGlobalState({"bedroomData": this.bedroomManager.serializeBedroom()})
-            this.gameRef.pendingUpdates.bedroomUpdates = this.bedroomManager.serializeBedroom()
+            this.gameRef.updateDatabase({bedroomUpdates: this.bedroomManager.serializeBedroom()})
         }
 
         retrieveSave() {
