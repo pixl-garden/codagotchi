@@ -21,14 +21,6 @@
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
             this.isActive = false;
             this.inbox;
-
-            this.pendingUpdates = {
-                inventory: {},
-                xp: 0,
-                pet: {},
-                customization: {}
-            };
-            this.startPeriodicSync();
         }
 
         //function to call when player goes inactive
@@ -133,8 +125,6 @@
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
         refreshInbox() {
-            //this.syncLocalToGlobalState() 
-            //console.log("local state: ", this.getLocalState());
             this.inbox = new Inbox(this.getLocalState().userInbox || {});
             return this.inbox
         }
@@ -155,10 +145,11 @@
         }
 
         addStackableItem(itemIdString, quantity = 1) {
+            const itemInstance = this.inventory.addStackableItemToInstance(itemIdString, quantity);
             this.updateGlobalState({ 
-                "inventory": (this.inventory.addStackableItemToInstance(itemIdString, quantity)).serialize()
+                "inventory": itemInstance.serialize()
             });
-            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + quantity;
+            this.updateDatabase({inventoryUpdates: {[itemIdString]: itemInstance.itemCount}});
         }
 
         addUnstackableItem(itemIdString, properties) {
@@ -166,7 +157,7 @@
                 "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
             });
             // TODO: handle the properties of unstackable items
-            this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) + 1;
+            this.updateDatabase({inventoryUpdates: {itemIdString: + 1}});
         }
 
         hasStackableItems(itemIdString, quantity = 1) {
@@ -174,7 +165,7 @@
         }
 
         subtractStackableItem(itemIdString, quantity = 1) {
-            let itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
+            const itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
             if(itemInstance) {
                 if(itemInstance.itemCount <= 0){
                     this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
@@ -183,70 +174,24 @@
                         "inventory": itemInstance.serialize()
                     });
                 }
-                this.pendingUpdates.inventory[itemIdString] = (this.pendingUpdates.inventory[itemIdString] || 0) - quantity;
+                this.gameRef.updateDatabase({inventoryUpdates: {[itemIdString]: itemInstance.itemCount}});
             }
         }
 
-        syncUserData() {
-            console.log("Sending user data updates to server...");
-            const updates = {
-                inventoryUpdates: this.generateInventoryUpdates(),
-                xp: this.pendingUpdates.xp,
-                // petUpdates: this.generatePetUpdates(),
-                // customizationUpdates: this.generateCustomizationUpdates()
-            };
-
-            if (Object.keys(updates.inventoryUpdates).length > 0 || 
-                updates.xp !== 0 || 
-                Object.keys(updates.petUpdates).length > 0 || 
-                Object.keys(updates.customizationUpdates).length > 0) {
-
-                console.log("userData updates:", updates);
-                
-                tsvscode.postMessage({ type: 'syncUserData', userData: updates });
-                
-                // Clear pending updates after sending
-                this.pendingUpdates = {
-                    inventory: {},
-                    xp: 0,
-                    pet: {},
-                    customization: {}
-                };
+        updateDatabase(updateJSON){
+            let baseJSON = {
+                inventoryUpdates: {},
+                xp: 0,
+                petUpdates: {},
+                customizationUpdates: {},
+                bedroomUpdates: ""
             }
+            Object.keys(updateJSON).forEach((key) => {
+                baseJSON[key] = updateJSON[key];
+            });
+            tsvscode.postMessage({ type: 'handleDatabaseUpdates', updates: baseJSON});
         }
 
-        generateInventoryUpdates() {
-            return Object.entries(this.pendingUpdates.inventory)
-                .filter(([_, amount]) => amount !== 0)
-                .map(([itemId, amount]) => ({ itemId, amount }));
-        }
-
-        generatePetUpdates() {
-            // Implement this method based on your pet data structure
-            return {
-                hunger: this.pet.hunger,
-                happiness: this.pet.happiness,
-                // Add other pet-related fields
-            };
-        }
-
-        generateCustomizationUpdates() {
-            // Implement this method based on your customization data structure
-            return {
-                background: this.customization.background,
-                petClothing: this.customization.petClothing,
-                // Add other customization-related fields
-            };
-        }
-
-        // Add a method to start periodic syncing
-        startPeriodicSync(interval = 60000) { // 60000 ms = 1 minute
-            setInterval(() => {
-                if (Object.keys(this.pendingUpdates.inventory).length > 0) {
-                    this.syncUserData();
-                }
-            }, interval);
-        }
     }
 
     class Inbox {

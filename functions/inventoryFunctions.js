@@ -1,6 +1,7 @@
 import { verifyToken } from './verifyToken.js';
 import * as functions from 'firebase-functions';
 import { admin } from './firebaseConfig.js';
+import { log } from "firebase-functions/logger"
 
 /*
  A function to periodically sync the user's inventory with the database.
@@ -17,8 +18,10 @@ import { admin } from './firebaseConfig.js';
 // 3. Pet updates (hunger, happiness, clothing, etc.) - setting the user's pet data
 // 4. XP updates - updating the user's XP
 
-async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates) {
+async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates) {
     const updates = {};
+
+    log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "customization updates", customizationUpdates, "bedroom updates", bedroomUpdates)
 
     // Process inventory updates
     if (inventoryUpdates && inventoryUpdates.length > 0) {
@@ -26,22 +29,27 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
         let xpChange = 0;
 
         for (const update of inventoryUpdates) {
-            if (Array.isArray(update.items)) {
-                for (const item of update.items) {
-                    inventoryChanges[item.id] = (inventoryChanges[item.id] || 0) + item.amount;
-                }
-            } else if (update.itemId) {
-                inventoryChanges[update.itemId] = (inventoryChanges[update.itemId] || 0) + update.amount;
-            }
+            //REMOVE THIS PROBABLY??
+            // if (Array.isArray(update.items)) {
+            //     for (const item of update.items) {
+            //         inventoryChanges[item.id] = (inventoryChanges[item.id] || 0) + item.amount;
+            //     }
+            // } else 
 
-            if (update.xp) {
-                xpChange += update.xp;
+            if (update.itemId) {
+                if(update.amount === 0) {
+                    inventoryChanges[update.itemId] = null; // removes the key from the inventory json
+                } else {
+                    inventoryChanges[update.itemId] = update.amount;
+                }
             }
         }
 
+        
+
         // Apply inventory changes
         for (const [itemId, amount] of Object.entries(inventoryChanges)) {
-            updates[`/users/${uid}/protected/inventory/${itemId}`] = admin.database.ServerValue.increment(amount);
+            updates[`/users/${uid}/protected/inventory/${itemId}`] = amount;
         }
 
         // Apply XP change
@@ -62,6 +70,12 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
         for (const [key, value] of Object.entries(customizationUpdates)) {
             updates[`/users/${uid}/protected/owned/${key}`] = value;
         }
+    }
+
+    // Process bedroom updates
+    if(bedroomUpdates) {
+        log("bedroom updates", bedroomUpdates)
+        updates[`/users/${uid}/public/bedroom`] = bedroomUpdates;
     }
 
     // Perform the update if there are any changes
@@ -110,10 +124,10 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         try {
             // console.log("req user:", req.user);
             const uid = req.user.uid;
-            const { inventoryUpdates, petUpdates, customizationUpdates } = req.body;
+            const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = req.body;
 
             // Process all updates
-            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates);
+            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates);
 
             res.status(200).send({ success: true, message: 'User data synced successfully' });
             
