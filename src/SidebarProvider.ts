@@ -203,11 +203,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'retrieveInventory': {
-                    const { updatedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    const { receivedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
                     //console.log("Retrieved inventory data:", updatedInventory);
-                    if (updatedInventory) {
+                    if (receivedInventory) {
                         // set the global state with the updated inventory data
-                        await updateGlobalState(this.context, { inventory: updatedInventory });
+                        await updateGlobalState(this.context, { inventory: receivedInventory });
                         // update the local state with the updated inventory data
                         this._view?.webview.postMessage({
                             type: 'fetchedGlobalState',
@@ -424,7 +424,8 @@ function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) {
         xp: 0,
         petUpdates: {},
         customizationUpdates: {},
-        bedroomUpdates: ""
+        bedroomUpdates: "",
+        timestamp: 0
     }
     setInterval(() => {
         let databaseUpdates = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
