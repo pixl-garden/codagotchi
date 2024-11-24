@@ -16,6 +16,7 @@
     let webglContext;
 
     function pre() {
+        // $game.clearGlobalState();
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
         preloadObjects();

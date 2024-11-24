@@ -303,8 +303,10 @@
             () => {
                 // save input value for current postcard on exit
                 postcardTextSave = document.getElementById('hiddenInput').value;
-            }, () => {
+            }, 
+            () => {
             postcardRendering.nextFrame();
+            blackFadeIn.nextFrame();
             // postcardRendering.setUserText(get(inputValue));
         });
         paintRoom.clearTextOnExit = false; // Prevent text clearing so text can be exported in send postcard room
@@ -416,7 +418,7 @@
         });
 
         // STAMP MENU INSTANTIATION
-        let stampMenu = new Background('box_canvas', 9, 17, 12, () => {});
+        let stampMenu = new Background('box_canvas', 9, 17, 13, () => {});
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0);
             output.hoverWithChildren = true;
@@ -430,6 +432,8 @@
                 postcardRendering.setStamp(item);
                 closeAllPaintMenus();
                 stampGrid.onStopHover();
+                blackFadeIn.opacity = 0; 
+                get(game).getCurrentRoom().removeObject( blackFadeIn );
             }
         }
 
@@ -451,11 +455,22 @@
             itemOffset: { x: 4, y: 4, z: 10 }
         });
         
+        const blackFadeIn = new Background('blackground', 0, 0, 12, () => {
+            stampGrid.displayToolTip = false;
+            closeAllPaintMenus();
+            stampGrid.onStopHover();
+            blackFadeIn.opacity = 0; 
+            get(game).getCurrentRoom().removeObject( blackFadeIn );
+        } );
+        blackFadeIn.opacity = 0; 
+
+
+        
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
+            blackFadeIn.startOpacityTransition(0.75, 0.08, 1);
+            get(game).getCurrentRoom().addObject( blackFadeIn );
             get(game).getCurrentRoom().addObject( stampMenu );
-            console.log("stamp grid", stampGrid, stampGrid.children)
-            console.log(get(game));
             get(game).getCurrentRoom().addObject( stampGrid );
             console.log("room: ", get(game).getCurrentRoom(), get(game).getCurrentRoom().objects);
             stampGrid.updateItemSlots(stampInvArray);

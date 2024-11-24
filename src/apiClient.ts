@@ -277,34 +277,36 @@ export interface DatabaseUpdates {
 }
 
 export async function syncUserData(context: vscode.ExtensionContext, databaseUpdates: DatabaseUpdates ) {
-    const idToken = await context.secrets.get('idToken');
-    console.log("databaseUpdates", JSON.stringify(databaseUpdates));
-    const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
-    const petUpdates = databaseUpdates.petUpdates || {};
-    const customizationUpdates = databaseUpdates.customizationUpdates || {};
-    const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
-    const xp = databaseUpdates.xp || 0;
-    const timestamp = Date.now();
+    if(databaseUpdates){
+        const idToken = await context.secrets.get('idToken');
+        console.log("databaseUpdates", JSON.stringify(databaseUpdates));
+        const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
+        const petUpdates = databaseUpdates.petUpdates || {};
+        const customizationUpdates = databaseUpdates.customizationUpdates || {};
+        const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
+        const xp = databaseUpdates.xp || 0;
+        const timestamp = Date.now();
 
 
-    console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'customizationUpdates:', customizationUpdates, 'bedroomUpdates:', bedroomUpdates, 'xp:', xp, 'timestamp:', timestamp);
-    try {
-        const response = await axios.post(
-            `${BASE_URL}/syncUserData`,
-            { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp },
-            {
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                    'Content-Type': 'application/json',
+        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'customizationUpdates:', customizationUpdates, 'bedroomUpdates:', bedroomUpdates, 'xp:', xp, 'timestamp:', timestamp);
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/syncUserData`,
+                { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp },
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
                 },
-            },
-        );
-        context.globalState.update('lastSync', timestamp);
-        console.log('User Data Synced');
+            );
+            context.globalState.update('lastSync', timestamp);
+            console.log('User Data Synced');
 
-        return response.data.message;
-    } catch (error) {
-        console.error('Error syncing user data:', error);
-        throw error;
+            return response.data.message;
+        } catch (error) {
+            console.error('Error syncing user data:', error);
+            throw error;
+        }
     }
 }
