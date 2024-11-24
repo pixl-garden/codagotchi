@@ -2,6 +2,8 @@ import { verifyToken } from './verifyToken.js';
 import * as functions from 'firebase-functions';
 import { admin } from './firebaseConfig.js';
 import { log } from "firebase-functions/logger"
+import { time } from 'console';
+import * as pako from 'pako';
 
 /*
  A function to periodically sync the user's inventory with the database.
@@ -18,43 +20,26 @@ import { log } from "firebase-functions/logger"
 // 3. Pet updates (hunger, happiness, clothing, etc.) - setting the user's pet data
 // 4. XP updates - updating the user's XP
 
-async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates) {
+async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp) {
     const updates = {};
 
-    log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "customization updates", customizationUpdates, "bedroom updates", bedroomUpdates)
+    log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "customization updates", customizationUpdates, "bedroom updates", bedroomUpdates, "timestamp", timestamp)
+
+    if(timestamp) {
+        updates[`/users/${uid}/protected/lastSync`] = timestamp;
+    }
 
     // Process inventory updates
-    if (inventoryUpdates && inventoryUpdates.length > 0) {
-        const inventoryChanges = {};
-        let xpChange = 0;
-
-        for (const update of inventoryUpdates) {
-            //REMOVE THIS PROBABLY??
-            // if (Array.isArray(update.items)) {
-            //     for (const item of update.items) {
-            //         inventoryChanges[item.id] = (inventoryChanges[item.id] || 0) + item.amount;
-            //     }
-            // } else 
-
-            if (update.itemId) {
-                if(update.amount === 0) {
-                    inventoryChanges[update.itemId] = null; // removes the key from the inventory json
-                } else {
-                    inventoryChanges[update.itemId] = update.amount;
-                }
+    if (inventoryUpdates && Object.keys(inventoryUpdates).length > 0) {
+        for (const [key, value] of Object.entries(inventoryUpdates)) {
+            log("inventory updates", inventoryUpdates);
+            if(value === 0) {
+                log("deleting item", key);
+                updates[`/users/${uid}/protected/inventory/${key}`] = null;
+            } else {
+                log("updating item", key, value);
+                updates[`/users/${uid}/protected/inventory/${key}`] = value;
             }
-        }
-
-        
-
-        // Apply inventory changes
-        for (const [itemId, amount] of Object.entries(inventoryChanges)) {
-            updates[`/users/${uid}/protected/inventory/${itemId}`] = amount;
-        }
-
-        // Apply XP change
-        if (xpChange !== 0) {
-            updates[`/users/${uid}/protected/xp`] = admin.database.ServerValue.increment(xpChange);
         }
     }
 
@@ -124,10 +109,10 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         try {
             // console.log("req user:", req.user);
             const uid = req.user.uid;
-            const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = req.body;
+            const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp } = req.body;
 
             // Process all updates
-            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates);
+            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp );
 
             res.status(200).send({ success: true, message: 'User data synced successfully' });
             
@@ -147,35 +132,30 @@ export const retrieveInventory = functions.https.onRequest(async (req, res) => {
         const uid = req.user.uid;
 
         const inventoryRef = admin.database().ref(`users/${uid}/protected/inventory`);
+        const timestampRef = admin.database().ref(`users/${uid}/protected/lastSync`);
         try {
             const inventorySnapshot = await inventoryRef.once('value');
+            const serverTimeStamp = await timestampRef.once('value'); //TODO: make snapshots into one snapshot (await)
             const inventoryData = inventorySnapshot.val() || {};
 
             const { timestamp, totalItems } = req.query;
             const lastFetchTime = parseInt(timestamp || 0);
             const clientTotalItems = parseInt(totalItems || 0);
 
-            let flag = 'merge';
             let responseData = {};
 
             const serverTotalItems = Object.keys(inventoryData).length;
-
             console.log(`Server Total Items: ${serverTotalItems}, Client Total Items: ${clientTotalItems}`);
 
-            if (serverTotalItems !== clientTotalItems) {
+            let flag = 'no-replace';
+            if (serverTotalItems !== clientTotalItems || lastFetchTime !== serverTimeStamp.val()) {
                 console.log('Mismatch detected in total items. Needs full replace.');
+                responseData = pako.deflate(JSON.stringify(inventoryData), { to: 'string' });
                 flag = 'replace';
-                responseData = inventoryData;
-            } else {
-                // Check for new or updated items
-                const newOrUpdatedItems = Object.entries(inventoryData).filter(([_, item]) => {
-                    return item.lastUpdated && item.lastUpdated > lastFetchTime;
-                });
-
-                responseData = Object.fromEntries(newOrUpdatedItems);
             }
-
+            
             const currentTimestamp = Date.now();
+            timestampRef.set(currentTimestamp);
 
             res.status(200).send({
                 success: true,

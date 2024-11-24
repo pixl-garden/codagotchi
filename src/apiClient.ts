@@ -6,6 +6,7 @@ import { firebaseConfig, getFirebaseDatabase } from './firebaseInit';
 import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
 import { ref, set, onValue, off } from 'firebase/database';
 import { generateState, generateOAuthURL, BASE_URL } from './config';
+import * as pako from 'pako';
 
 export async function signInWithCustomTokenViaREST(customToken: string, context: vscode.ExtensionContext) {
     const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${firebaseConfig.apiKey}`;
@@ -142,6 +143,7 @@ export async function handleFriendRequest(context: vscode.ExtensionContext, requ
 }
 
 // TODO: add a timeout to the request (function can only call every 5 minutes)
+// TODO: remove cache manager and replace with database timestamp
 export async function retrieveInbox(context: vscode.ExtensionContext, cacheManager: CacheManager) {
     const cacheKey = 'userInbox';
     const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
@@ -209,11 +211,11 @@ export async function sendPostcard(context: vscode.ExtensionContext, recipientUs
 }
 
 export async function retrieveInventory(context: vscode.ExtensionContext, cacheManager: CacheManager) {
-    const cacheKey = 'userInventory';
-    const lastFetchTimestamp = (await cacheManager.getTimestamp(cacheKey)) || 0;
-    const cachedInventory = (await cacheManager.get(cacheKey)) || {};
+    const lastFetchTimestamp = context.globalState.get('lastSync') || 0;
+    // const cachedInventory = (await cacheManager.get(cacheKey)) || {};
+    const currentInventory = context.globalState.get('inventory') || {};
 
-    const totalItems = Object.keys(cachedInventory).length;
+    const totalItems = Object.keys(currentInventory).length;
 
     const idToken = await context.secrets.get('idToken');
     try {
@@ -229,17 +231,12 @@ export async function retrieveInventory(context: vscode.ExtensionContext, cacheM
         });
 
         const { flag, inventoryData, timestamp: currentTimestamp } = response.data;
+        const receivedInventory = JSON.parse(pako.inflate(inventoryData, { to: 'string' }));
+        context.globalState.update('lastSync', currentTimestamp);
 
-        let updatedInventory = flag === 'merge' ? merge({}, cachedInventory, inventoryData) : inventoryData;
+        console.log('Inventory Received:', receivedInventory);
 
-        flag === 'merge' ? console.log('Inventory Merged') : console.log('Inventory Replaced');
-
-        await cacheManager.set(cacheKey, {
-            data: updatedInventory,
-            timestamp: currentTimestamp,
-        });
-
-        return { updatedInventory, flag };
+        return { receivedInventory, flag };
     } catch (error) {
         console.error('Error retrieving inventory:', error);
         throw error;
@@ -276,35 +273,40 @@ export interface DatabaseUpdates {
     inventoryUpdates: Record<string, number>;
     petUpdates: JSON;
     customizationUpdates: JSON;
+    timestamp: number;
 }
 
 export async function syncUserData(context: vscode.ExtensionContext, databaseUpdates: DatabaseUpdates ) {
-    const idToken = await context.secrets.get('idToken');
-    console.log("databaseUpdates", JSON.stringify(databaseUpdates));
-    const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
-    const petUpdates = databaseUpdates.petUpdates || {};
-    const customizationUpdates = databaseUpdates.customizationUpdates || {};
-    const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
-    const xp = databaseUpdates.xp || 0;
+    if(databaseUpdates){
+        const idToken = await context.secrets.get('idToken');
+        console.log("databaseUpdates", JSON.stringify(databaseUpdates));
+        const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
+        const petUpdates = databaseUpdates.petUpdates || {};
+        const customizationUpdates = databaseUpdates.customizationUpdates || {};
+        const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
+        const xp = databaseUpdates.xp || 0;
+        const timestamp = Date.now();
 
 
-    console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'customizationUpdates:', customizationUpdates, 'bedroomUpdates:', bedroomUpdates, 'xp:', xp);
-    try {
-        const response = await axios.post(
-            `${BASE_URL}/syncUserData`,
-            { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates },
-            {
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                    'Content-Type': 'application/json',
+        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'customizationUpdates:', customizationUpdates, 'bedroomUpdates:', bedroomUpdates, 'xp:', xp, 'timestamp:', timestamp);
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/syncUserData`,
+                { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp },
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
                 },
-            },
-        );
-        console.log('User Data Synced');
+            );
+            context.globalState.update('lastSync', timestamp);
+            console.log('User Data Synced');
 
-        return response.data.message;
-    } catch (error) {
-        console.error('Error syncing user data:', error);
-        throw error;
+            return response.data.message;
+        } catch (error) {
+            console.error('Error syncing user data:', error);
+            throw error;
+        }
     }
 }

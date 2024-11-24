@@ -111,7 +111,7 @@
 
         constructInventory() {
             console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
-            this.inventory = new Inventory(this.getLocalState().userInventory || {});
+            this.inventory = new Inventory(this.getLocalState().inventory || {});
             // console.log("Inventory constructed: ", this.userInventory);
             return this.inventory;
         }
@@ -121,6 +121,7 @@
         }
         retrieveInventory() {
             tsvscode.postMessage({ type: 'retrieveInventory' });
+            // this.inventory = new Inventory(this.getLocalState().inventory || {});
         }
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
@@ -146,12 +147,11 @@
 
         addStackableItem(itemIdString, quantity = 1) {
             const itemInstance = this.inventory.addStackableItemToInstance(itemIdString, quantity);
-            this.updateGlobalState({ 
-                "inventory": itemInstance.serialize()
-            });
-            this.updateDatabase({inventoryUpdates: {[itemIdString]: itemInstance.itemCount}});
+            this.updateGlobalState({inventoryUpdates: itemInstance.serialize()});
+            this.updateDatabase({inventoryUpdates: itemInstance.serialize()});
         }
 
+        // NOT IMPLEMENTED YET
         addUnstackableItem(itemIdString, properties) {
             this.updateGlobalState({ 
                 "inventory": (this.inventory.addUnstackableItemToInstance(itemIdString, properties)).serialize()
@@ -170,11 +170,9 @@
                 if(itemInstance.itemCount <= 0){
                     this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
                 } else {
-                    this.updateGlobalState({ 
-                        "inventory": itemInstance.serialize()
-                    });
+                    this.updateGlobalState({inventoryUpdates: itemInstance.serialize()});
                 }
-                this.gameRef.updateDatabase({inventoryUpdates: {[itemIdString]: itemInstance.itemCount}});
+                this.gameRef.updateDatabase({inventoryUpdates: itemInstance.serialize()});
             }
         }
 

@@ -65,11 +65,7 @@
         //base serialization for backend
         serialize() {
             return {
-                [this.inventoryId]: {
-                    itemName: this.itemName,
-                    itemCount: this.itemCount,
-                    properties: this.properties
-                }
+                [this.itemName]: this.itemCount,
             };
         }
     }
@@ -160,7 +156,7 @@
     export class Inventory {
         constructor(savedData) {
             this.items = new Map(); // Stores itemName -> item instance
-            this.stackableItems = new Map(); // Stores itemName -> item instance for stackable items
+            this.stackableItems = new Map(); // Stores itemName -> ite m instance for stackable items
             this.itemsByType = new Map(); // Stores itemType -> Set of itemNames
             
             console.log('Saved Data:', savedData); // For debugging
@@ -213,6 +209,7 @@
             if (this.items.has(itemName)) {
                 item = this.items.get(itemName);
                 item.itemCount += quantity;
+                this.items.set(itemName, item);
             } else {
                 item = this.createItem(itemName, quantity);
                 this.items.set(itemName, item);
@@ -230,6 +227,8 @@
                     this.items.delete(itemName);
                     this.stackableItems.delete(itemName);
                     this.removeItemFromTypeIndex(item);
+                } else{
+                    this.items.set(itemName, item);
                 }
                 return item;
             } else {

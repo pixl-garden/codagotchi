@@ -203,16 +203,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'retrieveInventory': {
-                    const { updatedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    const { receivedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
                     //console.log("Retrieved inventory data:", updatedInventory);
-                    if (updatedInventory) {
+                    console.log('Received inventory:', receivedInventory)
+                    if (receivedInventory) {
                         // set the global state with the updated inventory data
-                        await updateGlobalState(this.context, { inventory: updatedInventory });
-                        // update the local state with the updated inventory data
-                        this._view?.webview.postMessage({
-                            type: 'fetchedGlobalState',
-                            value: getGlobalState(this.context),
-                        });
+                        await updateGlobalState(this.context, { inventory: receivedInventory }).then(() => {
+                            // update the local state with the updated inventory data
+                            this._view?.webview.postMessage({
+                                type: 'fetchedGlobalState',
+                                value: getGlobalState(this.context),
+                            });
+                            console.log('Updated inventory:', getGlobalState(this.context).inventory);
+                        }
+                        );
                     }
                     break;
                 }
@@ -403,17 +407,19 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
 function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: apiClient.DatabaseUpdates): void {
     const currentState = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
 
-    // Update inventory: stack items if they already exist, add new ones if not
-    Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
-        currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
-    });
+    if( updatesJSON.inventoryUpdates !== undefined ) {
+        // Update inventory: stack items if they already exist, add new ones if not
+        Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
+            currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
+        });
+    }
 
     // Update other parts of the global state
     updateGlobalState(context, { 
         databaseUpdates: { 
             bedroomUpdates: updatesJSON.bedroomUpdates,
             xp: currentState.xp + updatesJSON.xp, // Correct xp addition
-            inventoryUpdates: currentState.inventoryUpdates // Ensure inventory is saved with updates
+            inventoryUpdates: currentState.inventoryUpdates || {} // Ensure inventory is saved with updates
         } 
     });
 }
@@ -424,7 +430,8 @@ function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) {
         xp: 0,
         petUpdates: {},
         customizationUpdates: {},
-        bedroomUpdates: ""
+        bedroomUpdates: "",
+        timestamp: 0
     }
     setInterval(() => {
         let databaseUpdates = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
