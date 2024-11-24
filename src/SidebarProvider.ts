@@ -389,6 +389,7 @@ function deleteNestedKey(obj: any, keys: string[]): void {
 function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {
     console.log('----Getting globalState----');
     printJsonObject(context.globalState.get<{ [key: string]: any }>('globalInfo', {}));
+    // printJsonObject(context.globalState)
     return context.globalState.get<{ [key: string]: any }>('globalInfo', {});
 }
 
@@ -433,6 +434,7 @@ function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) {
         bedroomUpdates: "",
         timestamp: 0
     }
+    
     setInterval(() => {
         let databaseUpdates = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
         if( JSON.stringify(databaseUpdates) !== JSON.stringify(baseJSON) ) {
