@@ -468,5 +468,13 @@
         "states": {
             "default": [0]
         }
+    },
+    "friendsGUI": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "friendsGUI.png",
+        "states": {
+            "default": [0]
+        }
     }
 }

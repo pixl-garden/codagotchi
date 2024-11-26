@@ -1,5 +1,8 @@
 //NOTE: KEEP ALL HEX LETTERS LOWERCASE
 
+export const transparentMenuColorParams = ["transparent", "transparent", "transparent", "transparent",
+    "transparent", "transparent", "transparent", "transparent"]
+
 export const white = '#ffffff';
 export const black = '#000000';
 export const grey = '#808080';
@@ -11,7 +14,6 @@ export const mainMenuHightlight = "#777cff" //dark purple
 export const mainMenuShadow = "#5356b2" //lighter purple
 export const mainMenuHightlightHover = "#a389ff" //darker purple
 export const mainMenuShadowHover = "#5e62af" //lightest purple
-
 
 export const mainMenuColorParams = [mainMenuBackground, mainMenuBorder, mainMenuBackgroundHover, mainMenuBorderHover,
     mainMenuHightlight, mainMenuShadow, mainMenuHightlightHover, mainMenuShadowHover]

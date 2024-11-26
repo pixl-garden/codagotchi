@@ -117,7 +117,7 @@
 - [ ] If the client hasn't logged in for a while, pet gets sick (server side update)
 
 ### Bugs
-- [ ] Stamp Menu missing / stamp loads at wrong height on initial flip
+- [X] Stamp Menu missing / stamp loads at wrong height on initial flip
 
 ### Optimization
 - [X] Convert Sprite Sheets to JSON !!

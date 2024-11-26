@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
 import { Logger } from './logger';
-import { set } from 'lodash';
 
 const MAX_ELAPSED_TIME_IN_SECONDS = 10 * 60 // cap to 10 min
 let sidebarProvider: SidebarProvider;

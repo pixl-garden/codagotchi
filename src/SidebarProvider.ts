@@ -11,11 +11,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
 
-    private _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+    private readonly _onDidViewReady: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidViewReady: vscode.Event<void> = this._onDidViewReady.event;
 
-    private context: vscode.ExtensionContext;
-    private cacheManager: CacheManager;
+    private readonly context: vscode.ExtensionContext;
+    private readonly cacheManager: CacheManager;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -60,7 +60,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         data: spriteData,
                     });
 
-                    const refreshToken = (await this.context.secrets.get('refreshToken')) || '';
+                    const refreshToken = (await this.context.secrets.get('refreshToken')) ?? '';
                     await apiClient.refreshToken(refreshToken, this.context);
 
                     const cachedUserInbox = await this.cacheManager.get('userInbox');
@@ -354,10 +354,10 @@ function removeItemFromState(context: vscode.ExtensionContext, key: string, item
         const keys = itemToRemove.split('.');
         let current = currentGlobalState[key];
 
-        for (let i = 0; i < keys.length; i++) {
-            if (current.hasOwnProperty(keys[i]) && typeof current[keys[i]] === 'object') {
+        for (const element of keys) {
+            if (current.hasOwnProperty(element) && typeof current[element] === 'object') {
                 console.log('Current:', current);
-                current = current[keys[i]];
+                current = current[element];
             } else {
                 // If the path doesn't exist, exit the function
                 console.log('Path does not exist:', current);

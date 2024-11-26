@@ -40,7 +40,7 @@
         const smallLetterButton = generateTextButtonClass(10, 10, basic, ...Colors.secondaryMenuColorParams);
         const settingsTitleButton = generateTextButtonClass(128, 13, basic, ...Colors.secondaryMenuTitleColorParams);
         const friendTitle = generateTextButtonClass(128, 15, basic, ...Colors.secondaryMenuColorParams);
-        const friendButton = generateTextButtonClass(128, 18, retroShadowBlue, ...Colors.secondaryMenuColorParams, "left", 2);
+        const friendButton = generateTextButtonClass(128, 18, basic, ...Colors.transparentMenuColorParams, "left", 2);
         const dropDownButton = new generateTextButtonClass(58, 13, retroShadowBlue, ...Colors.mainMenuColorParams);
         const paintButtonText = generateTextButtonClass(19, 15, retroShadowBlue, ...Colors.secondaryMenuColorParams);
         const squarePaintTextButton = generateTextButtonClass(11, 15, retroShadowGray, ...Colors.secondaryMenuColorParams);
@@ -520,6 +520,8 @@
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
 
     //----------------SOCIAL ROOM----------------
+
+        const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
        
     // should have a button back and two sections (friends and requests)
 
@@ -533,7 +535,7 @@
 
 
 
-        let friendListManagerInstance = new friendListManager(0, 16, 0, get(game), friendButton);
+        let friendListManagerInstance = new friendListManager(10, 5, 0, get(game), friendButton);
         let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
         
         const socialTabs = ['Friends', 'Add'];
@@ -553,7 +555,7 @@
         );
         let requestRoom = new Room('requestRoom');
 
-        friendRoom.addObject(friendListManagerInstance, backToMain, socialTabList);
+        friendRoom.addObject(friendsUI, friendListManagerInstance, backToMain);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
         requestRoom.addObject(friendRequestManagerInstance, backToMain, socialTabList, 
                               inputBar, sendFriendRequestButton);
