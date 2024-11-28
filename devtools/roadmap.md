@@ -117,15 +117,19 @@
 - [ ] If the client hasn't logged in for a while, pet gets sick (server side update)
 
 ### Bugs
-- [ ] Stamp Menu missing / stamp loads at wrong height on initial flip
+- [X] Stamp Menu missing / stamp loads at wrong height on initial flip
 
 ### Optimization
 - [X] Convert Sprite Sheets to JSON !!
 - [X] Screen Resize Normalization (its a lot better now but should probably go down in res at smaller sizes??)
 - [X] Switch to webGL rendering
+- [ ] Remove cachemanager.ts
 
 ### Ban System
 - [ ] Ban system for cheaters by checking if they're sending too many requests
 
+### Friend System 
+- [ ] When clicking on friend profile (pet / room / other info) is shown cached, makes individual request
+    for their info and updates it once its loaded 
 
 

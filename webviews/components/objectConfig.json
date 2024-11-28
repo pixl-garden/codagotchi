@@ -468,5 +468,50 @@
         "states": {
             "default": [0]
         }
+    },
+    "friendsGUI": {
+        "spriteWidth": 128,
+        "spriteHeight": 128,
+        "spriteSheet": "friendsGUI.png",
+        "states": {
+            "default": [0]
+        }
+    },
+    "friendHeart": {
+        "spriteWidth": 9,
+        "spriteHeight": 8,
+        "spriteSheet": "friendsGUIicons.png",
+        "states": {
+            "default": [2],
+            "half": [1],
+            "full": [0]
+        }
+    },
+    "friendProfileButton":{
+        "spriteWidth": 9,
+        "spriteHeight": 8,
+        "spriteSheet": "friendsGUIicons.png",
+        "states": {
+            "default": [3],
+            "hovered": [4]
+        }
+    },
+    "friendHomeButton":{
+        "spriteWidth": 9,
+        "spriteHeight": 8,
+        "spriteSheet": "friendsGUIicons.png",
+        "states": {
+            "default": [5],
+            "hovered": [6]
+        }
+    },
+    "friendMailButton":{
+        "spriteWidth": 9,
+        "spriteHeight": 8,
+        "spriteSheet": "friendsGUIicons.png",
+        "states": {
+            "default": [7],
+            "hovered": [8]
+        }
     }
 }
