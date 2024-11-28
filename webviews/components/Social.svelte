@@ -1,6 +1,7 @@
 <script context="module">
-    import { ButtonList, GeneratedObject, Button } from "./Object.svelte";
+    import { ButtonList, GeneratedObject, Button, Container, activeTextRenderer, ObjectGrid, ConfigObject } from "./Object.svelte";
     import { generateEmptyMatrix } from "./MatrixFunctions.svelte";
+    import { text } from "stream/consumers";
 
     export class friendRequestManager extends GeneratedObject {
         constructor(x, y, z, gameRef, buttonConstructor){
@@ -10,7 +11,7 @@
             this.refreshRequests();
         }
 
-        refreshRequests(inbox = this.gameRef.refreshInbox()["friendRequests"]){
+        refreshRequests(inbox = this.gameRef.refreshInbox()["friendRequests"]) {
             console.log(inbox)
             const requests = Object.values(inbox);
             // Extract the 'fromUser' attribute from each object
@@ -52,16 +53,79 @@
         }
     }
 
+    class friendTab extends Container {
+        constructor(x, y, z, gameRef, textRenderer, friendUsername, friendUID, heartValue) {
+            super(x, y, z, 108, 21, 'transparent', 'transparent', 'transparent', 0, 0, 0, 0);
+            this.gameRef = gameRef;
+            this.textRenderer = textRenderer;
+            this.friendUsername = friendUsername;
+            this.friendUID = friendUID;
+            this.activeTextRenderer = new activeTextRenderer(this.textRenderer, 2, 2, 1, () => {});
+            this.activeTextRenderer.setText(this.friendUsername);
+            this.heartBar = new heartBar(2, 11, 1, 8, 5);
+            this.heartBar.setValue(heartValue);
+            this.friendProfileBtn = new ConfigObject("friendProfileButton", 80, 12, 1, () => {console.log("button clicked!!")});
+            this.friendHomeBtn = new ConfigObject("friendHomeButton", 88, 12, 1, () => {console.log("button clicked!")});
+            this.friendMailBtn = new ConfigObject("friendMailButton", 97, 12, 1, () => {console.log("button clicked!")});
+
+            this.children = [this.activeTextRenderer, this.heartBar, this.friendProfileBtn, this.friendHomeBtn, this.friendMailBtn];
+        }
+    }
+
+    class heartBar extends GeneratedObject {
+        constructor(x, y, z, xSpacing, heartCount) {
+            super([generateEmptyMatrix(1, 1)], null, x, y, z);
+            this.heartCount = heartCount;
+            this.xSpacing = xSpacing;
+            this.children = [];
+            this.setValue(5);
+        }
+        
+        setValue(value){
+            const valueRounded = Math.min(Math.floor(value), this.heartCount*2);
+            let heartX = 0;
+            for (let i = 1; i <= this.heartCount; i++) {
+                const heartObj = new ConfigObject("friendHeart", heartX, 0, this.z);
+                console.log("HEART STATES", heartObj.states);
+                if(i * 2 <= valueRounded){
+                    heartObj.updateState('full');
+                } else if( i*2 - 1 == value ) {
+                    heartObj.updateState('half');
+                } else {
+                    heartObj.updateState('default');
+                }
+                this.children.push(heartObj);
+                heartX += this.xSpacing;
+            }
+            console.log("this.children: ", this.children);
+        }
+    }
+
     export class friendListManager extends GeneratedObject {
-        constructor(x, y, z, gameRef, buttonConstructor, buttonFunction = () => {}){
+        constructor(x, y, z, gameRef, buttonConstructor, buttonFunction = () => {}, textRenderer){
             super([generateEmptyMatrix(1, 1)], null, x, y, z)
             this.gameRef = gameRef;
             this.buttonConstructor = buttonConstructor;
             this.buttonFunction = buttonFunction;
+            this.textRenderer = textRenderer;
             this.refreshFriends();
         }
 
         refreshFriends(){
+            const friends = this.gameRef.refreshInbox()["friends"];
+            const friendUsernames = Object.values(friends).map(item => item.friendUsername);
+            const friendUids = Object.values(friends).map(item => item.friendUid);
+            console.log("friendUsernames: ", friendUsernames);
+            let friendTabs = [];
+            for (let i = 0; i < friendUsernames.length; i++){
+                friendTabs.push(new friendTab(0, 0, 0, this.gameRef, this.textRenderer, friendUsernames[i], friendUids[i]));
+            }
+            let friendTabList = new ObjectGrid(1, 0, 5, 2, 0, 0, 0, friendTabs, true);
+            console.log("friendTabList: ", friendTabList)
+            this.children = [friendTabList];
+        }
+
+        refreshFriends2(){
             const friends = this.gameRef.refreshInbox()["friends"];
             const friendUsernames = Object.values(friends).map(item => item.friendUsername);
             const friendUids = Object.values(friends).map(item => item.friendUid);

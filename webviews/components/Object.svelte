@@ -866,5 +866,16 @@
         }
     }
 
+    export class Container extends GeneratedObject {
+        constructor(x, y, z, width, height, bgColor, innerBorderColor, outerBorderColor, innerRoundness, 
+            outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1){
+            const backgroundMatrix = generateMenuMatrix(width, height, bgColor, innerBorderColor, outerBorderColor, 
+                innerRoundness, outerRoundness, innerBorderThickness, outerBorderThickness);
+            super([backgroundMatrix], { default: [0] }, x, y, z);
+            this.width = width;
+            this.height = height;
+        }
+    }
+
 
 </script>

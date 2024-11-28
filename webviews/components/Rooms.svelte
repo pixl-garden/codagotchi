@@ -535,7 +535,7 @@
 
 
 
-        let friendListManagerInstance = new friendListManager(10, 5, 0, get(game), friendButton);
+        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendButton, ()=>{}, basic);
         let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
         
         const socialTabs = ['Friends', 'Add'];
