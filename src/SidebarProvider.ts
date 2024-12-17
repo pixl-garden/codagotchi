@@ -41,7 +41,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     public resolveWebviewView(webviewView: vscode.WebviewView) {
         this._view = webviewView;
 
-
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [vscode.Uri.file(path.join(this._extensionUri.fsPath, 'images')), vscode.Uri.file(path.join(this._extensionUri.fsPath, 'media')), vscode.Uri.file(path.join(this._extensionUri.fsPath, 'out', 'compiled'))],

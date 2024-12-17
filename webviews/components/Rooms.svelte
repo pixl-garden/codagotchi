@@ -554,10 +554,15 @@
             },
         );
         let requestRoom = new Room('requestRoom');
-
-        friendRoom.addObject(friendsUI, friendListManagerInstance, backToMain);
+        const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
+            get(game).setCurrentRoom('mainRoom');
+        });
+        const addFriendButton = new Button(116, 3, 20, 'addFriendButton', () => {
+            console.log("stuff and things");
+        });
+        friendRoom.addObject(friendsUI, friendListManagerInstance, friendBackButton, addFriendButton);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
-        requestRoom.addObject(friendRequestManagerInstance, backToMain, socialTabList, 
+        requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 
                               inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------

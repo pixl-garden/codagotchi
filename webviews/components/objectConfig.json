@@ -513,5 +513,23 @@
             "default": [7],
             "hovered": [8]
         }
+    },
+    "friendBackButton":{
+        "spriteWidth": 11,
+        "spriteHeight": 9,
+        "spriteSheet": "backBtn.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "addFriendButton":{
+        "spriteWidth": 10,
+        "spriteHeight": 8,
+        "spriteSheet": "friendBtn.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
     }
 }
