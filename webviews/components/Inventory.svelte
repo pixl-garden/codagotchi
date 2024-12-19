@@ -153,6 +153,7 @@
         }
     }
 
+
     export class Inventory {
         constructor(savedData) {
             this.items = new Map(); // Stores itemName -> item instance
@@ -456,6 +457,49 @@
             inventoryGrid.push(slotInstance);
         }
         return inventoryGrid;
+    }
+
+    export class recentItemDisplay extends GeneratedObject{
+        constructor(x, y, z, gameRef, inventoryGrid) {
+            const emptyMatrix = generateEmptyMatrix(1, 1);
+            super([emptyMatrix], { default: [0] }, x, y, z);
+            this.inventoryGrid = inventoryGrid;
+            this.gameref = gameRef;
+            this.recentItems = [];
+            this.children = [inventoryGrid];
+        }
+
+        pushRecentItem(item){
+            const existingIndex = this.recentItems.indexOf(item);
+            if (existingIndex !== -1) {
+                // Item is a duplicate. Remove it from current position
+                this.recentItems.splice(existingIndex, 1);
+                // Move it to the front
+                this.recentItems.unshift(item);
+            } else {
+                // No duplicate found, back
+                this.recentItems.unshift(item);
+                if(this.recentItems.length > 3){
+                    this.recentItems.shift();
+                }
+            }
+            this.inventoryGrid.updateItemSlots(this.recentItems);
+        }
+    }
+
+    function enqueueItem(item, queue) {
+        // Check if the item already exists in the queue
+        const existingIndex = queue.indexOf(item);
+        
+        if (existingIndex !== -1) {
+            // Item is a duplicate. Remove it from current position
+            queue.splice(existingIndex, 1);
+            // Move it to the front
+            queue.unshift(item);
+        } else {
+            // No duplicate found, add to the front
+            queue.unshift(item);
+        }
     }
 
     // Used for main inventory display, managing tabs and scaled item display

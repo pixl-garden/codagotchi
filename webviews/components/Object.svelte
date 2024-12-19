@@ -621,7 +621,6 @@
             this.showPointer = true;
         }
         onHover() {
-
             this.updateState('hovered');
         }
         onStopHover() {

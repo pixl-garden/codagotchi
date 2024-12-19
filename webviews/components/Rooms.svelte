@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
+    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -12,7 +12,7 @@
     import { Fishing } from "./Fishing.svelte";
     import { MiningManager } from "./Mining.svelte";
     import lootTableConfig from './lootTableConfig.json';
-    import { friendListManager, friendRequestManager } from './Social.svelte';
+    import { friendListManager, friendRequestManager, friendTab, sendTab } from './Social.svelte';
     import itemConfig from './itemConfig.json'
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     
@@ -66,15 +66,11 @@
 
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
-        const backToMain = new singleLetterButton(0, 0, 10, '<', () => {
+        const backToMain = new singleLetterButton(0, 0, 20, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
         const backToMain2 = new singleLetterButton(0, 112, 11, '<', () => {
             get(game).setCurrentRoom('mainRoom');
-        });
-        // button to return to paint room
-        const backToPaintRoom = new singleLetterButton(0, 112, 10, '<', () => {
-            get(game).setCurrentRoom('paintRoom');
         });
 
         // TODO: add button to friends and postcard rooms
@@ -504,24 +500,35 @@
         }
 
     //----------------SEND POSTCARD ROOM----------------
-        let sendFriendListInstance = new friendListManager(0, 16, 0, get(game), friendButton, (username) => {
-            postcardRendering.exportPostcard(username);
-            get(game).setCurrentRoom('paintRoom');
-        });
+        let buttonFunctions = [
+            (username) => {postcardRendering.exportPostcard(username)}
+        ]
+        let sendFriendListInstance = new friendListManager(11, 6, 0, get(game), sendTab, buttonFunctions, basic);
+        // let sendFriendListInstance = new friendListManager(0, 16, 0, get(game), friendButton, (username) => {
+        //     postcardRendering.exportPostcard(username);
+        //     get(game).setCurrentRoom('paintRoom');
+        // });
         let sendPostcardRoom = new Room('sendPostcardRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
                 sendFriendListInstance.refreshFriends();
             },
+            () =>{},
+            () => { sendFriendListInstance.nextFrame(); }
         );
         sendPostcardRoom.clearTextOnExit = false;
+        const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
 
-        sendPostcardRoom.addObject(sendFriendListInstance, backToPaintRoom);
+        const backToPaintRoom = new Button(2, 1, 20, 'friendBackButton', () => {
+            get(game).setCurrentRoom('paintRoom');
+        });
+
+            
+        sendPostcardRoom.addObject(friendsUI, sendFriendListInstance, backToPaintRoom);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
 
     //----------------SOCIAL ROOM----------------
 
-        const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
        
     // should have a button back and two sections (friends and requests)
 
@@ -535,30 +542,35 @@
 
 
 
-        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendButton, ()=>{}, basic);
-        let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
+        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, ()=>{}, basic);
+        // let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
         
-        const socialTabs = ['Friends', 'Add'];
+        // const socialTabs = ['Friends', 'Add'];
 
-        const socialTabList = new textButtonList(socialTabs, [
-            () => {get(game).setCurrentRoom('friendRoom')}, 
-            () => {get(game).setCurrentRoom('requestRoom')}
-        ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
+        // const socialTabList = new textButtonList(socialTabs, [
+        //     () => {get(game).setCurrentRoom('friendRoom')}, 
+        //     () => {get(game).setCurrentRoom('requestRoom')}
+        // ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
         
         //ROOM INSTANTIATION
         let friendRoom = new Room('friendRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
                 friendListManagerInstance.refreshFriends();
-                friendRequestManagerInstance.refreshRequests();
+                // friendRequestManagerInstance.refreshRequests();
             },
         );
-        let requestRoom = new Room('requestRoom');
-
-        friendRoom.addObject(friendsUI, friendListManagerInstance, backToMain);
+        // let requestRoom = new Room('requestRoom');
+        const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
+            get(game).setCurrentRoom('mainRoom');
+        });
+        const addFriendButton = new Button(116, 3, 20, 'addFriendButton', () => {
+            console.log("stuff and things");
+        });
+        friendRoom.addObject(friendsUI, friendListManagerInstance, friendBackButton, addFriendButton);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
-        requestRoom.addObject(friendRequestManagerInstance, backToMain, socialTabList, 
-                              inputBar, sendFriendRequestButton);
+        // requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 
+        //                       inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------
         function addTestableItems() {
@@ -594,7 +606,7 @@
             slotFactory: createItemSlot,
             tooltip: null,
             numberTextRenderer: electro,
-            slotClickAction: () => {},
+            slotClickAction: (item) => {recentItemDisplayInstance.pushRecentItem(item);},
             itemOffset: { x: 0, y: 0, z: 1 }
         });
         
@@ -843,7 +855,22 @@
     let bedroomManagerInstance = new BedroomManager();
     let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
 
-    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain2);
+    const recentItemsGrid = new InventoryGrid({
+        columns: 3, rows: 1,
+        spacing: { x: 1, y: 0 },
+        position: { x: 0, y: 0, z: 1 },
+        items: [],
+        slotFactory: createItemSlot,
+        tooltip: null,
+        numberTextRenderer: electro,
+        slotClickAction: () => {},
+        itemOffset: { x: 0, y: 0, z: 1 },
+        emptyHover: true
+    });
+
+    const recentItemDisplayInstance = new recentItemDisplay(0, 106, 15, get(game), recentItemsGrid, basic);
+
+    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain, recentItemDisplayInstance);
 }
 
     export function roomMain(){

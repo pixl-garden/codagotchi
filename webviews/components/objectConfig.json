@@ -513,5 +513,32 @@
             "default": [7],
             "hovered": [8]
         }
+    },
+    "friendBackButton":{
+        "spriteWidth": 11,
+        "spriteHeight": 9,
+        "spriteSheet": "backBtn.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "addFriendButton":{
+        "spriteWidth": 10,
+        "spriteHeight": 8,
+        "spriteSheet": "friendBtn.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "sendPostcardButton":{
+        "spriteWidth": 18,
+        "spriteHeight": 7,
+        "spriteSheet": "sendIconSheet.png",
+        "states": {
+            "default": [0],
+            "hovered": [1, 2, 3, 4, 5]
+        }
     }
 }
