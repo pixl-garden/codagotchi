@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem } from './Inventory.svelte';
+    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -66,7 +66,7 @@
 
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
-        const backToMain = new singleLetterButton(0, 0, 10, '<', () => {
+        const backToMain = new singleLetterButton(0, 0, 20, '<', () => {
             get(game).setCurrentRoom('mainRoom');
         });
         const backToMain2 = new singleLetterButton(0, 112, 11, '<', () => {
@@ -606,7 +606,7 @@
             slotFactory: createItemSlot,
             tooltip: null,
             numberTextRenderer: electro,
-            slotClickAction: () => {},
+            slotClickAction: (item) => {recentItemDisplayInstance.pushRecentItem(item);},
             itemOffset: { x: 0, y: 0, z: 1 }
         });
         
@@ -855,7 +855,22 @@
     let bedroomManagerInstance = new BedroomManager();
     let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
 
-    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain2);
+    const recentItemsGrid = new InventoryGrid({
+        columns: 3, rows: 1,
+        spacing: { x: 1, y: 0 },
+        position: { x: 0, y: 0, z: 1 },
+        items: [],
+        slotFactory: createItemSlot,
+        tooltip: null,
+        numberTextRenderer: electro,
+        slotClickAction: () => {},
+        itemOffset: { x: 0, y: 0, z: 1 },
+        emptyHover: true
+    });
+
+    const recentItemDisplayInstance = new recentItemDisplay(0, 106, 15, get(game), recentItemsGrid, basic);
+
+    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain, recentItemDisplayInstance);
 }
 
     export function roomMain(){

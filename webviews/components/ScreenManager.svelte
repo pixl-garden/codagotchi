@@ -42,7 +42,7 @@
             // Validate if spriteMatrix is a 2D array
             if (!Array.isArray(spriteMatrix) || !Array.isArray(spriteMatrix[0])) {
                 console.log("sprite=", sprite);
-                throw new Error('spriteMatrix is not a 2D array, sprite^');
+                throw new Error('spriteMatrix is not a 2D array, sprite^ (You probably need to put the matrix in an array)');
             }
 
             // Calculate the bounds for y and x within the screen and sprite matrix
