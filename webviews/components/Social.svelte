@@ -1,7 +1,6 @@
 <script context="module">
     import { ButtonList, GeneratedObject, Button, Container, activeTextRenderer, ObjectGrid, ConfigObject } from "./Object.svelte";
     import { generateEmptyMatrix } from "./MatrixFunctions.svelte";
-    import { text } from "stream/consumers";
 
     export class friendRequestManager extends GeneratedObject {
         constructor(x, y, z, gameRef, buttonConstructor){
@@ -53,8 +52,8 @@
         }
     }
 
-    class friendTab extends Container {
-        constructor(x, y, z, gameRef, textRenderer, friendUsername, friendUID, heartValue) {
+    export class friendTab extends Container {
+        constructor(x, y, z, gameRef, textRenderer, friendUsername, friendUID, buttonFunctionArray, heartValue = 0) {
             super(x, y, z, 108, 21, 'transparent', 'transparent', 'transparent', 0, 0, 0, 0);
             this.gameRef = gameRef;
             this.textRenderer = textRenderer;
@@ -64,11 +63,30 @@
             this.activeTextRenderer.setText(this.friendUsername);
             this.heartBar = new heartBar(2, 11, 1, 8, 5);
             this.heartBar.setValue(heartValue);
-            this.friendProfileBtn = new ConfigObject("friendProfileButton", 80, 12, 1, () => {console.log("button clicked!!")});
-            this.friendHomeBtn = new ConfigObject("friendHomeButton", 88, 12, 1, () => {console.log("button clicked!")});
-            this.friendMailBtn = new ConfigObject("friendMailButton", 97, 12, 1, () => {console.log("button clicked!")});
+            this.friendProfileBtn = new Button(80, 12, 1, "friendProfileButton", buttonFunctionArray[0] ? buttonFunctionArray[0] : () => {});
+            this.friendHomeBtn = new Button(88, 12, 1, "friendHomeButton", buttonFunctionArray[1] ? buttonFunctionArray[1] : () => {});
+            this.friendMailBtn = new Button(97, 12, 1, "friendMailButton", buttonFunctionArray[2] ? buttonFunctionArray[2] : () => {});
 
             this.children = [this.activeTextRenderer, this.heartBar, this.friendProfileBtn, this.friendHomeBtn, this.friendMailBtn];
+        }
+    }
+
+    export class sendTab extends Container {
+        constructor(x, y, z, gameRef, textRenderer, friendUsername, friendUID, buttonFunctionArray, heartValue = 0) {
+            super(x, y, z, 108, 21, 'transparent', 'transparent', 'transparent', 0, 0, 0, 0);
+            this.gameRef = gameRef;
+            this.textRenderer = textRenderer;
+            this.friendUsername = friendUsername;
+            this.friendUID = friendUID;
+            this.activeTextRenderer = new activeTextRenderer(this.textRenderer, 2, 2, 1, () => {});
+            this.activeTextRenderer.setText(this.friendUsername);
+            this.heartBar = new heartBar(2, 11, 1, 8, 5);
+            this.heartBar.setValue(heartValue);
+            this.sentPostcardBtn = new Button(87, 12, 1, "sendPostcardButton", () => buttonFunctionArray[0](this.friendUsername) ? buttonFunctionArray[0] : () => {});
+            this.children = [this.activeTextRenderer, this.heartBar, this.sentPostcardBtn];
+        }
+        nextFrame(){
+            this.sentPostcardBtn.nextFrame();
         }
     }
 
@@ -97,18 +115,18 @@
                 this.children.push(heartObj);
                 heartX += this.xSpacing;
             }
-            console.log("this.children: ", this.children);
         }
     }
 
     export class friendListManager extends GeneratedObject {
-        constructor(x, y, z, gameRef, buttonConstructor, buttonFunction = () => {}, textRenderer){
+        constructor(x, y, z, gameRef, tabConstructor, buttonFunctionArray, textRenderer){
             super([generateEmptyMatrix(1, 1)], null, x, y, z)
             this.gameRef = gameRef;
-            this.buttonConstructor = buttonConstructor;
-            this.buttonFunction = buttonFunction;
+            this.tabConstructor = tabConstructor;
+            this.buttonFunctionArray = buttonFunctionArray;
             this.textRenderer = textRenderer;
             this.refreshFriends();
+            console.log("FRIEND LIST THIS: ", this)
         }
 
         refreshFriends(){
@@ -118,28 +136,18 @@
             console.log("friendUsernames: ", friendUsernames);
             let friendTabs = [];
             for (let i = 0; i < friendUsernames.length; i++){
-                friendTabs.push(new friendTab(0, 0, 0, this.gameRef, this.textRenderer, friendUsernames[i], friendUids[i]));
+                friendTabs.push(new this.tabConstructor(0, 0, 0, this.gameRef, this.textRenderer, friendUsernames[i], friendUids[i], this.buttonFunctionArray, 5));
             }
             let friendTabList = new ObjectGrid(1, 0, 5, 2, 0, 0, 0, friendTabs, true);
             console.log("friendTabList: ", friendTabList)
             this.children = [friendTabList];
         }
 
-        refreshFriends2(){
-            const friends = this.gameRef.refreshInbox()["friends"];
-            const friendUsernames = Object.values(friends).map(item => item.friendUsername);
-            const friendUids = Object.values(friends).map(item => item.friendUid);
-            // const friendButtonListParams = friendUsernames.map(username => [username, this.buttonFunction(username)]);
-            const friendButtonListParams = friendUsernames.map(username => [username, () => this.buttonFunction(username)]);
-
-            console.log(friendButtonListParams)
-            let friendButtonList = new ButtonList(0, 0, 0, "vertical", 5, this.buttonConstructor, null, ...friendButtonListParams)
-            
-            // This loop can be removed I think????
-            for (let friendButton of friendButtonList.children){
-                friendButton.friendID = friendUids[friendButtonList.children.indexOf(friendButton)];
+        nextFrame(){
+            let friendTabs = this.children[0].children;
+            for(let child of friendTabs){
+                child.nextFrame();
             }
-            this.children = [friendButtonList];
         }
     }
 </script>

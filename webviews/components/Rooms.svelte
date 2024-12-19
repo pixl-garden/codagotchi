@@ -12,7 +12,7 @@
     import { Fishing } from "./Fishing.svelte";
     import { MiningManager } from "./Mining.svelte";
     import lootTableConfig from './lootTableConfig.json';
-    import { friendListManager, friendRequestManager } from './Social.svelte';
+    import { friendListManager, friendRequestManager, friendTab, sendTab } from './Social.svelte';
     import itemConfig from './itemConfig.json'
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     
@@ -71,10 +71,6 @@
         });
         const backToMain2 = new singleLetterButton(0, 112, 11, '<', () => {
             get(game).setCurrentRoom('mainRoom');
-        });
-        // button to return to paint room
-        const backToPaintRoom = new singleLetterButton(0, 112, 10, '<', () => {
-            get(game).setCurrentRoom('paintRoom');
         });
 
         // TODO: add button to friends and postcard rooms
@@ -504,24 +500,35 @@
         }
 
     //----------------SEND POSTCARD ROOM----------------
-        let sendFriendListInstance = new friendListManager(0, 16, 0, get(game), friendButton, (username) => {
-            postcardRendering.exportPostcard(username);
-            get(game).setCurrentRoom('paintRoom');
-        });
+        let buttonFunctions = [
+            (username) => {postcardRendering.exportPostcard(username)}
+        ]
+        let sendFriendListInstance = new friendListManager(11, 6, 0, get(game), sendTab, buttonFunctions, basic);
+        // let sendFriendListInstance = new friendListManager(0, 16, 0, get(game), friendButton, (username) => {
+        //     postcardRendering.exportPostcard(username);
+        //     get(game).setCurrentRoom('paintRoom');
+        // });
         let sendPostcardRoom = new Room('sendPostcardRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
                 sendFriendListInstance.refreshFriends();
             },
+            () =>{},
+            () => { sendFriendListInstance.nextFrame(); }
         );
         sendPostcardRoom.clearTextOnExit = false;
+        const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
 
-        sendPostcardRoom.addObject(sendFriendListInstance, backToPaintRoom);
+        const backToPaintRoom = new Button(2, 1, 20, 'friendBackButton', () => {
+            get(game).setCurrentRoom('paintRoom');
+        });
+
+            
+        sendPostcardRoom.addObject(friendsUI, sendFriendListInstance, backToPaintRoom);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
 
     //----------------SOCIAL ROOM----------------
 
-        const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
        
     // should have a button back and two sections (friends and requests)
 
@@ -535,25 +542,25 @@
 
 
 
-        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendButton, ()=>{}, basic);
-        let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
+        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, ()=>{}, basic);
+        // let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
         
-        const socialTabs = ['Friends', 'Add'];
+        // const socialTabs = ['Friends', 'Add'];
 
-        const socialTabList = new textButtonList(socialTabs, [
-            () => {get(game).setCurrentRoom('friendRoom')}, 
-            () => {get(game).setCurrentRoom('requestRoom')}
-        ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
+        // const socialTabList = new textButtonList(socialTabs, [
+        //     () => {get(game).setCurrentRoom('friendRoom')}, 
+        //     () => {get(game).setCurrentRoom('requestRoom')}
+        // ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
         
         //ROOM INSTANTIATION
         let friendRoom = new Room('friendRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
                 friendListManagerInstance.refreshFriends();
-                friendRequestManagerInstance.refreshRequests();
+                // friendRequestManagerInstance.refreshRequests();
             },
         );
-        let requestRoom = new Room('requestRoom');
+        // let requestRoom = new Room('requestRoom');
         const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
             get(game).setCurrentRoom('mainRoom');
         });
@@ -562,8 +569,8 @@
         });
         friendRoom.addObject(friendsUI, friendListManagerInstance, friendBackButton, addFriendButton);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
-        requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 
-                              inputBar, sendFriendRequestButton);
+        // requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 
+        //                       inputBar, sendFriendRequestButton);
         
     //----------------INVENTORY ROOM----------------
         function addTestableItems() {

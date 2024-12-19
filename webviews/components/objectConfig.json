@@ -531,5 +531,14 @@
             "default": [0],
             "hovered": [1]
         }
+    },
+    "sendPostcardButton":{
+        "spriteWidth": 18,
+        "spriteHeight": 7,
+        "spriteSheet": "sendIconSheet.png",
+        "states": {
+            "default": [0],
+            "hovered": [1, 2, 3, 4, 5]
+        }
     }
 }
