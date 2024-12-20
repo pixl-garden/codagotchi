@@ -332,6 +332,10 @@
         onDrag(){
 
         }
+
+        onDragStop(){
+            
+        }
     }
 
     export class activeTextRenderer extends GeneratedObject { 
@@ -392,6 +396,8 @@
             this.hatConfig = hatConfig
             this.gameReference = gameReference
             this.hat 
+            this.hunger = 25;
+            this.maxHunger = 100;
         }
 
         getSprite() {

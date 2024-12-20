@@ -26,7 +26,7 @@
     // - First element is the directly hovered object
     // - Subsequent elements are parent objects with hoverWithChildren=true
     // Parents are included in the chain if they have hoverWithChildren=true
-    function getObjectAt(x, y, gameInstance) {
+    export function getObjectAt(x, y, gameInstance) {
         let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
         let highestFoundObject = null;
         let highestFoundObjectZ = -1000;
@@ -178,9 +178,14 @@
     }
 
     // Handle mouse up events
-    export function handleMouseUp() {
+    export function handleMouseUp(event, gameInstance) {
+        event.preventDefault();
+        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
         isMouseDown = false;
         lastCoordinates = { x: undefined, y: undefined };
+        if(activeDragObject.onDragStop){
+            activeDragObject.onDragStop(gridX, gridY);
+        }
         activeDragObject = null; // Reset drag object
     }
 

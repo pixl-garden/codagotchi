@@ -245,7 +245,7 @@
         "spriteSheet": "fish.png",
         "description": "fish",
         "spriteWidth": 16,
-        "hunger": 3,
+        "hunger": 20,
         "thirst": 1,
         "energy": 1,
         "states": {

@@ -125,10 +125,10 @@
             }
 
             whileHover(){
-                if(this.currentState < this.maxState){
-                    this.increment();
-                }
-                else(this.currentState = 0)
+                // if(this.currentState < this.maxState){
+                //     this.increment();
+                // }
+                // else(this.currentState = 0)
             }
             
             getSize() {
@@ -147,6 +147,11 @@
                     this.currentState--;
                     this.updateState(`state${this.currentState}`);
                 }
+            }
+
+            setPercentage(percentage) {
+                this.currentState = Math.ceil(percentage * this.maxState);
+                this.updateState(`state${this.currentState}`);
             }
         };
     };

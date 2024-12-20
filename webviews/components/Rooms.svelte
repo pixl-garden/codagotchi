@@ -15,6 +15,7 @@
     import { friendListManager, friendRequestManager, friendTab, sendTab } from './Social.svelte';
     import itemConfig from './itemConfig.json'
     import Bedroom, { BedroomEditor, BedroomManager } from './Bedroom.svelte';
+    import { getObjectAt } from './MouseEvents.svelte';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -86,10 +87,15 @@
         let defaultMenuParams = ["#59585a", "#2b2a2b", Colors.black, 2, 5, 3, 1];
 
     //----------------MAIN ROOM----------------
+
+        //PET INSTANTIATION
+        let petObject = new Pet('pearguin', 8, 40, 0, get(game));
+
         //STATUS BAR INSTANTIATIONS
         const StatusBar = generateStatusBarClass(50, 7,  Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.green, 1);
         const manaBar = new StatusBar(77, 53, 0);
         const hungerBar = new StatusBar(77, 62, 0);
+        hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
         const healthBar = new StatusBar(77, 71, 0);
 
         // // MAIN MENU ICONS
@@ -124,24 +130,33 @@
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
             let dragItem;
-            output.clickAction = () => {
+            output.clickAction = (x,  y) => {
                 if (output.slotItem) {
                     console.log("dragging", dragItem, output.slotItem, output.slotItem.itemName);
-                    dragItem = new Item(itemConfig[output.slotItem.itemName], output.slotItem.itemName)
+                    dragItem = new Item(itemConfig[output.slotItem.itemName], output.slotItem.itemName, x - 8, y - 8, 10)
                     dragItem.useAbsoluteCoords = true;
                     output.children.push(dragItem);
                 }
             }
             output.onDrag = (x, y) => {
-                // if(dragItem === null && output.children[0]){
-                //     dragItem = ;
-                //     console.log("dragging", dragItem, output.item, x, y);
-                // }
-                dragItem?.setCoordinate(x, y, 10);
-                // console.log("dragging", dragItem, outputItem, x, y);
+                dragItem?.setCoordinate(x - 8, y - 8, 10);
+            }
+            output.onDragStop = (x, y) => {
+                if(dragItem){
+                    output.children = output.children.filter(child => child !== dragItem);
+                    
+                    if(hasInstanceOf(getObjectAt(x, y, get(game)), Pet)){
+                        petObject.hunger += dragItem.config.hunger;
+                        hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
+                    }
+                    dragItem = null;
+                }
             }
             return output;
         }
+        
+        //check if array has any of a certain type
+        const hasInstanceOf = (array, type) => array.some(item => item instanceof type);
 
         const recentItemsGrid = new InventoryGrid({
             columns: 3, rows: 1,
@@ -161,8 +176,7 @@
         const recentItemDisplayInstance = new recentItemDisplay(1, 104, 1, get(game), recentItemsGrid, basic);
         recentItemDisplayInstance.hoverWithChildren = true;
 
-        //PET INSTANTIATION
-        let petObject = new Pet('pearguin', 8, 40, 0, get(game));
+
         //ROOM INSTANTIATION
         let mainRoom = new Room('mainRoom', () => {
             petObject.setCoordinate(8, 40, 0);

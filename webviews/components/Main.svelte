@@ -140,7 +140,7 @@
      on:click={(e) => handleClick(e, get(game))}
      on:mousemove={(e) => handleMouseMove(e, get(game))}
      on:mousedown={(e) => handleMouseDown(e, get(game))}
-     on:mouseup={handleMouseUp}
+     on:mouseup={(e) => handleMouseUp(e, get(game))}
      on:mouseleave={(e) => handleMouseOut(e)}
      on:wheel={(e) => handleScroll(e, get(game))}>
 </canvas>
