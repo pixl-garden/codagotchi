@@ -1,6 +1,6 @@
 <script context='module'>
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
-    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject } from './Object.svelte';
+    import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject, Container } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
@@ -14,7 +14,7 @@
     import lootTableConfig from './lootTableConfig.json';
     import { friendListManager, friendRequestManager, friendTab, sendTab } from './Social.svelte';
     import itemConfig from './itemConfig.json'
-    import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
+    import Bedroom, { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -97,8 +97,8 @@
         const hungerIcon = new Background('hungerIcon', 65, 61, 0);
         const healthIcon = new Background('heartIcon', 67, 71, 0);
 
-        const levelBar = new Background('levelBar', 96, 4, 0);
-        const numTest = new Background('numTest', 106, 12, 1);
+        // const levelBar = new Background('levelBar', 96, 4, 0);
+        // const numTest = new Background('numTest', 106, 12, 1);
 
         const greyBackground = new Background('greyBackground', 0, 0, -20, () => {} );
         // greyBackground.opacity = 0.7;
@@ -106,11 +106,11 @@
 
         // // MAIN MENU BUTTON INSTANTIATIONS
         const settingsButton = new Button(2, 4, 0, 'settingsIcon', () => {get(game).setCurrentRoom('settingsRoom')});
-        const inventoryButton = new Button(5, 90, 0, 'inventoryIcon', () => {get(game).setCurrentRoom('inventoryRoom')});
-        const worldButton = new Button(30, 100, 0, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
-        const bedroomButton = new Button(53, 101, 0, 'bedroomIcon2', () => {get(game).setCurrentRoom('bedroomRoom')});
-        const paintRoomButton = new Button(80, 103, 0, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
-        const postOfficeButton = new Button(102, 94, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
+        const inventoryButton = new Button(18, 4, 0, 'inventoryIcon', () => {get(game).setCurrentRoom('inventoryRoom')});
+        const worldButton = new Button(36, 4, 0, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
+        const bedroomButton = new Button(59, 4, 0, 'bedroomIcon2', () => {get(game).setCurrentRoom('bedroomRoom')});
+        const paintRoomButton = new Button(86, 4, 0, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
+        const postOfficeButton = new Button(104, 4, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
 
         const leftPetButton = new Button(2, 66, 0, 'leftPetArrow', () => {
 
@@ -119,27 +119,48 @@
 
         });
 
-        //MAIN MENU INSTANTIATION
-        const mainMenuButtonTexts = ['Settings', 'Shop', 'Customize', 'Paint', 'Friends', 'Inventory', 'Fishing', 'Mining', 'PostOffice', 'Close'];
-        const mainMenuButtonFunctions = [() => {get(game).setCurrentRoom('settingsRoom')}, 
-        () => {get(game).setCurrentRoom('shopRoom')}, 
-        () => {get(game).setCurrentRoom('customizeRoom')}, 
-        () => {get(game).setCurrentRoom('paintRoom')}, 
-        () => {get(game).setCurrentRoom('friendRoom')}, 
-        () => {get(game).setCurrentRoom('inventoryRoom')}, 
-        () => {get(game).setCurrentRoom('fishingRoom')},
-        () => {get(game).setCurrentRoom('caveEntranceRoom')},
-        () => {get(game).setCurrentRoom('postOfficeRoom')},
-        () => {
-            get(game).getCurrentRoom().removeObject( mainMenu ); 
-            get(game).getCurrentRoom().addObject( mainMenuButton );}
-        ]
-        const mainMenu = new textButtonList(mainMenuButtonTexts, mainMenuButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
-        //BUTTON TO OPEN MAIN MENU
-        const mainMenuButton = new Button(0, 0, 1, 'mainMenuButton', () => {
-            get(game).getCurrentRoom().removeObject(mainMenuButton);
-            get(game).getCurrentRoom().addObject(mainMenu);
+        function createDraggableItemSlot() {
+            let output = new ConfigObject("smallItemSlot", 0, 0, 0);
+            output.hoverWithChildren = true;
+            output.passMouseCoords = true;
+            let dragItem;
+            output.clickAction = () => {
+                if (output.slotItem) {
+                    console.log("dragging", dragItem, output.slotItem, output.slotItem.itemName);
+                    dragItem = new Item(itemConfig[output.slotItem.itemName], output.slotItem.itemName)
+                    dragItem.useAbsoluteCoords = true;
+                    output.children.push(dragItem);
+                }
+            }
+            output.onDrag = (x, y) => {
+                // if(dragItem === null && output.children[0]){
+                //     dragItem = ;
+                //     console.log("dragging", dragItem, output.item, x, y);
+                // }
+                dragItem?.setCoordinate(x, y, 10);
+                // console.log("dragging", dragItem, outputItem, x, y);
+            }
+            return output;
+        }
+
+        const recentItemsGrid = new InventoryGrid({
+            columns: 3, rows: 1,
+            spacing: { x: 1, y: 0 },
+            position: { x: 0, y: 0, z: 1 },
+            items: [],
+            slotFactory: createDraggableItemSlot,
+            tooltip: null,
+            numberTextRenderer: electro,
+            slotClickAction: () => {},
+            itemOffset: { x: 0, y: 0, z: 1 },
+            emptyHover: true,
+            numberXOffset: 5,
+            numberYOffset: 12
         });
+
+        const recentItemDisplayInstance = new recentItemDisplay(1, 104, 1, get(game), recentItemsGrid, basic);
+        recentItemDisplayInstance.hoverWithChildren = true;
+
         //PET INSTANTIATION
         let petObject = new Pet('pearguin', 8, 40, 0, get(game));
         //ROOM INSTANTIATION
@@ -148,8 +169,8 @@
         }, false, () => {
             petObject.nextFrame();
         });
-        mainRoom.addObject(greyBackground, manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, levelBar, numTest, settingsButton,
-            inventoryButton, worldButton, bedroomButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton
+        mainRoom.addObject(greyBackground, manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, settingsButton,
+            inventoryButton, worldButton, bedroomButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton, recentItemDisplayInstance
         );
         // mainRoom.addObject(petObject, mainMenuButton);
         
@@ -850,27 +871,27 @@
     // ---------------- BEDROOM ----------------
     let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {
         bedroomEditorInstance.nextFrame();
+        bedroomHotbar.nextFrame();
     });
 
     let bedroomManagerInstance = new BedroomManager();
     let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
 
-    const recentItemsGrid = new InventoryGrid({
-        columns: 3, rows: 1,
-        spacing: { x: 1, y: 0 },
-        position: { x: 0, y: 0, z: 1 },
-        items: [],
-        slotFactory: createItemSlot,
-        tooltip: null,
-        numberTextRenderer: electro,
-        slotClickAction: () => {},
-        itemOffset: { x: 0, y: 0, z: 1 },
-        emptyHover: true
-    });
 
-    const recentItemDisplayInstance = new recentItemDisplay(0, 106, 15, get(game), recentItemsGrid, basic);
 
-    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain, recentItemDisplayInstance);
+
+
+    const bedroomHotbar = new Container(-1, 122, 20, 130, 26, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 1, 1);
+    bedroomHotbar.setPhysics(15.0, 0, 5.0)
+    bedroomHotbar.onHover = () => {
+        bedroomHotbar.startMovingTo(-1, 106);
+    }
+    bedroomHotbar.onStopHover = () => {
+        bedroomHotbar.startMovingTo(-1, 122);
+    }
+    bedroomHotbar.children = [];
+    bedroomHotbar.hoverWithChildren = true;
+    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain, bedroomHotbar);
 }
 
     export function roomMain(){

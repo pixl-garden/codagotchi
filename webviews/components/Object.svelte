@@ -71,6 +71,7 @@
             this.opacityTransitionSpeed = 0;
             this.isOpacityTransitioning = false;
             this.goalOpacity = 1;
+            this.useAbsoluteCoords = false;
         }
 
         /**
@@ -248,17 +249,30 @@
             const accumulateChildSprites = (parent, offsetX = 0, offsetY = 0, offsetZ = 0) => {
                 for (let child of parent.children) {
                     let childSprite = child.getSprite();
-                    if(childSprite != null){
-                        // Apply both the current parent's offset and any accumulated offset from ancestors
-                        childSprite.x += offsetX + parent.x;
-                        childSprite.y += offsetY + parent.y;
-                        childSprite.z += offsetZ + parent.z;
-                        childSprites.push(childSprite);
-                    }
+                    if(child.useAbsoluteCoords){
+                        if(childSprite != null){
+                            // Apply both the current parent's offset and any accumulated offset from ancestors
+                            childSprites.push(childSprite);
+                        }
 
-                    // If the child has its own children, recursively accumulate their sprites too
-                    if (child.children.length > 0 && child.renderChildren) {
-                        accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y, offsetZ + parent.z);
+                        // If the child has its own children, recursively accumulate their sprites too
+                        if (child.children.length > 0 && child.renderChildren) {
+                            accumulateChildSprites(child, child.x, child.y, child.z);
+                        }
+                    }
+                    else{
+                        if(childSprite != null){
+                            // Apply both the current parent's offset and any accumulated offset from ancestors
+                            childSprite.x += offsetX + parent.x;
+                            childSprite.y += offsetY + parent.y;
+                            childSprite.z += offsetZ + parent.z;
+                            childSprites.push(childSprite);
+                        }
+
+                        // If the child has its own children, recursively accumulate their sprites too
+                        if (child.children.length > 0 && child.renderChildren) {
+                            accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y, offsetZ + parent.z);
+                        }
                     }
                 }
             };
@@ -313,6 +327,10 @@
                 this.currentStateCallback();
                 this.currentStateCallback = null; // Reset the callback
             }
+        }
+
+        onDrag(){
+
         }
     }
 

@@ -331,8 +331,8 @@
     export class InventoryGrid extends ObjectGrid{
         constructor({columns, rows, spacing, position, items, slotFactory, 
                 toolTip, numberTextRenderer, slotClickAction = () => {}, 
-                itemOffset = { x: 0, y: 0, z: 1 }, renderEmpty = true, scrollable = true, emptyHover = true}) {
-            let constructedItems = constructInventoryObjects(slotFactory, items, rows*columns, numberTextRenderer, slotClickAction, itemOffset.x, itemOffset.y, itemOffset.z);
+                itemOffset = { x: 0, y: 0, z: 1 }, renderEmpty = true, scrollable = true, emptyHover = true, numberXOffset = 4, numberYOffset = 14}) {
+            let constructedItems = constructInventoryObjects(slotFactory, items, rows*columns, numberTextRenderer, slotClickAction, itemOffset.x, itemOffset.y, itemOffset.z, numberXOffset, numberYOffset);
             super(columns, spacing.x, rows, spacing.y, position.x, position.y, position.z, constructedItems, scrollable);
             this.slotFactory = slotFactory;
             this.renderEmpty = renderEmpty;
@@ -352,6 +352,8 @@
             this.clickAction = () => {};
             this.slotClickAction = (item)=>{slotClickAction(item); this.displayToolTip = false; this.hoveredItem = null; this.hoveredChild = null; this.onStopHover()};
             this.renderChildren = true;
+            this.numberXOffset = numberXOffset;
+            this.numberYOffset = numberYOffset;
         }
 
         setHoverLogic() {
@@ -406,7 +408,7 @@
         updateItemSlots(itemsArray){
             this.items = itemsArray;
             this.totalSlots = this.renderEmpty ? (this.pageSize - this.items.length % this.pageSize) + this.items.length : this.items.length;
-            let itemSlotExport = constructInventoryObjects(this.slotFactory, itemsArray, this.totalSlots, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ);
+            let itemSlotExport = constructInventoryObjects(this.slotFactory, itemsArray, this.totalSlots, this.numberTextRenderer, this.slotClickAction, this.itemX, this.itemY, this.itemZ, this.numberXOffset, this.numberYOffset);
             // update the objects rendered in the grid (from objectGrid superclass)
             this.objects = itemSlotExport;
             this.generateObjectGrid();
@@ -417,7 +419,7 @@
 
     // function instead of method so that it can be called before the super constructor (doesn't need this. to call it)
     // maybe change this later
-    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}, itemX = 0, itemY = 0, itemZ = 1) {
+    function constructInventoryObjects(createSlotInstance, items, totalSlots, numberTextRenderer, clickAction = () => {}, itemX = 0, itemY = 0, itemZ = 1, numberXOffset = 4, numberYOffset = 14) {
         let inventoryGrid = [];
         for(let i = 0; i < totalSlots; i++) {
             let item = items[i];
@@ -438,7 +440,7 @@
                 slotInstance.slotItem = item;
                 
                 if(numberTextRenderer != null) {
-                    let numberRenderer = new activeTextRenderer(numberTextRenderer, 4, 14, slotInstance.z + 2, ()=> {}, {maxWidth: 25, position: "center"});
+                    let numberRenderer = new activeTextRenderer(numberTextRenderer, numberXOffset, numberYOffset, slotInstance.z + 2, ()=> {}, {maxWidth: 25, position: "center"});
                     numberRenderer.setText(item.itemCount.toString());
                     slotInstance.addChild(numberRenderer);
                 }
@@ -480,25 +482,10 @@
                 // No duplicate found, back
                 this.recentItems.unshift(item);
                 if(this.recentItems.length > 3){
-                    this.recentItems.shift();
+                    this.recentItems.pop();
                 }
             }
             this.inventoryGrid.updateItemSlots(this.recentItems);
-        }
-    }
-
-    function enqueueItem(item, queue) {
-        // Check if the item already exists in the queue
-        const existingIndex = queue.indexOf(item);
-        
-        if (existingIndex !== -1) {
-            // Item is a duplicate. Remove it from current position
-            queue.splice(existingIndex, 1);
-            // Move it to the front
-            queue.unshift(item);
-        } else {
-            // No duplicate found, add to the front
-            queue.unshift(item);
         }
     }
 
