@@ -125,6 +125,15 @@
 
         });
 
+        function createItemSlot() {
+            let output = new ConfigObject("smallItemSlot", 0, 0, 0);
+            output.hoverWithChildren = true;
+            output.passMouseCoords = true;
+            // console.log("createItemSlot instance:", output); // Check the instance
+            return output;
+        }
+
+        //TODO: probably make more modular
         function createDraggableItemSlot() {
             let output = new ConfigObject("smallItemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
@@ -132,7 +141,6 @@
             let dragItem;
             output.clickAction = (x,  y) => {
                 if (output.slotItem) {
-                    console.log("dragging", dragItem, output.slotItem, output.slotItem.itemName);
                     dragItem = new Item(itemConfig[output.slotItem.itemName], output.slotItem.itemName, x - 8, y - 8, 10)
                     dragItem.useAbsoluteCoords = true;
                     output.children.push(dragItem);
@@ -147,6 +155,7 @@
                     
                     if(hasInstanceOf(getObjectAt(x, y, get(game)), Pet)){
                         petObject.hunger += dragItem.config.hunger;
+                        petObject.hunger = Math.min(petObject.hunger, petObject.maxHunger);
                         hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
                     }
                     dragItem = null;
@@ -622,15 +631,6 @@
 
         // addTestableItems();
         
-        //ITEMSLOT FACTORY FUNCTION
-        function createItemSlot() {
-            let output = new ConfigObject("smallItemSlot", 0, 0, 0);
-            output.hoverWithChildren = true;
-            output.passMouseCoords = true;
-            // console.log("createItemSlot instance:", output); // Check the instance
-            return output;
-        }
-        
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(12, 90, 2, 2);
         const inventoryGridInstance = new InventoryGrid({
@@ -908,7 +908,7 @@
     bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain, bedroomHotbar);
 }
 
-    export function roomMain(){
-        get(game).getCurrentRoom().update();
-    }
+export function roomMain(){
+    get(game).getCurrentRoom().update();
+}
 </script>
