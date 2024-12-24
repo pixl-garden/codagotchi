@@ -297,8 +297,8 @@
 
         serializedInventory() {
             let serializedInventory = {};
-            this.items.forEach((item, inventoryId) => {
-                serializedInventory[inventoryId] = item.serialize();
+            this.items.forEach((item) => {
+                serializedInventory[item.itemName] = item.count
             });
             return JSON.stringify(serializedInventory);
         }
@@ -488,7 +488,7 @@
             }
             this.inventoryGrid.updateItemSlots(this.recentItems);
             console.log("Recent Items", this.recentItems);
-            const recentItemNames = this.recentItems.map(item => item.itemName);
+            const recentItemNames = this.recentItems.map(item => item?.itemName);
             this.gameRef.updateGlobalState({recentItemNames: recentItemNames});
         }
 

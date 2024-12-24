@@ -147,7 +147,7 @@
 
         addStackableItem(itemIdString, quantity = 1) {
             const itemInstance = this.inventory.addStackableItemToInstance(itemIdString, quantity);
-            this.updateGlobalState({inventoryUpdates: itemInstance.serialize()});
+            this.updateGlobalState({inventory: {[itemInstance.itemName]: itemInstance.itemCount}});
             this.updateDatabase({inventoryUpdates: itemInstance.serialize()});
         }
 
@@ -169,10 +169,10 @@
             console.log("New Item Instance: ", itemInstance);
             if(itemInstance) {
                 if(itemInstance.itemCount <= 0){
-                    this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
+                    this.removeItemFromGlobalState("inventory", itemInstance.itemName);
                 } else {
                     console.log("Updating Global State: ", itemInstance.serialize());
-                    this.updateGlobalState({inventoryUpdates: itemInstance.serialize()});
+                    this.updateGlobalState({inventory: {[itemInstance.itemName]: itemInstance.itemCount}});
                 }
                 console.log("Item Instance Serialized: ", itemInstance.serialize());
                 this.updateDatabase({inventoryUpdates: itemInstance.serialize()});

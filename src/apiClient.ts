@@ -210,7 +210,7 @@ export async function sendPostcard(context: vscode.ExtensionContext, recipientUs
     }
 }
 
-export async function retrieveInventory(context: vscode.ExtensionContext, cacheManager: CacheManager) {
+export async function retrieveInventory(context: vscode.ExtensionContext) {
     const lastFetchTimestamp = context.globalState.get('lastSync') || 0;
     // const cachedInventory = (await cacheManager.get(cacheKey)) || {};
     const currentInventory = context.globalState.get('inventory') || {};
