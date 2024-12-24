@@ -243,29 +243,34 @@ export async function retrieveInventory(context: vscode.ExtensionContext) {
     }
 }
 
-// TEST the TYPES
-// export async function syncUserData(context: vscode.ExtensionContext, 
-//     userData: { inventoryUpdates: JSON; petUpdates: JSON; customizationUpdates: JSON; bedroomUpdates: JSON}) {
-//     const idToken = await context.secrets.get('idToken');
-//     const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = userData;
-//     try {
-//         const response = await axios.post(
-//             `${BASE_URL}/syncUserData`,
-//             { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates },
-//             {
-//                 headers: {
-//                     Authorization: `Bearer ${idToken}`,
-//                     'Content-Type': 'application/json',
-//                 },
-//             },
-//         );
-//         console.log('User Data Synced');
-//         return response.data.message;
-//     } catch (error) {
-//         console.error('Error syncing user data:', error);
-//         throw error;
-//     }
-// }
+export async function retrieveUserData(context: vscode.ExtensionContext) {
+    const lastFetchTimestamp = context.globalState.get('lastSync') || 0;
+
+    const idToken = await context.secrets.get('idToken');
+    try {
+        const response = await axios.get(`${BASE_URL}/retrieveUserData`, {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+            params: {
+                timestamp: lastFetchTimestamp,
+            },
+        });
+
+        const { flag, userData, timestamp: currentTimestamp } = response.data;
+        const receivedUserData = JSON.parse(pako.inflate(userData, { to: 'string' }));
+        const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates } = receivedUserData;
+        context.globalState.update('lastSync', currentTimestamp);
+
+        console.log('User Data Received:', receivedUserData);
+
+        return { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, flag };
+    } catch (error) {
+        console.error('Error retrieving user data:', error);
+        throw error;
+    }
+}
 
 export interface DatabaseUpdates {
     bedroomUpdates: string;

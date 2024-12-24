@@ -198,6 +198,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
                         });
+                        console.log('Updated inbox:', getGlobalState(this.context).inbox);
                     }
                     break;
                 }
