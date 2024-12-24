@@ -100,10 +100,10 @@ function listenForDocumentSave(context: vscode.ExtensionContext): void {
 // This method is called when your extension is deactivated
 export function deactivate(context: vscode.ExtensionContext) {
     logger.log('Extension deactivating...');
-    try{
-        setLastSaveTime(context);
-    } catch (error) {
-        logger.log('Error setting last save time', error as Error);
-    }
+    // try{
+    //     setLastSaveTime(context);
+    // } catch (error) {
+    //     logger.log('Error setting last save time', error as Error);
+    // }
     logger.log('Extension deactivated');
 }

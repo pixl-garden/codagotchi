@@ -7,6 +7,7 @@
     import { Sprite } from "./SpriteComponent.svelte";
     import { compute_rest_props } from "svelte/internal";
     import { trimSpriteMatrix, flipMatrixByAxis } from "./MatrixFunctions.svelte";
+    import { get } from "lodash";
     const stackableTypes = ["food", "stamp", "mining"]
     
 
@@ -466,7 +467,7 @@
             const emptyMatrix = generateEmptyMatrix(1, 1);
             super([emptyMatrix], { default: [0] }, x, y, z);
             this.inventoryGrid = inventoryGrid;
-            this.gameref = gameRef;
+            this.gameRef = gameRef;
             this.recentItems = [];
             this.children = [inventoryGrid];
         }
@@ -485,6 +486,18 @@
                     this.recentItems.pop();
                 }
             }
+            this.inventoryGrid.updateItemSlots(this.recentItems);
+            console.log("Recent Items", this.recentItems);
+            const recentItemNames = this.recentItems.map(item => item.itemName);
+            this.gameRef.updateGlobalState({recentItemNames: recentItemNames});
+        }
+
+        refreshRecentItems() {
+            const recentItemNames = this.gameRef.getLocalState().recentItemNames || [];
+            this.recentItems = recentItemNames.map(itemName => this.gameRef.inventory.items.get(itemName));
+            console.log("Recent Item Names:", recentItemNames);
+            console.log("Recent Items:", this.recentItems);
+            console.log("local state", this.gameRef.getLocalState());
             this.inventoryGrid.updateItemSlots(this.recentItems);
         }
     }

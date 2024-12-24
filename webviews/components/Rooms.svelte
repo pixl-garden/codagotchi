@@ -157,6 +157,8 @@
                         petObject.hunger += dragItem.config.hunger;
                         petObject.hunger = Math.min(petObject.hunger, petObject.maxHunger);
                         hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
+                        get(game).subtractStackableItem(dragItem.itemName, 1);
+                        
                     }
                     dragItem = null;
                 }
@@ -184,6 +186,7 @@
 
         const recentItemDisplayInstance = new recentItemDisplay(1, 104, 1, get(game), recentItemsGrid, basic);
         recentItemDisplayInstance.hoverWithChildren = true;
+        recentItemDisplayInstance.refreshRecentItems();
 
 
         //ROOM INSTANTIATION
