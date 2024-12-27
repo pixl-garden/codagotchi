@@ -110,9 +110,9 @@
         }
 
         constructInventory() {
-            console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
+            console.log("this.getLocalState().inventory: ", this.getLocalState().inventory);
             this.inventory = new Inventory(this.getLocalState().inventory || {});
-            // console.log("Inventory constructed: ", this.userInventory);
+            console.log("Inventory constructed: ", this.inventory);
             return this.inventory;
         }
   
@@ -147,7 +147,7 @@
 
         addStackableItem(itemIdString, quantity = 1) {
             const itemInstance = this.inventory.addStackableItemToInstance(itemIdString, quantity);
-            this.updateGlobalState({inventoryUpdates: itemInstance.serialize()});
+            this.updateGlobalState({inventory: {[itemInstance.itemName]: itemInstance.itemCount}});
             this.updateDatabase({inventoryUpdates: itemInstance.serialize()});
         }
 
@@ -166,13 +166,16 @@
 
         subtractStackableItem(itemIdString, quantity = 1) {
             const itemInstance = this.inventory.subtractStackableItemFromInstance(itemIdString, quantity);
+            console.log("New Item Instance: ", itemInstance);
             if(itemInstance) {
                 if(itemInstance.itemCount <= 0){
-                    this.removeItemFromGlobalState("inventory", itemInstance.inventoryId);
+                    this.removeItemFromGlobalState("inventory", itemInstance.itemName);
                 } else {
-                    this.updateGlobalState({inventoryUpdates: itemInstance.serialize()});
+                    console.log("Updating Global State: ", itemInstance.serialize());
+                    this.updateGlobalState({inventory: {[itemInstance.itemName]: itemInstance.itemCount}});
                 }
-                this.gameRef.updateDatabase({inventoryUpdates: itemInstance.serialize()});
+                console.log("Item Instance Serialized: ", itemInstance.serialize());
+                this.updateDatabase({inventoryUpdates: itemInstance.serialize()});
             }
         }
 

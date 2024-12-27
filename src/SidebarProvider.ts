@@ -70,13 +70,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         userInbox: cachedUserInbox,
                     });
 
-                    const cachedUserInventory = await this.cacheManager.get('userInventory');
-                    console.log('Cached userInventory:', cachedUserInventory);
+                    // const cachedUserInventory = await this.cacheManager.get('userInventory');
+                    // console.log('Cached userInventory:', cachedUserInventory);
 
-                    webviewView.webview.postMessage({
-                        type: 'cached-user-inventory',
-                        userInventory: cachedUserInventory,
-                    });
+                    // webviewView.webview.postMessage({
+                    //     type: 'cached-user-inventory',
+                    //     userInventory: cachedUserInventory,
+                    // });
 
                     startPeriodicSync(this.context);
 
@@ -198,11 +198,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             type: 'fetchedGlobalState',
                             value: getGlobalState(this.context),
                         });
+                        console.log('Updated inbox:', getGlobalState(this.context).inbox);
                     }
                     break;
                 }
                 case 'retrieveInventory': {
-                    const { receivedInventory } = await apiClient.retrieveInventory(this.context, this.cacheManager);
+                    const { receivedInventory } = await apiClient.retrieveInventory(this.context);
                     //console.log("Retrieved inventory data:", updatedInventory);
                     console.log('Received inventory:', receivedInventory)
                     if (receivedInventory) {
@@ -341,48 +342,32 @@ function overwriteFieldInState(context: vscode.ExtensionContext, key: string, va
 // Also supports deep deletion using dot notation
 // ---- Example usage: ----
 // removeItemFromState(context, 'inbox', 'friendRequest.1234');
-// TODO: maybe this should be done with one value instead of two? (append the key to the value)
 function removeItemFromState(context: vscode.ExtensionContext, key: string, itemToRemove: string): Thenable<void> {
-    // Retrieve the existing global state
     const currentGlobalState = context.globalState.get<{ [key: string]: any }>('globalInfo', {});
-    console.log('TESTINGLOG');
 
-    // Check if the key exists and is an object
-    if (currentGlobalState.hasOwnProperty(key) && typeof currentGlobalState[key] === 'object' && !Array.isArray(currentGlobalState[key])) {
-        // Split itemToRemove by dots to support deep deletion
+    if (currentGlobalState.hasOwnProperty(key) && 
+        typeof currentGlobalState[key] === 'object' && 
+        !Array.isArray(currentGlobalState[key])) {
+        
         const keys = itemToRemove.split('.');
+        const lastKey = keys.pop();
         let current = currentGlobalState[key];
 
+        // Navigate to the parent of the item to remove
         for (const element of keys) {
-            if (current.hasOwnProperty(element) && typeof current[element] === 'object') {
-                console.log('Current:', current);
-                current = current[element];
-            } else {
-                // If the path doesn't exist, exit the function
-                console.log('Path does not exist:', current);
+            if (!current?.hasOwnProperty(element)) {
                 return context.globalState.update('globalInfo', currentGlobalState);
             }
+            current = current[element];
         }
 
-        deleteNestedKey(currentGlobalState[key], keys);
+        // Remove the item if it exists
+        if (lastKey && current?.hasOwnProperty(lastKey)) {
+            delete current[lastKey];
+        }
     }
 
-    // Update the global state with the modified result
     return context.globalState.update('globalInfo', currentGlobalState);
-}
-
-// Helper function that deletes target nested key in removeItemFromState
-function deleteNestedKey(obj: any, keys: string[]): void {
-    if (keys.length === 0) {
-        return;
-    }
-
-    const lastKey = keys.pop();
-    const parent = keys.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
-
-    if (parent && lastKey && parent[lastKey] !== undefined) {
-        delete parent[lastKey];
-    }
 }
 
 function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any } {

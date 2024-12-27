@@ -307,7 +307,7 @@
     export class BedroomEditor extends GeneratedObject {
         constructor(gameRef, bedroomManager) {
             const emptySpriteMatrix = generateEmptyMatrix(128, 128);
-            super([emptySpriteMatrix], { default: [0] }, 0, 0, 10);
+            super([emptySpriteMatrix], { default: [0] }, 0, 0, 15);
             this.gameRef = gameRef;
             this.bedroomManager = bedroomManager;
             this.retrieveSave();
@@ -503,7 +503,6 @@
             return { xCoord, yCoord, zCoord };
         }
         
-
 
         setFurnitureCoordinates() {
             let { xCoord, yCoord, zCoord } = this.calculateAdjustedCoords();

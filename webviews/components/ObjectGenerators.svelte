@@ -1,6 +1,6 @@
 <script context='module'>
     import { generateButtonMatrix, generateStatusBarSpriteSheet, generateTextInputMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
-    import { GeneratedObject, activeTextRenderer } from './Object.svelte';
+    import { GeneratedObject, ConfigObject, Pet } from './Object.svelte';
     import { shouldFocus, inputValue } from './Game.svelte';
     import { get } from 'svelte/store';
     import { Sprite } from './SpriteComponent.svelte';
@@ -121,14 +121,14 @@
 
                 // Set initial state
                 this.currentState = 0; // Starts from empty
-                this.maxState = width - 1; // Total number of increments
+                this.maxState = width - 2; // Total number of increments
             }
 
             whileHover(){
-                if(this.currentState < this.maxState){
-                    this.increment();
-                }
-                else(this.currentState = 0)
+                // if(this.currentState < this.maxState){
+                //     this.increment();
+                // }
+                // else(this.currentState = 0)
             }
             
             getSize() {
@@ -147,6 +147,11 @@
                     this.currentState--;
                     this.updateState(`state${this.currentState}`);
                 }
+            }
+
+            setPercentage(percentage) {
+                this.currentState = Math.min(Math.ceil(percentage * this.maxState), this.maxState);
+                this.updateState(`state${this.currentState}`);
             }
         };
     };

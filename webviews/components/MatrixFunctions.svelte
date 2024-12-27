@@ -273,11 +273,11 @@
 
     export function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness) {
     let spriteSheet = [];  // Ensure spriteSheet is an array
-    for (let i = 0; i < width - 2; i++) {
+    for (let i = 0; i < width - 1; i++) {
         let statusBarSprite;
-        if (i < (width - 2) / 3) {
+        if (i < (width - 1) / 3) {
             statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, firstColor, i, roundness);
-        } else if (i < (width - 2) * (2 / 3)) { 
+        } else if (i < (width - 1) * (2 / 3)) { 
             statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, secondColor, i, roundness);
         } else {
             statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, thirdColor, i, roundness);
