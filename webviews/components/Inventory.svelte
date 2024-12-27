@@ -462,7 +462,7 @@
         return inventoryGrid;
     }
 
-    export class recentItemDisplay extends GeneratedObject{
+    export class recentItemDisplay extends GeneratedObject {
         constructor(x, y, z, gameRef, inventoryGrid) {
             const emptyMatrix = generateEmptyMatrix(1, 1);
             super([emptyMatrix], { default: [0] }, x, y, z);
@@ -472,20 +472,17 @@
             this.children = [inventoryGrid];
         }
 
-        pushRecentItem(item){
+        pushRecentItem(item) {
             const existingIndex = this.recentItems.indexOf(item);
+            
             if (existingIndex !== -1) {
-                // Item is a duplicate. Remove it from current position
+                // Item is a duplicate, remove it
                 this.recentItems.splice(existingIndex, 1);
-                // Move it to the front
-                this.recentItems.unshift(item);
-            } else {
-                // No duplicate found, back
-                this.recentItems.unshift(item);
-                if(this.recentItems.length > 3){
-                    this.recentItems.pop();
-                }
             }
+            
+            // Add new item to the end
+            this.recentItems.unshift(item);
+
             this.inventoryGrid.updateItemSlots(this.recentItems);
             console.log("Recent Items", this.recentItems);
             const recentItemNames = this.recentItems.map(item => item?.itemName);
@@ -494,10 +491,9 @@
 
         refreshRecentItems() {
             const recentItemNames = this.gameRef.getLocalState().recentItemNames || [];
-            this.recentItems = recentItemNames.map(itemName => this.gameRef.inventory.items.get(itemName));
-            console.log("Recent Item Names:", recentItemNames);
-            console.log("Recent Items:", this.recentItems);
-            console.log("local state", this.gameRef.getLocalState());
+            this.recentItems = recentItemNames
+                .map(itemName => this.gameRef.inventory.items.get(itemName))
+                .filter(item => item !== undefined);  // Remove any undefined entries
             this.inventoryGrid.updateItemSlots(this.recentItems);
         }
     }

@@ -110,9 +110,9 @@
         }
 
         constructInventory() {
-            console.log("this.getLocalState().inventory: ", this.getLocalState().userInventory);
+            console.log("this.getLocalState().inventory: ", this.getLocalState().inventory);
             this.inventory = new Inventory(this.getLocalState().inventory || {});
-            // console.log("Inventory constructed: ", this.userInventory);
+            console.log("Inventory constructed: ", this.inventory);
             return this.inventory;
         }
   

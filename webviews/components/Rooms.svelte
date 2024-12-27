@@ -158,7 +158,7 @@
                         petObject.hunger = Math.min(petObject.hunger, petObject.maxHunger);
                         hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
                         get(game).subtractStackableItem(dragItem.itemName, 1);
-                        
+                        recentItemDisplayInstance.refreshRecentItems();
                     }
                     dragItem = null;
                 }
@@ -505,7 +505,8 @@
             blackFadeIn.opacity = 0; 
             get(game).getCurrentRoom().removeObject( blackFadeIn );
         } );
-        blackFadeIn.opacity = 0; 
+        blackFadeIn.opacity = 0;
+        blackFadeIn.blur = 2;
 
 
         
@@ -628,10 +629,18 @@
             get(game).addStackableItem(`ore1`, 2);
             get(game).addStackableItem(`ingot1`, 2);
         }
+
+        function addTestableFishItems() {
+            get(game).addStackableItem(`axolotl`, 4);
+            get(game).addStackableItem(`mossBall`, 4);
+            get(game).addStackableItem(`dab`, 4);
+            get(game).addStackableItem(`guppy`, 4);
+        }
         // get(game).addStackableItem('HTMLStamp', 2);
         // get(game).addStackableItem('CStamp', 2);
         // get(game).addStackableItem('CSSStamp', 2);
-
+        
+        addTestableFishItems();
         // addTestableItems();
         
         //INVENTORY GRID INSTANTIATION
@@ -671,7 +680,7 @@
         let inventoryBackground = new Background('inventoryBrownSquare', 0, 0, -20, () => {} );
         //ROOM INSTANTIATION
         let inventoryRoom = new Room('inventoryRoom', () => {
-            get(game).retrieveInventory();
+            // get(game).retrieveInventory();
             inventoryDisplayManagerInstance.setTab("food");
         });
         

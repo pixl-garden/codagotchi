@@ -71,6 +71,7 @@
             this.opacityTransitionSpeed = 0;
             this.isOpacityTransitioning = false;
             this.goalOpacity = 1;
+            this.blur = 0;
             this.useAbsoluteCoords = false;
         }
 
@@ -241,7 +242,7 @@
         
         getSprite() {
             return new Sprite(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], 0, this.spriteWidth, 0, this.spriteHeight), 
-                this.x, this.y, this.z, this.opacity);
+                this.x, this.y, this.z, this.opacity, this.blur);
         }
 
         getChildSprites() {
