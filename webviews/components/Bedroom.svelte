@@ -305,14 +305,27 @@
 
     
     export class BedroomEditor extends GeneratedObject {
-        constructor(gameRef, bedroomManager) {
+        constructor(gameRef, bedroomManager, hotbarRef, onHotbarChange = null) {
             const emptySpriteMatrix = generateEmptyMatrix(128, 128);
             super([emptySpriteMatrix], { default: [0] }, 0, 0, 15);
             this.gameRef = gameRef;
             this.bedroomManager = bedroomManager;
+            this._hotbarExport = new BindableArray([], onHotbarChange);
             this.retrieveSave();
             this.initializeComponents();
             this.menuEnabled = false;
+            this.hotbarRef = hotbarRef;
+        }
+
+        get hotbarExport() {
+            return this._hotbarExport;
+        }
+
+        set hotbarExport(newArray) {
+            this._hotbarExport.length = 0;  // Clear existing items
+            if (Array.isArray(newArray)) {
+                newArray.forEach(item => this._hotbarExport.push(item));
+            }
         }
 
         updateSave() {
@@ -398,8 +411,8 @@
             this.menuCloseButton = new Button(97, 1, 7, "bedroomBackButton", this.toggleInventory.bind(this));
             const editorButton = generateIconButtonClass(22, 22, 'transparent', 'transparent', 'transparent', 'transparent');
             const editorButtonSprites = spriteReaderFromStore(22, 22, "bedroomIcons.png");
-            this.inventoryButton = new editorButton(85, 106, 7, editorButtonSprites[0], editorButtonSprites[1], this.toggleInventory.bind(this));
-            this.editButton = new editorButton(106, 107, 7, editorButtonSprites[2], editorButtonSprites[3], () => {
+            this.inventoryButton = new editorButton(85, 1, 1, editorButtonSprites[0], editorButtonSprites[1], this.toggleInventory.bind(this));
+            this.editButton = new editorButton(106, 1, 1, editorButtonSprites[2], editorButtonSprites[3], () => {
                 this.toggleEditMode();
                 if(this.editMode){
                     this.editButton.states = {default: [1], hovered: [1]} //locks button to hover sprite
@@ -407,9 +420,10 @@
                     this.editButton.states = {default: [0], hovered: [1]}
                 }
             });
-            this.removeButton = new editorButton(106, 107, 7, editorButtonSprites[4], editorButtonSprites[5], this.exitPlacementMode.bind(this));
-            this.flipButton = new editorButton(63, 107, 7, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
-            this.children.push(this.inventoryButton, this.editButton);
+            this.removeButton = new editorButton(106, 0, 1, editorButtonSprites[4], editorButtonSprites[5], this.exitPlacementMode.bind(this));
+            this.flipButton = new editorButton(85, 0, 1, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
+            // this.children.push(this.inventoryButton, this.editButton);
+            this.hotbarExport = [this.inventoryButton, this.editButton];
         }
 
         setTab(tab){
@@ -458,6 +472,7 @@
                 this.removeChild(this.menu);
                 this.whileHover() // update mouse coords immediately
             }
+            this.hotbarRef.locked = this.menuEnabled;
         }
 
         enterPlacementMode(item) {
@@ -473,9 +488,10 @@
                 this.clickedItem = new BedroomItem(item.furnitureType, item.typeIndex, this.mouseX, this.mouseY, item.z);
                 this.clickedItem.isFlipped = item.isFlipped;
                 this.placementMode = true;
-                this.addChild(this.removeButton);
-                this.addChild(this.flipButton);
-                this.removeChild(this.editButton);
+                // this.addChild(this.removeButton);
+                // this.addChild(this.flipButton);
+                // this.removeChild(this.editButton);
+                this.hotbarExport = [this.removeButton, this.flipButton];
                 this.addChild(this.clickedItem);
             }
             this.whileHover();
@@ -484,15 +500,17 @@
         exitPlacementMode() {
             this.placementMode = false;
             this.removeChild(this.clickedItem);
-            this.removeChild(this.removeButton);
-            this.removeChild(this.flipButton);
-            this.addChild(this.editButton);
+            // this.removeChild(this.removeButton);
+            // this.removeChild(this.flipButton);
+            // this.addChild(this.editButton);
+            this.hotbarExport = [this.inventoryButton, this.editButton];
             this.clickedItem = null;
         }
 
         toggleEditMode() {
             this.editMode = !this.editMode;
             this.bedroomManager.serializeBedroom();
+            this.hotbarRef.locked = this.editMode;
         }
 
         // calculates coords to center item on mouse
@@ -724,5 +742,35 @@
     
         return data;
     }
+
+    class BindableArray {
+        constructor(initialArray = [], onChange = null) {
+            this._array = [...initialArray];
+            this._onChange = onChange;
+            
+            return new Proxy(this._array, {
+                get: (target, prop) => {
+                    if (typeof target[prop] === 'function') {
+                        return (...args) => {
+                            const result = target[prop].apply(target, args);
+                            // Call onChange after array modifications
+                            if (['push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort'].includes(prop)) {
+                                if (this._onChange) this._onChange(target);
+                            }
+                            return result === target ? proxy : result;
+                        };
+                    }
+                    return target[prop];
+                },
+                set: (target, prop, value) => {
+                    target[prop] = value;
+                    // Call onChange after array modifications
+                    if (this._onChange) this._onChange(target);
+                    return true;
+                }
+            });
+        }
+    }
+
     
 </script>

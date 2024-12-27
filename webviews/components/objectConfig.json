@@ -540,5 +540,33 @@
             "default": [0],
             "hovered": [1, 2, 3, 4, 5]
         }
+    },
+    "recentItemSlot":{
+        "spriteWidth": 18,
+        "spriteHeight": 18,
+        "spriteSheet": "itemSlotSimple.png",
+        "states": {
+            "default": [0],
+            "hovered": [1]
+        }
+    },
+    "enterBedroom":{
+        "spriteWidth": 18,
+        "spriteHeight": 18,
+        "spriteSheet": "enterExit.png",
+        "states": {
+            "default": [4],
+            "hovered": [4]
+        }
+    },
+    "exitBedroom":{
+        "spriteWidth": 18,
+        "spriteHeight": 18,
+        "spriteSheet": "enterExit.png",
+        "states": {
+            "default": [0],
+            "hovered": [0]
+        }
     }
+
 }
