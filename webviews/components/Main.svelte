@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { generateScreen, getPixelSize, renderScreenWebGL, initWebGL } from './ScreenManager.svelte';
+    import { renderScreenWebGL, initWebGL } from './ScreenManager.svelte';
     import { game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { loadSpriteData } from './SpriteReader.svelte';
@@ -50,8 +50,8 @@
             }
         }
         
-        screen = generateScreen(sprites, screenWidth, screenWidth);
-        renderScreenWebGL(screen, webglContext, screenWidth);
+        // screen = generateScreen(sprites, screenWidth, screenWidth);
+        renderScreenWebGL(webglContext, screenWidth, sprites);
     }
 
     function handleResize() {

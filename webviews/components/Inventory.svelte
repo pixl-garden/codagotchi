@@ -470,6 +470,8 @@
             this.gameRef = gameRef;
             this.recentItems = [];
             this.children = [inventoryGrid];
+            this.refreshRecentItems();
+            this.hoverWithChildren = true;
         }
 
         pushRecentItem(item) {

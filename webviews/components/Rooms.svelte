@@ -89,39 +89,42 @@
     //----------------MAIN ROOM----------------
 
         //PET INSTANTIATION
-        let petObject = new Pet('pearguin', 8, 40, 0, get(game));
+        let petObject = new Pet('pearguin', 8, 40, 1, get(game));
 
         //STATUS BAR INSTANTIATIONS
         const StatusBar = generateStatusBarClass(50, 7,  Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.green, 1);
-        const manaBar = new StatusBar(77, 53, 0);
-        const hungerBar = new StatusBar(77, 62, 0);
+        const manaBar = new StatusBar(77, 53, 1);
+        const hungerBar = new StatusBar(77, 62, 1);
         hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
-        const healthBar = new StatusBar(77, 71, 0);
+        const healthBar = new StatusBar(77, 71, 1);
 
         // // MAIN MENU ICONS
-        const manaIcon = new Background('manaIcon', 67, 50, 0);
-        const hungerIcon = new Background('hungerIcon', 65, 61, 0);
-        const healthIcon = new Background('heartIcon', 67, 71, 0);
+        const manaIcon = new Background('manaIcon', 67, 50, 1);
+        const hungerIcon = new Background('hungerIcon', 65, 61, 1);
+        const healthIcon = new Background('heartIcon', 67, 71, 1);
 
         // const levelBar = new Background('levelBar', 96, 4, 0);
         // const numTest = new Background('numTest', 106, 12, 1);
 
-        const greyBackground = new Background('greyBackground', 0, 0, -20, () => {} );
-        // greyBackground.opacity = 0.7;
+        const mainMenuOverlay = new Background('greyBackground', 0, 0, 30, () => {} );
+        mainMenuOverlay.opacity = 0.85;
 
 
         // // MAIN MENU BUTTON INSTANTIATIONS
-        const settingsButton = new Button(2, 4, 0, 'settingsIcon', () => {get(game).setCurrentRoom('settingsRoom')});
-        const inventoryButton = new Button(18, 4, 0, 'inventoryIcon', () => {get(game).setCurrentRoom('inventoryRoom')});
-        const worldButton = new Button(36, 4, 0, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
-        const bedroomButton = new Button(59, 4, 0, 'bedroomIcon2', () => {get(game).setCurrentRoom('bedroomRoom')});
-        const paintRoomButton = new Button(86, 4, 0, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
-        const postOfficeButton = new Button(104, 4, 0, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
+        const settingsButton = new Button(2, 4, 1, 'settingsIcon', () => {get(game).setCurrentRoom('settingsRoom')});
+        const inventoryButton = new Button(18, 4, 1, 'inventoryIcon', () => {get(game).setCurrentRoom('inventoryRoom')});
+        const worldButton = new Button(36, 4, 1, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
+        const bedroomButton = new Button(59, 4, 1, 'enterBedroom', () => {
+            get(game).getCurrentRoom().removeObject( mainMenuOverlay );
+            get(game).getCurrentRoom().addObject( bedroomEditorInstance, bedroomHotbar );
+        });
+        const paintRoomButton = new Button(86, 4, 1, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
+        const postOfficeButton = new Button(104, 4, 1, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
 
-        const leftPetButton = new Button(2, 66, 0, 'leftPetArrow', () => {
+        const leftPetButton = new Button(2, 66, 1, 'leftPetArrow', () => {
 
         });
-        const rightPetButton = new Button(54, 66, 0, 'rightPetArrow', () => {
+        const rightPetButton = new Button(54, 66, 1, 'rightPetArrow', () => {
 
         });
 
@@ -135,9 +138,10 @@
 
         //TODO: probably make more modular
         function createDraggableItemSlot() {
-            let output = new ConfigObject("smallItemSlot", 0, 0, 0);
+            let output = new ConfigObject("recentItemSlot", 0, 0, 0);
             output.hoverWithChildren = true;
             output.passMouseCoords = true;
+            output.opacity = .8;
             let dragItem;
             output.clickAction = (x,  y) => {
                 if (output.slotItem) {
@@ -147,7 +151,7 @@
                 }
             }
             output.onDrag = (x, y) => {
-                dragItem?.setCoordinate(x - 8, y - 8, 10);
+                dragItem?.setCoordinate(x - 8, y - 8, 35);
             }
             output.onDragStop = (x, y) => {
                 if(dragItem){
@@ -158,7 +162,7 @@
                         petObject.hunger = Math.min(petObject.hunger, petObject.maxHunger);
                         hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
                         get(game).subtractStackableItem(dragItem.itemName, 1);
-                        recentItemDisplayInstance.refreshRecentItems();
+                        recentItemDisplayMain.refreshRecentItems();
                     }
                     dragItem = null;
                 }
@@ -184,20 +188,54 @@
             numberYOffset: 12
         });
 
-        const recentItemDisplayInstance = new recentItemDisplay(1, 104, 1, get(game), recentItemsGrid, basic);
-        recentItemDisplayInstance.hoverWithChildren = true;
-        recentItemDisplayInstance.refreshRecentItems();
+        const recentItemDisplayMain = new recentItemDisplay(1, 104, 1, get(game), recentItemsGrid, basic);
 
+        const recentItemDisplayHotbar = new recentItemDisplay(25, 3, 1, get(game), recentItemsGrid, basic);
 
         //ROOM INSTANTIATION
-        let mainRoom = new Room('mainRoom', () => {
-            petObject.setCoordinate(8, 40, 0);
-        }, false, () => {
-            petObject.nextFrame();
+        let mainRoom = new Room('mainRoom', () => {console.log(mainRoom.objects)}, false, () => {
+            bedroomEditorInstance.nextFrame();
+            bedroomHotbar.nextFrame();
         });
-        mainRoom.addObject(greyBackground, manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, settingsButton,
-            inventoryButton, worldButton, bedroomButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton, recentItemDisplayInstance
-        );
+        // let mainRoom = new Room('mainRoom', () => {
+        //     petObject.setCoordinate(8, 40, 0);
+        // }, false, () => {
+        //     petObject.nextFrame();
+        // });
+        mainMenuOverlay.children = [manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, settingsButton,
+            inventoryButton, worldButton, bedroomButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton, recentItemDisplayMain
+        ];
+
+        // BEDROOM (behind MAIN)
+
+        const bedroomHotbar = new Container(-1, 122, 20, 130, 30, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 1, 1);
+        bedroomHotbar.locked = false;
+        bedroomHotbar.setPhysics(14.0, 0, 6.0)
+        bedroomHotbar.onHover = () => {
+            bedroomHotbar.startMovingTo(-1, 105);
+        }
+        bedroomHotbar.onStopHover = () => {
+            if(!bedroomHotbar.locked){
+                bedroomHotbar.startMovingTo(-1, 123);
+            }
+        }
+        let bedroomManagerInstance = new BedroomManager();
+        const openMainMenuButton = new Button(4, 3, 5, 'exitBedroom', () => {
+            get(game).getCurrentRoom().addObject( mainMenuOverlay );
+            get(game).getCurrentRoom().removeObject( bedroomEditorInstance, bedroomHotbar);
+        });
+        const bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance, bedroomHotbar, (hotbarArray) => {
+            // This will run whenever the hotbar array changes
+            bedroomHotbar.children = [
+                openMainMenuButton, 
+                recentItemDisplayHotbar, 
+                ...hotbarArray
+            ];
+        });
+        bedroomHotbar.children = [openMainMenuButton, recentItemDisplayHotbar, ...bedroomEditorInstance.hotbarExport];
+        console.log("bedroomEditorInstance.hotbarExport", bedroomEditorInstance.hotbarExport);
+        bedroomHotbar.hoverWithChildren = true;
+        mainRoom.addObject(bedroomManagerInstance, mainMenuOverlay);
         // mainRoom.addObject(petObject, mainMenuButton);
         
     //----------------SETTINGS ROOM----------------
@@ -506,7 +544,7 @@
             get(game).getCurrentRoom().removeObject( blackFadeIn );
         } );
         blackFadeIn.opacity = 0;
-        blackFadeIn.blur = 2;
+        blackFadeIn.blur = 3.0;
 
 
         
@@ -653,7 +691,7 @@
             slotFactory: createItemSlot,
             tooltip: null,
             numberTextRenderer: electro,
-            slotClickAction: (item) => {recentItemDisplayInstance.pushRecentItem(item);},
+            slotClickAction: (item) => {recentItemDisplayMain.pushRecentItem(item);},
             itemOffset: { x: 0, y: 0, z: 1 }
         });
         
@@ -894,30 +932,10 @@
 
     recievedPostcardsRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
 
-    // ---------------- BEDROOM ----------------
-    let bedroomRoom = new Room('bedroomRoom', () => {console.log(bedroomRoom.objects)}, false, () => {
-        bedroomEditorInstance.nextFrame();
-        bedroomHotbar.nextFrame();
-    });
-
-    let bedroomManagerInstance = new BedroomManager();
-    let bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance);
+    // ---------------- BEDROOM (behind MAIN) ----------------
 
 
 
-
-
-    const bedroomHotbar = new Container(-1, 122, 20, 130, 26, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 1, 1);
-    bedroomHotbar.setPhysics(15.0, 0, 5.0)
-    bedroomHotbar.onHover = () => {
-        bedroomHotbar.startMovingTo(-1, 106);
-    }
-    bedroomHotbar.onStopHover = () => {
-        bedroomHotbar.startMovingTo(-1, 122);
-    }
-    bedroomHotbar.children = [];
-    bedroomHotbar.hoverWithChildren = true;
-    bedroomRoom.addObject(bedroomManagerInstance, bedroomEditorInstance, backToMain, bedroomHotbar);
 }
 
 export function roomMain(){
