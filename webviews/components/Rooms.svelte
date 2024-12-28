@@ -2,7 +2,7 @@
     import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject, Container } from './Object.svelte';
     import { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
-    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay } from './Inventory.svelte';
+    import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay, createItemSlot, createDraggableItemSlot } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
@@ -128,57 +128,31 @@
 
         });
 
-        function createItemSlot() {
-            let output = new ConfigObject("smallItemSlot", 0, 0, 0);
-            output.hoverWithChildren = true;
-            output.passMouseCoords = true;
-            // console.log("createItemSlot instance:", output); // Check the instance
-            return output;
-        }
-
-        //TODO: probably make more modular
-        function createDraggableItemSlot() {
-            let output = new ConfigObject("recentItemSlot", 0, 0, 0);
-            output.hoverWithChildren = true;
-            output.passMouseCoords = true;
-            output.opacity = .8;
-            let dragItem;
-            output.clickAction = (x,  y) => {
-                if (output.slotItem) {
-                    dragItem = new Item(itemConfig[output.slotItem.itemName], output.slotItem.itemName, x - 8, y - 8, 10)
-                    dragItem.useAbsoluteCoords = true;
-                    output.children.push(dragItem);
+        const createPetFeedingSlot = () => createDraggableItemSlot({
+            createBaseObject: () => {
+                const obj = new ConfigObject("recentItemSlot", 0, 0, 0);
+                obj.opacity = .8; // TODO: replace this for a gray sprite so its consistent everywhere
+                return obj;
+            },
+            onDragStop: (x, y, dragItem) => {
+                if (getObjectAt(x, y, get(game)).some(item => item instanceof Pet)) {
+                    // Pet feeding logic (needs to be further refined)
+                    petObject.hunger += dragItem.config.hunger;
+                    petObject.hunger = Math.min(petObject.hunger, petObject.maxHunger);
+                    hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
+                    get(game).subtractStackableItem(dragItem.itemName, 1);
+                    recentItemDisplayMain.refreshRecentItems();
                 }
             }
-            output.onDrag = (x, y) => {
-                dragItem?.setCoordinate(x - 8, y - 8, 35);
-            }
-            output.onDragStop = (x, y) => {
-                if(dragItem){
-                    output.children = output.children.filter(child => child !== dragItem);
-                    
-                    if(hasInstanceOf(getObjectAt(x, y, get(game)), Pet)){
-                        petObject.hunger += dragItem.config.hunger;
-                        petObject.hunger = Math.min(petObject.hunger, petObject.maxHunger);
-                        hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
-                        get(game).subtractStackableItem(dragItem.itemName, 1);
-                        recentItemDisplayMain.refreshRecentItems();
-                    }
-                    dragItem = null;
-                }
-            }
-            return output;
-        }
-        
-        //check if array has any of a certain type
-        const hasInstanceOf = (array, type) => array.some(item => item instanceof type);
+        });
 
         const recentItemsGrid = new InventoryGrid({
-            columns: 3, rows: 1,
+            columns: 3, 
+            rows: 1,
             spacing: { x: 1, y: 0 },
             position: { x: 0, y: 0, z: 1 },
             items: [],
-            slotFactory: createDraggableItemSlot,
+            slotFactory: createPetFeedingSlot,
             tooltip: null,
             numberTextRenderer: electro,
             slotClickAction: () => {},
@@ -190,18 +164,19 @@
 
         const recentItemDisplayMain = new recentItemDisplay(1, 104, 1, get(game), recentItemsGrid, basic);
 
-        const recentItemDisplayHotbar = new recentItemDisplay(25, 3, 1, get(game), recentItemsGrid, basic);
+        const recentItemDisplayHotbar = new recentItemDisplay(24, 3, 1, get(game), recentItemsGrid, basic);
 
         //ROOM INSTANTIATION
-        let mainRoom = new Room('mainRoom', () => {console.log(mainRoom.objects)}, false, () => {
-            bedroomEditorInstance.nextFrame();
-            bedroomHotbar.nextFrame();
+        let mainRoom = new Room('mainRoom', 
+            () => { // onEnter
+                petObject.setCoordinate(8, 40, 1);
+            },
+            false, // onExit
+            () => { // updateLogic
+                bedroomEditorInstance.nextFrame();
+                bedroomHotbar.nextFrame();
+                petObject.nextFrame();
         });
-        // let mainRoom = new Room('mainRoom', () => {
-        //     petObject.setCoordinate(8, 40, 0);
-        // }, false, () => {
-        //     petObject.nextFrame();
-        // });
         mainMenuOverlay.children = [manaBar, healthBar, hungerBar, petObject, manaIcon, healthIcon, hungerIcon, settingsButton,
             inventoryButton, worldButton, bedroomButton, paintRoomButton, postOfficeButton, leftPetButton, rightPetButton, recentItemDisplayMain
         ];
@@ -212,15 +187,15 @@
         bedroomHotbar.locked = false;
         bedroomHotbar.setPhysics(14.0, 0, 6.0)
         bedroomHotbar.onHover = () => {
-            bedroomHotbar.startMovingTo(-1, 105);
+            bedroomHotbar.startMovingTo(-1, 105); //hotbar moves up
         }
         bedroomHotbar.onStopHover = () => {
             if(!bedroomHotbar.locked){
-                bedroomHotbar.startMovingTo(-1, 123);
+                bedroomHotbar.startMovingTo(-1, 123); //hotbar moves down
             }
         }
         let bedroomManagerInstance = new BedroomManager();
-        const openMainMenuButton = new Button(4, 3, 5, 'exitBedroom', () => {
+        const openMainMenuButton = new Button(3, 3, 5, 'exitBedroom', () => {
             get(game).getCurrentRoom().addObject( mainMenuOverlay );
             get(game).getCurrentRoom().removeObject( bedroomEditorInstance, bedroomHotbar);
         });
@@ -688,7 +663,7 @@
             spacing: { x: 2, y: 2 },
             position: { x: 15, y: 21, z: 1 },
             items: [],
-            slotFactory: createItemSlot,
+            slotFactory: () => createItemSlot(() => new ConfigObject("smallItemSlot", 0, 0, 0)),
             tooltip: null,
             numberTextRenderer: electro,
             slotClickAction: (item) => {recentItemDisplayMain.pushRecentItem(item);},

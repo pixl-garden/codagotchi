@@ -546,8 +546,8 @@
         "spriteHeight": 18,
         "spriteSheet": "itemSlotSimple.png",
         "states": {
-            "default": [0],
-            "hovered": [1]
+            "default": [2],
+            "hovered": [3]
         }
     },
     "enterBedroom":{
@@ -562,10 +562,10 @@
     "exitBedroom":{
         "spriteWidth": 18,
         "spriteHeight": 18,
-        "spriteSheet": "enterExit.png",
+        "spriteSheet": "enter-exit-btn.png",
         "states": {
-            "default": [0],
-            "hovered": [0]
+            "default": [5],
+            "hovered": [6]
         }
     }
 
