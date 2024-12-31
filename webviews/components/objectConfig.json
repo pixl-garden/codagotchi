@@ -231,54 +231,6 @@
             "default": [0]
         }
     },
-    "testItem":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "testItem.png",
-        "states": {
-            "default": [0]
-        }
-    },
-    "testItem1":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "testItems.png",
-        "states": {
-            "default": [0]
-        }
-    },
-    "testItem2":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "testItems.png",
-        "states": {
-            "default": [1]
-        }
-    },
-    "testItem3":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "testItems.png",
-        "states": {
-            "default": [2]
-        }
-    },
-    "testItem4":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "testItems.png",
-        "states": {
-            "default": [3]
-        }
-    },
-    "testItem5":{
-        "spriteWidth": 32,
-        "spriteHeight": 32,
-        "spriteSheet": "testItems.png",
-        "states": {
-            "default": [4]
-        }
-    },
     "prevPageButton":{
         "spriteWidth": 8,
         "spriteHeight": 16,
@@ -375,22 +327,6 @@
         "states": {
             "default": [2],
             "hovered": [3]
-        }
-    },
-    "levelBar": {
-        "spriteWidth": 28,
-        "spriteHeight": 28,
-        "spriteSheet": "levelBar.png",
-        "states": {
-            "default": [0]
-        }
-    },
-    "numTest": {
-        "spriteWidth": 8,
-        "spriteHeight": 11,
-        "spriteSheet": "num2test.png",
-        "states": {
-            "default": [0]
         }
     },
     "heartIcon": {

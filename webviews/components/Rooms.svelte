@@ -29,7 +29,7 @@
         let retroShadowBlue = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#3c3f83", 1, 1);
         let retroShadowGray = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#464e57", 1, 1);
         let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, Colors.white, Colors.black, "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
-        let electro = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.black, Colors.white, "#a2a2a2"], -1, standardCharMap);
+        let electro = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.offBlack, Colors.white, "#a2a2a2"], -1, standardCharMap);
 
         
     //----------------BUTTON CLASS GENERATORS----------------
@@ -74,15 +74,6 @@
             get(game).setCurrentRoom('mainRoom');
         });
 
-        // TODO: add button to friends and postcard rooms
-        // const backToPostOffice = new singleLetterButton(0, 112, 10, '<', () => {
-        //     get(game).setCurrentRoom('postOfficeRoom');
-        // });
-
-        // TODO: add button to mining and fishing rooms
-        // const backToMapRoom = new singleLetterButton(0, 112, 10, '<', () => {
-        //     get(game).setCurrentRoom('mapRoom');
-        // });
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
         let defaultMenuParams = ["#59585a", "#2b2a2b", Colors.black, 2, 5, 3, 1];
 
@@ -103,9 +94,6 @@
         // const manaIcon = new Background('manaIcon', 27, 2, 1);
         const hungerIcon = new Background('hungerIcon', 30, 19, 1);
         const healthIcon = new Background('heartIcon', 32, 29, 1);
-
-        // const levelBar = new Background('levelBar', 96, 4, 0);
-        // const numTest = new Background('numTest', 106, 12, 1);
 
         const mainMenuOverlay = new Background('greyBackground', 0, 0, 30, () => {} );
         mainMenuOverlay.opacity = 0.85;
@@ -128,13 +116,6 @@
         });
         // const paintRoomButton = new Button(86, 4, 1, 'paintRoomIcon', () => {get(game).setCurrentRoom('paintRoom')});
         // const postOfficeButton = new Button(104, 4, 1, 'postOfficeIcon', () => {get(game).setCurrentRoom('postOfficeRoom'); });
-
-        const leftPetButton = new Button(2, 66, 1, 'leftPetArrow', () => {
-
-        });
-        const rightPetButton = new Button(54, 66, 1, 'rightPetArrow', () => {
-
-        });
 
         const createPetFeedingSlot = () => createDraggableItemSlot({
             createBaseObject: () => {
@@ -176,9 +157,7 @@
 
         //ROOM INSTANTIATION
         let mainRoom = new Room('mainRoom', 
-            () => { // onEnter
-
-            },
+            false, // onEnter
             false, // onExit
             () => { // updateLogic
                 bedroomEditorInstance.nextFrame();
@@ -226,28 +205,7 @@
         bedroomHotbar.hoverWithChildren = true;
         mainRoom.addObject(bedroomManagerInstance, mainMenuOverlay, petObject);
 
-            //----------------INVENTORY ROOM----------------
-            function addTestableItems() {
-            for(let i = 2; i <= 16; i++) {
-                get(game).addStackableItem(`test${i}`, 2);
-
-            }
-            get(game).addStackableItem(`ore1`, 2);
-            get(game).addStackableItem(`ingot1`, 2);
-        }
-
-        function addTestableFishItems() {
-            get(game).addStackableItem(`axolotl`, 4);
-            get(game).addStackableItem(`mossBall`, 4);
-            get(game).addStackableItem(`dab`, 4);
-            get(game).addStackableItem(`guppy`, 4);
-        }
-        // get(game).addStackableItem('HTMLStamp', 2);
-        // get(game).addStackableItem('CStamp', 2);
-        // get(game).addStackableItem('CSSStamp', 2);
-        
-        addTestableFishItems();
-        // addTestableItems();
+        //----------------INVENTORY ROOM----------------
         
         //INVENTORY GRID INSTANTIATION
         let scaledItemInstance = new itemScaler(14, 8, 32, 2);
@@ -269,14 +227,22 @@
             itemOffset: { x: 0, y: 0, z: 1 }
         });
         
-        const fishSprites = spriteReaderFromStore(16, 16, 'fish.png');
-        const testingSprites = spriteReaderFromStore(16, 16, 'testSprites.png');
+        const fishSprites = spriteReaderFromStore(16, 16, 'fishSheet.png');
+        const sushiTab = spriteReaderFromStore(16, 16, 'sushiTab.png');
+        const gearTab = spriteReaderFromStore(16, 16, 'casting_rod.png');
+        const potionTab = spriteReaderFromStore(16, 16, 'potionTab.png');
         
         let inventoryTabList = new ButtonList(24, 44, 2, "horizontal", 3, inventoryTabButton, null,
-            [fishSprites[1], fishSprites[1], ()=>{
+            [fishSprites[12], fishSprites[12], ()=>{
                 inventoryDisplayManagerInstance.setTab("food");
             }],
-            [testingSprites[5], testingSprites[5], ()=>{
+            [sushiTab[0], sushiTab[0], ()=>{
+                inventoryDisplayManagerInstance.setTab("mining");
+            }],
+            [gearTab[0], gearTab[0], ()=>{
+                inventoryDisplayManagerInstance.setTab("mining");
+            }],
+            [potionTab[0], potionTab[0], ()=>{
                 inventoryDisplayManagerInstance.setTab("mining");
             }]
         );
@@ -289,7 +255,6 @@
         const nextPageButton = new Button(120, 85, 5, "nextPageButton", ()=> {
             inventoryDisplayManagerInstance.inventoryGrid.setNextPage();
         });
-
 
 
         inventoryOverlay.opacity = 0.85;
@@ -741,7 +706,7 @@
         }
 
         function castLineUntil() {
-            fishingInstance.castLine(get(game), 2000, 1000).then((fishItem) => {
+            fishingInstance.castLine(get(game), 150, 100).then((fishItem) => {
                 fishingNotif.callNotificationItem(fishItem, () => {
                     if(get(game).isActive && !fishingInstance.cancelFlag) {
                         castLineUntil();

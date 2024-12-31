@@ -881,7 +881,7 @@
             setTimeout(() => {
                 this.startMovingTo(6, -29);
                 callbackFunction();
-            }, 4000);
+            }, 100);
         }
 
         reset(){
