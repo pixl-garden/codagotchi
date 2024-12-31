@@ -127,18 +127,10 @@
             "default": [0]
         }
     },
-    "inventoryBrownLG":{
-        "spriteWidth": 128,
-        "spriteHeight": 128,
-        "spriteSheet": "inventoryBrownNLG.png",
-        "states": {
-            "default": [0]
-        }
-    },
     "inventoryBrownSquare":{
         "spriteWidth": 128,
         "spriteHeight": 128,
-        "spriteSheet": "inventoryRedwood.png",
+        "spriteSheet": "inventory.png",
         "states": {
             "default": [0]
         }
@@ -323,84 +315,48 @@
         }
     },
     "postOfficeIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
             "default": [0],
             "hovered": [1]
         }
     },
     "paintRoomIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
             "default": [2],
             "hovered": [3]
         }
     },
     "worldIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
             "default": [4],
             "hovered": [5]
         }
     },
     "inventoryIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
             "default": [6],
             "hovered": [7]
         }
     },
-    "trophyIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
+    "settingsIcon": {
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
             "default": [8],
             "hovered": [9]
-        }
-    },
-    "skillTreeIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
-        "states": {
-            "default": [10],
-            "hovered": [11]
-        }
-    },
-    "settingsIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
-        "states": {
-            "default": [12],
-            "hovered": [13]
-        }
-    },
-    "bedroomIcon": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
-        "states": {
-            "default": [14],
-            "hovered": [15]
-        }
-    },
-    "bedroomIcon2": {
-        "spriteWidth": 25,
-        "spriteHeight": 25,
-        "spriteSheet": "mainMenuIcons02.png",
-        "states": {
-            "default": [16],
-            "hovered": [17]
         }
     },
     "leftPetArrow": {
@@ -551,21 +507,21 @@
         }
     },
     "enterBedroom":{
-        "spriteWidth": 18,
-        "spriteHeight": 18,
-        "spriteSheet": "enterExit.png",
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
-            "default": [4],
-            "hovered": [4]
+            "default": [12],
+            "hovered": [13]
         }
     },
     "exitBedroom":{
-        "spriteWidth": 18,
-        "spriteHeight": 18,
-        "spriteSheet": "enter-exit-btn.png",
+        "spriteWidth": 19,
+        "spriteHeight": 19,
+        "spriteSheet": "mainMenuIcons.png",
         "states": {
-            "default": [5],
-            "hovered": [6]
+            "default": [14],
+            "hovered": [15]
         }
     }
 

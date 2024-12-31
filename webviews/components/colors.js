@@ -5,11 +5,12 @@ export const transparentMenuColorParams = ["transparent", "transparent", "transp
 
 export const white = '#ffffff';
 export const black = '#000000';
+export const offBlack = '#1f2021';
 export const grey = '#808080';
 export const mainMenuBackground = '#6266d1'; //blue-purple
 export const mainMenuBackgroundHover = '#888dfc'; //light purple
-export const mainMenuBorder = '#000000'; //black
-export const mainMenuBorderHover = '#000000'; //black
+export const mainMenuBorder = offBlack; //black
+export const mainMenuBorderHover = offBlack; //black
 export const mainMenuHightlight = "#777cff" //dark purple
 export const mainMenuShadow = "#5356b2" //lighter purple
 export const mainMenuHightlightHover = "#a389ff" //darker purple
@@ -20,8 +21,8 @@ export const mainMenuColorParams = [mainMenuBackground, mainMenuBorder, mainMenu
 
 export const secondaryMenuBackground = '#8b9bb4'; // grey
 export const secondaryMenuBackgroundHover = '#616c7e'; //dark-grey?
-export const secondaryMenuBorder = '#000000'; // black
-export const secondaryMenuBorderHover = '#000000'; //black
+export const secondaryMenuBorder = offBlack; // black
+export const secondaryMenuBorderHover = offBlack; //black
 export const secondaryMenuHighlight = '#bec8da'; // light-grey
 export const secondaryMenuShadow = '#5b6a89'; // dark-grey
 export const secondaryMenuHighlightHover = '#848b97'; // grey?
