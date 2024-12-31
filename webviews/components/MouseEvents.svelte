@@ -99,6 +99,79 @@
         return [highestFoundObject, ...hoveredParents.map(p => p.parent)].filter(Boolean);
     }
 
+    export function getObjectsAt(x, y, gameInstance) {
+        let foundObjects = [];
+        let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
+
+        const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
+            let objX = parentX + obj.x;
+            let objY = parentY + obj.y;
+            let objZ = parentZ + obj.z + 1; // +1 ensures children are above parents
+
+            // Check if coordinates are within object bounds
+            if (x >= objX && x <= objX + obj.spriteWidth &&
+                y >= objY && y <= objY + obj.spriteHeight && 
+                obj.mouseInteractions) {
+
+                // Add the current object with its calculated Z position
+                foundObjects.push({
+                    object: obj,
+                    z: objZ
+                });
+
+                // If object needs mouse coordinates, update them
+                if (obj.passMouseCoords) {
+                    obj.mouseX = x;
+                    obj.mouseY = y;
+                }
+
+                // Add parents with hoverWithChildren
+                let currentZ = objZ;
+                for (let parent of parentChain) {
+                    if (parent.hoverWithChildren) {
+                        parent.hoveredChild = parent.hoveredChild || obj;
+                        
+                        // Update mouse coordinates for parent if needed
+                        if (parent.passMouseCoords) {
+                            parent.mouseX = x;
+                            parent.mouseY = y;
+                        }
+
+                        foundObjects.push({
+                            object: parent,
+                            z: currentZ + parent.z
+                        });
+                    }
+                    currentZ += parent.z;
+                }
+            }
+
+            // Recursively check children if they exist
+            if (obj.getChildren().length > 0) {
+                let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
+                for (let child of children) {
+                    findObjectsRecursively(
+                        child,
+                        [...parentChain, obj],
+                        objX,
+                        objY,
+                        objZ
+                    );
+                }
+            }
+        };
+
+        // Start recursive search from top-level objects
+        for (let obj of objects) {
+            findObjectsRecursively(obj);
+        }
+
+        // Sort all found objects by Z position (highest to lowest) and return just the objects
+        return foundObjects
+            .sort((a, b) => b.z - a.z)
+            .map(item => item.object);
+    }
+
     // Handle hover state updates for objects and their parents
     function updateHoverState({ xPixelCoord, yPixelCoord, event, gameInstance }) {
         let hoveredObjects = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);

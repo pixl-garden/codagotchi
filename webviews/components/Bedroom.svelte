@@ -421,7 +421,7 @@
                 }
             });
             this.removeButton = new editorButton(106, 0, 1, editorButtonSprites[4], editorButtonSprites[5], this.exitPlacementMode.bind(this));
-            this.flipButton = new editorButton(85, 0, 1, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
+            this.flipButton = new editorButton(85, 1, 1, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
             // this.children.push(this.inventoryButton, this.editButton);
             this.hotbarExport = [this.inventoryButton, this.editButton];
         }

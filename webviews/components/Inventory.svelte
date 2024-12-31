@@ -7,7 +7,7 @@
     import { Sprite } from "./SpriteComponent.svelte";
     import { compute_rest_props } from "svelte/internal";
     import { trimSpriteMatrix, flipMatrixByAxis } from "./MatrixFunctions.svelte";
-    import { get } from "lodash";
+    import { create, get } from "lodash";
     const stackableTypes = ["food", "stamp", "mining"]
     
 
@@ -574,4 +574,49 @@
             return new Sprite(textSprite, this.x, this.y, this.z);
         }
     }
+
+    export function createItemSlot(createBaseObject) {
+        let output = createBaseObject();
+        output.hoverWithChildren = true;
+        output.passMouseCoords = true;
+        return output;
+    }
+
+    //TODO: make this more flexible/more parameters
+    export function createDraggableItemSlot({ createBaseObject, onDrag, onDragStop } = {}) {
+        let output = createBaseObject();
+        output.hoverWithChildren = true;
+        output.passMouseCoords = true;
+        let dragItem;
+        
+        output.clickAction = (x, y) => {
+            if (output.slotItem) { // Creates item that follows mouse during drag
+                dragItem = new Item(itemConfig[output.slotItem.itemName], output.slotItem.itemName, x - 8, y - 8, 10)
+                dragItem.useAbsoluteCoords = true;
+                output.children.push(dragItem);
+            }
+        }
+
+        output.onDrag = (x, y) => {
+            if (onDrag) {
+                onDrag(x, y, dragItem, output);
+            } else { // Moves item to follow mouse
+                dragItem?.setCoordinate(x - 8, y - 8, 35);
+            }
+        }
+
+        output.onDragStop = (x, y) => {
+            if (dragItem) {
+                // Remove drag item
+                output.children = output.children.filter(child => child !== dragItem);
+                if (onDragStop) {
+                    onDragStop(x, y, dragItem); // Custom onDragStop function
+                }
+                dragItem = null;
+            }
+        }
+
+        return output;
+    }
+
 </script>
