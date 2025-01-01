@@ -1,24 +1,115 @@
-{  
+{
   "fishingTiers": [
     {
       "name": "Common",
       "weight": 50,
-      "items": [ "atlanticBass", "guppy", "mossBall", "plasticBag", "freshwaterSnail", "dab" ]
+      "items": [
+        "anchovy",
+        "bluegill",
+        "carp",
+        "crucianCarp",
+        "dace",
+        "goby",
+        "goldfish",
+        "grassCarp",
+        "guppy",
+        "herring",
+        "killifish",
+        "loach",
+        "mackerel",
+        "minnow",
+        "paleChub",
+        "ricefish",
+        "sardine",
+        "seaweed",
+        "shrimp",
+        "smelt",
+        "stickleback",
+        "tadpole"
+      ]
     },
     {
       "name": "Uncommon",
       "weight": 30,
-      "items": [ "starfish", "goldenTench", "clownfish", "blueGill" ]
+      "items": [
+        "barracuda",
+        "betta",
+        "blackBass",
+        "butterflyFish",
+        "catfish",
+        "clownfish",
+        "crab",
+        "flatfish",
+        "flounder",
+        "gourami",
+        "horseMackerel",
+        "jellyfish",
+        "largemouthBass",
+        "mussel",
+        "neonTetra",
+        "octopus",
+        "oyster",
+        "pike",
+        "pompano",
+        "pufferFish",
+        "rainbowfish",
+        "seaBass",
+        "seaHorse",
+        "smallmouthBass",
+        "spannerCrab",
+        "squid",
+        "starfish",
+        "tilapia",
+        "tuna"
+      ]
     },
     {
       "name": "Rare",
       "weight": 15,
-      "items": [ "sandDollar", "junonia" ]
+      "items": [
+        "angelFish",
+        "barelleye",
+        "bichir",
+        "brownTrout",
+        "char",
+        "cherrySalmon",
+        "dollyVarden",
+        "dorado",
+        "eel",
+        "footballFish",
+        "freshwaterStingray",
+        "gar",
+        "goldenTrout",
+        "kingSalmon",
+        "koi",
+        "mahiMahi",
+        "monkfish",
+        "morayEel",
+        "napoleonFish",
+        "oceanSunfish",
+        "piranha",
+        "rainbowTrout",
+        "redSnapper",
+        "salmon",
+        "sturgeon"
+      ]
     },
     {
       "name": "Legendary",
       "weight": 5,
-      "items": [ "axolotl", "highFinBandedShark" ]
+      "items": [
+        "bigScaledRedfin",
+        "blackSeadevil",
+        "cubanGar",
+        "dumboOctopus",
+        "mantisShrimp",
+        "marbledSpinefoot",
+        "moonfish",
+        "redSpottedTrout",
+        "ribbonEel",
+        "stringfish",
+        "whiteSpottedChar"
+      ]
     }
   ],
   "miningTiers":[

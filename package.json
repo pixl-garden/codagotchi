@@ -43,7 +43,7 @@
         "vscode:prepublish": "npm run package",
         "compile": "webpack",
         "convert-sprites": "node ./scripts/convertSprites.js",
-        "watch": "concurrently \"rollup -c -w\" \"webpack --watch --config ./build/node-extension.webpack.config.js\" \"nodemon --watch images -e png --exec npm run convert-sprites\"",
+        "watch": "concurrently \"rollup -c -w --bundleConfigAsCjs\" \"webpack --watch --config ./build/node-extension.webpack.config.js\" \"nodemon --watch images -e png --exec npm run convert-sprites\"",
         "package": "webpack --mode production --devtool hidden-source-map",
         "compile-tests": "tsc -p . --outDir out",
         "watch-tests": "tsc -p . -w --outDir out",
@@ -53,6 +53,10 @@
         "seed": "node ./src/seed.js"
     },
     "devDependencies": {
+        "@babel/core": "^7.24.0",
+        "@babel/preset-env": "^7.24.0",
+        "babel-jest": "^29.7.0",
+        "rollup": "^4.12.0",
         "@rollup/plugin-commonjs": "^25.0.7",
         "@rollup/plugin-json": "^6.0.1",
         "@rollup/plugin-node-resolve": "^15.2.3",
@@ -81,7 +85,7 @@
         "prettier": "^3.0.3",
         "prettier-plugin-svelte": "^3.0.3",
         "rollup-plugin-svelte": "^7.1.6",
-        "rollup-plugin-terser": "^7.0.2",
+        "@rollup/plugin-terser": "^0.4.4",
         "svelte": "^3.59.2",
         "svelte-check": "^3.4.4",
         "svelte-jester": "^3.0.0",
