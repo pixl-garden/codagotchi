@@ -267,11 +267,12 @@
 
         // SET MAIN OVERLAY CHILDREN
         mainMenuOverlay.children = [
-            mainMenuOverlay, recentItemDisplayMain, petObject,
+            recentItemDisplayMain,
             healthBar, hungerBar, healthIcon, hungerIcon, 
             settingsButton, inventoryButton, worldButton, bedroomButton,
-            bedroomManagerInstance
         ];
+
+        mainRoom.addObject(mainMenuOverlay, bedroomManagerInstance, petObject);
 
         
     //----------------SETTINGS ROOM----------------
