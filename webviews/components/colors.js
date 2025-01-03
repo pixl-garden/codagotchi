@@ -55,3 +55,12 @@ export const orange = "#ffa500";
 export const red = "#ff0000";
 export const purple = "#800080";
 export const transparent = "transparent";
+
+export const lightRed = '#ff4d4d';
+export const darkRed = '#b30000';
+
+export const lightOrange = '#ffc04d';
+export const darkOrange = '#b37300';
+
+export const lightGreen = '#00b300';
+export const darkGreen = '#005900';

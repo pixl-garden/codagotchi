@@ -600,9 +600,8 @@
         output.onDrag = (x, y) => {
             if (onDrag) {
                 onDrag(x, y, dragItem, output);
-            } else { // Moves item to follow mouse
-                dragItem?.setCoordinate(x - 8, y - 8, 35);
             }
+            dragItem?.setCoordinate(x - 8, y - 8, 35);
         }
 
         output.onDragStop = (x, y) => {

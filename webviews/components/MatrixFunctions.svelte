@@ -1,4 +1,5 @@
 <script context='module'>
+    import { over } from "lodash";
     import { spriteReader } from "./SpriteReader.svelte";
     import * as Colors from './colors.js';
 
@@ -68,15 +69,19 @@
         return matrix.slice(startY, endY).map(row => row.slice(startX, endX));
     }
 
-    export function generateRectangleMatrix(width, height, color, rounding = 0) {
-        const sprite = [];
+    export function generatePartialRectangleMatrix(width, height, baseColor, rounding = 0, topHighlight = baseColor, bottomShadow = baseColor, subtractLength){
+        const initialMatrix = generateRectangleMatrix(width, height, baseColor, rounding, topHighlight, bottomShadow);
+        const subtractMatrix = generateRectangleMatrix(subtractLength, height, '#123456', rounding, '#123456', '#123456');
+        const overlayed =  overlayMatrix(initialMatrix, subtractMatrix, 0, 0, 0, 0);
+        const replaced = replaceMatrixColor(overlayed, '#123456', 'transparent');
+        return replaced;
+    }
 
-        // Cap the rounding to half the width or height, whichever is smallest
+    export function generateRectangleMatrix(width, height, baseColor, rounding = 0, topHighlight = baseColor, bottomShadow = baseColor) {
+        const sprite = [];
         rounding = Math.min(rounding, height / 2, width / 2);
 
-        // Function to check if a pixel should be colored based on rounded corners
         function shouldColorPixel(x, y) {
-            // Check for corners
             if (x < rounding && y < rounding) {  // Top-left corner
                 return (x - rounding) ** 2 + (y - rounding) ** 2 <= rounding ** 2;
             }
@@ -89,18 +94,31 @@
             if (x >= width - rounding && y >= height - rounding) {  // Bottom-right corner
                 return (x - (width - 1 - rounding)) ** 2 + (y - (height - 1 - rounding)) ** 2 <= rounding ** 2;
             }
-            return true;  // All non-corner cases
+            return true;
         }
 
-        // Fill the sprite matrix
+        function getColor(x, y) {
+            // First check if this pixel should be visible
+            if (!shouldColorPixel(x, y)) return 'transparent';
+
+            // Straight edges
+            if (y === 0) return topHighlight;
+            if (y === height - 1) return bottomShadow;
+
+            // For rounded corners, check if this is the first/last visible pixel in this column
+            if (shouldColorPixel(x, y) && !shouldColorPixel(x, y - 1)) return topHighlight;
+            if (shouldColorPixel(x, y) && !shouldColorPixel(x, y + 1)) return bottomShadow;
+
+            return baseColor;
+        }
+
         for (let y = 0; y < height; y++) {
             const row = [];
             for (let x = 0; x < width; x++) {
-                row.push(shouldColorPixel(x, y) ? color : 'transparent');
+                row.push(getColor(x, y));
             }
             sprite.push(row);
         }
-
         return sprite;
     }
 
@@ -247,7 +265,7 @@
         return finalButtonSprite;
     }
 
-    export function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, filledWidth, roundness) {
+    export function generateStatusBarSprite(width, height, borderColor, bgColor, statusBarColor, highlightColor, shadowColor, filledWidth, roundness) {
         const backgroundSprite = generateRectangleMatrix(width, height, borderColor, roundness);
         const innerBackground = generateRectangleMatrix(width - 2, height - 2, bgColor, roundness);
         let statusBarSprite = overlayMatrix(backgroundSprite, innerBackground, 0, 0, 1, 1);
@@ -258,7 +276,7 @@
         if (filledWidth > 0) {
             // Adjust the filledWidth to account for the border
             filledWidth = Math.min(filledWidth, width - 2);
-            let filledStatusBarSprite = generateRectangleMatrix(filledWidth, height - 2, statusBarColor, roundness);
+            let filledStatusBarSprite = generateRectangleMatrix(filledWidth, height - 2, statusBarColor, roundness, highlightColor, shadowColor);
 
             // Overlay the filled status bar onto the combined border and background sprite
             statusBarSprite = overlayMatrix(statusBarSprite, filledStatusBarSprite, 0, 0, 1, 1);
@@ -271,28 +289,49 @@
     }
 
 
-    export function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness) {
-    let spriteSheet = [];  // Ensure spriteSheet is an array
-    for (let i = 0; i < width - 1; i++) {
-        let statusBarSprite;
-        if (i < (width - 1) / 3) {
-            statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, firstColor, i, roundness);
-        } else if (i < (width - 1) * (2 / 3)) { 
-            statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, secondColor, i, roundness);
-        } else {
-            statusBarSprite = generateStatusBarSprite(width, height, borderColor, bgColor, thirdColor, i, roundness);
+    export function generateStatusBarSpriteSheet(width, height, borderColor, bgColor, colorConfigs, roundness) {
+        // colorConfigs should be an array of objects like:
+        // [
+        //   { base: '#color', highlight: '#color', shadow: '#color' },
+        //   { base: '#color', highlight: '#color', shadow: '#color' },
+        //   { base: '#color', highlight: '#color', shadow: '#color' }
+        // ]
+        
+        let spriteSheet = [];
+        const sectionWidth = 1 / colorConfigs.length;
+        
+        // Calculate section boundaries
+        const sectionBoundaries = colorConfigs.map((_, index) => (index + 1) * sectionWidth);
+
+        for (let i = 0; i < width - 1; i++) {
+            // Calculate which section this pixel belongs to
+            const position = i / (width - 1);
+            const sectionIndex = sectionBoundaries.findIndex(boundary => position <= boundary);
+            
+            // Get the color config for this section
+            const colorConfig = colorConfigs[sectionIndex];
+            
+            const statusBarSprite = generateStatusBarSprite(
+                width,
+                height,
+                borderColor,
+                bgColor,
+                colorConfig.base,
+                colorConfig.highlight,
+                colorConfig.shadow,
+                i,
+                roundness
+            );
+
+            if (i === 0) {
+                spriteSheet = statusBarSprite;
+            } else {
+                spriteSheet = concatenateMatrixes(spriteSheet, statusBarSprite);
+            }
         }
 
-        if (i === 0) {
-            spriteSheet = statusBarSprite;  // Initialize with the first sprite as an element in an array
-        } else {
-            spriteSheet = concatenateMatrixes(spriteSheet, statusBarSprite)  // Assume each sprite can be pushed if they are not already matrices
-        }
+        return spriteReader(width, height, spriteSheet);
     }
-
-    // Assuming spriteSheet now contains an array of matrices or sprites, process it accordingly
-    return spriteReader(width, height, spriteSheet);
-}
 
     export function generateTextInputMatrix(width, height, bgColor, borderColor, textSprite, roundness, textXOffset, borderThickness = 1) {
         // Ensure the border thickness doesn't exceed half the width or height of the sprite

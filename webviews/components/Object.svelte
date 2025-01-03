@@ -298,11 +298,13 @@
         getChildren() {
             return this.children;
         }
-        addChild(child) {
-            this.children.push(child);
+        addChild(...children) {
+            this.children.push(...children);
         }
-        removeChild(child) {
-            this.children = this.children.filter((c) => c !== child);
+
+        removeChild(...children) {
+            const childrenSet = new Set(children);
+            this.children = this.children.filter(child => !childrenSet.has(child));
         }
 
         updateChild(child, oldChild) {
