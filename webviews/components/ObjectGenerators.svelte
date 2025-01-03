@@ -105,20 +105,25 @@
         }
 
     
-    export function generateStatusBarClass( width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness ) {
+    export function generateStatusBarClass(width, height, borderColor, bgColor, colorConfigs, roundness) {
         return class StatusBar extends GeneratedObject {
             constructor(x, y, z) {
-                const spriteSheet = generateStatusBarSpriteSheet(width, height, borderColor, bgColor, firstColor, secondColor, thirdColor, roundness);
-
+                const spriteSheet = generateStatusBarSpriteSheet(
+                    width, 
+                    height, 
+                    borderColor, 
+                    bgColor, 
+                    colorConfigs,
+                    roundness
+                );
+                
                 // Initial state management
                 let states = {};
                 for (let i = 0; i < spriteSheet.length; i++) {
                     states[`state${i}`] = [i];
                 }
-
                 // Initialize with the empty state
                 super(spriteSheet, states, x, y, z, () => {this.increment();});
-
                 // Set initial state
                 this.currentState = 0; // Starts from empty
                 this.maxState = width - 2; // Total number of increments

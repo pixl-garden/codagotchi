@@ -16,6 +16,7 @@
     import itemConfig from './itemConfig.json'
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     import { getObjectsAt } from './MouseEvents.svelte';
+    import { stat } from 'fs';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -95,12 +96,28 @@
         petObject.setPhysics(25.0, 0, 16.0)
 
         // STATUS BAR INSTANTIATIONS
-        const StatusBar = generateStatusBarClass(50, 7,  Colors.offBlack, Colors.grey, Colors.red, Colors.orange, Colors.green, 1);
-        const hungerIcon = new Background('hungerIcon', 30, 19, 1);
-        const hungerBar = new StatusBar(42, 20, 1);
+        const StatusBar = generateStatusBarClass(
+            50,             // width
+            7,              // height
+            Colors.offBlack,       // borderColor
+            Colors.grey,           // bgColor
+            [
+                { base: Colors.red, highlight: Colors.lightRed, shadow: Colors.darkRed },
+                { base: Colors.orange, highlight: Colors.lightOrange, shadow: Colors.darkOrange },
+                { base: Colors.green, highlight: Colors.lightGreen, shadow: Colors.darkGreen }
+            ],
+            1  // roundness
+        );
+        const hungerIcon = new Background('hungerIcon', 0, 0, 0);
+        const hungerBar = new StatusBar(12, 1, 0);
         hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
-        const healthBar = new StatusBar(42, 30, 1);
-        const healthIcon = new Background('heartIcon', 32, 29, 1);
+        const healthBar = new StatusBar(12, 11, 0);
+        const healthIcon = new Background('heartIcon', 1, 10, 0);
+        const statusBarContainer = new Container(32, 19, 9, 1, 1, Colors.transparent, Colors.transparent, Colors.transparent, 0, 0, 0, 0);
+        statusBarContainer.children = [hungerBar, healthBar, hungerIcon, healthIcon];
+
+        const statusBarBackground = new Menu(24, 30, -7, 79, 33, '#8B9BB4', '#616C7E', Colors.transparent, 2, 3, 2, 1);
+        statusBarBackground.opacity = .9;
 
 
         // MAIN MENU BUTTON INSTANTIATIONS
@@ -118,6 +135,7 @@
             bedroomHotbar.locked = false; // prevents the hotbar from jittering on enter
             petObject.setCoordinate(40, 45, 9);
             petObject.startMovingTo(40, 63); // drop pet into room
+            statusBarContainer.setCoordinate(32, 37, 9);
         });
 
         // RECENT ITEM DISPLAY
@@ -135,6 +153,18 @@
                     hungerBar.setPercentage(petObject.hunger / petObject.maxHunger);
                     get(game).subtractStackableItem(dragItem.itemName, 1);
                     recentItemDisplayMain.refreshRecentItems();
+                    mainRoom.removeObject(statusBarContainer);
+                    bedroomEditorInstance.removeChild(statusBarBackground);
+                }
+            },
+            onDrag: (x, y, dragItem) => {
+                if(getObjectsAt(x, y, get(game)).some(item => item instanceof Pet)){
+                    mainRoom.addObject(statusBarContainer);
+                    bedroomEditorInstance.addChild(statusBarBackground);
+                }
+                else{
+                    mainRoom.removeObject(statusBarContainer);
+                    bedroomEditorInstance.removeChild(statusBarBackground);
                 }
             }
         });
@@ -177,24 +207,25 @@
 
         // BEDROOM EDITOR INSTANTIATION
         let bedroomManagerInstance = new BedroomManager();
-        const openMainMenuButton = new Button(4, 3, 5, 'exitBedroom', () => {
+        const bedroomToMainButton = new Button(4, 3, 5, 'exitBedroom', () => {
             get(game).getCurrentRoom().addObject( mainMenuOverlay );
             get(game).getCurrentRoom().removeObject( bedroomEditorInstance, bedroomHotbar);
             petObject.setCoordinate(40, 63, 31);
             petObject.startMovingTo(40, 45); // lift pet into room
             bedroomHotbar.locked = true; // lock bedroom hotbar to handle hover issues on bedroom entrance
+            statusBarContainer.setCoordinate(32, 19, 5);
         });
         const bedroomEditorInstance = new BedroomEditor(get(game), bedroomManagerInstance, bedroomHotbar, (hotbarArray) => {
             // This will run whenever the hotbar array changes
             bedroomHotbar.children = [
-                openMainMenuButton, 
+                bedroomToMainButton, 
                 recentItemDisplayHotbar, 
                 ...hotbarArray
             ];
         });
 
         // SET BEDROOM OVERLAY CHILDREN
-        bedroomHotbar.children = [openMainMenuButton, recentItemDisplayHotbar, ...bedroomEditorInstance.hotbarExport];
+        bedroomHotbar.children = [bedroomToMainButton, recentItemDisplayHotbar, ...bedroomEditorInstance.hotbarExport];
             //hotbarExport is a bindable array of hotbar buttons that are managed by the bedroomEditorInstance
 
         //----------------INVENTORY OVERLAY----------------
@@ -267,11 +298,12 @@
 
         // SET MAIN OVERLAY CHILDREN
         mainMenuOverlay.children = [
-            mainMenuOverlay, recentItemDisplayMain, petObject,
-            healthBar, hungerBar, healthIcon, hungerIcon, 
+            recentItemDisplayMain,
+            statusBarContainer,
             settingsButton, inventoryButton, worldButton, bedroomButton,
-            bedroomManagerInstance
         ];
+
+        mainRoom.addObject(mainMenuOverlay, bedroomManagerInstance, petObject);
 
         
     //----------------SETTINGS ROOM----------------
