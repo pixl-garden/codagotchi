@@ -16,7 +16,6 @@
     import itemConfig from './itemConfig.json'
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     import { getObjectsAt } from './MouseEvents.svelte';
-    import { stat } from 'fs';
     
     export function preloadObjects() {
     //----------------FONT RENDERERS----------------
@@ -703,14 +702,14 @@
 
 
         let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, ()=>{}, basic);
-        // let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
+        let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
         
-        // const socialTabs = ['Friends', 'Add'];
+        const socialTabs = ['Friends', 'Add'];
 
-        // const socialTabList = new textButtonList(socialTabs, [
-        //     () => {get(game).setCurrentRoom('friendRoom')}, 
-        //     () => {get(game).setCurrentRoom('requestRoom')}
-        // ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
+        const socialTabList = new textButtonList(socialTabs, [
+            () => {get(game).setCurrentRoom('friendRoom')}, 
+            () => {get(game).setCurrentRoom('requestRoom')}
+        ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
         
         //ROOM INSTANTIATION
         let friendRoom = new Room('friendRoom', 
@@ -720,17 +719,17 @@
                 // friendRequestManagerInstance.refreshRequests();
             },
         );
-        // let requestRoom = new Room('requestRoom');
+        let requestRoom = new Room('requestRoom');
         const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
             get(game).setCurrentRoom('mainRoom');
         });
         const addFriendButton = new Button(116, 3, 20, 'addFriendButton', () => {
-            console.log("stuff and things");
+            get(game).setCurrentRoom('requestRoom');
         });
         friendRoom.addObject(friendsUI, friendListManagerInstance, friendBackButton, addFriendButton);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
-        // requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 
-        //                       inputBar, sendFriendRequestButton);
+        requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 
+                              inputBar, sendFriendRequestButton);
         
 
         // ---------------- FISHING ROOM ----------------

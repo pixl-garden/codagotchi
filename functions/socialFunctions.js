@@ -16,8 +16,6 @@ export const sendFriendRequest = functions.https.onRequest(async (req, res) => {
     }
 
     verifyToken(req, res, async () => {
-        // console.log("req.user:", req.user);
-        // console.log("req.body:", req.body);
 
         const senderUid = req.user.uid;
         const { recipientUsername } = req.body;
