@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { merge, update } from 'lodash';
+import { last, merge, update } from 'lodash';
 import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -179,7 +179,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'sendFriendRequest': {
-                    await apiClient.sendFriendRequest(this.context, data.val);
+                    // await apiClient.sendFriendRequest(this.context, data.val);
+                    sendFriendRequest(this.context, data.val);
                     break;
                 }
                 case 'handleFriendRequest': {
@@ -389,42 +390,182 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
     }
 }
 
+function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial<Omit<apiClient.DatabaseUpdates, 'timestamp'>>): void {
+    const timestamp = Date.now();
+    
+    const databaseUpdate: apiClient.DatabaseUpdates = {
+        bedroomUpdates: partialUpdate.bedroomUpdates ?? "",
+        inventoryUpdates: partialUpdate.inventoryUpdates ?? {},
+        petUpdates: partialUpdate.petUpdates ?? {},
+        gameUpdates: partialUpdate.gameUpdates ?? {},
+        timestamp: timestamp,
+        socialUpdates: partialUpdate.socialUpdates ?? {
+            sentPostcards: {},
+            outgoingFriendRequests: [],
+            removedFriends: [],
+            handledFriendRequests: {}
+        }
+    };
+
+    handleDatabaseUpdates(context, databaseUpdate);
+}
+
 function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: apiClient.DatabaseUpdates): void {
     const currentState = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
+    const lastSyncTimestamp = context.globalState.get('lastSync') || 0;
+    
+    // Only update bedroomUpdates if a non-empty value is provided
+    if (updatesJSON.bedroomUpdates) {
+        currentState.bedroomUpdates = updatesJSON.bedroomUpdates;
+    }
 
-    if( updatesJSON.inventoryUpdates !== undefined ) {
-        // Update inventory: stack items if they already exist, add new ones if not
+    // Handle inventory updates
+    if (updatesJSON.inventoryUpdates !== undefined) {
+        currentState.inventoryUpdates = currentState.inventoryUpdates || {};
         Object.keys(updatesJSON.inventoryUpdates).forEach(key => {
             currentState.inventoryUpdates[key] = updatesJSON.inventoryUpdates[key];
         });
     }
 
-    // Update other parts of the global state
-    updateGlobalState(context, { 
-        databaseUpdates: { 
+    // Initialize if undefined
+    if (!currentState.socialUpdates) {
+        currentState.socialUpdates = {
+            sentPostcards: {},
+            outgoingFriendRequests: [],
+            removedFriends: [],
+            handledFriendRequests: {}
+        };
+    }
+    
+    // Handle social updates
+    if (updatesJSON.socialUpdates !== undefined) {
+        // Handle sent postcards (combine objects)
+        if (updatesJSON.socialUpdates.sentPostcards) {
+            currentState.socialUpdates.sentPostcards = {
+                ...currentState.socialUpdates.sentPostcards,
+                ...updatesJSON.socialUpdates.sentPostcards
+            };
+        }
+
+        // Handle friend requests (combine arrays)
+        if (updatesJSON.socialUpdates.outgoingFriendRequests) {
+            currentState.socialUpdates.outgoingFriendRequests = [
+                ...currentState.socialUpdates.outgoingFriendRequests,
+                ...updatesJSON.socialUpdates.outgoingFriendRequests
+            ];
+        }
+
+        // Handle removed friends (combine arrays)
+        if (updatesJSON.socialUpdates.removedFriends) {
+            currentState.socialUpdates.removedFriends = [
+                ...currentState.socialUpdates.removedFriends,
+                ...updatesJSON.socialUpdates.removedFriends
+            ];
+        }
+
+        // Handle friend request responses (combine objects)
+        if (updatesJSON.socialUpdates.handledFriendRequests) {
+            currentState.socialUpdates.handledFriendRequests = {
+                ...currentState.socialUpdates.handledFriendRequests,
+                ...updatesJSON.socialUpdates.handledFriendRequests
+            };
+        }
+    }
+
+    // Update global state
+    updateGlobalState(context, {
+        databaseUpdates: {
             bedroomUpdates: updatesJSON.bedroomUpdates,
-            xp: currentState.xp + updatesJSON.xp, // Correct xp addition
-            inventoryUpdates: currentState.inventoryUpdates || {} // Ensure inventory is saved with updates
-        } 
+            inventoryUpdates: currentState.inventoryUpdates || {},
+            socialUpdates: currentState.socialUpdates || {},
+            petUpdates: updatesJSON.petUpdates,
+            gameUpdates: updatesJSON.gameUpdates,
+            timestamp: lastSyncTimestamp
+        }
     });
 }
 
-function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) { // 60000 ms = 1 minute\
-    const baseJSON = {
-        inventoryUpdates: {},
-        xp: 0,
-        petUpdates: {},
-        customizationUpdates: {},
-        bedroomUpdates: "",
-        timestamp: 0
-    }
+function handleFriendRequest(context: vscode.ExtensionContext, requestId: string, action: 'accept' | 'reject') {
+    updateDatabase(context, {
+        socialUpdates: {
+            sentPostcards: {},
+            outgoingFriendRequests: [],
+            removedFriends: [],
+            handledFriendRequests: {
+                [requestId]: action
+            }
+        }
+    });
+}
+
+// Example function to send a postcard
+function sendPostcard(context: vscode.ExtensionContext, recipientUsername: string, postcardData: any) {
+    const timestamp = Date.now(); // Unique key for the postcard
     
+    updateDatabase(context, {
+        socialUpdates: {
+            sentPostcards: {
+                [timestamp]: {
+                    recipientUsername,
+                    postcardJSON: postcardData
+                }
+            },
+            outgoingFriendRequests: [],
+            removedFriends: [],
+            handledFriendRequests: {}
+        }
+    });
+}
+
+// Example function to send a friend request
+function sendFriendRequest(context: vscode.ExtensionContext, username: string) {
+    updateDatabase(context, {
+        socialUpdates: {
+            sentPostcards: {},
+            outgoingFriendRequests: [username],  // Single username or you could spread existing ones
+            removedFriends: [],
+            handledFriendRequests: {}
+        }
+    });
+}
+
+// Example function to remove a friend
+function removeFriend(context: vscode.ExtensionContext, username: string) {
+    updateDatabase(context, {
+        socialUpdates: {
+            sentPostcards: {},
+            outgoingFriendRequests: [],
+            removedFriends: [username],  // Single username
+            handledFriendRequests: {}
+        }
+    });
+}
+
+function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) {
+    const baseJSON = createEmptyDatabaseUpdates();
+   
     setInterval(() => {
         let databaseUpdates = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
-        if( JSON.stringify(databaseUpdates) !== JSON.stringify(baseJSON) ) {
+        if (JSON.stringify(databaseUpdates) !== JSON.stringify(baseJSON)) {
             apiClient.syncUserData(context, databaseUpdates).then(() => {
                 overwriteFieldInState(context, "databaseUpdates", baseJSON);
             })
         }
     }, interval);
+}
+
+function createEmptyDatabaseUpdates(): apiClient.DatabaseUpdates {
+    return {
+        bedroomUpdates: "",
+        inventoryUpdates: {},
+        petUpdates: {},
+        gameUpdates: {},
+        timestamp: 0,
+        socialUpdates: {
+            sentPostcards: {},
+            outgoingFriendRequests: [],
+            removedFriends: [],
+            handledFriendRequests: {}
+        }
+    };
 }

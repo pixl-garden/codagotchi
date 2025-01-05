@@ -20,10 +20,10 @@ import * as pako from 'pako';
 // 3. Pet updates (hunger, happiness, clothing, etc.) - setting the user's pet data
 // 4. XP updates - updating the user's XP
 
-async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp) {
+async function processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp) {
     const updates = {};
 
-    log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "customization updates", customizationUpdates, "bedroom updates", bedroomUpdates, "timestamp", timestamp)
+    log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "game updates", gameUpdates, "bedroom updates", bedroomUpdates, "timestamp", timestamp)
 
     if(timestamp) {
         updates[`/users/${uid}/protected/lastSync`] = timestamp;
@@ -51,9 +51,9 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
     }
 
     // Process customization updates
-    if (customizationUpdates) {
-        for (const [key, value] of Object.entries(customizationUpdates)) {
-            updates[`/users/${uid}/protected/owned/${key}`] = value;
+    if (gameUpdates) {
+        for (const [key, value] of Object.entries(gameUpdates)) {
+            updates[`/users/${uid}/protected/game/${key}`] = value;
         }
     }
 
@@ -61,6 +61,62 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
     if(bedroomUpdates) {
         log("bedroom updates", bedroomUpdates)
         updates[`/users/${uid}/public/bedroom`] = bedroomUpdates;
+    }
+
+    if (socialUpdates) {
+        log("social updates", socialUpdates);
+        
+        // Handle outgoing friend requests
+        if (socialUpdates.outgoingFriendRequests?.length > 0) {
+            for (const recipientUsername of socialUpdates.outgoingFriendRequests) {
+                try {
+                    const friendRequestUpdates = await handleFriendRequest(uid, recipientUsername);
+                    Object.assign(updates, friendRequestUpdates);
+                } catch (error) {
+                    console.error(`Failed to process friend request to ${recipientUsername}:`, error);
+                }
+            }
+        }
+
+        // Handle friend request responses
+        if (socialUpdates.handledFriendRequests && Object.keys(socialUpdates.handledFriendRequests).length > 0) {
+            for (const [requestId, action] of Object.entries(socialUpdates.handledFriendRequests)) {
+                try {
+                    const responseUpdates = await handleFriendRequestResponse(uid, requestId, action);
+                    Object.assign(updates, responseUpdates);
+                } catch (error) {
+                    console.error(`Failed to handle friend request ${requestId}:`, error);
+                }
+            }
+        }
+
+        // Handle friend removals
+        if (socialUpdates.removedFriends?.length > 0) {
+            for (const username of socialUpdates.removedFriends) {
+                try {
+                    const removalUpdates = await handleFriendRemoval(uid, username);
+                    Object.assign(updates, removalUpdates);
+                } catch (error) {
+                    console.error(`Failed to remove friend ${username}:`, error);
+                }
+            }
+        }
+
+        // Handle sent postcards
+        if (socialUpdates.sentPostcards && Object.keys(socialUpdates.sentPostcards).length > 0) {
+            for (const postcard of Object.values(socialUpdates.sentPostcards)) {
+                try {
+                    const postcardUpdates = await handlePostcardSend(
+                        uid,
+                        postcard.recipientUsername,
+                        postcard.postcardJSON
+                    );
+                    Object.assign(updates, postcardUpdates);
+                } catch (error) {
+                    console.error(`Failed to send postcard to ${postcard.recipientUsername}:`, error);
+                }
+            }
+        }
     }
 
     // Perform the update if there are any changes
@@ -74,32 +130,6 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, customizatio
     }
 }
 
-
-/*
-    Sync user data with the database.
-    The client will call this function to sync the user's data with the database.
-    The function will receive the user's data and update the database accordingly.
-    The function will return a success message if the update is successful.
-    Example of req.body:
-
-            {
-        "inventoryUpdates": [
-            {"items": 
-            [{"id": "item1", "amount": 5}, {"id": "item2", "amount": -2}], "xp": 100},
-            {"itemId": "item3", "amount": 1, "xp": 50}
-        ],
-        "petUpdates": {
-            "hunger": 80,
-            "happiness": 90,
-            "currentPetXp": 100
-        },
-        "customizationUpdates": {
-            "background": "forest",
-            "pet_clothing": "hat_001"
-        }
-        }
-*/
-
 export const syncUserData = functions.https.onRequest((req, res) => {
     if (req.method !== 'POST') {
         return res.status(403).send({ success: false, message: 'Forbidden! Only POST requests are allowed.' });
@@ -109,12 +139,21 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         try {
             // console.log("req user:", req.user);
             const uid = req.user.uid;
-            const { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp } = req.body;
+            const { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp } = req.body;
 
             // Process all updates
-            await processAllUpdates(uid, inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp );
+            await processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp );
 
-            res.status(200).send({ success: true, message: 'User data synced successfully' });
+            // Generate lastSync timestamp on the server
+            const lastSync = Date.now();
+            // Update lastSync in the database
+            await admin.database().ref(`/users/${uid}/protected/lastSync`).set(lastSync);
+
+            res.status(200).send({ 
+                success: true, 
+                message: 'User data synced successfully',
+                lastSync: lastSync
+            });
             
         } catch (error) {
             console.error('Sync user data error:', error);
@@ -122,6 +161,8 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         }
     });
 });
+
+//TODO: REMOVE THIS FUNCTION
 
 export const retrieveInventory = functions.https.onRequest(async (req, res) => {
     if (req.method !== 'GET') {
@@ -169,3 +210,247 @@ export const retrieveInventory = functions.https.onRequest(async (req, res) => {
         }
     });
 });
+
+async function handleFriendRequest(senderUid, recipientUsername) {
+    try {
+        // Check recipient exists
+        const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
+        const recipientSnapshot = await recipientRef.once('value');
+
+        if (!recipientSnapshot.exists()) {
+            throw new Error('Recipient not found');
+        }
+
+        const recipientUid = recipientSnapshot.val().userId;
+
+        // Check not sending to self
+        if (parseInt(recipientUid) === parseInt(senderUid)) {
+            throw new Error('Cannot send friend request to yourself');
+        }
+
+        // Get sender info
+        const senderRef = admin.database().ref(`users/${senderUid}/public`);
+        const senderSnapshot = await senderRef.once('value');
+        
+        if (!senderSnapshot.exists()) {
+            throw new Error('Sender not found');
+        }
+        
+        const senderUsername = senderSnapshot.val().username;
+
+        // Check existing requests and friendship
+        const recipientSocialRef = admin.database().ref(`users/${recipientUid}/protected/social`);
+        const recipientSocialSnapshot = await recipientSocialRef.once('value');
+
+        if (recipientSocialSnapshot.exists()) {
+            const friendRequests = recipientSocialSnapshot.child('friendRequests').val() || {};
+            const friends = recipientSocialSnapshot.child('friends').val() || {};
+
+            // Check if request already sent
+            for (let requestId in friendRequests) {
+                if (parseInt(friendRequests[requestId].fromUid) === parseInt(senderUid)) {
+                    throw new Error('Friend request already sent');
+                }
+            }
+
+            // Check if already friends
+            if (friends[senderUid]) {
+                throw new Error('Already friends');
+            }
+        }
+
+        // Check for and handle reciprocal request
+        const senderInboxRef = admin.database().ref(`users/${senderUid}/protected/social/friendRequests`);
+        const senderInboxSnapshot = await senderInboxRef.once('value');
+        
+        const updates = {};
+
+        let wasAutoAccepted = false;
+        senderInboxSnapshot.forEach(async (childSnapshot) => {
+            if (parseInt(childSnapshot.val().fromUid) === parseInt(recipientUid)) {
+                // Auto-accept the reciprocal request
+                updates[`users/${recipientUid}/protected/social/friends/${senderUid}`] = {
+                    friendUsername: senderUsername,
+                    friendUid: senderUid,
+                    addedAt: admin.database.ServerValue.TIMESTAMP
+                };
+
+                updates[`users/${senderUid}/protected/social/friends/${recipientUid}`] = {
+                    friendUsername: recipientUsername,
+                    friendUid: recipientUid,
+                    addedAt: admin.database.ServerValue.TIMESTAMP
+                };
+
+                // Remove both requests
+                updates[`users/${senderUid}/protected/social/friendRequests/${childSnapshot.key}`] = null;
+                updates[`users/${recipientUid}/protected/social/friendRequests/${childSnapshot.key}`] = null;
+                
+                wasAutoAccepted = true;
+            }
+        });
+
+        if (!wasAutoAccepted) {
+            // Send new friend request
+            updates[`users/${recipientUid}/protected/social/friendRequests/${senderUid}`] = {
+                fromUid: senderUid,
+                fromUser: senderUsername,
+                type: 'friendRequest',
+                createdAt: admin.database.ServerValue.TIMESTAMP
+            };
+        }
+
+        return updates;
+    } catch (error) {
+        console.error('Friend request error:', error);
+        throw error;
+    }
+}
+
+async function handleFriendRequestResponse(uid, requestId, action) {
+    try {
+        // Check if the friend request exists
+        const senderInboxRef = admin.database().ref(`users/${uid}/protected/social/friendRequests`);
+        const senderInboxSnapshot = await senderInboxRef.once('value');
+        
+        if (!senderInboxSnapshot.hasChild(requestId)) {
+            throw new Error('Friend request not found');
+        }
+
+        if (action !== 'accept' && action !== 'reject') {
+            throw new Error('Invalid action');
+        }
+
+        const updates = {};
+
+        if (action === 'reject') {
+            // Simply remove the request
+            updates[`users/${uid}/protected/social/friendRequests/${requestId}`] = null;
+        } else if (action === 'accept') {
+            // Get the recipient's info from the request
+            const recipientUid = senderInboxSnapshot.child(requestId).val().fromUid;
+            const recipientUsername = senderInboxSnapshot.child(requestId).val().fromUser;
+
+            // Get sender's username
+            const senderRef = admin.database().ref(`users/${uid}/public`);
+            const senderSnapshot = await senderRef.once('value');
+            
+            if (!senderSnapshot.exists()) {
+                throw new Error('Sender not found');
+            }
+            
+            const senderUsername = senderSnapshot.val().username;
+
+            // Add to both friends lists
+            updates[`users/${recipientUid}/protected/social/friends/${uid}`] = {
+                friendUsername: senderUsername,
+                friendUid: uid,
+                addedAt: admin.database.ServerValue.TIMESTAMP
+            };
+
+            updates[`users/${uid}/protected/social/friends/${recipientUid}`] = {
+                friendUsername: recipientUsername,
+                friendUid: recipientUid,
+                addedAt: admin.database.ServerValue.TIMESTAMP
+            };
+
+            // Remove the request
+            updates[`users/${uid}/protected/social/friendRequests/${requestId}`] = null;
+        }
+
+        return updates;
+    } catch (error) {
+        console.error('Friend request response error:', error);
+        throw error;
+    }
+}
+
+async function handleFriendRemoval(uid, username) {
+    try {
+        // Get the user ID for the username
+        const userIdRef = admin.database().ref(`userIdMappings/${username}`);
+        const userIdSnapshot = await userIdRef.once('value');
+        
+        if (!userIdSnapshot.exists()) {
+            throw new Error('User not found');
+        }
+        
+        const toUserId = userIdSnapshot.val().userId;
+
+        // Check if they are actually friends
+        const friendsRef = admin.database().ref(`users/${uid}/protected/social/friends/${toUserId}`);
+        const friendSnapshot = await friendsRef.once('value');
+        
+        if (!friendSnapshot.exists()) {
+            throw new Error('Users are not friends');
+        }
+
+        const updates = {};
+
+        // Remove from both users' friend lists
+        updates[`users/${uid}/protected/social/friends/${toUserId}`] = null;
+        updates[`users/${toUserId}/protected/social/friends/${uid}`] = null;
+
+        return updates;
+    } catch (error) {
+        console.error('Friend removal error:', error);
+        throw error;
+    }
+}
+
+async function handlePostcardSend(senderUid, recipientUsername, postcardJSON) {
+    try {
+        // Get recipient's UID
+        const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
+        const recipientSnapshot = await recipientRef.once('value');
+        
+        if (!recipientSnapshot.exists()) {
+            throw new Error('Recipient not found');
+        }
+
+        const recipientUid = recipientSnapshot.val().userId;
+
+        // Check not sending to self
+        if (parseInt(recipientUid) === parseInt(senderUid)) {
+            throw new Error('Cannot send a postcard to yourself');
+        }
+
+        // Check if they are friends
+        const recipientSocialRef = admin.database().ref(`users/${recipientUid}/protected/social`);
+        const recipientSocialSnapshot = await recipientSocialRef.once('value');
+        
+        if (recipientSocialSnapshot.exists()) {
+            const friends = recipientSocialSnapshot.child('friends').val() || {};
+            if (!friends[senderUid]) {
+                throw new Error('Must be friends to send a postcard');
+            }
+        }
+
+        // Get sender's username
+        const senderRef = admin.database().ref(`users/${senderUid}/public`);
+        const senderSnapshot = await senderRef.once('value');
+        
+        if (!senderSnapshot.exists()) {
+            throw new Error('Sender not found');
+        }
+        
+        const senderUsername = senderSnapshot.val().username;
+
+        const updates = {};
+
+        // Generate unique key for the postcard
+        const postcardKey = admin.database().ref(`users/${recipientUid}/protected/social/postcards`).push().key;
+
+        updates[`users/${recipientUid}/protected/social/postcards/${postcardKey}`] = {
+            fromUid: senderUid,
+            fromUser: senderUsername,
+            type: 'postcard',
+            postcard: postcardJSON,
+            createdAt: admin.database.ServerValue.TIMESTAMP
+        };
+
+        return updates;
+    } catch (error) {
+        console.error('Postcard send error:', error);
+        throw error;
+    }
+}

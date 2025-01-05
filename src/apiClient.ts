@@ -272,13 +272,26 @@ export async function retrieveUserData(context: vscode.ExtensionContext) {
     }
 }
 
+export interface PostcardData {
+    recipientUsername: string;
+    postcardJSON: any; // Or maybe define a specific PostcardJSON interface??
+}
+
+export interface SocialUpdates {
+    sentPostcards: Record<number, PostcardData>;
+    outgoingFriendRequests: string[];  // array of usernames
+    removedFriends: string[];  // array of usernames
+    handledFriendRequests: Record<string, 'accept' | 'reject'>;  // requestId -> action
+}
+
+// Update your DatabaseUpdates interface
 export interface DatabaseUpdates {
     bedroomUpdates: string;
-    xp: number;
     inventoryUpdates: Record<string, number>;
-    petUpdates: JSON;
-    customizationUpdates: JSON;
+    petUpdates: any;
     timestamp: number;
+    socialUpdates: SocialUpdates;
+    gameUpdates: any;
 }
 
 export async function syncUserData(context: vscode.ExtensionContext, databaseUpdates: DatabaseUpdates ) {
@@ -287,17 +300,17 @@ export async function syncUserData(context: vscode.ExtensionContext, databaseUpd
         console.log("databaseUpdates", JSON.stringify(databaseUpdates));
         const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
         const petUpdates = databaseUpdates.petUpdates || {};
-        const customizationUpdates = databaseUpdates.customizationUpdates || {};
+        const gameUpdates = databaseUpdates.gameUpdates || {};
         const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
-        const xp = databaseUpdates.xp || 0;
+        const socialUpdates = databaseUpdates.socialUpdates || {};
         const timestamp = Date.now();
 
 
-        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'customizationUpdates:', customizationUpdates, 'bedroomUpdates:', bedroomUpdates, 'xp:', xp, 'timestamp:', timestamp);
+        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'gameUpdates:', gameUpdates, 'bedroomUpdates:', bedroomUpdates, 'socialUpdates:', socialUpdates, 'timestamp:', timestamp);
         try {
             const response = await axios.post(
                 `${BASE_URL}/syncUserData`,
-                { inventoryUpdates, petUpdates, customizationUpdates, bedroomUpdates, timestamp },
+                { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp },
                 {
                     headers: {
                         Authorization: `Bearer ${idToken}`,
@@ -305,8 +318,13 @@ export async function syncUserData(context: vscode.ExtensionContext, databaseUpd
                     },
                 },
             );
-            context.globalState.update('lastSync', timestamp);
+            if (response.data.lastSync) {
+                context.globalState.update('lastSync', response.data.lastSync);
+                console.log('Received lastSync:', response.data.lastSync);
+            }
+            
             console.log('User Data Synced');
+            return response.data.message;
 
             return response.data.message;
         } catch (error) {
