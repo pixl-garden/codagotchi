@@ -6,7 +6,7 @@
         "serve": "firebase emulators:start --only functions",
         "shell": "firebase functions:shell",
         "start": "npm run shell",
-        "deploy": "firebase deploy --only functions",
+        "deploy": "node -e \"const func = process.argv[1] || ''; const cmd = 'firebase deploy --only functions' + (func ? ':' + func : ''); require('child_process').execSync(cmd, {stdio: 'inherit'});\"",
         "logs": "firebase functions:log"
     },
     "engines": {

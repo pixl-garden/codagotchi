@@ -318,8 +318,13 @@ export async function syncUserData(context: vscode.ExtensionContext, databaseUpd
                     },
                 },
             );
-            context.globalState.update('lastSync', timestamp);
+            if (response.data.lastSync) {
+                context.globalState.update('lastSync', response.data.lastSync);
+                console.log('Received lastSync:', response.data.lastSync);
+            }
+            
             console.log('User Data Synced');
+            return response.data.message;
 
             return response.data.message;
         } catch (error) {

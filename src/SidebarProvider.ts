@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { merge, update } from 'lodash';
+import { last, merge, update } from 'lodash';
 import { getNonce } from './getNonce';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -412,6 +412,7 @@ function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial
 
 function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: apiClient.DatabaseUpdates): void {
     const currentState = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
+    const lastSyncTimestamp = context.globalState.get('lastSync') || 0;
     
     // Only update bedroomUpdates if a non-empty value is provided
     if (updatesJSON.bedroomUpdates) {
@@ -438,7 +439,7 @@ function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: ap
     
     // Handle social updates
     if (updatesJSON.socialUpdates !== undefined) {
-        // Handle sent postcards (keep timestamp structure)
+        // Handle sent postcards (combine objects)
         if (updatesJSON.socialUpdates.sentPostcards) {
             currentState.socialUpdates.sentPostcards = {
                 ...currentState.socialUpdates.sentPostcards,
@@ -462,7 +463,7 @@ function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: ap
             ];
         }
 
-        // Handle friend request responses
+        // Handle friend request responses (combine objects)
         if (updatesJSON.socialUpdates.handledFriendRequests) {
             currentState.socialUpdates.handledFriendRequests = {
                 ...currentState.socialUpdates.handledFriendRequests,
@@ -479,7 +480,7 @@ function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: ap
             socialUpdates: currentState.socialUpdates || {},
             petUpdates: updatesJSON.petUpdates,
             gameUpdates: updatesJSON.gameUpdates,
-            timestamp: updatesJSON.timestamp
+            timestamp: lastSyncTimestamp
         }
     });
 }
@@ -499,7 +500,7 @@ function handleFriendRequest(context: vscode.ExtensionContext, requestId: string
 
 // Example function to send a postcard
 function sendPostcard(context: vscode.ExtensionContext, recipientUsername: string, postcardData: any) {
-    const timestamp = Date.now();
+    const timestamp = Date.now(); // Unique key for the postcard
     
     updateDatabase(context, {
         socialUpdates: {

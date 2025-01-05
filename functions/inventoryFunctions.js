@@ -101,6 +101,22 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates,
                 }
             }
         }
+
+        // Handle sent postcards
+        if (socialUpdates.sentPostcards && Object.keys(socialUpdates.sentPostcards).length > 0) {
+            for (const postcard of Object.values(socialUpdates.sentPostcards)) {
+                try {
+                    const postcardUpdates = await handlePostcardSend(
+                        uid,
+                        postcard.recipientUsername,
+                        postcard.postcardJSON
+                    );
+                    Object.assign(updates, postcardUpdates);
+                } catch (error) {
+                    console.error(`Failed to send postcard to ${postcard.recipientUsername}:`, error);
+                }
+            }
+        }
     }
 
     // Perform the update if there are any changes
@@ -128,7 +144,16 @@ export const syncUserData = functions.https.onRequest((req, res) => {
             // Process all updates
             await processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp );
 
-            res.status(200).send({ success: true, message: 'User data synced successfully' });
+            // Generate lastSync timestamp on the server
+            const lastSync = Date.now();
+            // Update lastSync in the database
+            await admin.database().ref(`/users/${uid}/protected/lastSync`).set(lastSync);
+
+            res.status(200).send({ 
+                success: true, 
+                message: 'User data synced successfully',
+                lastSync: lastSync
+            });
             
         } catch (error) {
             console.error('Sync user data error:', error);
@@ -368,6 +393,64 @@ async function handleFriendRemoval(uid, username) {
         return updates;
     } catch (error) {
         console.error('Friend removal error:', error);
+        throw error;
+    }
+}
+
+async function handlePostcardSend(senderUid, recipientUsername, postcardJSON) {
+    try {
+        // Get recipient's UID
+        const recipientRef = admin.database().ref(`userIdMappings/${recipientUsername}`);
+        const recipientSnapshot = await recipientRef.once('value');
+        
+        if (!recipientSnapshot.exists()) {
+            throw new Error('Recipient not found');
+        }
+
+        const recipientUid = recipientSnapshot.val().userId;
+
+        // Check not sending to self
+        if (parseInt(recipientUid) === parseInt(senderUid)) {
+            throw new Error('Cannot send a postcard to yourself');
+        }
+
+        // Check if they are friends
+        const recipientSocialRef = admin.database().ref(`users/${recipientUid}/protected/social`);
+        const recipientSocialSnapshot = await recipientSocialRef.once('value');
+        
+        if (recipientSocialSnapshot.exists()) {
+            const friends = recipientSocialSnapshot.child('friends').val() || {};
+            if (!friends[senderUid]) {
+                throw new Error('Must be friends to send a postcard');
+            }
+        }
+
+        // Get sender's username
+        const senderRef = admin.database().ref(`users/${senderUid}/public`);
+        const senderSnapshot = await senderRef.once('value');
+        
+        if (!senderSnapshot.exists()) {
+            throw new Error('Sender not found');
+        }
+        
+        const senderUsername = senderSnapshot.val().username;
+
+        const updates = {};
+
+        // Generate unique key for the postcard
+        const postcardKey = admin.database().ref(`users/${recipientUid}/protected/social/postcards`).push().key;
+
+        updates[`users/${recipientUid}/protected/social/postcards/${postcardKey}`] = {
+            fromUid: senderUid,
+            fromUser: senderUsername,
+            type: 'postcard',
+            postcard: postcardJSON,
+            createdAt: admin.database.ServerValue.TIMESTAMP
+        };
+
+        return updates;
+    } catch (error) {
+        console.error('Postcard send error:', error);
         throw error;
     }
 }
