@@ -59,7 +59,8 @@
         const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
         const changePageButton = generateIconButtonClass(8, 16, 'transparent', 'transparent', 'transparent', 'transparent');
 
-
+    // GIVE ITEMS
+    get(game).addStackableItem('HTMLStamp', 10);
 
 
     //---------------GENERAL OBJECTS----------------
@@ -702,7 +703,7 @@
 
 
         let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, ()=>{}, basic);
-        let friendRequestManagerInstance = new friendRequestManager(0, 30, 0, get(game), friendButton);
+        let friendRequestManagerInstance = new friendRequestManager(0, 60, 0, get(game), friendButton);
         
         const socialTabs = ['Friends', 'Add'];
 
@@ -717,6 +718,7 @@
                 // get(game).syncLocalToGlobalState();
                 friendListManagerInstance.refreshFriends();
                 // friendRequestManagerInstance.refreshRequests();
+                get(game).retrieveInbox();
             },
         );
         let requestRoom = new Room('requestRoom');
