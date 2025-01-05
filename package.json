@@ -42,8 +42,9 @@
     "scripts": {
         "vscode:prepublish": "npm run package",
         "compile": "webpack",
-        "convert-sprites": "node ./scripts/convertSprites.js",
+        "convert-sprites": "node ./scripts/convertSprites.js", 
         "watch": "concurrently \"rollup -c -w --bundleConfigAsCjs\" \"webpack --watch --config ./build/node-extension.webpack.config.js\" \"nodemon --watch images -e png --exec npm run convert-sprites\"",
+        "watch2": "concurrently \"rollup -c -w --bundleConfigAsCjs\" \"webpack --watch --config ./build/node-extension.webpack.config.js\"",
         "package": "webpack --mode production --devtool hidden-source-map",
         "compile-tests": "tsc -p . --outDir out",
         "watch-tests": "tsc -p . -w --outDir out",
