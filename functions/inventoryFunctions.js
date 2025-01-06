@@ -25,9 +25,9 @@ async function processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates,
 
     log("inventory updates", inventoryUpdates, "pet updates", petUpdates, "game updates", gameUpdates, "bedroom updates", bedroomUpdates, "timestamp", timestamp)
 
-    if(timestamp) {
-        updates[`/users/${uid}/protected/lastSync`] = timestamp;
-    }
+    // if(timestamp) {
+    //     updates[`/users/${uid}/protected/lastSync`] = timestamp;
+    // }
 
     // Process inventory updates
     if (inventoryUpdates && Object.keys(inventoryUpdates).length > 0) {
@@ -137,23 +137,34 @@ export const syncUserData = functions.https.onRequest((req, res) => {
 
     verifyToken(req, res, async () => {
         try {
-            // console.log("req user:", req.user);
             const uid = req.user.uid;
-            const { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp } = req.body;
+            const { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, lastSync } = req.body;
+            let responseJSON = {};
 
-            // Process all updates
-            await processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp );
+            const clientLastSync = Number(lastSync);
+            const databaseLastSync = Number((await admin.database().ref(`/users/${uid}/protected/lastSync`).get()).val());
+            
+            const newTimestamp = Date.now();
+            if (databaseLastSync === clientLastSync) {
+                await processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates)
+                responseJSON = await generateResponseUpdates(uid, clientLastSync, newTimestamp);
+            } else {
+                responseJSON = await generateResponseReplacements(uid, newTimestamp);
+            }
 
-            // Generate lastSync timestamp on the server
-            const lastSync = Date.now();
-            // Update lastSync in the database
-            await admin.database().ref(`/users/${uid}/protected/lastSync`).set(lastSync);
-
-            res.status(200).send({ 
-                success: true, 
+            // Send response first
+            res.status(200).send({
+                success: true,
                 message: 'User data synced successfully',
-                lastSync: lastSync
+                responseJSON: responseJSON
             });
+
+            // After successful response, update both timestamps
+            const updates = {
+                [`/users/${uid}/protected/lastSync`]: newTimestamp,
+                [`/users/${uid}/protected/lastSocialSync`]: newTimestamp
+            };
+            await admin.database().ref().update(updates);
             
         } catch (error) {
             console.error('Sync user data error:', error);
@@ -161,6 +172,108 @@ export const syncUserData = functions.https.onRequest((req, res) => {
         }
     });
 });
+
+async function generateResponseReplacements(uid, currentSync) {
+    let responseUpdate = {
+        fullReplace: true,        
+        lastSync: currentSync,        
+        updates: {
+            friendRequests: {},
+            postcards: {},
+            friends: {}
+        },
+        replacements: {
+            bedroom: "",
+            inventory: {},        
+            pet: {},                
+            game: {}    
+        }
+    };
+
+    try {
+        // Get all social data
+        const socialRef = admin.database().ref(`/users/${uid}/protected/social`);
+        const socialSnapshot = await socialRef.get();
+        const socialData = socialSnapshot.val() || {};
+
+        // Get all friend requests
+        if (socialData.friendRequests) {
+            responseUpdate.updates.friendRequests = socialData.friendRequests;
+        }
+
+        // Get all postcards
+        if (socialData.postcards) {
+            responseUpdate.updates.postcards = socialData.postcards;
+        }
+
+        // Get all friends
+        if (socialData.friends) {
+            responseUpdate.updates.friends = socialData.friends;
+        }
+
+        // Get bedroom data
+        const bedroomRef = admin.database().ref(`/users/${uid}/public/bedroom`);
+        const bedroomSnapshot = await bedroomRef.get();
+        responseUpdate.replacements.bedroom = bedroomSnapshot.val() || "";
+
+        // Get inventory data
+        const inventoryRef = admin.database().ref(`/users/${uid}/protected/inventory`);
+        const inventorySnapshot = await inventoryRef.get();
+        responseUpdate.replacements.inventory = inventorySnapshot.val() || {};
+
+        return responseUpdate;
+
+    } catch (error) {
+        console.error('Error generating response replacements:', error);
+        throw error;
+    }
+}
+
+async function generateResponseUpdates(uid, lastSync, currentSync) {
+    const lastSocialSync = (await admin.database().ref(`/users/${uid}/protected/lastSocialSync`).get()).val() || 0;
+
+    let responseUpdates = {
+        friendRequests: {},
+        postcards: {},
+        friends: {}
+    };
+
+    if (lastSocialSync > lastSync) {
+        responseUpdates.friends = (await admin.database().ref(`/users/${uid}/protected/social/friends`).get()).val() || {};
+
+        // Get new postcards
+        const postcardsRef = admin.database().ref(`/users/${uid}/protected/social/postcards`)
+            .orderByChild('createdAt')
+            .startAfter(lastSync);
+        const postcardsSnapshot = await postcardsRef.get();
+        if (postcardsSnapshot.exists()) {
+            responseUpdates.postcards = postcardsSnapshot.val();
+        }
+    
+        // Get new friend requests
+        const requestsRef = admin.database().ref(`/users/${uid}/protected/social/friendRequests`)
+            .orderByChild('createdAt')
+            .startAfter(lastSync);
+        const requestsSnapshot = await requestsRef.get();
+        if (requestsSnapshot.exists()) {
+            responseUpdates.friendRequests = requestsSnapshot.val();
+        }
+    }
+    
+    return {
+        responseUpdate: {
+          fullReplace: false,         
+          lastSync: currentSync,  
+          updates: responseUpdates,
+          replacements: {
+            bedroom: "", 
+            inventory: {},        
+            pet: {},                
+            game: {}    
+          }
+        }
+      };
+}
 
 //TODO: REMOVE THIS FUNCTION
 
@@ -274,12 +387,14 @@ async function handleFriendRequest(senderUid, recipientUsername) {
                     friendUid: senderUid,
                     addedAt: admin.database.ServerValue.TIMESTAMP
                 };
+                updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
 
                 updates[`users/${senderUid}/protected/social/friends/${recipientUid}`] = {
                     friendUsername: recipientUsername,
                     friendUid: recipientUid,
                     addedAt: admin.database.ServerValue.TIMESTAMP
                 };
+                updates[`users/${senderUid}/protected/lastSocialSync`] = Date.now();
 
                 // Remove both requests
                 updates[`users/${senderUid}/protected/social/friendRequests/${childSnapshot.key}`] = null;
@@ -297,6 +412,7 @@ async function handleFriendRequest(senderUid, recipientUsername) {
                 type: 'friendRequest',
                 createdAt: admin.database.ServerValue.TIMESTAMP
             };
+            updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
         }
 
         return updates;
@@ -325,6 +441,7 @@ async function handleFriendRequestResponse(uid, requestId, action) {
         if (action === 'reject') {
             // Simply remove the request
             updates[`users/${uid}/protected/social/friendRequests/${requestId}`] = null;
+            updates[`users/${uid}/protected/lastSocialSync`] = Date.now();
         } else if (action === 'accept') {
             // Get the recipient's info from the request
             const recipientUid = senderInboxSnapshot.child(requestId).val().fromUid;
@@ -346,12 +463,14 @@ async function handleFriendRequestResponse(uid, requestId, action) {
                 friendUid: uid,
                 addedAt: admin.database.ServerValue.TIMESTAMP
             };
+            updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
 
             updates[`users/${uid}/protected/social/friends/${recipientUid}`] = {
                 friendUsername: recipientUsername,
                 friendUid: recipientUid,
                 addedAt: admin.database.ServerValue.TIMESTAMP
             };
+            updates[`users/${uid}/protected/lastSocialSync`] = Date.now();
 
             // Remove the request
             updates[`users/${uid}/protected/social/friendRequests/${requestId}`] = null;
@@ -389,6 +508,8 @@ async function handleFriendRemoval(uid, username) {
         // Remove from both users' friend lists
         updates[`users/${uid}/protected/social/friends/${toUserId}`] = null;
         updates[`users/${toUserId}/protected/social/friends/${uid}`] = null;
+        updates[`users/${uid}/protected/lastSocialSync`] = Date.now();
+        updates[`users/${toUserId}/protected/lastSocialSync`] = Date.now();
 
         return updates;
     } catch (error) {
@@ -447,6 +568,7 @@ async function handlePostcardSend(senderUid, recipientUsername, postcardJSON) {
             postcard: postcardJSON,
             createdAt: admin.database.ServerValue.TIMESTAMP
         };
+        updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
 
         return updates;
     } catch (error) {

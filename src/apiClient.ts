@@ -289,7 +289,7 @@ export interface DatabaseUpdates {
     bedroomUpdates: string;
     inventoryUpdates: Record<string, number>;
     petUpdates: any;
-    timestamp: number;
+    lastSync: number;
     socialUpdates: SocialUpdates;
     gameUpdates: any;
 }
@@ -303,14 +303,14 @@ export async function syncUserData(context: vscode.ExtensionContext, databaseUpd
         const gameUpdates = databaseUpdates.gameUpdates || {};
         const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
         const socialUpdates = databaseUpdates.socialUpdates || {};
-        const timestamp = Date.now();
+        const lastSync = databaseUpdates.lastSync || 0;
 
 
-        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'gameUpdates:', gameUpdates, 'bedroomUpdates:', bedroomUpdates, 'socialUpdates:', socialUpdates, 'timestamp:', timestamp);
+        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'gameUpdates:', gameUpdates, 'bedroomUpdates:', bedroomUpdates, 'socialUpdates:', socialUpdates, 'lastSync:', lastSync);
         try {
             const response = await axios.post(
                 `${BASE_URL}/syncUserData`,
-                { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, timestamp },
+                { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, lastSync },
                 {
                     headers: {
                         Authorization: `Bearer ${idToken}`,
@@ -318,14 +318,12 @@ export async function syncUserData(context: vscode.ExtensionContext, databaseUpd
                     },
                 },
             );
-            if (response.data.lastSync) {
-                context.globalState.update('lastSync', response.data.lastSync);
-                console.log('Received lastSync:', response.data.lastSync);
+            if (response.data.responseJSON) {
+                context.globalState.update('lastSync', response.data.responseJSON.lastSync);
+                console.log('Received JSON:', response.data.responseJSON);
             }
             
             console.log('User Data Synced');
-            return response.data.message;
-
             return response.data.message;
         } catch (error) {
             console.error('Error syncing user data:', error);
