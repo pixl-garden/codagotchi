@@ -390,15 +390,15 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
     }
 }
 
-function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial<Omit<apiClient.DatabaseUpdates, 'timestamp'>>): void {
-    const timestamp = Date.now();
+function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial<Omit<apiClient.DatabaseUpdates, 'lastSync'>>): void {
+    const lastSync = Date.now();
     
     const databaseUpdate: apiClient.DatabaseUpdates = {
         bedroomUpdates: partialUpdate.bedroomUpdates ?? "",
         inventoryUpdates: partialUpdate.inventoryUpdates ?? {},
         petUpdates: partialUpdate.petUpdates ?? {},
         gameUpdates: partialUpdate.gameUpdates ?? {},
-        timestamp: timestamp,
+        lastSync: lastSync,
         socialUpdates: partialUpdate.socialUpdates ?? {
             sentPostcards: {},
             outgoingFriendRequests: [],
@@ -480,7 +480,7 @@ function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: ap
             socialUpdates: currentState.socialUpdates || {},
             petUpdates: updatesJSON.petUpdates,
             gameUpdates: updatesJSON.gameUpdates,
-            timestamp: lastSyncTimestamp
+            lastSync: lastSyncTimestamp
         }
     });
 }
@@ -560,7 +560,7 @@ function createEmptyDatabaseUpdates(): apiClient.DatabaseUpdates {
         inventoryUpdates: {},
         petUpdates: {},
         gameUpdates: {},
-        timestamp: 0,
+        lastSync: 0,
         socialUpdates: {
             sentPostcards: {},
             outgoingFriendRequests: [],
