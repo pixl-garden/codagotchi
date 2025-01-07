@@ -560,20 +560,26 @@
     }
 
     export class itemInfoDisplay extends GeneratedObject{
-        constructor(x, y, z, textRenderer){
+        constructor(x, y, z, nameTextRenderer, descriptionTextRenderer){
             super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
-            this.textRenderer = textRenderer;
             this.itemName = "";
             this.itemInfo = "";
+            this.nameTextRenderer = nameTextRenderer;
+            this.descriptionTextRenderer = descriptionTextRenderer;
+            this.nameText = new activeTextRenderer(this.nameTextRenderer, 0, 0, 0, () => {});
+            this.nameText.setText("");
+            this.descriptionText = new activeTextRenderer(this.descriptionTextRenderer, 1, 9, 0, () => {});
+            this.descriptionText.setText("");
+            this.children = [this.nameText, this.descriptionText];
+            console.log("ACTIVE TEXT CHILDREN", this.children)
         }
         setItemInfo(itemName){
-            this.itemName = itemName;
-        }
-        getSprite(){
-            let textSprite = this.textRenderer.renderText(this.itemName, {overflowPosition: "right", position: "left"});
-            return new Sprite(textSprite, this.x, this.y, this.z);
+            // this.itemName = itemName;
+            this.nameText.setText(itemName);
+            this.descriptionText.setText("Legendary");
         }
     }
+    // constructor(textRenderer, x, y, z, actionOnClick = null, { position = "left", overflowPosition = null, maxWidth = 128 } = {}) { 
 
     export function createItemSlot(createBaseObject) {
         let output = createBaseObject();

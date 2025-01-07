@@ -6,7 +6,8 @@ import * as path from 'path';
 import { initializeFirebase } from './firebaseInit';
 import { CacheManager } from './cacheManager';
 import * as apiClient from './apiClient';
-import { generateOAuthURL, generateState } from './config';
+import { generateOAuthURL, generateState, BASE_URL} from './config';
+import axios from 'axios';
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
@@ -184,7 +185,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'handleFriendRequest': {
-                    await apiClient.handleFriendRequest(this.context, data.requestId, data.action);
+                    handleFriendRequest(this.context, data.requestId, data.action);
                     break;
                 }
 
@@ -222,11 +223,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case 'sendPostcard': {
-                    await apiClient.sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
-                    break;
-                }
-                case 'syncUserData': {
-                    // await apiClient.syncUserData(this.context, );
+                    sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
                     break;
                 }
                 case 'handleDatabaseUpdates': {
@@ -379,6 +376,7 @@ function getGlobalState(context: vscode.ExtensionContext): { [key: string]: any 
 }
 
 function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
+    context.globalState.update('lastSync', 0);
     return context.globalState.update('globalInfo', {});
 }
 
@@ -390,10 +388,10 @@ function printJsonObject(jsonObject: { [key: string]: any }): void {
     }
 }
 
-function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial<Omit<apiClient.DatabaseUpdates, 'lastSync'>>): void {
+function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial<Omit<DatabaseUpdates, 'lastSync'>>): void {
     const lastSync = Date.now();
     
-    const databaseUpdate: apiClient.DatabaseUpdates = {
+    const databaseUpdate: DatabaseUpdates = {
         bedroomUpdates: partialUpdate.bedroomUpdates ?? "",
         inventoryUpdates: partialUpdate.inventoryUpdates ?? {},
         petUpdates: partialUpdate.petUpdates ?? {},
@@ -410,8 +408,8 @@ function updateDatabase(context: vscode.ExtensionContext, partialUpdate: Partial
     handleDatabaseUpdates(context, databaseUpdate);
 }
 
-function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: apiClient.DatabaseUpdates): void {
-    const currentState = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
+function handleDatabaseUpdates(context: vscode.ExtensionContext, updatesJSON: DatabaseUpdates): void {
+    const currentState = getGlobalState(context).databaseUpdates as DatabaseUpdates;
     const lastSyncTimestamp = context.globalState.get('lastSync') || 0;
     
     // Only update bedroomUpdates if a non-empty value is provided
@@ -545,16 +543,16 @@ function startPeriodicSync(context: vscode.ExtensionContext, interval = 10000) {
     const baseJSON = createEmptyDatabaseUpdates();
    
     setInterval(() => {
-        let databaseUpdates = getGlobalState(context).databaseUpdates as apiClient.DatabaseUpdates;
+        let databaseUpdates = getGlobalState(context).databaseUpdates as DatabaseUpdates;
         if (JSON.stringify(databaseUpdates) !== JSON.stringify(baseJSON)) {
-            apiClient.syncUserData(context, databaseUpdates).then(() => {
+            syncUserData(context, databaseUpdates).then(() => {
                 overwriteFieldInState(context, "databaseUpdates", baseJSON);
             })
         }
     }, interval);
 }
 
-function createEmptyDatabaseUpdates(): apiClient.DatabaseUpdates {
+function createEmptyDatabaseUpdates(): DatabaseUpdates {
     return {
         bedroomUpdates: "",
         inventoryUpdates: {},
@@ -568,4 +566,72 @@ function createEmptyDatabaseUpdates(): apiClient.DatabaseUpdates {
             handledFriendRequests: {}
         }
     };
+}
+
+export interface PostcardData {
+    recipientUsername: string;
+    postcardJSON: any; // Or maybe define a specific PostcardJSON interface??
+}
+
+export interface SocialUpdates {
+    sentPostcards: Record<number, PostcardData>;
+    outgoingFriendRequests: string[];  // array of usernames
+    removedFriends: string[];  // array of usernames
+    handledFriendRequests: Record<string, 'accept' | 'reject'>;  // requestId -> action
+}
+
+// Update your DatabaseUpdates interface
+export interface DatabaseUpdates {
+    bedroomUpdates: string;
+    inventoryUpdates: Record<string, number>;
+    petUpdates: any;
+    lastSync: number;
+    socialUpdates: SocialUpdates;
+    gameUpdates: any;
+}
+
+export async function syncUserData(context: vscode.ExtensionContext, databaseUpdates: DatabaseUpdates ) {
+    if(databaseUpdates){
+        const idToken = await context.secrets.get('idToken');
+        console.log("databaseUpdates", JSON.stringify(databaseUpdates));
+        const inventoryUpdates = databaseUpdates.inventoryUpdates || {};
+        const petUpdates = databaseUpdates.petUpdates || {};
+        const gameUpdates = databaseUpdates.gameUpdates || {};
+        const bedroomUpdates = databaseUpdates.bedroomUpdates || '';
+        const socialUpdates = databaseUpdates.socialUpdates || {};
+        const lastSync = databaseUpdates.lastSync || 0;
+
+
+        console.log('inventoryUpdates:', inventoryUpdates, 'petUpdates:', petUpdates, 'gameUpdates:', gameUpdates, 'bedroomUpdates:', bedroomUpdates, 'socialUpdates:', socialUpdates, 'lastSync:', lastSync);
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/syncUserData`,
+                { inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates, lastSync },
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                },
+            );
+            if (response.data.responseJSON) {
+                context.globalState.update('lastSync', response.data.responseJSON.lastSync);
+                console.log('Received JSON:', response.data.responseJSON);
+                handleDatabaseResponses(context, response.data.responseJSON);
+            }
+            
+            console.log('User Data Synced');
+            return response.data.message;
+        } catch (error) {
+            console.error('Error syncing user data:', error);
+            throw error;
+        }
+    }
+}
+
+function handleDatabaseResponses(context: vscode.ExtensionContext, responseJSON: any) {
+    if(responseJSON.fullReplace === true){
+        updateGlobalState(context, { inventory: responseJSON.replacements.inventory });
+        updateGlobalState(context, { bedroomData: responseJSON.replacements.bedroom });
+    }
 }

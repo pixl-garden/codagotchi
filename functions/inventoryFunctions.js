@@ -144,22 +144,28 @@ export const syncUserData = functions.https.onRequest((req, res) => {
             const clientLastSync = Number(lastSync);
             const databaseLastSync = Number((await admin.database().ref(`/users/${uid}/protected/lastSync`).get()).val());
             
-            const newTimestamp = Date.now();
+            // First update the timestamp in the database
+            const timestampRef = admin.database().ref(`/users/${uid}/protected/timestamp`);
+            await timestampRef.set(admin.database.ServerValue.TIMESTAMP);
+            
+            // Then get the actual timestamp value
+            const newTimestamp = (await timestampRef.get()).val();
+
             if (databaseLastSync === clientLastSync) {
-                await processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates)
+                await processAllUpdates(uid, inventoryUpdates, petUpdates, gameUpdates, bedroomUpdates, socialUpdates);
                 responseJSON = await generateResponseUpdates(uid, clientLastSync, newTimestamp);
             } else {
                 responseJSON = await generateResponseReplacements(uid, newTimestamp);
             }
 
-            // Send response first
+            // Send response with actual timestamp value
             res.status(200).send({
                 success: true,
                 message: 'User data synced successfully',
                 responseJSON: responseJSON
             });
 
-            // After successful response, update both timestamps
+            // Update sync timestamps using ServerValue.TIMESTAMP
             const updates = {
                 [`/users/${uid}/protected/lastSync`]: newTimestamp,
                 [`/users/${uid}/protected/lastSocialSync`]: newTimestamp
@@ -173,6 +179,7 @@ export const syncUserData = functions.https.onRequest((req, res) => {
     });
 });
 
+//TODO: if no updates, return empty response
 async function generateResponseReplacements(uid, currentSync) {
     let responseUpdate = {
         fullReplace: true,        
@@ -232,14 +239,24 @@ async function generateResponseReplacements(uid, currentSync) {
 async function generateResponseUpdates(uid, lastSync, currentSync) {
     const lastSocialSync = (await admin.database().ref(`/users/${uid}/protected/lastSocialSync`).get()).val() || 0;
 
-    let responseUpdates = {
-        friendRequests: {},
-        postcards: {},
-        friends: {}
+    let responseUpdate = {
+        fullReplace: false,      
+        lastSync: currentSync,        
+        updates: {
+            friendRequests: {},
+            postcards: {},
+            friends: {}
+        },
+        replacements: {
+            bedroom: "",
+            inventory: {},        
+            pet: {},                
+            game: {}    
+        }
     };
 
     if (lastSocialSync > lastSync) {
-        responseUpdates.friends = (await admin.database().ref(`/users/${uid}/protected/social/friends`).get()).val() || {};
+        responseUpdate.updates.friends = (await admin.database().ref(`/users/${uid}/protected/social/friends`).get()).val() || {};
 
         // Get new postcards
         const postcardsRef = admin.database().ref(`/users/${uid}/protected/social/postcards`)
@@ -247,7 +264,7 @@ async function generateResponseUpdates(uid, lastSync, currentSync) {
             .startAfter(lastSync);
         const postcardsSnapshot = await postcardsRef.get();
         if (postcardsSnapshot.exists()) {
-            responseUpdates.postcards = postcardsSnapshot.val();
+            responseUpdate.updates.postcards = postcardsSnapshot.val();
         }
     
         // Get new friend requests
@@ -256,23 +273,11 @@ async function generateResponseUpdates(uid, lastSync, currentSync) {
             .startAfter(lastSync);
         const requestsSnapshot = await requestsRef.get();
         if (requestsSnapshot.exists()) {
-            responseUpdates.friendRequests = requestsSnapshot.val();
+            responseUpdate.updates.friendRequests = requestsSnapshot.val();
         }
     }
     
-    return {
-        responseUpdate: {
-          fullReplace: false,         
-          lastSync: currentSync,  
-          updates: responseUpdates,
-          replacements: {
-            bedroom: "", 
-            inventory: {},        
-            pet: {},                
-            game: {}    
-          }
-        }
-      };
+    return responseUpdate;
 }
 
 //TODO: REMOVE THIS FUNCTION
@@ -308,7 +313,7 @@ export const retrieveInventory = functions.https.onRequest(async (req, res) => {
                 flag = 'replace';
             }
             
-            const currentTimestamp = Date.now();
+            const currentTimestamp = admin.database.ServerValue.TIMESTAMP;
             timestampRef.set(currentTimestamp);
 
             res.status(200).send({
@@ -387,14 +392,14 @@ async function handleFriendRequest(senderUid, recipientUsername) {
                     friendUid: senderUid,
                     addedAt: admin.database.ServerValue.TIMESTAMP
                 };
-                updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
+                updates[`users/${recipientUid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
 
                 updates[`users/${senderUid}/protected/social/friends/${recipientUid}`] = {
                     friendUsername: recipientUsername,
                     friendUid: recipientUid,
                     addedAt: admin.database.ServerValue.TIMESTAMP
                 };
-                updates[`users/${senderUid}/protected/lastSocialSync`] = Date.now();
+                updates[`users/${senderUid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP
 
                 // Remove both requests
                 updates[`users/${senderUid}/protected/social/friendRequests/${childSnapshot.key}`] = null;
@@ -412,7 +417,7 @@ async function handleFriendRequest(senderUid, recipientUsername) {
                 type: 'friendRequest',
                 createdAt: admin.database.ServerValue.TIMESTAMP
             };
-            updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
+            updates[`users/${recipientUid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
         }
 
         return updates;
@@ -441,7 +446,7 @@ async function handleFriendRequestResponse(uid, requestId, action) {
         if (action === 'reject') {
             // Simply remove the request
             updates[`users/${uid}/protected/social/friendRequests/${requestId}`] = null;
-            updates[`users/${uid}/protected/lastSocialSync`] = Date.now();
+            updates[`users/${uid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
         } else if (action === 'accept') {
             // Get the recipient's info from the request
             const recipientUid = senderInboxSnapshot.child(requestId).val().fromUid;
@@ -463,14 +468,14 @@ async function handleFriendRequestResponse(uid, requestId, action) {
                 friendUid: uid,
                 addedAt: admin.database.ServerValue.TIMESTAMP
             };
-            updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
+            updates[`users/${recipientUid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
 
             updates[`users/${uid}/protected/social/friends/${recipientUid}`] = {
                 friendUsername: recipientUsername,
                 friendUid: recipientUid,
                 addedAt: admin.database.ServerValue.TIMESTAMP
             };
-            updates[`users/${uid}/protected/lastSocialSync`] = Date.now();
+            updates[`users/${uid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
 
             // Remove the request
             updates[`users/${uid}/protected/social/friendRequests/${requestId}`] = null;
@@ -508,8 +513,8 @@ async function handleFriendRemoval(uid, username) {
         // Remove from both users' friend lists
         updates[`users/${uid}/protected/social/friends/${toUserId}`] = null;
         updates[`users/${toUserId}/protected/social/friends/${uid}`] = null;
-        updates[`users/${uid}/protected/lastSocialSync`] = Date.now();
-        updates[`users/${toUserId}/protected/lastSocialSync`] = Date.now();
+        updates[`users/${uid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
+        updates[`users/${toUserId}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
 
         return updates;
     } catch (error) {
@@ -568,7 +573,7 @@ async function handlePostcardSend(senderUid, recipientUsername, postcardJSON) {
             postcard: postcardJSON,
             createdAt: admin.database.ServerValue.TIMESTAMP
         };
-        updates[`users/${recipientUid}/protected/lastSocialSync`] = Date.now();
+        updates[`users/${recipientUid}/protected/lastSocialSync`] = admin.database.ServerValue.TIMESTAMP;
 
         return updates;
     } catch (error) {

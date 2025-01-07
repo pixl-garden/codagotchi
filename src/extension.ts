@@ -15,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(vscode.window.registerWebviewViewProvider('codagotchiView', sidebarProvider));
         context.subscriptions.push(
             vscode.commands.registerCommand('codagotchi.clearGlobalInfo', () => {
+                context.globalState.update('lastSync', 0);
                 clearGlobalState(context);
             }),
         );
@@ -56,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function clearGlobalState(context: vscode.ExtensionContext): Thenable<void> {
+    context.globalState.update('lastSync', 0);
     return context.globalState.update('globalInfo', {});
 }
 
