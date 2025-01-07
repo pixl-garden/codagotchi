@@ -179,6 +179,7 @@
             }
         }
 
+        //TODO: FIX THIS
         updateDatabase(updateJSON){
             let baseJSON = {
                 inventoryUpdates: {},

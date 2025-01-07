@@ -6,6 +6,7 @@ export const transparentMenuColorParams = ["transparent", "transparent", "transp
 export const white = '#ffffff';
 export const black = '#000000';
 export const offBlack = '#1f2021';
+export const lightBlack = '#4d4338';
 export const grey = '#808080';
 export const mainMenuBackground = '#6266d1'; //blue-purple
 export const mainMenuBackgroundHover = '#888dfc'; //light purple

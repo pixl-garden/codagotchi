@@ -30,8 +30,10 @@
         let retroShadowGray = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#464e57", 1, 1);
         let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, Colors.white, Colors.black, "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
         let electro = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.offBlack, Colors.white, "#a2a2a2"], -1, standardCharMap);
+        let electroReg = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.transparent, Colors.offBlack, Colors.lightBlack], -1, standardCharMap);
+        let electroItalic = new TextRenderer('electroItalic.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.transparent, Colors.offBlack, Colors.lightBlack], -1, standardCharMap);
+        let electroItalicGreen = new TextRenderer('electroItalic.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], ["#316e55", "#9bcdb9", "#1f865c"], -1, standardCharMap);
 
-        
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
         //   topShadowColor, bottomShadowColor, topHoverShadowColor, bottomHoverShadowColor,
@@ -195,7 +197,8 @@
         const bedroomHotbar = new Container(-1, 105, 20, 130, 30, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 1, 1);
         bedroomHotbar.hoverWithChildren = true;
         bedroomHotbar.locked = false;
-        bedroomHotbar.setPhysics(14.0, 0, 6.0)
+        bedroomHotbar.setPhysics(16.0, 0, 8.5);
+        // bedroomHotbar.setPhysics(14.0, 0, 6.0);
         bedroomHotbar.onHover = () => {
             bedroomHotbar.startMovingTo(-1, 105); //hotbar moves up
         }
@@ -287,7 +290,7 @@
         
         // CURRENT ITEM DISPLAY
         const scaledItemInstance = new itemScaler(14, 8, 32, 2);
-        const itemInfoDisplayInstance = new itemInfoDisplay(53, 11, 5, electro);
+        const itemInfoDisplayInstance = new itemInfoDisplay(53, 11, 5, electro, electroItalicGreen);
 
         // INVENTORY DISPLAY MANAGER
         const inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 2, get(game), inventoryGridInstance, inventoryTabList,
