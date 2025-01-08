@@ -53,6 +53,13 @@
             "states": {
                 "default": [2]
             }
+        },
+        "3" : {
+            "displayName": "woodFloor",
+            "spriteSheet": "flooring.png",
+            "states": {
+                "default": [3]
+            }
         }
     },
     "nearFurniture": {
@@ -355,11 +362,45 @@
                     24
                 ]
             }
+        },
+        "25": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 20,
+            "yTrim": 29,
+            "states": {
+                "default": [
+                    25
+                ]
+            },
+            "stackDimensions": [0, 3, 25]
+        },
+        "26": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 34,
+            "yTrim": 48,
+            "states": {
+                "default": [
+                    26
+                ]
+            }
+        },
+        "27": {
+            "displayName": "",
+            "spriteSheet": "furniture.png",
+            "xTrim": 24,
+            "yTrim": 38,
+            "states": {
+                "default": [
+                    27
+                ]
+            }
         }
     },
     "wallItems": {
-        "spriteWidth": 32,
-        "spriteHeight": 32,
+        "spriteWidth": 64,
+        "spriteHeight": 64,
         "yCoord": 16,
         "zCoord": 4,
         "xLeftBound": 16,
@@ -391,6 +432,60 @@
             "yTrim": 22,
             "states": {
                 "default": [2]
+            }
+        },
+        "3": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "xTrim": 32,
+            "yTrim": 32,
+            "states": {
+                "default": [3]
+            }
+        },
+        "4": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "xTrim": 32,
+            "yTrim": 32,
+            "states": {
+                "default": [4]
+            }
+        },
+        "5": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "xTrim": 32,
+            "yTrim": 32,
+            "states": {
+                "default": [5]
+            }
+        },
+        "6": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "xTrim": 32,
+            "yTrim": 32,
+            "states": {
+                "default": [6]
+            }
+        },
+        "7": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "xTrim": 32,
+            "yTrim": 32,
+            "states": {
+                "default": [7]
+            }
+        },
+        "8": {
+            "displayName": "starryNight",
+            "spriteSheet": "wallItems.png",
+            "xTrim": 64,
+            "yTrim": 32,
+            "states": {
+                "default": [8]
             }
         }
     },
@@ -579,6 +674,15 @@
             "yTrim": 18,
             "states": {
                 "default": [19]
+            }
+        },
+        "20": {
+            "displayName": "",
+            "spriteSheet": "stackableFurniture.png",
+            "xTrim": 9,
+            "yTrim": 22,
+            "states": {
+                "default": [20]
             }
         }
     },

@@ -16,7 +16,7 @@
     "pearguin": {
         "spriteWidth": 48,
         "spriteHeight": 48,
-        "spriteSheet": "pearguin6.png",
+        "spriteSheet": "bluedude2.png",
         "states":
             {
                 "default": [0],

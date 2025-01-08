@@ -273,5 +273,38 @@
                 24
             ]
         }
+    },
+    "25": {
+        "displayName": "",
+        "spriteSheet": "furniture.png",
+        "xTrim": 20,
+        "yTrim": 29,
+        "states": {
+            "default": [
+                25
+            ]
+        }
+    },
+    "26": {
+        "displayName": "",
+        "spriteSheet": "furniture.png",
+        "xTrim": 34,
+        "yTrim": 48,
+        "states": {
+            "default": [
+                26
+            ]
+        }
+    },
+    "27": {
+        "displayName": "",
+        "spriteSheet": "furniture.png",
+        "xTrim": 24,
+        "yTrim": 38,
+        "states": {
+            "default": [
+                27
+            ]
+        }
     }
 }

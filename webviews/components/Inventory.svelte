@@ -1,5 +1,5 @@
 <script context="module">
-    import Object, { GeneratedObject, ObjectGrid, activeTextRenderer } from "./Object.svelte";
+    import { GeneratedObject, ObjectGrid, activeTextRenderer, ConfigObject } from "./Object.svelte";
     import itemConfig from './itemConfig.json';
     import bedroomConfig from './config/bedroomConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
@@ -560,23 +560,30 @@
     }
 
     export class itemInfoDisplay extends GeneratedObject{
-        constructor(x, y, z, nameTextRenderer, descriptionTextRenderer){
+        constructor(x, y, z, nameTextRenderer, rarityTextRenderer, descriptionTextRenderer){
             super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
             this.itemName = "";
             this.itemInfo = "";
             this.nameTextRenderer = nameTextRenderer;
             this.descriptionTextRenderer = descriptionTextRenderer;
+            this.rarityTextRenderer = rarityTextRenderer;
             this.nameText = new activeTextRenderer(this.nameTextRenderer, 0, 0, 0, () => {});
             this.nameText.setText("");
+            this.rarityText = new activeTextRenderer(this.rarityTextRenderer, 2, 18, 0, () => {});
+            this.rarityText.setText("");
             this.descriptionText = new activeTextRenderer(this.descriptionTextRenderer, 1, 9, 0, () => {});
+            this.hungerCountText = new activeTextRenderer(this.nameTextRenderer, 54, 18, 0, () => {});
+            this.hungerCountIcon = new ConfigObject('hungerIcon', 43, 18, 0);
             this.descriptionText.setText("");
-            this.children = [this.nameText, this.descriptionText];
+            this.children = [this.nameText, this.rarityText, this.descriptionText, this.hungerCountText, this.hungerCountIcon];
             console.log("ACTIVE TEXT CHILDREN", this.children)
         }
         setItemInfo(itemName){
             // this.itemName = itemName;
             this.nameText.setText(itemName);
-            this.descriptionText.setText("Legendary");
+            this.rarityText.setText("Epic");
+            this.descriptionText.setText("Freshwater");
+            this.hungerCountText.setText("4");
         }
     }
     // constructor(textRenderer, x, y, z, actionOnClick = null, { position = "left", overflowPosition = null, maxWidth = 128 } = {}) { 

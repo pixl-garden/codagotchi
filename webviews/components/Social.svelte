@@ -96,7 +96,7 @@
             this.heartCount = heartCount;
             this.xSpacing = xSpacing;
             this.children = [];
-            this.setValue(5);
+            this.setValue(0);
         }
         
         setValue(value){
@@ -131,12 +131,15 @@
 
         refreshFriends(){
             const friends = this.gameRef.refreshInbox()["friends"];
-            const friendUsernames = Object.values(friends).map(item => item.friendUsername);
-            const friendUids = Object.values(friends).map(item => item.friendUid);
+            // const friendUsernames = Object.values(friends).map(item => item.friendUsername);
+            const friendUsernames = ["4444est", "kitgore", "notalim", "everlastingflame"]
+            // const friendUids = Object.values(friends).map(item => item.friendUid);
+            const friendUids = ["4444est", "kitgore", "notalim", "everlastingflame"]
+            const friendHearts = [7, 6, 4, 1]
             console.log("friendUsernames: ", friendUsernames);
             let friendTabs = [];
             for (let i = 0; i < friendUsernames.length; i++){
-                friendTabs.push(new this.tabConstructor(0, 0, 0, this.gameRef, this.textRenderer, friendUsernames[i], friendUids[i], this.buttonFunctionArray, 5));
+                friendTabs.push(new this.tabConstructor(0, 0, 0, this.gameRef, this.textRenderer, friendUsernames[i], friendUids[i], this.buttonFunctionArray, friendHearts[i]));
             }
             let friendTabList = new ObjectGrid(1, 0, 5, 2, 0, 0, 0, friendTabs, true);
             console.log("friendTabList: ", friendTabList)

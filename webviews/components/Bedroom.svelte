@@ -348,12 +348,12 @@
             this.passMouseCoords = true;
             this.clickedItem = null;
             this.currentTab = "furnitureItems"
-            this.furnitureItemsArr = this.addFurnitureItems("furnitureItems", 25);
+            this.furnitureItemsArr = this.addFurnitureItems("furnitureItems", 28);
             this.wallpaperArr = this.addFurnitureItems("wallpaper", 3);
-            this.floorArr = this.addFurnitureItems("floor", 3);
+            this.floorArr = this.addFurnitureItems("floor", 4);
             this.rugsArr = this.addFurnitureItems("rug", 2);
-            this.wallItemsArr = this.addFurnitureItems("wallItems", 3);
-            this.stackableItemsArr = this.addFurnitureItems("stackableItems", 20);
+            this.wallItemsArr = this.addFurnitureItems("wallItems", 9);
+            this.stackableItemsArr = this.addFurnitureItems("stackableItems", 21);
             
             this.slotClickAction = item => {
                 this.enterPlacementMode(item);
