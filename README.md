@@ -7,23 +7,27 @@ Codagotchi is an **_in development_** free VSCode extension that gamifies your d
 ## Features:
 
 ### Customization
-<img src="https://github.com/user-attachments/assets/e26b4062-03fc-4622-997d-6e8913842d60" width="400" height="400"> 
-<img src="https://github.com/user-attachments/assets/6369cf66-dd08-447c-8cd3-c5f2079a3891" width="400" height="400"> 
+
+<img src="https://github.com/user-attachments/assets/b2057666-ecb9-4bde-9e10-3c86103188b5" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/d1ac78e7-e086-4813-bf62-a42acd1304f8" width="400" height="400"> 
 
 *Customize your pet’s room and wardrobe with unique furniture and clothing that can be earned as you code.*
 
 ### Skill Progression
-<img src="https://github.com/user-attachments/assets/407be3e9-32ef-4314-8f42-93c5d3099dd2" width="400" height="400"> 
-<img src="https://github.com/user-attachments/assets/8c36347c-a6a5-4e54-b904-0b894e22ba02" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/52c6be81-e034-4ad3-85de-e88e98dfba65" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/5b494d26-8dba-4dfa-94f2-ba4dde92a784" width="400" height="400"> 
 
 *Gain experience and earn items as you code with your pet*
 
-### Friends
+### Progress with Friends
+<img src="https://github.com/user-attachments/assets/85ca8d65-2d99-4ff1-b6de-bc93db1a938d" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/e32e2a80-6468-488b-a4af-f0a9d36609c3" width="400" height="400"> 
+
+### Send Postcards
 <img src="https://github.com/user-attachments/assets/1a013b06-632e-4b76-a2b4-c7d142d69a0d" width="400" height="400"> 
 <img src="https://github.com/user-attachments/assets/0fd02271-bee7-4401-b4d2-8a379fffb322" width="400" height="400"> 
 
 *Earn programming language stamps to send postcards to your friends and earn special rewards*
-
 
 ### Why Codagotchi?
 * Interactive & Fun: Makes coding sessions lively with a virtual pet.
