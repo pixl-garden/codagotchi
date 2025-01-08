@@ -8,7 +8,7 @@ Codagotchi is an **_in development_** free VSCode extension that gamifies your d
 
 ### Customization
 
-<img src="https://github.com/user-attachments/assets/b2057666-ecb9-4bde-9e10-3c86103188b5" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/c4b035ab-7a69-4111-a455-20daf9b82da0" width="400" height="400"> 
 <img src="https://github.com/user-attachments/assets/d1ac78e7-e086-4813-bf62-a42acd1304f8" width="400" height="400"> 
 
 *Customize your pet’s room and wardrobe with unique furniture and clothing that can be earned as you code.*
@@ -20,8 +20,10 @@ Codagotchi is an **_in development_** free VSCode extension that gamifies your d
 *Gain experience and earn items as you code with your pet*
 
 ### Progress with Friends
-<img src="https://github.com/user-attachments/assets/85ca8d65-2d99-4ff1-b6de-bc93db1a938d" width="400" height="400"> 
-<img src="https://github.com/user-attachments/assets/e32e2a80-6468-488b-a4af-f0a9d36609c3" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/7428546a-827d-4892-878c-aa60eaee67ed" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/8841d482-3e25-49b8-a5ea-96ae1fd34770" width="400" height="400">
+
+*Strengthen your pet and your friendships*
 
 ### Send Postcards
 <img src="https://github.com/user-attachments/assets/1a013b06-632e-4b76-a2b4-c7d142d69a0d" width="400" height="400"> 
