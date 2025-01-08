@@ -30,9 +30,9 @@
         let retroShadowGray = new TextRenderer('retrocomputer.png', 8, 10, Colors.white, Colors.black, "#d7d7ff", 1, standardCharMap, "#464e57", 1, 1);
         let tinyShadow = new TextRenderer('tinyPixls.png', 8, 8, Colors.white, Colors.black, "#dc6060", 1, standardCharMap, "#3f1c1c", 1, 1);
         let electro = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.offBlack, Colors.white, "#a2a2a2"], -1, standardCharMap);
-        let electroReg = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.transparent, Colors.offBlack, Colors.lightBlack], -1, standardCharMap);
+        let electroReg = new TextRenderer('electroFont.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.transparent, "#d6d6d6", "#a2a2a2"], -1, standardCharMap);
         let electroItalic = new TextRenderer('electroItalic.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], [Colors.transparent, Colors.offBlack, Colors.lightBlack], -1, standardCharMap);
-        let electroItalicGreen = new TextRenderer('electroItalic.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], ["#316e55", "#9bcdb9", "#1f865c"], -1, standardCharMap);
+        let electroItalicGreen = new TextRenderer('electroItalic.png', 9, 9, Colors.black, [Colors.white, "#555555", "#ff0000"], ["#6c40ff", "#fffdf0", "#a059f8"], -1, standardCharMap);
 
     //----------------BUTTON CLASS GENERATORS----------------
         //generateButtonClass(buttonWidth, buttonHeight, fillColor, borderColor, hoverFillColor, hoverBorderColor, fontRenderer,
@@ -290,7 +290,7 @@
         
         // CURRENT ITEM DISPLAY
         const scaledItemInstance = new itemScaler(14, 8, 32, 2);
-        const itemInfoDisplayInstance = new itemInfoDisplay(53, 11, 5, electro, electroItalicGreen);
+        const itemInfoDisplayInstance = new itemInfoDisplay(53, 11, 5, electro, electroItalicGreen, electroReg);
 
         // INVENTORY DISPLAY MANAGER
         const inventoryDisplayManagerInstance = new inventoryDisplayManager(0, 0, 2, get(game), inventoryGridInstance, inventoryTabList,
@@ -740,25 +740,37 @@
         // ---------------- FISHING ROOM ----------------
         let fishingInstance = new Fishing();
 
-        let fishingNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1)
-        let castLineButton = new fishingButton(90, 60, 5, "FISH", ()=>{
+        let fishingNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.transparent, 2, 3, 3, 1)
+        // let castLineButton = new fishingButton(90, 60, 5, "FISH", ()=>{
+        //     if(get(game).isActive){
+        //     castLineHandler();
+        // }});
+        let castLineButton = new Button(102, 60, 5, 'fishingButton', () => {
             if(get(game).isActive){
-            castLineHandler();
-        }});
-        let cancelButton = new fishingButton(90, 60, 5, "STOP", () => {
+                castLineHandler();
+            }
+        });
+        castLineButton.opacity = .8;
+        castLineButton.onHover = () => {
+            castLineButton.startOpacityTransition(1, .4);
+        }
+        castLineButton.onStopHover = () => {
+            castLineButton.startOpacityTransition(.8, .4);
+        }
+        let cancelButton = new Button(102, 60, 5, 'fishingButton', () => {
             fishingInstance.cancelFishing();
-            get(game).getCurrentRoom().addObject( castLineButton );
-            get(game).getCurrentRoom().removeObject( cancelButton );
+            // get(game).getCurrentRoom().addObject( castLineButton );
+            // get(game).getCurrentRoom().removeObject( cancelButton );
         });
         
         function castLineHandler() {
-            get(game).getCurrentRoom().addObject( cancelButton );
-            get(game).getCurrentRoom().removeObject( castLineButton );
+            // get(game).getCurrentRoom().addObject( cancelButton );
+            // get(game).getCurrentRoom().removeObject( castLineButton );
             castLineUntil();
         }
 
         function castLineUntil() {
-            fishingInstance.castLine(get(game), 150, 100).then((fishItem) => {
+            fishingInstance.castLine(get(game), 2000, 2000).then((fishItem) => {
                 fishingNotif.callNotificationItem(fishItem, () => {
                     if(get(game).isActive && !fishingInstance.cancelFlag) {
                         castLineUntil();
@@ -772,19 +784,20 @@
 
         let fishingRoom = new Room('fishingRoom',  
             () => {
-                petObject.setCoordinate(36, 57, 0);
+                petObject.setCoordinate(36, 53, 0);
             },
             false,
             () => {
                 petObject.nextFrame();
                 fishingNotif.nextFrame();
+                castLineButton.updateOpacity();
             },
             ()=> {
                 castLineHandler();
             },
             ()=> {
-                get(game).getCurrentRoom().addObject( castLineButton );
-                get(game).getCurrentRoom().removeObject( cancelButton );
+                // get(game).getCurrentRoom().addObject( castLineButton );
+                // get(game).getCurrentRoom().removeObject( cancelButton );
             }
         );
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
@@ -819,7 +832,7 @@
 
         // ---------------- MINING ROOM ----------------
 
-        let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.black, 2, 3, 3, 1)
+        let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.transparent, 2, 3, 3, 1)
         let miningEnterActive = false;
         let blockTypes = lootTableConfig["miningTiers"];
         let miningInstance = new MiningManager(64, 64, 5, 1, 8, 10, blockTypes);

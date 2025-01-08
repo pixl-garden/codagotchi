@@ -114,9 +114,18 @@
     "fishingBackground": {
         "spriteWidth": 128,
         "spriteHeight": 128,
-        "spriteSheet": "fishingBackground2-2.png",
+        "spriteSheet": "fishingBackground.png",
         "states": {
             "default": [0]
+        }
+    },
+    "fishingButton": {
+        "spriteWidth": 20,
+        "spriteHeight": 20,
+        "spriteSheet": "fishingButton.png",
+        "states": {
+            "default": [0],
+            "hovered": [0]
         }
     },
     "boatFront": {
