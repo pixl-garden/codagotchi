@@ -26,7 +26,7 @@ Codagotchi is an **_in development_** free VSCode extension that gamifies your d
 *Strengthen your pet and your friendships*
 
 ### Send Postcards
-<img src="https://github.com/user-attachments/assets/1a013b06-632e-4b76-a2b4-c7d142d69a0d" width="400" height="400"> 
+<img src="https://github.com/user-attachments/assets/b2909b18-21b4-4e09-868b-042ccbfba9ec" width="400" height="400"> 
 <img src="https://github.com/user-attachments/assets/0fd02271-bee7-4401-b4d2-8a379fffb322" width="400" height="400"> 
 
 *Earn programming language stamps to send postcards to your friends and earn special rewards*
