@@ -1,6 +1,7 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
     import { Inventory } from './Inventory.svelte';
+    import { BedroomManager } from './Bedroom.svelte';
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -122,6 +123,17 @@
         retrieveInventory() {
             tsvscode.postMessage({ type: 'retrieveInventory' });
             // this.inventory = new Inventory(this.getLocalState().inventory || {});
+        }
+        retrieveUserProfile(uid) {
+            console.log("Retrieving user profile for uid: ", uid);
+            tsvscode.postMessage({ type: 'retrieveUserProfile', uid: uid });
+        }
+
+        openUserBedroom(serializedBedroom) {
+            let bedroomManager = new BedroomManager()
+            bedroomManager.setCoordinate(0, 0, 100);
+            bedroomManager.constructFromSerialization(serializedBedroom);
+            this.currentRoom.addObject(bedroomManager);
         }
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)

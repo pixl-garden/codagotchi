@@ -705,7 +705,27 @@
 
 
 
-        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, ()=>{}, basic);
+        let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, [
+        // Each element is a function that returns a function
+            (uid) => { 
+                return () => { 
+                // Action for profile button using uid
+                get(game).retrieveUserProfile(uid);
+                };
+            },
+            (uid) => {
+                return () => {
+                // Action for home button using uid
+                console.log("Home button clicked for user", uid);
+                };
+            },
+            (uid) => {
+                return () => {
+                // Action for mail button using uid
+                console.log("Mail button clicked for user", uid);
+                };
+            },
+        ], basic);
         let friendRequestManagerInstance = new friendRequestManager(0, 60, 0, get(game), friendButton);
         
         const socialTabs = ['Friends', 'Add'];
@@ -731,6 +751,8 @@
         const addFriendButton = new Button(116, 3, 20, 'addFriendButton', () => {
             get(game).setCurrentRoom('requestRoom');
         });
+
+
         friendRoom.addObject(friendsUI, friendListManagerInstance, friendBackButton, addFriendButton);
         // ...instantiateFriendRequests(friendRequestUsernames, friendRequestUids, friendButton)
         requestRoom.addObject(friendRequestManagerInstance, friendBackButton, socialTabList, 

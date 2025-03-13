@@ -272,3 +272,25 @@ export async function retrieveUserData(context: vscode.ExtensionContext) {
     }
 }
 
+export async function retrieveUserProfile(context: vscode.ExtensionContext, uid: string) {
+    const idToken = await context.secrets.get('idToken');
+    try {
+        console.log("API Retrieving user profile for uid:", uid);
+        const response = await axios.get(`${BASE_URL}/retrieveUserProfile`, {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+            params: {
+                uid: uid,
+            },
+        });
+
+        const { bedroomData } = response.data;
+        console.log('User Profile Received:', bedroomData);
+        return { bedroomData: bedroomData };
+    } catch (error) {
+        console.error('Error retrieving user profile:', error);
+        throw error;
+    }
+}
