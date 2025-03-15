@@ -190,28 +190,29 @@
                 this.updatePosition();
             }
             this.updateOpacity();
-            // Avoid unneccessary frame update if current state only has one frame and there are no queued states
-            if(this.state.length <= 1 && this.stateQueue.length == 0){
+            // Avoid unnecessary frame update if current state only has one frame and there are no queued states
+            if(this.states[this.state].length <= 1 && this.stateQueue.length == 0){
                 return;
             }
 
             // Define sprites for current state
             const stateSprites = this.states[this.state];
-
-            // If the state index exceeds the state length, reset to first sprite in state
+            
+            // First increment the index
+            this.currentStateIndex++;
+            
+            // Then check if we need to reset
             if (this.currentStateIndex >= stateSprites.length) {
-                this.currentSpriteIndex = stateSprites[0];
                 this.currentStateIndex = 0;
                 this.isStateCompleted = true;
                 this.executeCurrentStateCallback();
                 this.nextState();
             }
-            // Otherwise, set the current sprite to the next sprite in the state
-            else{
-                this.currentSpriteIndex = stateSprites[this.currentStateIndex++];
-            }
+            
+            // Set the current sprite based on the (potentially reset) index
+            this.currentSpriteIndex = stateSprites[this.currentStateIndex];
         }
-
+        
         onHover() {}
 
         onStopHover() {}
@@ -288,12 +289,12 @@
         updateState(newState, callback = null) {
             if (this.states[newState]) {
                 this.state = newState;
+                this.currentStateIndex = 0; // Reset the index
                 this.currentSpriteIndex = this.states[newState][0];
                 this.isStateCompleted = false;
                 this.currentStateCallback = callback; // Store the callback
             }
         }
-
 
         getChildren() {
             return this.children;

@@ -16,8 +16,10 @@
     import itemConfig from './itemConfig.json'
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     import { getObjectsAt } from './MouseEvents.svelte';
+    import { EventBus } from './EventBus.svelte';
     
     export function preloadObjects() {
+
     //----------------FONT RENDERERS----------------
         const standardCharMap = ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~`;
         //createTextRenderer(image, charWidth, charHeight, backgroundColorOfSpriteSheet, 
@@ -704,12 +706,15 @@
         });
 
 
+        const loadingCircle = new ConfigObject("loadingCircle", 48, 48, 20);
 
         let friendListManagerInstance = new friendListManager(11, 6, 0, get(game), friendTab, [
         // Each element is a function that returns a function
             (uid) => { 
                 return () => { 
                 // Action for profile button using uid
+                
+                friendRoom.addObject(loadingScreen);
                 get(game).retrieveUserProfile(uid);
                 };
             },
@@ -736,6 +741,12 @@
         ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
         
         //ROOM INSTANTIATION
+        const loadingAnimation = createFrameSkipper(() => {
+            loadingCircle.nextFrame();
+        }, 2);
+        const loadingScreen = new Background('blackground', 0, 0, 20);
+        loadingScreen.opacity = 0.5;
+        loadingScreen.children = [loadingCircle];
         let friendRoom = new Room('friendRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
@@ -743,6 +754,10 @@
                 // friendRequestManagerInstance.refreshRequests();
                 get(game).retrieveInbox();
             },
+            () => {},
+            () => { 
+                loadingAnimation();
+            }
         );
         let requestRoom = new Room('requestRoom');
         const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
@@ -981,11 +996,37 @@
 
     recievedPostcardsRoom.addObject(receivedPostcardManagerInstance, backToMain2, nextPageButtonPostcard, prevPageButtonPostcard)
 
-    // ---------------- BEDROOM (behind MAIN) ----------------
+    // ---------------- EVENT LISTENERS
+    EventBus.on('OPEN_USER_BEDROOM', (data) => {
+        console.log()
+        const { serializedBedroom } = data;
 
-
-
+        friendRoom.removeObject(loadingScreen);
+        
+        const bedroomManager = new BedroomManager();
+        bedroomManager.setCoordinate(0, 0, 100);
+        bedroomManager.constructFromSerialization(serializedBedroom);
+        
+        const exitButton = new Button(2, 1, 120, 'friendBackButton', () => {
+            friendRoom.removeObject(bedroomManager);
+            friendRoom.removeObject(exitButton);
+        });
+        
+        friendRoom.addObject(bedroomManager, exitButton);
+    });
 }
+
+function createFrameSkipper(callback, frequency = 2) {
+  let frameCounter = 0;
+  
+  return () => {
+    if (frameCounter % frequency === 0) {
+      callback();
+    }
+    frameCounter++;
+  };
+}
+
 
 export function roomMain(){
     get(game).getCurrentRoom().update();

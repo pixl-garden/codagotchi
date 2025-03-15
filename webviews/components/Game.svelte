@@ -1,7 +1,8 @@
 <script context="module">
     import { get, writable } from 'svelte/store';
     import { Inventory } from './Inventory.svelte';
-    import { BedroomManager } from './Bedroom.svelte';
+    import { EventBus } from './EventBus.svelte';
+    
     export class Game {
         constructor() {
             if (Game.instance) {
@@ -130,10 +131,10 @@
         }
 
         openUserBedroom(serializedBedroom) {
-            let bedroomManager = new BedroomManager()
-            bedroomManager.setCoordinate(0, 0, 100);
-            bedroomManager.constructFromSerialization(serializedBedroom);
-            this.currentRoom.addObject(bedroomManager);
+            console.log("Opening user bedroom with serializedBedroom: ", serializedBedroom);
+            EventBus.emit('OPEN_USER_BEDROOM', {
+                serializedBedroom: serializedBedroom,
+            });
         }
 
         // for refreshing inbox after receiving new data since its async (should could be done cleaner, but this works for now)
