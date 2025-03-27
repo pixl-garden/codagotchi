@@ -1,6 +1,7 @@
 import { getUserPublicRef, getUserPrivateRef, getUserProtectedInboxRef, pushToRef, handleError, checkAuthenticated } from './firebaseHelpers.js';
 import * as functions from 'firebase-functions';
 import {admin} from "./firebaseConfig.js";
+import { log } from "firebase-functions/logger"
 import verifyToken from './verifyToken.js';
 
 export const searchUsers = functions.https.onCall(async (data, context) => {
@@ -371,4 +372,30 @@ export const removeFriend = functions.https.onCall(async (data, context) => {
     } catch (error) {
         handleError(error, 'Error removing friend');
     }
+});
+
+export const retrieveUserProfile = functions.https.onRequest(async (req, res) => {
+    if (req.method !== 'GET') {
+        return res.status(403).send({ success: false, message: 'Forbidden! Only GET requests are allowed.' });
+    }
+
+    verifyToken(req, res, async () => {
+        const { uid } = req.query;
+
+        const bedroomRef = admin.database().ref(`users/${uid}/public/bedroom`);
+        try {
+            const bedroomSnapshot = await bedroomRef.once('value');
+            const bedroomData = bedroomSnapshot.val() || {};
+            log("retrieving bedroom for uid", uid, "bedroomRef", bedroomRef, "bedroomSnapshot", bedroomSnapshot, "bedroomData", bedroomData);
+
+            res.status(200).send({
+                success: true,
+                bedroomData: bedroomData
+            });
+        } catch (error) {
+            log("Failed to retrieve bedroom", error);
+            console.error('Failed to retrieve bedroom:', error);
+            res.status(500).send({ success: false, message: 'Failed to retrieve bedroom' });
+        }
+    });
 });

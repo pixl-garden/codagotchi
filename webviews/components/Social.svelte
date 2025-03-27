@@ -63,9 +63,9 @@
             this.activeTextRenderer.setText(this.friendUsername);
             this.heartBar = new heartBar(2, 11, 1, 8, 5);
             this.heartBar.setValue(heartValue);
-            this.friendProfileBtn = new Button(80, 12, 1, "friendProfileButton", buttonFunctionArray[0] ? buttonFunctionArray[0] : () => {});
-            this.friendHomeBtn = new Button(88, 12, 1, "friendHomeButton", buttonFunctionArray[1] ? buttonFunctionArray[1] : () => {});
-            this.friendMailBtn = new Button(97, 12, 1, "friendMailButton", buttonFunctionArray[2] ? buttonFunctionArray[2] : () => {});
+            this.friendProfileBtn = new Button(80, 12, 1, "friendProfileButton", buttonFunctionArray[0] ? buttonFunctionArray[0](this.friendUID) : () => {});
+            this.friendHomeBtn = new Button(88, 12, 1, "friendHomeButton", buttonFunctionArray[1] ? buttonFunctionArray[1](this.friendUID) : () => {});
+            this.friendMailBtn = new Button(97, 12, 1, "friendMailButton", buttonFunctionArray[2] ? buttonFunctionArray[2](this.friendUID) : () => {});
 
             this.children = [this.activeTextRenderer, this.heartBar, this.friendProfileBtn, this.friendHomeBtn, this.friendMailBtn];
         }
@@ -131,14 +131,11 @@
 
         refreshFriends(){
             const friends = this.gameRef.refreshInbox()["friends"];
-            // const friendUsernames = Object.values(friends).map(item => item.friendUsername);
-            const friendUsernames = ["4444est", "kitgore", "notalim", "everlastingflame"]
-            // const friendUids = Object.values(friends).map(item => item.friendUid);
-            const friendUids = ["4444est", "kitgore", "notalim", "everlastingflame"]
-            const friendHearts = [7, 6, 4, 1]
-            console.log("friendUsernames: ", friendUsernames);
+            const friendUsernames = Object.values(friends).map(item => item.friendUsername);
+            const friendUids = Object.values(friends).map(item => item.friendUid);
+            const friendHearts = [7, 6, 4, 1]; //TODO: replace with actual values
             let friendTabs = [];
-            for (let i = 0; i < friendUsernames.length; i++){
+            for (let i = 0; i < friendUsernames.length; i++) {
                 friendTabs.push(new this.tabConstructor(0, 0, 0, this.gameRef, this.textRenderer, friendUsernames[i], friendUids[i], this.buttonFunctionArray, friendHearts[i]));
             }
             let friendTabList = new ObjectGrid(1, 0, 5, 2, 0, 0, 0, friendTabs, true);

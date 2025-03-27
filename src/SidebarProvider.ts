@@ -222,6 +222,27 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     }
                     break;
                 }
+                case 'retrieveUserProfile':{
+                    const userProfile = await apiClient.retrieveUserProfile(this.context, data.uid);
+                    console.log('Received user profile:', userProfile);
+                    if (userProfile) {
+                        // set the global state with the updated inventory data
+                        await updateGlobalState(this.context, { userProfiles: { [data.uid]: userProfile} }).then(() => {
+                            // update the local state with the updated inventory data
+                            this._view?.webview.postMessage({
+                                type: 'fetchedGlobalState', 
+                                value: getGlobalState(this.context),
+                            });
+
+                            this._view?.webview.postMessage({
+                                type: 'openUserBedroom', 
+                                value: userProfile.bedroomData,
+                            });
+                        }
+                        );
+                    }
+                    break;
+                }
                 case 'sendPostcard': {
                     sendPostcard(this.context, data.recipientUsername, data.postcardJSON);
                     break;

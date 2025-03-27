@@ -115,6 +115,10 @@
                 case 'loginSuccess':
                     $game.updateGlobalState({isLoggedIn: true});
                     break;
+                
+                case 'openUserBedroom':
+                    $game.openUserBedroom(message.value);
+                    break;
 
                 default:
                     console.log('Unhandled message type:', message.type);

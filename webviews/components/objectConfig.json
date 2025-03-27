@@ -468,6 +468,15 @@
             "default": [14],
             "hovered": [15]
         }
+    },
+    "loadingCircle": {
+        "spriteWidth": 32,
+        "spriteHeight": 32,
+        "spriteSheet": "loadingCircle.png",
+        "states": {
+            "default": [0, 1, 2, 3, 4, 5, 6, 7],
+            "hovered": [0, 1, 2, 3, 4, 5, 6, 7]
+        }
     }
 
 }
