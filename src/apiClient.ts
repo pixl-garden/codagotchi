@@ -8,10 +8,14 @@ import { ref, set, onValue, off } from 'firebase/database';
 import { generateState, generateOAuthURL, BASE_URL } from './config';
 import * as pako from 'pako';
 
+const customAxios = axios.create({
+    timeout: 10000 // 10 seconds
+});
+
 export async function signInWithCustomTokenViaREST(customToken: string, context: vscode.ExtensionContext) {
     const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${firebaseConfig.apiKey}`;
     try {
-        const response = await axios.post(signInUrl, {
+        const response = await customAxios.post(signInUrl, {
             token: customToken,
             returnSecureToken: true,
         });
@@ -32,6 +36,7 @@ export function initiateOAuthProcess(): { oauthUrl: string; state: string } {
 
 export async function listenForAuthToken(state: string): Promise<{ token: string; githubUsername: string }> {
     const database = getFirebaseDatabase();
+
     const tokenRef = ref(database, 'authTokens/' + state);
 
     return new Promise((resolve, reject) => {
@@ -87,7 +92,7 @@ export async function logout(context: vscode.ExtensionContext): Promise<void> {
 export async function refreshToken(refreshToken: string, context: vscode.ExtensionContext) {
     const refreshTokenUrl = `https://securetoken.googleapis.com/v1/token?key=${firebaseConfig.apiKey}`;
     try {
-        const response = await axios.post(refreshTokenUrl, {
+        const response = await customAxios.post(refreshTokenUrl, {
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
         });
@@ -104,7 +109,7 @@ export async function refreshToken(refreshToken: string, context: vscode.Extensi
 export async function sendFriendRequest(context: vscode.ExtensionContext, recipientUsername: string) {
     const idToken = await context.secrets.get('idToken');
     try {
-        const response = await axios.post(
+        const response = await customAxios.post(
             `${BASE_URL}/sendFriendRequest`,
             { recipientUsername },
             {
@@ -125,7 +130,7 @@ export async function sendFriendRequest(context: vscode.ExtensionContext, recipi
 export async function handleFriendRequest(context: vscode.ExtensionContext, requestId: string, action: string) {
     const idToken = await context.secrets.get('idToken');
     try {
-        const response = await axios.post(
+        const response = await customAxios.post(
             `${BASE_URL}/handleFriendRequest`,
             { requestId, action },
             {
@@ -160,7 +165,7 @@ export async function retrieveInbox(context: vscode.ExtensionContext, cacheManag
 
     const idToken = await context.secrets.get('idToken');
     try {
-        const response = await axios.get(`${BASE_URL}/retrieveInbox`, {
+        const response = await customAxios.get(`${BASE_URL}/retrieveInbox`, {
             headers: {
                 Authorization: `Bearer ${idToken}`,
                 'Content-Type': 'application/json',
@@ -192,7 +197,7 @@ export async function retrieveInbox(context: vscode.ExtensionContext, cacheManag
 export async function sendPostcard(context: vscode.ExtensionContext, recipientUsername: string, postcardJSON: JSON) {
     const idToken = await context.secrets.get('idToken');
     try {
-        const response = await axios.post(
+        const response = await customAxios.post(
             `${BASE_URL}/sendPostcard`,
             { recipientUsername, postcardJSON },
             {
@@ -219,7 +224,7 @@ export async function retrieveInventory(context: vscode.ExtensionContext) {
 
     const idToken = await context.secrets.get('idToken');
     try {
-        const response = await axios.get(`${BASE_URL}/retrieveInventory`, {
+        const response = await customAxios.get(`${BASE_URL}/retrieveInventory`, {
             headers: {
                 Authorization: `Bearer ${idToken}`,
                 'Content-Type': 'application/json',
@@ -248,7 +253,7 @@ export async function retrieveUserData(context: vscode.ExtensionContext) {
 
     const idToken = await context.secrets.get('idToken');
     try {
-        const response = await axios.get(`${BASE_URL}/retrieveUserData`, {
+        const response = await customAxios.get(`${BASE_URL}/retrieveUserData`, {
             headers: {
                 Authorization: `Bearer ${idToken}`,
                 'Content-Type': 'application/json',
@@ -276,7 +281,7 @@ export async function retrieveUserProfile(context: vscode.ExtensionContext, uid:
     const idToken = await context.secrets.get('idToken');
     try {
         console.log("API Retrieving user profile for uid:", uid);
-        const response = await axios.get(`${BASE_URL}/retrieveUserProfile`, {
+        const response = await customAxios.get(`${BASE_URL}/retrieveUserProfile`, {
             headers: {
                 Authorization: `Bearer ${idToken}`,
                 'Content-Type': 'application/json',
