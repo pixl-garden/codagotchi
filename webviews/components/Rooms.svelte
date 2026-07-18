@@ -10,13 +10,13 @@
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { Fishing } from "./Fishing.svelte";
-    import { MiningManager } from "./Mining.svelte";
     import lootTableConfig from './lootTableConfig.json';
     import { friendListManager, friendRequestManager, friendTab, sendTab } from './Social.svelte';
     import itemConfig from './itemConfig.json'
     import { BedroomEditor, BedroomManager } from './Bedroom.svelte';
     import { getObjectsAt } from './MouseEvents.svelte';
     import { EventBus } from './EventBus.svelte';
+    import { Logger } from './Logger.svelte'
     
     export function preloadObjects() {
 
@@ -57,9 +57,6 @@
         const socialTabButton = generateTextButtonClass(57, 16, basic, ...Colors.secondaryMenuColorParams);
         const fontButton = generateFontTextButtonClass(35, 12, '#c6d6ff', 'transparent', '#616C7E', 'transparent');
         const paintUnhoverableButton = generateTextButtonClass(18, 15, retroShadowBlue, ...Colors.secondaryMenuUnhoverableColorParams);
-        const fishingButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
-        const miningButton = generateTextButtonClass(30, 15, basic, ...Colors.secondaryMenuColorParams);
-        const invisibleMiningButton = generateInvisibleButtonClass(34, 57);
         const inventoryTabButton = generateIconButtonClass(18, 18, 'transparent', 'transparent', 'transparent', 'transparent');
         const changePageButton = generateIconButtonClass(8, 16, 'transparent', 'transparent', 'transparent', 'transparent');
 
@@ -90,6 +87,8 @@
                 bedroomHotbar.nextFrame();
                 petObject.nextFrame();
         });
+
+        const logger = new Logger('ROOMS');
 
         // OVERLAY INSTANTIATION
         const mainMenuOverlay = new Background('greyBackground', 0, 0, 30, () => {} );
@@ -315,7 +314,7 @@
 
         // check the bedroom data to see if the user is logged in
         let isLoggedIn = get(game).getLocalState().isLoggedIn;
-        // console.log('isLoggedIn:', isLoggedIn);
+        // logger.log('isLoggedIn:', isLoggedIn);
 
         let settingsMenuButtonTexts 
         function setSettingsMenu(){
@@ -599,8 +598,8 @@
 
         let testToolTip = new toolTip(Colors.black, Colors.white, 3, 2, basic);
         let stampInvArray = get(game).inventory.getItemsByType('stamp');
-        console.log("inventory", get(game).inventory, get(game).inventory.items);
-        console.log("stampInvArray", stampInvArray);
+        logger.log("inventory", get(game).inventory, get(game).inventory.items);
+        logger.log("stampInvArray", stampInvArray);
         // let stampGrid = new inventoryGrid(3, 3, 3, 3, 24, 24, 15, stampInvArray, createStampSlot, testToolTip, null, 4, 4, 10, stampSlotClickAction);
 
         const stampGrid = new InventoryGrid({
@@ -633,7 +632,7 @@
             get(game).getCurrentRoom().addObject( blackFadeIn );
             get(game).getCurrentRoom().addObject( stampMenu );
             get(game).getCurrentRoom().addObject( stampGrid );
-            console.log("room: ", get(game).getCurrentRoom(), get(game).getCurrentRoom().objects);
+            logger.log("room: ", get(game).getCurrentRoom(), get(game).getCurrentRoom().objects);
             stampGrid.updateItemSlots(stampInvArray);
         })
         let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
@@ -721,13 +720,13 @@
             (uid) => {
                 return () => {
                 // Action for home button using uid
-                console.log("Home button clicked for user", uid);
+                logger.log("Home button clicked for user", uid);
                 };
             },
             (uid) => {
                 return () => {
                 // Action for mail button using uid
-                console.log("Mail button clicked for user", uid);
+                logger.log("Mail button clicked for user", uid);
                 };
             },
         ], basic);
@@ -815,7 +814,7 @@
                     fishingInstance.cancelFlag = false;
                 })
             }).catch((error) => {
-                console.log(error.message);
+                logger.log(error.message);
             });
         }        
 
@@ -846,104 +845,7 @@
         fishingNotif.setPhysics(16, .2, 3.8);
         fishingRoom.addObject(backToMain2, fishingBackground, petObject, castLineButton, fishingNotif, boatFront);
 
-        // ---------------- CAVE ENTRANCE ROOM ----------------
-        let caveEntranceRoom = new Room('caveEntranceRoom',  
-            () => {
-                petObject.setCoordinate(23, 71, 0);
-            },
-            false,
-            () => {
-                petObject.nextFrame();
-            },
-            () => {},
-            () => {
 
-            }
-        );
-        let caveEntrance = new Background('caveEntrance', 0, 0, -20, () => {} );
-        let doorButton = new invisibleMiningButton(46, 45, 5, () => {
-            get(game).setCurrentRoom('miningRoom');
-        })
-
-        caveEntranceRoom.addObject(backToMain2, caveEntrance, petObject, doorButton);
-
-        // ---------------- MINING ROOM ----------------
-
-        let miningNotif = new Notification(6, -29, 12, 116, 28, retroShadowGray, '#8B9BB4', '#616C7E', Colors.transparent, 2, 3, 3, 1)
-        let miningEnterActive = false;
-        let blockTypes = lootTableConfig["miningTiers"];
-        let miningInstance = new MiningManager(64, 64, 5, 1, 8, 10, blockTypes);
-        
-        let beginMiningButton = new miningButton(90, 90, 5, "MINE", ()=>{
-            if(miningEnterActive) {
-                miningHandler();
-            }
-        });
-        let cancelMiningButton = new miningButton(90, 90, 5, "STOP", () => {
-            miningInstance.cancelMining();
-            get(game).getCurrentRoom().addObject( beginMiningButton );
-            get(game).getCurrentRoom().removeObject( cancelMiningButton );
-        });
-        
-        function miningHandler() {
-            get(game).getCurrentRoom().addObject( cancelMiningButton );
-            get(game).getCurrentRoom().removeObject( beginMiningButton );
-            mineUntil();
-        }
-
-        function mineUntil() {
-            miningInstance.mineBlocks(get(game)).then((ore) => {
-                miningNotif.callNotificationItem(ore, () => {
-                    if(get(game).isActive && !miningInstance.cancelFlag){
-                        mineUntil();
-                    }
-                    miningInstance.cancelFlag = false;
-                })
-                miningInstance.x = 80;
-                miningInstance.generateObjectGrid()
-                miningInstance.startMovingTo(64, 64);
-            }).catch((error) => {
-                console.log(error.message);
-            });
-        }
-        
-        let miningRoom = new Room('miningRoom',  
-        // Enter logic
-        () => {
-            petObject.setCoordinate(23, 48, 0);
-            if(get(game).isActive) {
-                miningEnterActive = true;
-            }
-        },
-        // Exit logic
-        () => {
-            miningInstance.cancelMining();
-            get(game).getCurrentRoom().addObject( beginMiningButton );
-            get(game).getCurrentRoom().removeObject( cancelMiningButton );
-            miningNotif.reset();
-        },
-        // Update logic
-        () => {
-            petObject.nextFrame();
-            miningNotif.nextFrame();
-            miningInstance.nextFrame();
-        },
-        // On Activity Logic
-        ()=> {
-            miningHandler();
-        },
-        // On Inactivity Logic
-        ()=> {
-            miningEnterActive = false;
-            get(game).getCurrentRoom().addObject( beginMiningButton );
-            get(game).getCurrentRoom().removeObject( cancelMiningButton );
-        }
-    );
-    
-    let miningBackground = new Background('miningBackground', 0, 0, -20, () => {} );
-
-    miningInstance.setPhysics(8, 5, 2);
-    miningRoom.addObject(backToMain2, miningBackground, miningInstance, beginMiningButton, petObject, miningNotif);
 
     // ---------------- POST OFFICE ROOM ----------------
     let postOfficeRoom = new Room('postOfficeRoom', () => {get(game).retrieveInbox()}, false, () => {});
@@ -998,7 +900,7 @@
 
     // ---------------- EVENT LISTENERS
     EventBus.on('OPEN_USER_BEDROOM', (data) => {
-        console.log()
+        logger.log()
         const { serializedBedroom } = data;
 
         friendRoom.removeObject(loadingScreen);
