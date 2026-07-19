@@ -49,10 +49,8 @@
 
             // First, create all furniture items
             for (const item of furnitureJSON.furnitureItems) {
-                const position = item.position === 0 ? "far" : "near";
-                const yCoord = this.bedroomConfig[`${position}Furniture`].yCoord - this.bedroomConfig.furnitureItems[item.index].yTrim;
-                const newItem = new BedroomItem("furnitureItems", item.index, item.x, yCoord, this.bedroomConfig[`${position}Furniture`].zCoord);
-                newItem.position = position;
+                const yCoord = this.bedroomConfig["furnitureParams"].yCoord - this.bedroomConfig.furnitureItems[item.index].yTrim;
+                const newItem = new BedroomItem("furnitureItems", item.index, item.x, yCoord, this.bedroomConfig["furnitureParams"].zCoord);
                 newItem.isFlipped = item.flipped === 0 ? false : true;
                 this.addObject(newItem);
             }
@@ -66,10 +64,8 @@
 
             // Finally, create stackable items
             for (const item of furnitureJSON.stackableItems) {
-                const position = item.position === 0 ? "far" : "near";
-                const yCoord = this.bedroomConfig[`${position}Furniture`].yCoord - this.bedroomConfig.stackableItems[item.index].yTrim;
-                const newItem = new BedroomItem("stackableItems", item.index, item.x, yCoord, this.bedroomConfig[`${position}Furniture`].zCoord);
-                newItem.position = position;
+                const yCoord = this.bedroomConfig[`furnitureParams`].yCoord - this.bedroomConfig.stackableItems[item.index].yTrim;
+                const newItem = new BedroomItem("stackableItems", item.index, item.x, yCoord, this.bedroomConfig["furnitureParams"].zCoord);
                 newItem.isFlipped = item.flipped === 0 ? false : true;
                 
                 // Calculate the correct Y coordinate
@@ -134,14 +130,7 @@
                 }
             }
 
-            
-            if(item.position === "far") {
-                item.z = bedroomConfig["farFurniture"].zCoord;
-            } else if(item.position === "near") {
-                item.z = bedroomConfig["nearFurniture"].zCoord;
-            } else {
-                item.z = bedroomConfig[item.furnitureType].zCoord;
-            }
+            item.z = bedroomConfig["furnitureParams"].zCoord;
 
             this[item.furnitureType].push(item);
             this.exportObjects();
@@ -169,10 +158,9 @@
             this.exportObjects();
         }
 
-
+        //NEEDS TO BE REWRITTEN FOR MULTI LEVEL STACKING
         findStackableFurniture(stackableItem) {
             return this.furnitureItems.find(furniture => 
-                furniture.position === stackableItem.position &&
                 furniture.stackYCoord !== undefined &&
                 stackableItem.x + stackableItem.spriteWidth > furniture.x + furniture.stackLeftBound &&
                 stackableItem.x < furniture.x + furniture.stackRightBound
@@ -180,12 +168,7 @@
         }
 
         isCollisionWithWalls(item) {
-            let bounds;
-            if (item.position === "far" || item.position === "near") {
-                bounds = this.bedroomConfig[item.position + "Furniture"];
-            } else {
-                bounds = this.bedroomConfig[item.furnitureType];
-            }
+            let bounds = this.bedroomConfig[item.furnitureType];
             const leftWallCollision = item.x < bounds.xLeftBound;
             const rightWallCollision = item.x + item.spriteWidth > bounds.xRightBound;
             const floorCollision = item.furnitureType === "wallItems" && item.y < bounds.yTopBound;
@@ -197,9 +180,6 @@
         isCollisionWithOtherItems(newItem, furnitureType) {
             // get array of items to check collision with
             let itemArray = this[furnitureType];
-            if(furnitureType === "furnitureItems" || furnitureType === "stackableItems") {
-                itemArray = itemArray.filter(item => item.position === newItem.position);
-            }
             const objectConfig = this.bedroomConfig[newItem.furnitureType][newItem.typeIndex];
             return !itemArray.some(item => {
                 const configItem = this.bedroomConfig[furnitureType][item.typeIndex];
@@ -227,8 +207,7 @@
             
             // Check and handle collision for stackable items.
             if (furnitureType === "stackableItems") {
-                let furnitureItems = this.furnitureItems.filter(item => item.position === newItem.position);
-
+                let furnitureItems = this.furnitureItems;
                 // Iterate through each furniture item at the current position.
                 for (const item of furnitureItems) {
                     if (item.stackYCoord !== undefined) {
@@ -278,8 +257,7 @@
 
         // retrieve y coord for stackable items using modified mouse coordinates
         calculateStackableY(stackableItem, xCoord, yCoord) {
-            let position = stackableItem.position;
-            let furniture = this.furnitureItems.filter(item => (item.position === position && item.stackYCoord !== undefined));
+            let furniture = this.furnitureItems;
             let stackableItemY = 128;
             furniture.forEach(item => {
                 if(xCoord + stackableItem.spriteWidth > item.x + item.stackLeftBound && xCoord < item.x + item.stackRightBound ){
@@ -527,8 +505,7 @@
             if (this.clickedItem.furnitureType === "wallItems") {
                 yCoord = this.mouseY - Math.floor(this.clickedItem.spriteHeight / 2);
             } else if (this.clickedItem.furnitureType === "furnitureItems" || this.clickedItem.furnitureType === "stackableItems") {
-                this.clickedItem.position = this.mouseY > 94 ? "near" : "far";
-                let positionConfig = bedroomConfig[`${this.clickedItem.position}Furniture`];
+                let positionConfig = bedroomConfig["furnitureParams"];
                 yCoord = positionConfig.yCoord - this.clickedItem.spriteHeight;
                 zCoord = positionConfig.zCoord - this.z + 1;
                 if (this.clickedItem.furnitureType === "stackableItems") {
@@ -578,7 +555,6 @@
 
     const indexBitSize = 9;
     const coordBitSize = 7;
-    const positionBitSize = 1;
     const flipBitSize = 1;
     const variationBitSize = 4;
 
@@ -624,12 +600,12 @@
         }
 
         // Encode items with x coordinate and position
-        function encodeXPosItems(items, indexBits, coordBits, posBits, flipBits, variationBits) {
+        function encodeXPosItems(items, indexBits, coordBits, flipBits, variationBits) {
             addBits(items.length, 5);  // Number of items, max 31, needs 5 bits
             items.forEach(item => {
                 addBits(item.index, indexBits);
                 addBits(item.x, coordBits);
-                addBits(item.position, posBits);
+                // addBits(item.position, posBits);
                 addBits(item.flipped, flipBits);
                 addBits(item.variation, variationBits);
             });
@@ -641,8 +617,8 @@
         addBits(data.rugIndex, 8);
         
         encodeXYItems(data.wallItems, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
-        encodeXPosItems(data.furnitureItems, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
-        encodeXPosItems(data.stackableItems, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
+        encodeXPosItems(data.furnitureItems, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
+        encodeXPosItems(data.stackableItems, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
 
         // Convert buffer to Uint8Array
         let byteArray = new Uint8Array(buffer);
@@ -713,13 +689,12 @@
         }
 
         // Decode items with x coordinate and position
-        function decodeXPosItems(count, indexBits, coordBits, posBits, flipBits, variationBits) {
+        function decodeXPosItems(count, indexBits, coordBits, flipBits, variationBits) {
             let items = [];
             for (let i = 0; i < count; i++) {
                 items.push({
                     index: readBits(indexBits),
                     x: readBits(coordBits),
-                    position: readBits(posBits),
                     flipped: readBits(flipBits),
                     variation: readBits(variationBits)
                 });
@@ -733,11 +708,11 @@
 
         // Decode furniture items
         let furnitureItemCount = readBits(5);
-        data.furnitureItems = decodeXPosItems(furnitureItemCount, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
+        data.furnitureItems = decodeXPosItems(furnitureItemCount, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
 
         // Decode stackable items
         let stackableItemCount = readBits(5);
-        data.stackableItems = decodeXPosItems(stackableItemCount, indexBitSize, coordBitSize, positionBitSize, flipBitSize, variationBitSize);
+        data.stackableItems = decodeXPosItems(stackableItemCount, indexBitSize, coordBitSize, flipBitSize, variationBitSize);
 
     
         return data;

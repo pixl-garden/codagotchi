@@ -62,21 +62,13 @@
             }
         }
     },
-    "nearFurniture": {
+    "furnitureParams": {
         "spriteWidth": 48,
         "spriteHeight": 48,
         "yCoord": 104,
         "zCoord": 8,
         "xLeftBound": -1,
         "xRightBound": 130
-    },
-    "farFurniture": {
-        "spriteWidth": 48,
-        "spriteHeight": 48,
-        "yCoord": 91,
-        "zCoord": 6,
-        "xLeftBound": 10,
-        "xRightBound": 116
     },
     "furnitureItems": {
         "spriteWidth": 48,
