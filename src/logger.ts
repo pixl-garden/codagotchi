@@ -1,37 +1,19 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-
 export class Logger {
-    private logFile: string;
+    private tag: string;
+    private enabled: boolean;
 
-    constructor(context: vscode.ExtensionContext) {
-        this.logFile = path.join(context.extensionPath + '/crashlogs', `${new Date().toISOString().replace(/:/g, '-')}.log`);
+    constructor(tag: string) {
+        this.tag = tag;
+        this.enabled = true;
     }
-
-    public log(message: string, error?: Error): void {
-        // current time on the computer
-        const timestamp = new Date().toLocaleString();
-        let logMessage = `[${timestamp}] ${message}\n`;
-
-        if (error) {
-            logMessage += `Error: ${error.message}\n`;
-            logMessage += `Stack: ${error.stack}\n`;
+    
+    log(...message: unknown[]): void {
+        if (this.enabled) {
+            console.log(`[kododatchi][${this.tag}]`, ...message);
         }
-
-        fs.appendFileSync(this.logFile, logMessage);
     }
-
-    public getLogContent(): string {
-        if (fs.existsSync(this.logFile)) {
-            return fs.readFileSync(this.logFile, 'utf8');
-        }
-        return 'No logs found.';
-    }
-
-    public clearLog(): void {
-        if (fs.existsSync(this.logFile)) {
-            fs.unlinkSync(this.logFile);
-        }
+    
+    disable(): void {
+        this.enabled = false;
     }
 }
