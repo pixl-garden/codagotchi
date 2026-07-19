@@ -4,11 +4,10 @@
             this.tag = tag;
             this.enabled = true;
         }
+        
         log(...message) {
             if (this.enabled) {
-                for (let m of message) {
-                    console.log(`[kododatchi][${this.tag}] ${m}`);
-                }
+                console.log(`[kododatchi][${this.tag}]`, ...message);
             }
         }
         
