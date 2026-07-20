@@ -229,7 +229,7 @@
         });
 
         // SET BEDROOM OVERLAY CHILDREN
-        bedroomHotbar.children = [bedroomToMainButton, recentItemDisplayHotbar, ...bedroomEditorInstance.hotbarExport];
+        bedroomHotbar.children = [bedroomToMainButton, recentItemDisplayHotbar, ...bedroomEditorInstance.getHotbarExport()]; // Initialize with the current hotbar export
             //hotbarExport is a bindable array of hotbar buttons that are managed by the bedroomEditorInstance
 
         //----------------INVENTORY OVERLAY----------------

@@ -10,7 +10,9 @@
     import { InventoryGrid, BedroomItem } from './Inventory.svelte';
     import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
     import * as pako from 'pako';
+    import { Logger } from './Logger.svelte';
 
+    const logger = new Logger("BedroomManager");
     export class BedroomManager extends GeneratedObject{
         constructor() {
             super([generateEmptyMatrix(128, 128)], {default: [0]}, 0, 0, 0);
@@ -123,7 +125,7 @@
             
             if (item.furnitureType === "stackableItems") {
                 const stackedOn = this.findStackableFurniture(item);
-                console.log('stackedOn', stackedOn);
+                logger.log('stackedOn', stackedOn);
                 if (stackedOn) {
                     stackedOn.addChild(item);
                     item.parent = stackedOn;
@@ -288,26 +290,27 @@
             super([emptySpriteMatrix], { default: [0] }, 0, 0, 15);
             this.gameRef = gameRef;
             this.bedroomManager = bedroomManager;
-            this._hotbarExport = new BindableArray([], onHotbarChange);
+            this.hotbarExportArray = [];
+            this.onHotbarChange = onHotbarChange;
             this.retrieveSave();
             this.initializeComponents();
             this.menuEnabled = false;
             this.hotbarRef = hotbarRef;
         }
 
-        get hotbarExport() {
-            return this._hotbarExport;
+        getHotbarExport() {
+            return this.hotbarExportArray;
         }
 
-        set hotbarExport(newArray) {
-            this._hotbarExport.length = 0;  // Clear existing items
-            if (Array.isArray(newArray)) {
-                newArray.forEach(item => this._hotbarExport.push(item));
+        setHotbarExport(newArray) {
+            this.hotbarExportArray = newArray || [];
+            if (this.onHotbarChange) {
+                this.onHotbarChange(this.hotbarExportArray);
             }
         }
 
         updateSave() {
-            console.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
+            logger.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
             this.gameRef.updateGlobalState({"bedroomData": this.bedroomManager.serializeBedroom()})
             this.gameRef.updateDatabase({bedroomUpdates: this.bedroomManager.serializeBedroom()})
         }
@@ -401,7 +404,7 @@
             this.removeButton = new editorButton(106, 0, 1, editorButtonSprites[4], editorButtonSprites[5], this.exitPlacementMode.bind(this));
             this.flipButton = new editorButton(85, 1, 1, editorButtonSprites[6], editorButtonSprites[7], this.flipItem.bind(this));
             // this.children.push(this.inventoryButton, this.editButton);
-            this.hotbarExport = [this.inventoryButton, this.editButton];
+            this.setHotbarExport([this.inventoryButton, this.editButton]);
         }
 
         setTab(tab){
@@ -469,7 +472,7 @@
                 // this.addChild(this.removeButton);
                 // this.addChild(this.flipButton);
                 // this.removeChild(this.editButton);
-                this.hotbarExport = [this.removeButton, this.flipButton];
+                this.setHotbarExport([this.removeButton, this.flipButton]);
                 this.addChild(this.clickedItem);
             }
             this.whileHover();
@@ -481,7 +484,7 @@
             // this.removeChild(this.removeButton);
             // this.removeChild(this.flipButton);
             // this.addChild(this.editButton);
-            this.hotbarExport = [this.inventoryButton, this.editButton];
+            this.setHotbarExport([this.inventoryButton, this.editButton]);
             this.clickedItem = null;
         }
 
@@ -522,7 +525,7 @@
 
         placementModeLoop() {
             if (this.placementMode && this.clickedItem) {
-                console.log("clickedItem", this.clickedItem)
+                logger.log("clickedItem", this.clickedItem)
                 this.setFurnitureCoordinates();
                 if (!this.bedroomManager.checkCollision(this.clickedItem)) {
                     this.clickedItem.opacity = 0.65;
@@ -717,35 +720,5 @@
     
         return data;
     }
-
-    class BindableArray {
-        constructor(initialArray = [], onChange = null) {
-            this._array = [...initialArray];
-            this._onChange = onChange;
-            
-            return new Proxy(this._array, {
-                get: (target, prop) => {
-                    if (typeof target[prop] === 'function') {
-                        return (...args) => {
-                            const result = target[prop].apply(target, args);
-                            // Call onChange after array modifications
-                            if (['push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort'].includes(prop)) {
-                                if (this._onChange) this._onChange(target);
-                            }
-                            return result === target ? proxy : result;
-                        };
-                    }
-                    return target[prop];
-                },
-                set: (target, prop, value) => {
-                    target[prop] = value;
-                    // Call onChange after array modifications
-                    if (this._onChange) this._onChange(target);
-                    return true;
-                }
-            });
-        }
-    }
-
     
 </script>
