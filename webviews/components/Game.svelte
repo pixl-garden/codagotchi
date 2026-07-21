@@ -2,6 +2,9 @@
     import { get, writable } from 'svelte/store';
     import { Inventory } from './Inventory.svelte';
     import { EventBus } from './EventBus.svelte';
+    import { Logger } from './Logger.svelte';
+
+    const logger = new Logger("Game.svelte");
     
     export class Game {
         constructor() {
@@ -9,7 +12,7 @@
                 return Game.instance;
             }
 
-            this.rooms = {};
+            this.planes = {};
             this.currentRoom = null;
             this.localState = {};
             
@@ -44,21 +47,46 @@
         }
 
         updatePlanes(planeName, planeObj) {
-            this.rooms[planeName] = planeObj;
+            this.planes[planeName] = planeObj;
         }
 
+        //TODO: THIS IS TEMPORARY, EVENTUALLY .currentRoom WILL BE REMOVED
         setCurrentRoom(name) {
-            this.currentRoom?.exit()
-            if(this.currentRoom && this.currentRoom.clearTextOnExit){
+            this.currentRoom?.exit();
+            if (this.currentRoom && this.currentRoom.clearTextOnExit) {
                 inputValue.set('');
             }
-            if (this.rooms[name]) {
-                this.currentRoom = this.rooms[name];
+            if (this.planes[name]) {
+                this.currentRoom = this.planes[name];
                 this.currentRoomName = name;
                 this.currentRoom.enter();
+
+                this.activePlanes.forEach(plane => {
+                    if (plane.name !== name) {
+                        plane.exit();
+                    }
+                });
+                this.activePlanes = [this.planes[name]];
             } else {
                 console.error(`Room ${name} does not exist!`);
             }
+            logger.log("Current room set to: ", this.currentRoomName, "Active planes: ", this.activePlanes);
+        }
+
+        addActivePlane(planeName) {
+            if (this.planes[planeName] && !this.activePlanes.includes(planeName)) {
+                this.activePlanes.push(this.planes[planeName]);
+                this.planes[planeName].enter();
+            }
+            logger.log("Active planes: ", this.activePlanes);
+        }
+
+        removeActivePlane(planeName) {
+            if (this.planes[planeName]) {
+                this.planes[planeName].exit();
+            }
+            this.activePlanes = this.activePlanes.filter(plane => plane.name !== planeName);
+            logger.log("Active planes: ", this.activePlanes);
         }
 
         getCurrentRoom() {
@@ -66,7 +94,7 @@
         } 
 
         getObjectsOfCurrentRoom() {
-            return this.rooms[this.currentRoomName].getObjects();
+            return this.planes[this.currentRoomName].getObjects();
         }
 
         // synchronizes local state (game.localState) with global state (vscode API)

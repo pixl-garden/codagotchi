@@ -87,6 +87,7 @@
                 bedroomHotbar.nextFrame();
                 petObject.nextFrame();
         });
+        mainRoom.planeZ = -1;
 
         const logger = new Logger('ROOMS');
 
@@ -130,7 +131,7 @@
             mainRoom.removeObject(mainMenuOverlay, petObject);
             inventoryDisplayManagerInstance.setTab("food");
         });
-        const worldButton = new Button(106, 108, 1, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
+        const worldButton = new Button(106, 108, 1, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom'); get(game).addActivePlane('mapRoom');});
         const bedroomButton = new Button(3, 108, 1, 'enterBedroom', () => {
             logger.log("Current room before entering bedroom:", get(game).getCurrentRoom());
             mainRoom.removeObject( mainMenuOverlay );

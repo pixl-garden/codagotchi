@@ -27,26 +27,49 @@
         let sprites = []; // Clear previous sprites
         roomMain();
         
-        // Get the current room from the game object
-        currentRoom = $game.getCurrentRoom();
+        // // Get the current room from the game object
+        // currentRoom = $game.getCurrentRoom();
         
-        // Render objects in the current room
-        for (let obj of currentRoom.getObjects()) {
-            const children = obj.getChildren();
-            if(children.length > 0 && obj.renderChildren) {
-                obj.getChildSprites().forEach((sprite) => {
-                    if (Array.isArray(sprite)) {
-                        sprites.push(...sprite);
-                    } else {
-                        sprites.push(sprite);
-                    }
-                });
-            }
-            const sprite = obj.getSprite();
-            if (Array.isArray(sprite)) {
-                sprites.push(...sprite);
-            } else if (sprite) {
-                sprites.push(sprite);
+        // // Render objects in the current room
+        // for (let obj of currentRoom.getObjects()) {
+        //     const children = obj.getChildren();
+        //     if(children.length > 0 && obj.renderChildren) {
+        //         obj.getChildSprites().forEach((sprite) => {
+        //             if (Array.isArray(sprite)) {
+        //                 sprites.push(...sprite);
+        //             } else {
+        //                 sprites.push(sprite);
+        //             }
+        //         });
+        //     }
+        //     const sprite = obj.getSprite();
+        //     if (Array.isArray(sprite)) {
+        //         sprites.push(...sprite);
+        //     } else if (sprite) {
+        //         sprites.push(sprite);
+        //     }
+        // }
+
+        const sortedPlanes = $game.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+
+        for (let plane of sortedPlanes) {
+            for (let obj of plane.getObjects()) {
+                const children = obj.getChildren();
+                if(children.length > 0 && obj.renderChildren) {
+                    obj.getChildSprites().forEach((sprite) => {
+                        if (Array.isArray(sprite)) {
+                            sprites.push(...sprite);
+                        } else {
+                            sprites.push(sprite);
+                        }
+                    });
+                }
+                const sprite = obj.getSprite();
+                if (Array.isArray(sprite)) {
+                    sprites.push(...sprite);
+                } else if (sprite) {
+                    sprites.push(sprite);
+                }
             }
         }
         
