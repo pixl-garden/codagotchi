@@ -1,6 +1,6 @@
 <script context="module">
     import itemConfig from './itemConfig.json'
-    import { game, Room, shouldFocus, inputValue, textInput } from './Game.svelte';
+    import { game, Plane, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';

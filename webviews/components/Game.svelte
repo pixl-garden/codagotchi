@@ -23,6 +23,7 @@
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
             this.isActive = false;
             this.inbox;
+            this.activePlanes = [];
         }
 
         //function to call when player goes inactive
@@ -42,8 +43,8 @@
             this.timeoutHandler = setTimeout(this.handleInactivity, this.timeoutTime);
         }
 
-        updateRooms(roomName, roomObj) {
-            this.rooms[roomName] = roomObj;
+        updatePlanes(planeName, planeObj) {
+            this.rooms[planeName] = planeObj;
         }
 
         setCurrentRoom(name) {
@@ -231,11 +232,10 @@
         tsvscode.postMessage({ type: 'logout' });
     };
 
-    export class Room {
-        constructor(roomName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, onActivity = () => {},   
+    export class Plane {
+        constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, onActivity = () => {},   
                     onInactivity = () => {}) {
-            this.name = roomName;
-            this.adjacentRooms = new Set(); // Set ensures no duplicate rooms in list
+            this.name = planeName;
             this.objects = [];
             this.enter = enterLogic || this.enter;
             this.exit = exitLogic || this.exit;
@@ -243,28 +243,14 @@
             this.onActivity = onActivity || this.onActivity;
             this.onInactivity = onInactivity || this.onInactivity;
             this.clearTextOnExit = true;
-            get(game).updateRooms(roomName, this); // Add room to game object
-        }
-        addAdjacentRoom(room) {
-            this.adjacentRooms.add(room);
-        }
-        getName() {
-            return this.name;
+            this.planeZ = 0;
+            get(game).updatePlanes(planeName, this); // Add room to game object
         }
 
         addObject(...objects) {
             //allows for multiple object parameters to be added at once
             for (let object of objects) {
                 this.objects.push(object);
-            }
-        }
-        
-        updateObject(oldObject, newObject) {
-            const index = this.objects.indexOf(oldObject);
-            if (index !== -1) { // Check if the oldObject is actually found
-                this.objects[index] = newObject;
-            } else {
-                // console.log('Object not found in array.');
             }
         }
 

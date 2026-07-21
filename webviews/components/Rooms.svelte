@@ -1,5 +1,5 @@
 <script context='module'>
-    import { game, Room, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
+    import { game, Plane, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject, Container } from './Object.svelte';
     import PostOffice, { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay, createItemSlot, createDraggableItemSlot } from './Inventory.svelte';
@@ -79,7 +79,7 @@
     //----------------MAIN ROOM----------------
 
         // ROOM INSTANTIATION
-        const mainRoom = new Room('mainRoom', 
+        const mainRoom = new Plane('mainRoom', 
             false, // onEnter
             false, // onExit
             () => { // updateLogic
@@ -132,8 +132,9 @@
         });
         const worldButton = new Button(106, 108, 1, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom')});
         const bedroomButton = new Button(3, 108, 1, 'enterBedroom', () => {
-            get(game).getCurrentRoom().removeObject( mainMenuOverlay );
-            get(game).getCurrentRoom().addObject( bedroomEditorInstance, bedroomHotbar );
+            logger.log("Current room before entering bedroom:", get(game).getCurrentRoom());
+            mainRoom.removeObject( mainMenuOverlay );
+            mainRoom.addObject( bedroomEditorInstance, bedroomHotbar );
             bedroomHotbar.setCoordinate(-1, 105);
             bedroomHotbar.locked = false; // prevents the hotbar from jittering on enter
             petObject.setCoordinate(40, 45, 9);
@@ -212,8 +213,8 @@
         // BEDROOM EDITOR INSTANTIATION
         let bedroomManagerInstance = new BedroomManager();
         const bedroomToMainButton = new Button(4, 3, 5, 'exitBedroom', () => {
-            get(game).getCurrentRoom().addObject( mainMenuOverlay );
-            get(game).getCurrentRoom().removeObject( bedroomEditorInstance, bedroomHotbar);
+            mainRoom.addObject( mainMenuOverlay );
+            mainRoom.removeObject( bedroomEditorInstance, bedroomHotbar);
             petObject.setCoordinate(40, 63, 31);
             petObject.startMovingTo(40, 45); // lift pet into room
             bedroomHotbar.locked = true; // lock bedroom hotbar to handle hover issues on bedroom entrance
@@ -238,8 +239,8 @@
         inventoryOverlay.opacity = 0.85;
 
         const inventoryBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
-            get(game).getCurrentRoom().addObject( mainMenuOverlay, petObject );
-            get(game).getCurrentRoom().removeObject( inventoryOverlay );
+            mainRoom.addObject( mainMenuOverlay, petObject );
+            mainRoom.removeObject( inventoryOverlay );
             petObject.setCoordinate(40, 45, 31);
             bedroomHotbar.locked = true;
         });
@@ -355,7 +356,7 @@
             0
         );
         //ROOM INSTANTIATION
-        let settingsRoom = new Room('settingsRoom');
+        let settingsRoom = new Plane('settingsRoom');
          settingsRoom.addObject(settingsTitle, settingsMenu);
     
     //----------------CUSTOMIZE ROOM----------------
@@ -390,7 +391,7 @@
         });
 
         //ROOM INSTANTIATION
-        let customizeRoom = new Room('customizeRoom', () => {
+        let customizeRoom = new Plane('customizeRoom', () => {
             customizeUI.addChild(leftHatArrow)
             customizeUI.addChild(rightHatArrow)
             customizeUI.addChild(petObject)
@@ -405,7 +406,7 @@
     
     //----------------SHOP ROOM----------------
         let shopBackground = new Background('vendingBackground', 0, 0, -20, () => {})
-        let shopRoom = new Room('shopRoom'); 
+        let shopRoom = new Plane('shopRoom'); 
         shopRoom.addObject(backToMain, shopBackground);
 
     //----------------PAINT ROOM----------------
@@ -453,7 +454,7 @@
         let postcardTextSave = "";
 
         //ROOM INSTANTIATION
-        let paintRoom = new Room('paintRoom', 
+        let paintRoom = new Plane('paintRoom', 
             () => {
                 // load saved input value from previous session with postcard
                 document.getElementById('hiddenInput').value = postcardTextSave;
@@ -562,15 +563,15 @@
 
         let flipButton = new Button(55, 111, 5, 'flipButton', () => {
             if(postcardRendering.state === 'front'){
-                get(game).getCurrentRoom().addObject( postcardTextInputButton );
-                get(game).getCurrentRoom().addObject( stampButton );
-                get(game).getCurrentRoom().removeObject( bucketButton );
-                get(game).getCurrentRoom().addObject( fontMenuButton );
+                paintRoom.addObject( postcardTextInputButton );
+                paintRoom.addObject( stampButton );
+                paintRoom.removeObject( bucketButton );
+                paintRoom.addObject( fontMenuButton );
             } else if (postcardRendering.state === 'back'){
-                get(game).getCurrentRoom().removeObject( postcardTextInputButton );
-                get(game).getCurrentRoom().removeObject( stampButton );
-                get(game).getCurrentRoom().addObject( bucketButton );
-                get(game).getCurrentRoom().removeObject( fontMenuButton );
+                paintRoom.removeObject( postcardTextInputButton );
+                paintRoom.removeObject( stampButton );
+                paintRoom.addObject( bucketButton );
+                paintRoom.removeObject( fontMenuButton );
             }
             closeAllPaintMenus();
             postcardRendering.flipPostcard();
@@ -619,7 +620,7 @@
             closeAllPaintMenus();
             stampGrid.onStopHover();
             blackFadeIn.opacity = 0; 
-            get(game).getCurrentRoom().removeObject( blackFadeIn );
+            paintRoom.removeObject( blackFadeIn );
         } );
         blackFadeIn.opacity = 0;
         blackFadeIn.blur = 3.0;
@@ -629,10 +630,10 @@
         let stampButton = new invisibleStampButton(95, 27, 11, () => {
             closeAllPaintMenus();
             blackFadeIn.startOpacityTransition(0.75, 0.08, 1);
-            get(game).getCurrentRoom().addObject( blackFadeIn );
-            get(game).getCurrentRoom().addObject( stampMenu );
-            get(game).getCurrentRoom().addObject( stampGrid );
-            logger.log("room: ", get(game).getCurrentRoom(), get(game).getCurrentRoom().objects);
+            paintRoom.addObject( blackFadeIn );
+            paintRoom.addObject( stampMenu );
+            paintRoom.addObject( stampGrid );
+            logger.log("room: ", paintRoom, paintRoom.objects);
             stampGrid.updateItemSlots(stampInvArray);
         })
         let postcardTextInputButton = new invisiblePostcardTextInputButton(4, 19, 11, () => {
@@ -672,7 +673,7 @@
         //     postcardRendering.exportPostcard(username);
         //     get(game).setCurrentRoom('paintRoom');
         // });
-        let sendPostcardRoom = new Room('sendPostcardRoom', 
+        let sendPostcardRoom = new Plane('sendPostcardRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
                 sendFriendListInstance.refreshFriends();
@@ -746,7 +747,7 @@
         const loadingScreen = new Background('blackground', 0, 0, 20);
         loadingScreen.opacity = 0.5;
         loadingScreen.children = [loadingCircle];
-        let friendRoom = new Room('friendRoom', 
+        let friendRoom = new Plane('friendRoom', 
             () => {
                 // get(game).syncLocalToGlobalState();
                 friendListManagerInstance.refreshFriends();
@@ -758,7 +759,7 @@
                 loadingAnimation();
             }
         );
-        let requestRoom = new Room('requestRoom');
+        let requestRoom = new Plane('requestRoom');
         const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
             get(game).setCurrentRoom('mainRoom');
         });
@@ -818,7 +819,7 @@
             });
         }        
 
-        let fishingRoom = new Room('fishingRoom',  
+        let fishingRoom = new Plane('fishingRoom',  
             () => {
                 petObject.setCoordinate(36, 53, 0);
             },
@@ -848,7 +849,7 @@
 
 
     // ---------------- POST OFFICE ROOM ----------------
-    let postOfficeRoom = new Room('postOfficeRoom', () => {get(game).retrieveInbox()}, false, () => {});
+    let postOfficeRoom = new Plane('postOfficeRoom', () => {get(game).retrieveInbox()}, false, () => {});
 
 
     const postOfficeButtonTexts = ['Friends', 'Postcards'];
@@ -863,7 +864,7 @@
 
 
     // // MAP ROOM INSTANTIATION
-    let mapRoom = new Room('mapRoom', () => {}, false, () => {});
+    let mapRoom = new Plane('mapRoom', () => {}, false, () => {});
 
     const mapButtonTexts = ['Mining', 'Fishing', "Mail", "Friends", "Paint"];
         const mapButtonFunctions = [
@@ -889,7 +890,7 @@
         // blackFadeIn.startOpacityTransition(0.5, 0.05);
 
     });
-    let recievedPostcardsRoom = new Room('recievedPostcardsRoom', () => {
+    let recievedPostcardsRoom = new Plane('recievedPostcardsRoom', () => {
         receivedPostcardManagerInstance.refreshPostcards();
     }, false, () => {
         receivedPostcardManagerInstance.nextFrame();
