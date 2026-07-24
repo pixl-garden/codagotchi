@@ -13,7 +13,6 @@
             }
 
             this.planes = {};
-            this.currentRoom = null;
             this.localState = {};
             
             Game.instance = this;
@@ -32,13 +31,17 @@
         //function to call when player goes inactive
         handleInactivity() {
             console.log("Inactivity timeout reached.") 
-            this.currentRoom?.onInactivity();
+            for (let plane of this.activePlanes) {
+                plane.onInactivity();
+            }
             this.isActive = false;
         }
 
         resetActivityTimeout() {
             if(!this.isActive){
-                this.currentRoom.onActivity();
+                for (let plane of this.activePlanes) {
+                    plane.onActivity();
+                }
             }
             console.log("Resetting inactivity timeout.")
             this.isActive = true;
@@ -50,12 +53,7 @@
             this.planes[planeName] = planeObj;
         }
 
-        //TODO: THIS IS TEMPORARY, EVENTUALLY .currentRoom WILL BE REMOVED
-        setCurrentRoom(name) {
-            this.currentRoom?.exit();
-            if (this.currentRoom && this.currentRoom.clearTextOnExit) {
-                inputValue.set('');
-            }
+        setOnlyActivePlane(name) {
             if (this.planes[name]) {
                 this.currentRoom = this.planes[name];
                 this.currentRoomName = name;
@@ -87,14 +85,6 @@
             }
             this.activePlanes = this.activePlanes.filter(plane => plane.name !== planeName);
             logger.log("Active planes: ", this.activePlanes);
-        }
-
-        getCurrentRoom() {
-            return this.currentRoom;
-        } 
-
-        getObjectsOfCurrentRoom() {
-            return this.planes[this.currentRoomName].getObjects();
         }
 
         // synchronizes local state (game.localState) with global state (vscode API)

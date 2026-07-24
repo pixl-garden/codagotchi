@@ -4,7 +4,7 @@
     import { game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { loadSpriteData } from './SpriteReader.svelte';
-    import { preloadObjects, roomMain } from './Rooms.svelte';
+    import { preloadObjects, roomMain as activePlanesMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
 
     const FPS = 20; //frames per second
@@ -20,35 +20,12 @@
         $game.syncLocalToGlobalState({});
         $game.constructInventory();
         preloadObjects();
-        $game.setCurrentRoom('mainRoom');
+        $game.setOnlyActivePlane('mainRoom');
     }
 
     function main() {
         let sprites = []; // Clear previous sprites
-        roomMain();
-        
-        // // Get the current room from the game object
-        // currentRoom = $game.getCurrentRoom();
-        
-        // // Render objects in the current room
-        // for (let obj of currentRoom.getObjects()) {
-        //     const children = obj.getChildren();
-        //     if(children.length > 0 && obj.renderChildren) {
-        //         obj.getChildSprites().forEach((sprite) => {
-        //             if (Array.isArray(sprite)) {
-        //                 sprites.push(...sprite);
-        //             } else {
-        //                 sprites.push(sprite);
-        //             }
-        //         });
-        //     }
-        //     const sprite = obj.getSprite();
-        //     if (Array.isArray(sprite)) {
-        //         sprites.push(...sprite);
-        //     } else if (sprite) {
-        //         sprites.push(sprite);
-        //     }
-        // }
+        activePlanesMain();
 
         const sortedPlanes = $game.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
 

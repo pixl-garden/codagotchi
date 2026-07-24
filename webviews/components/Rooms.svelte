@@ -67,10 +67,10 @@
     //---------------GENERAL OBJECTS----------------
         //BUTTON TO RETURN TO MAIN ROOM
         const backToMain = new singleLetterButton(0, 0, 20, '<', () => {
-            get(game).setCurrentRoom('mainRoom');
+            get(game).setOnlyActivePlane('mainRoom');
         });
         const backToMain2 = new singleLetterButton(0, 112, 11, '<', () => {
-            get(game).setCurrentRoom('mainRoom');
+            get(game).setOnlyActivePlane('mainRoom');
         });
 
         //bgColor, innerBorderColor, outerBorderColor, innerRoundness, outerRoundness, innerBorderThickness = 3 , outerBorderThickness = 1
@@ -125,15 +125,14 @@
 
 
         // MAIN MENU BUTTON INSTANTIATIONS
-        const settingsButton = new Button(4, 4, 1, 'settingsIcon', () => {get(game).setCurrentRoom('settingsRoom')});
+        const settingsButton = new Button(4, 4, 1, 'settingsIcon', () => {get(game).setOnlyActivePlane('settingsRoom')});
         const inventoryButton = new Button(86, 108, 1, 'inventoryIcon', () => {
             mainRoom.addObject(inventoryOverlay);
             mainRoom.removeObject(mainMenuOverlay, petObject);
             inventoryDisplayManagerInstance.setTab("food");
         });
-        const worldButton = new Button(106, 108, 1, 'worldIcon', () => {get(game).setCurrentRoom('mapRoom'); get(game).addActivePlane('mapRoom');});
+        const worldButton = new Button(106, 108, 1, 'worldIcon', () => {get(game).setOnlyActivePlane('mapRoom'); get(game).addActivePlane('mapRoom');});
         const bedroomButton = new Button(3, 108, 1, 'enterBedroom', () => {
-            logger.log("Current room before entering bedroom:", get(game).getCurrentRoom());
             mainRoom.removeObject( mainMenuOverlay );
             mainRoom.addObject( bedroomEditorInstance, bedroomHotbar );
             bedroomHotbar.setCoordinate(-1, 105);
@@ -213,7 +212,7 @@
 
         // BEDROOM EDITOR INSTANTIATION
         let bedroomManagerInstance = new BedroomManager();
-        const bedroomToMainButton = new Button(4, 3, 5, 'exitBedroom', () => {
+        const bedroomToMainButton = new Button(4, 3, 2, 'exitBedroom', () => {
             mainRoom.addObject( mainMenuOverlay );
             mainRoom.removeObject( bedroomEditorInstance, bedroomHotbar);
             petObject.setCoordinate(40, 63, 31);
@@ -341,7 +340,7 @@
             },
             () => {},
             () => {},
-            () => {get(game).setCurrentRoom('mainRoom')}
+            () => {get(game).setOnlyActivePlane('mainRoom')}
         ];
 
         const settingsTitle = new settingsTitleButton(0, 0, 0, 'Settings', () => {});
@@ -475,7 +474,7 @@
         // PAINT BUTTON INSTANTIATION
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
         let paintBackToMain = new squarePaintTextButton(0, 0, 5, '<', () => {
-            get(game).setCurrentRoom('mainRoom');
+            get(game).setOnlyActivePlane('mainRoom');
         });
         let colorMenuObj = new ColorMenu(6, 16, 12, 44, 44, 6, 2, 4, 4, colorPallete,
          (color) => { 
@@ -531,7 +530,7 @@
             }
         });
         let sendPostcardButton = new paintButtonIcon(109, 113, 5, paintButtonSprites[8], paintButtonSprites[8], ()=>{
-            get(game).setCurrentRoom('sendPostcardRoom');
+            get(game).setOnlyActivePlane('sendPostcardRoom');
         });
 
         let tinyButton = new fontButton(60, 60, 30, 'tiny', ()=>{
@@ -594,7 +593,7 @@
                 closeAllPaintMenus();
                 stampGrid.onStopHover();
                 blackFadeIn.opacity = 0; 
-                get(game).getCurrentRoom().removeObject( blackFadeIn );
+                paintRoom.removeObject( blackFadeIn );
             }
         }
 
@@ -686,7 +685,7 @@
         const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
 
         const backToPaintRoom = new Button(2, 1, 20, 'friendBackButton', () => {
-            get(game).setCurrentRoom('paintRoom');
+            get(game).setOnlyActivePlane('paintRoom');
         });
 
             
@@ -737,8 +736,8 @@
         const socialTabs = ['Friends', 'Add'];
 
         const socialTabList = new textButtonList(socialTabs, [
-            () => {get(game).setCurrentRoom('friendRoom')}, 
-            () => {get(game).setCurrentRoom('requestRoom')}
+            () => {get(game).setOnlyActivePlane('friendRoom')}, 
+            () => {get(game).setOnlyActivePlane('requestRoom')}
         ], socialTabButton, 57, 15, -1, 15, 0, 5, "horizontal");
         
         //ROOM INSTANTIATION
@@ -762,10 +761,10 @@
         );
         let requestRoom = new Plane('requestRoom');
         const friendBackButton = new Button(2, 1, 20, 'friendBackButton', () => {
-            get(game).setCurrentRoom('mainRoom');
+            get(game).setOnlyActivePlane('mainRoom');
         });
         const addFriendButton = new Button(116, 3, 20, 'addFriendButton', () => {
-            get(game).setCurrentRoom('requestRoom');
+            get(game).setOnlyActivePlane('requestRoom');
         });
 
 
@@ -795,15 +794,8 @@
         castLineButton.onStopHover = () => {
             castLineButton.startOpacityTransition(.8, .4);
         }
-        let cancelButton = new Button(102, 60, 5, 'fishingButton', () => {
-            fishingInstance.cancelFishing();
-            // get(game).getCurrentRoom().addObject( castLineButton );
-            // get(game).getCurrentRoom().removeObject( cancelButton );
-        });
         
         function castLineHandler() {
-            // get(game).getCurrentRoom().addObject( cancelButton );
-            // get(game).getCurrentRoom().removeObject( castLineButton );
             castLineUntil();
         }
 
@@ -834,8 +826,7 @@
                 castLineHandler();
             },
             ()=> {
-                // get(game).getCurrentRoom().addObject( castLineButton );
-                // get(game).getCurrentRoom().removeObject( cancelButton );
+
             }
         );
         let fishingBackground = new Background('fishingBackground', 0, 0, -20, () => {} );
@@ -855,8 +846,8 @@
 
     const postOfficeButtonTexts = ['Friends', 'Postcards'];
         const postOfficeButtonFunctions = [
-        () => {get(game).setCurrentRoom('friendRoom')}, 
-        () => {get(game).setCurrentRoom('recievedPostcardsRoom')}
+        () => {get(game).setOnlyActivePlane('friendRoom')}, 
+        () => {get(game).setOnlyActivePlane('recievedPostcardsRoom')}
     ]
     const postOfficeButtonList = new textButtonList(postOfficeButtonTexts, postOfficeButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
     
@@ -869,11 +860,11 @@
 
     const mapButtonTexts = ['Mining', 'Fishing', "Mail", "Friends", "Paint"];
         const mapButtonFunctions = [
-        () => {get(game).setCurrentRoom('caveEntranceRoom')}, 
-        () => {get(game).setCurrentRoom('fishingRoom')},
-        () => {get(game).setCurrentRoom('receivedPostcardsRoom')},
-        () => {get(game).setCurrentRoom('friendRoom')},
-        () => {get(game).setCurrentRoom('paintRoom')}
+        () => {get(game).setOnlyActivePlane('caveEntranceRoom')}, 
+        () => {get(game).setOnlyActivePlane('fishingRoom')},
+        () => {get(game).setOnlyActivePlane('receivedPostcardsRoom')},
+        () => {get(game).setOnlyActivePlane('friendRoom')},
+        () => {get(game).setOnlyActivePlane('paintRoom')}
     ]
     const mapButtonList = new textButtonList(mapButtonTexts, mapButtonFunctions, dropDownButton, 58, 12, -1, 0, 0, 3);
     
@@ -933,6 +924,8 @@ function createFrameSkipper(callback, frequency = 2) {
 
 
 export function roomMain(){
-    get(game).getCurrentRoom().update();
+    for(let plane of get(game).activePlanes) {
+        plane.update();
+    }
 }
 </script>

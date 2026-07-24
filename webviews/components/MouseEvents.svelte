@@ -27,7 +27,8 @@
     // - Subsequent elements are parent objects with hoverWithChildren=true
     // Parents are included in the chain if they have hoverWithChildren=true
     export function getObjectAt(x, y, gameInstance) {
-        let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
+        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
         let highestFoundObject = null;
         let highestFoundObjectZ = -1000;
         let hoveredParents = [];
@@ -101,7 +102,8 @@
 
     export function getObjectsAt(x, y, gameInstance) {
         let foundObjects = [];
-        let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
+        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
 
         const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
             let objX = parentX + obj.x;
@@ -322,7 +324,8 @@
     }
 
     function getScrollableObjectAt(x, y, gameInstance){
-        let objects = gameInstance.getObjectsOfCurrentRoom().sort((a, b) => b.getZ() - a.getZ());
+        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
         let foundObjects = [];
 
         const findScrollableObjectsRecursively = (obj, parent = null) => {
