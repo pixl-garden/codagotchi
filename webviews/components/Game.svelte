@@ -261,10 +261,7 @@
             this.onActivity = onActivity || this.onActivity;
             this.onInactivity = onInactivity || this.onInactivity;
             this.clearTextOnExit = true;
-            this.x = 0;
-            this.y = 0;
-            this.z = 0;
-            this.scale = 1;
+            this.planeZ = 0;
             get(game).updatePlanes(planeName, this); // Add room to game object
         }
 

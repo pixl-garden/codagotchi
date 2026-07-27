@@ -326,6 +326,7 @@
             this.menu = new Background('bedroomInventory', 0, 0, 10);
             this.editMode = false;
             this.placementMode = false;
+            this.passMouseCoords = true;
             this.clickedItem = null;
             this.currentTab = "furnitureItems"
             this.furnitureItemsArr = this.addFurnitureItems("furnitureItems", 28);
@@ -342,6 +343,7 @@
             function createItemSlotXL() {
                 let output = new ConfigObject("itemSlots48x", 0, 0, 0);
                 output.hoverWithChildren = true;
+                output.passMouseCoords = true;
                 return output;
             }
             this.inventoryGrid = new InventoryGrid({

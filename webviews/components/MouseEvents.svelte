@@ -2,7 +2,6 @@
 <script context="module">
     // Import necessary components and set up global variables
     import { DrawableCanvas } from './PostOffice.svelte';
-    import { Logger } from './Logger.svelte';
 
     let mouseExited = false;
     let lastHoveredObject = null;
@@ -11,203 +10,162 @@
     let activeDragObject = null;
     let newHoveredObject = null;
     let lastCoordinates = { x: undefined, y: undefined };
-
-    const VIRTUALHEIGHT = 128;
-
-    const logger = new Logger('MouseEvents');
+    const GRIDWIDTH = 128;
 
     // Utility function for repetitive calculations
-    // function getEventDetails(event, gridWidth) {
-    //     const boundingBox = event.currentTarget.getBoundingClientRect();
-    //     const pixelSize = Math.min(boundingBox.width / gridWidth, boundingBox.height / gridWidth);
-    //     const gridX = Math.ceil(event.clientX / pixelSize);
-    //     const gridY = Math.ceil(event.clientY / pixelSize);
-    //     return { gridX, gridY, pixelSize };
-    // }
-
-    function getVirtualCoordinates(event){
+    function getEventDetails(event, gridWidth) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
-        const percentX = (event.clientX - boundingBox.left) / boundingBox.width;
-        const percentY = (event.clientY - boundingBox.top) / boundingBox.height;
-        const virtualWidth = VIRTUALHEIGHT * (boundingBox.width / boundingBox.height);
-        const virtualX = percentX * virtualWidth;
-        const virtualY = percentY * VIRTUALHEIGHT;
-        return { virtualX, virtualY };
-    }
-
-    function getPlaneLocalCoords(virtualX, virtualY, plane) {
-        const planeXCheck = (virtualX - plane.x) / plane.scale;
-        const planeYCheck = (virtualY - plane.y) / plane.scale;
-        return { planeXCheck, planeYCheck };
+        const pixelSize = Math.min(boundingBox.width / gridWidth, boundingBox.height / gridWidth);
+        const gridX = Math.ceil(event.clientX / pixelSize);
+        const gridY = Math.ceil(event.clientY / pixelSize);
+        return { gridX, gridY, pixelSize };
     }
 
     // Get the object with the highest z value at the given coordinates
     // Returns an array where:
     // - First element is the directly hovered object
     // - Subsequent elements are parent objects with hoverWithChildren=true
-    export function getObjectAt(virtualX, virtualY, gameInstance) {
-        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => b.zIndex - a.zIndex);
-        
+    // Parents are included in the chain if they have hoverWithChildren=true
+    export function getObjectAt(x, y, gameInstance) {
+        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
         let highestFoundObject = null;
-        let highestFoundObjectZ = -10000000000;
+        let highestFoundObjectZ = -1000;
         let hoveredParents = [];
-        
-        // store the local coordinates for the highest object so we can pass them later
-        let bestLocalX = 0;
-        let bestLocalY = 0;
 
-        for (let plane of planesInOrder) {
-            const { planeXCheck, planeYCheck } = getPlaneLocalCoords(virtualX, virtualY, plane);
-            let objects = plane.getObjects().sort((a, b) => b.getZ() - a.getZ());
+        const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
+            let objX = parentX + obj.x;
+            let objY = parentY + obj.y;
+            let objZ = parentZ + obj.z + 1; // +1 ensures children are above parents
+            obj.hoveredChild = null;
 
-            const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
-                let objX = parentX + obj.x;
-                let objY = parentY + obj.y;
-                let objZ = parentZ + obj.z + 1;
-                obj.hoveredChild = null;
-
-                let globalZ = (plane.z * 10000) + objZ;
-
-                if (isMouseDown) {
-                    logger.log(`Checking ${obj.name || 'Object'}:`, {
-                        mouseLocalX: Math.round(planeXCheck),
-                        mouseLocalY: Math.round(planeYCheck),
-                        objX: objX,
-                        objY: objY,
-                        width: obj.spriteWidth,
-                        height: obj.spriteHeight,
-                        interactionsEnabled: obj.mouseInteractions,
-                        calculatedGlobalZ: globalZ
-                    });
-                }
-
-                // check bounds using the LOCAL planeXCheck and planeYCheck
-                if (planeXCheck >= objX && planeXCheck <= objX + obj.spriteWidth && 
-                    planeYCheck >= objY && planeYCheck <= objY + obj.spriteHeight && obj.mouseInteractions) {
+            // Check if coordinates are within object bounds
+            if (x >= objX && x <= objX + obj.spriteWidth && 
+                y >= objY && y <= objY + obj.spriteHeight && obj.mouseInteractions) {
+                
+                if (objZ > highestFoundObjectZ) {
+                    highestFoundObject = obj;
+                    highestFoundObjectZ = objZ;
                     
-                    // multiply plane.zIndex to ensure planes stay layered properly
-                    // let globalZ = (plane.z * 10000) + objZ; 
-
-                    if (globalZ > highestFoundObjectZ) {
-                        highestFoundObject = obj;
-                        highestFoundObjectZ = globalZ;
-                        bestLocalX = planeXCheck;
-                        bestLocalY = planeYCheck;
-                        
-                        hoveredParents = [];
-                        let currentZ = objZ;
-                        for (let parent of parentChain) {
-                            if (parent.hoverWithChildren) {
-                                parent.hoveredChild = parent.hoveredChild || obj;
-                                hoveredParents.push({ parent: parent, z: currentZ + parent.z });
-                            }
-                            currentZ += parent.z;
+                    // Reset and recalculate hoveredParents for the new highest object
+                    hoveredParents = [];
+                    let currentZ = objZ;
+                    // Check each parent in the chain for hoverWithChildren
+                    for (let parent of parentChain) {
+                        if (parent.hoverWithChildren) {
+                            parent.hoveredChild = parent.hoveredChild || obj;
+                            hoveredParents.push({
+                                parent: parent,
+                                z: currentZ + parent.z
+                            });
                         }
+                        currentZ += parent.z;
                     }
                 }
-
-                if (obj.getChildren().length > 0) {
-                    let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
-                    for (let child of children) {
-                        findObjectsRecursively(child, [...parentChain, obj], objX, objY, objZ);
-                    }
-                }
-            };
-
-            for (let obj of objects) {
-                findObjectsRecursively(obj);
             }
+
+            // Recursively check children if they exist
+            if (obj.getChildren().length > 0) {
+                let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
+                for (let child of children) {
+                    findObjectsRecursively(
+                        child, 
+                        [...parentChain, obj], // Pass current object chain to children
+                        objX, 
+                        objY, 
+                        objZ
+                    );
+                }
+            }
+        };
+
+        // Start recursive search from top-level objects
+        for (let obj of objects) {
+            findObjectsRecursively(obj);
         }
 
-        // Pass the calculated LOCAL coordinates to the object
-        if (highestFoundObject) {
-            highestFoundObject.mouseX = bestLocalX;
-            highestFoundObject.mouseY = bestLocalY;
+        // Update mouse coordinates for objects that need them
+        if (highestFoundObject?.passMouseCoords) {
+            highestFoundObject.mouseX = x;
+            highestFoundObject.mouseY = y;
         }
         
         hoveredParents.forEach(({parent}) => {
-            parent.mouseX = bestLocalX;
-            parent.mouseY = bestLocalY;
+            if (parent.passMouseCoords) {
+                parent.mouseX = x;
+                parent.mouseY = y;
+            }
         });
-
-        if(isMouseDown) {
-            logger.log("Hovered Object: ", highestFoundObject);
-            hoveredParents.forEach(({parent}) => {
-                logger.log("Hovered Parent: ", parent);
-            });
-        }
 
         return [highestFoundObject, ...hoveredParents.map(p => p.parent)].filter(Boolean);
     }
 
-    export function getObjectsAt(virtualX, virtualY, gameInstance) {
+    export function getObjectsAt(x, y, gameInstance) {
         let foundObjects = [];
         const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
 
-        for (let plane of planesInOrder) {
-            // convert virtual coords to this specific plane's local coords
-            const { planeXCheck, planeYCheck } = getPlaneLocalCoords(virtualX, virtualY, plane);
-            
-            // sort this plane's objects top-to-bottom
-            let objects = plane.getObjects().sort((a, b) => b.getZ() - a.getZ());
+        const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
+            let objX = parentX + obj.x;
+            let objY = parentY + obj.y;
+            let objZ = parentZ + obj.z + 1; // +1 ensures children are above parents
 
-            const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
-                let objX = parentX + obj.x;
-                let objY = parentY + obj.y;
-                let objZ = parentZ + obj.z + 1; // +1 ensures children are above parents
-                
-                // calculate a global Z so planes sort properly against each other
-                let globalZ = (plane.zIndex * 10000) + objZ;
+            // Check if coordinates are within object bounds
+            if (x >= objX && x <= objX + obj.spriteWidth &&
+                y >= objY && y <= objY + obj.spriteHeight && 
+                obj.mouseInteractions) {
 
-                // Check if coordinates are within object bounds
-                if (planeXCheck >= objX && planeXCheck <= objX + obj.spriteWidth && 
-                    planeYCheck >= objY && planeYCheck <= objY + obj.spriteHeight && obj.mouseInteractions) {
+                // Add the current object with its calculated Z position
+                foundObjects.push({
+                    object: obj,
+                    z: objZ
+                });
 
-                    // Add the current object with its calculated GLOBAL Z position
-                    foundObjects.push({
-                        object: obj,
-                        z: globalZ
-                    });
+                // If object needs mouse coordinates, update them
+                if (obj.passMouseCoords) {
+                    obj.mouseX = x;
+                    obj.mouseY = y;
+                }
 
-                    obj.mouseX = planeXCheck;
-                    obj.mouseY = planeYCheck;
-
-                    // Add parents with hoverWithChildren
-                    let currentGlobalZ = globalZ;
-                    for (let parent of parentChain) {
-                        if (parent.hoverWithChildren) {
-                            parent.hoveredChild = parent.hoveredChild || obj;
-                            parent.mouseX = planeXCheck;
-                            parent.mouseY = planeYCheck;
-
-                            foundObjects.push({
-                                object: parent,
-                                z: currentGlobalZ + parent.z
-                            });
+                // Add parents with hoverWithChildren
+                let currentZ = objZ;
+                for (let parent of parentChain) {
+                    if (parent.hoverWithChildren) {
+                        parent.hoveredChild = parent.hoveredChild || obj;
+                        
+                        // Update mouse coordinates for parent if needed
+                        if (parent.passMouseCoords) {
+                            parent.mouseX = x;
+                            parent.mouseY = y;
                         }
-                        currentGlobalZ += parent.z;
-                    }
-                }
 
-                // Recursively check children if they exist
-                if (obj.getChildren().length > 0) {
-                    let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
-                    for (let child of children) {
-                        findObjectsRecursively(
-                            child,
-                            [...parentChain, obj],
-                            objX,
-                            objY,
-                            objZ
-                        );
+                        foundObjects.push({
+                            object: parent,
+                            z: currentZ + parent.z
+                        });
                     }
+                    currentZ += parent.z;
                 }
-            };
-
-            // Start recursive search from top-level objects for THIS plane
-            for (let obj of objects) {
-                findObjectsRecursively(obj);
             }
+
+            // Recursively check children if they exist
+            if (obj.getChildren().length > 0) {
+                let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
+                for (let child of children) {
+                    findObjectsRecursively(
+                        child,
+                        [...parentChain, obj],
+                        objX,
+                        objY,
+                        objZ
+                    );
+                }
+            }
+        };
+
+        // Start recursive search from top-level objects
+        for (let obj of objects) {
+            findObjectsRecursively(obj);
         }
 
         // Sort all found objects by Z position (highest to lowest) and return just the objects
@@ -269,69 +227,68 @@
             a.every((val, index) => val === b[index]);
     }
 
-
+    // Handle mouse click events
     export function handleClick(event, gameInstance) {
-        let { virtualX, virtualY } = getVirtualCoordinates(event);
-        let hoveredObjects = getObjectAt(virtualX, virtualY, gameInstance);
-        let clickedObject = hoveredObjects[0];
+        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        let hoveredObjects = getObjectAt(gridX, gridY, gameInstance);
+        let clickedObject = hoveredObjects[0];  // Only primary object can be clicked
         
         if (clickedObject && isMouseDown && !activeDragObject) {
             activeDragObject = clickedObject;
-            clickedObject.clickAction(clickedObject.mouseX, clickedObject.mouseY);
+            clickedObject.clickAction(gridX, gridY);
         }
-        updateHoverState({ xPixelCoord: virtualX, yPixelCoord: virtualY, event, gameInstance });
+        updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
     }
 
+    // Handle mouse down events
     export function handleMouseDown(event, gameInstance) {
         if (newHoveredObject instanceof DrawableCanvas) {
             newHoveredObject.saveCurrentCanvas();
         }
         event.preventDefault();
         isMouseDown = true;
-        
-        handleClick(event, gameInstance);
+        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        lastCoordinates = { x: gridX, y: gridY };
+        handleClick(event, gameInstance); // Initial click handling
     }
 
     // Handle mouse up events
-    export function handleMouseUp(event) {
+    export function handleMouseUp(event, gameInstance) {
         event.preventDefault();
+        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
         isMouseDown = false;
-        
-        activeDragObject?.onDragStop?.(activeDragObject.mouseX, activeDragObject.mouseY);
-        
         lastCoordinates = { x: undefined, y: undefined };
-        activeDragObject = null;
+        if(activeDragObject.onDragStop){
+            activeDragObject.onDragStop(gridX, gridY);
+        }
+        activeDragObject = null; // Reset drag object
     }
 
     // Handle mouse move events, including drawing functionality
     export function handleMouseMove(event, gameInstance) {
         event.preventDefault();
-        let { virtualX, virtualY } = getVirtualCoordinates(event);
+        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
-        if (gameInstance.activePlanes.length > 0) {
-            let testPlane = gameInstance.activePlanes[0];
-            let localCoords = getPlaneLocalCoords(virtualX, virtualY, testPlane);
-            logger.log(`Screen: ${event.clientX}x${event.clientY} | Virtual: ${Math.round(virtualX)}x${Math.round(virtualY)} | Local: ${Math.round(localCoords.planeXCheck)}x${Math.round(localCoords.planeYCheck)}`);
-        }
-
-        updateHoverState({ xPixelCoord: virtualX, yPixelCoord: virtualY, event, gameInstance });
-
-        if (isMouseDown && activeDragObject) {
-            let localX = activeDragObject.mouseX;
-            let localY = activeDragObject.mouseY;
-
-            if (activeDragObject instanceof DrawableCanvas) {
-                if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
-                    activeDragObject.drawLine(lastCoordinates.x, lastCoordinates.y, localX, localY);
+        if (isMouseDown) {
+            // Check if the hovered object is the one being dragged
+            if (activeDragObject) {
+                // Special handling for DrawableCanvas
+                if (activeDragObject instanceof DrawableCanvas) {
+                    if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
+                        // Draw line from last coordinates to current
+                        activeDragObject.drawLine(lastCoordinates.x, lastCoordinates.y, gridX, gridY);
+                    }
                 }
-            } else if (activeDragObject.onDrag) {
-                activeDragObject.onDrag(localX, localY);
-            }
-            
-            // Save the LOCAL coordinates for the next frame's line drawing
-            lastCoordinates = { x: localX, y: localY };
+                else if(activeDragObject.onDrag) {
+                    // Perform drag action if it exists
+                    activeDragObject.onDrag(gridX, gridY);
+                }
+                // Update last coordinates
+                lastCoordinates = { x: gridX, y: gridY };
         }
     }
+}
 
     // Handle mouse out events
     export function handleMouseOut(event) {
@@ -347,8 +304,8 @@
     // Handle scroll events for scrollable objects
     export function handleScroll(event, gameInstance) {
         event.preventDefault();
-        let { virtualX, virtualY } = getVirtualCoordinates(event);
-        getScrollableObjectAt(virtualX, virtualY, gameInstance, true).forEach(obj => {
+        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        getScrollableObjectAt(gridX, gridY, gameInstance, true).forEach(obj => {
             if (event.deltaY < 0) obj.onScrollUp?.();
             else if (event.deltaY > 0) obj.onScrollDown?.();
         });
@@ -366,52 +323,33 @@
         };
     }
 
-    export function getScrollableObjectAt(virtualX, virtualY, gameInstance) {
+    function getScrollableObjectAt(x, y, gameInstance){
+        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
         let foundObjects = [];
-        const planesInOrder = gameInstance.activePlanes.slice();
 
-        for (let plane of planesInOrder) {
-            const { planeXCheck, planeYCheck } = getPlaneLocalCoords(virtualX, virtualY, plane);
-            let objects = plane.getObjects();
+        const findScrollableObjectsRecursively = (obj, parent = null) => {
+            let objX = (parent ? parent.x : 0) + obj.x;
+            let objY = (parent ? parent.y : 0) + obj.y;
 
-            const findScrollableObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
-                let objX = parentX + obj.x;
-                let objY = parentY + obj.y;
-                let objZ = parentZ + obj.z + 1;
-                
-                // Calculate global Z to sort objects across different planes
-                let globalZ = (plane.zIndex * 10000) + objZ;
-
-                // Check bounds using local plane coordinates
-                if (planeXCheck >= objX && planeXCheck <= objX + obj.spriteWidth && 
-                    planeYCheck >= objY && planeYCheck <= objY + obj.spriteHeight) {
-                    
-                    if (obj?.scrollable) {
-                        foundObjects.push({
-                            object: obj,
-                            z: globalZ
-                        });
-                    }
+            // Check if the coordinates are within the object's bounds
+            if (x >= objX && x <= objX + obj.spriteWidth && 
+                y >= objY && y <= objY + obj.spriteHeight) {
+                // Add the object if it's directly hovered or if it's a hovered child with hoverWithChildren parent
+                if (obj?.scrollable) {
+                    foundObjects.push(obj);
                 }
-
-                // Recursively check children
-                if (obj.getChildren().length > 0) {
-                    let children = obj.getChildren();
-                    for (let child of children) {
-                        findScrollableObjectsRecursively(child, [...parentChain, obj], objX, objY, objZ);
-                    }
-                }
-            };
-
-            for (let obj of objects) {
-                findScrollableObjectsRecursively(obj);
             }
-        }
 
-        // Sort all found scrollable objects by global Z position (highest to lowest) and return the top one
-        return foundObjects
-            .sort((a, b) => b.z - a.z)
-            .map(item => item.object)
-            .slice(0, 1);
+            // Recursively check children if they exist
+            if (obj.getChildren().length > 0) {
+                obj.getChildren().forEach(child => findScrollableObjectsRecursively(child, obj));
+            }
+        };
+
+        // Loop through all objects and initiate the recursive search
+        objects.forEach(obj => findScrollableObjectsRecursively(obj));
+        foundObjects = foundObjects.sort((a, b) => b.getZ() - a.getZ());
+        return foundObjects.slice(0, 1);
     }
 </script>

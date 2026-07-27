@@ -62,6 +62,7 @@
             this.hoveredChild = null;
 
             // Variables for passing mouse coordinates to object if needed
+            this.passMouseCoords = false;
             this.mouseX = null;
             this.mouseY = null;
             this.mouseInteractions = true;
@@ -695,6 +696,7 @@
             this.objects = objects;
             this.children = [];
             this.hoverWithChildren = true;
+            this.passMouseCoords = true;
             this.mouseX = null;
             this.mouseY = null;
             this.renderChildren = true;

@@ -591,6 +591,7 @@
     export function createItemSlot(createBaseObject) {
         let output = createBaseObject();
         output.hoverWithChildren = true;
+        output.passMouseCoords = true;
         return output;
     }
 
@@ -598,6 +599,7 @@
     export function createDraggableItemSlot({ createBaseObject, onDrag, onDragStop } = {}) {
         let output = createBaseObject();
         output.hoverWithChildren = true;
+        output.passMouseCoords = true;
         let dragItem;
         
         output.clickAction = (x, y) => {
