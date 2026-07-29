@@ -87,7 +87,7 @@
                 bedroomHotbar.nextFrame();
                 petObject.nextFrame();
         });
-        mainRoom.planeZ = -1;
+        mainRoom.z = -1;
 
         const logger = new Logger('ROOMS');
 
@@ -582,7 +582,6 @@
         function createStampSlot() {
             let output = new ItemSlot("stampSlot", 0, 0, 0);
             output.hoverWithChildren = true;
-            output.passMouseCoords = true;
             return output;
         }
 
