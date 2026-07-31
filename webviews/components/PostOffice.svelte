@@ -467,11 +467,15 @@
             return points;
         }
 
-        drawLine(x0, y0, x1, y1) {
+        onDrag(x0, y0, x1, y1) {
             const points = this.getIntermediatePoints(x0, y0, x1, y1);
             points.forEach(point => {
                 this.paintPixel(point.x, point.y);
             });
+        }
+
+        onMouseDown() {
+            this.saveCurrentCanvas();
         }
 
         saveCurrentCanvas() {

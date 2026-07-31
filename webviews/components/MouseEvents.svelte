@@ -5,13 +5,11 @@
     import { Logger } from './Logger.svelte';
 
     const logger = new Logger('MouseEvents');
-
-    let mouseExited = false;
-    let lastHoveredObject = null;
-    let lastHoveredChild = null;
     let isMouseDown = false;
     let activeDragObject = null;
-    let newHoveredObject = null;
+    let currentHoveredObject = null;
+    let lastHoveredObject = null;
+    let lastParentObjects = [];
     let lastCoordinates = { x: undefined, y: undefined };
     const GRIDWIDTH = 128;
 
@@ -28,7 +26,7 @@
     function handleMouseObjectIntersection(x, y, gameInstance, onIntersect) {
         const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.z - b.z);
 
-        const findRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
+        const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
             let objX = parentX + obj.x;
             let objY = parentY + obj.y;
             let objZ = parentZ + obj.z + 1;
@@ -47,7 +45,7 @@
             if (obj.getChildren().length > 0) {
                 let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
                 for (let child of children) {
-                    findRecursively(child, [...parentChain, obj], objX, objY, objZ);
+                    findObjectsRecursively(child, [...parentChain, obj], objX, objY, objZ);
                 }
             }
         };
@@ -56,7 +54,7 @@
         for (let plane of planesInOrder) {
             const planeZ = plane.z * 10000;
             for (let obj of plane.getObjects()) {
-                findRecursively(obj, [], 0, 0, planeZ); 
+                findObjectsRecursively(obj, [], 0, 0, planeZ); 
             }
         }
     }
@@ -107,45 +105,56 @@
 
     // Handle hover state updates for objects and their parents
     function updateHoverState({ xPixelCoord, yPixelCoord, event, gameInstance }) {
-        let hoveredObjects = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
-        let primaryHoveredObject = hoveredObjects[0];  // Direct hovered object
-        let parentObjects = hoveredObjects.slice(1);   // Parent objects with hoverWithChildren
+        const hoveredObjects = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
+        const primaryHoveredObject = hoveredObjects[0] || null;
+        const parentObjects = hoveredObjects.slice(1);
 
-        // Update global newHoveredObject for drag functionality
-        newHoveredObject = primaryHoveredObject;
+        // Update global state for drag handlers
+        currentHoveredObject = primaryHoveredObject;
 
-        // Check if hover state has changed from last update
-        let hoveredStateChanged = 
-            primaryHoveredObject !== lastHoveredObject || 
-            !arrayEquals(parentObjects, lastHoveredChild ? [lastHoveredChild] : []);
+        // Check if primary target or parent chain changed
+        const primaryChanged = primaryHoveredObject !== lastHoveredObject;
+        const parentsChanged = !arrayEquals(parentObjects, lastParentObjects);
+        const hoverStateChanged = primaryChanged || parentsChanged;
 
-        if (hoveredStateChanged) {
-            // Clear previous hover states
-            if (lastHoveredObject) {
+        if (hoverStateChanged) {
+            // Unhover old primary object
+            if (lastHoveredObject && lastHoveredObject !== primaryHoveredObject) {
                 lastHoveredObject.onStopHover?.();
-                if (lastHoveredChild) {
-                    lastHoveredChild.onStopHover?.();
-                    lastHoveredChild.hoveredChild = null;
+            }
+
+            // Unhover old parents no longer in the new parent chain
+            lastParentObjects.forEach(oldParent => {
+                if (!parentObjects.includes(oldParent)) {
+                    oldParent.onStopHover?.();
+                    oldParent.hoveredChild = null;
                 }
-            }
+            });
 
-            // Set new hover states
-            if (primaryHoveredObject) {
+            // Hover new primary object
+            if (primaryHoveredObject && primaryChanged) {
                 primaryHoveredObject.onHover?.();
-                parentObjects.forEach(parent => {
-                    parent.onHover?.();
-                });
-                event.currentTarget.style.cursor = primaryHoveredObject.showPointer ? 'pointer' : 'default';
-            } else {
-                event.currentTarget.style.cursor = 'default';
             }
 
-            // Update last hovered states
+            // Hover newly active parents
+            parentObjects.forEach(parent => {
+                if (!lastParentObjects.includes(parent)) {
+                    parent.onHover?.();
+                }
+            });
+
+            // Update cursor
+            if (event?.currentTarget) {
+                const showPointer = primaryHoveredObject?.showPointer;
+                event.currentTarget.style.cursor = showPointer ? 'pointer' : 'default';
+            }
+
+            // Sync tracking state
             lastHoveredObject = primaryHoveredObject;
-            lastHoveredChild = parentObjects[0] || null;
+            lastParentObjects = parentObjects;
         } else {
-            // Handle continuous hover
-            primaryHoveredObject?.whileHover();
+            // Continuous hover tick
+            primaryHoveredObject?.whileHover?.();
             parentObjects.forEach(parent => parent.whileHover?.());
         }
     }
@@ -173,9 +182,8 @@
 
     // Handle mouse down events
     export function handleMouseDown(event, gameInstance) {
-        if (newHoveredObject instanceof DrawableCanvas) {
-            newHoveredObject.saveCurrentCanvas();
-        }
+        currentHoveredObject?.onMouseDown?.();
+        
         event.preventDefault();
         isMouseDown = true;
         let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
@@ -201,25 +209,13 @@
         let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
-        if (isMouseDown) {
-            // Check if the hovered object is the one being dragged
-            if (activeDragObject) {
-                // Special handling for DrawableCanvas
-                if (activeDragObject instanceof DrawableCanvas) {
-                    if (lastCoordinates.x !== undefined && lastCoordinates.y !== undefined) {
-                        // Draw line from last coordinates to current
-                        activeDragObject.drawLine(lastCoordinates.x, lastCoordinates.y, gridX, gridY);
-                    }
-                }
-                else if(activeDragObject.onDrag) {
-                    // Perform drag action if it exists
-                    activeDragObject.onDrag(gridX, gridY);
-                }
-                // Update last coordinates
-                lastCoordinates = { x: gridX, y: gridY };
+        if (isMouseDown && activeDragObject && activeDragObject.onDrag) {
+            // Perform drag action if it exists
+            activeDragObject.onDrag(gridX, gridY, lastCoordinates.x || null, lastCoordinates.y || null);
+            // Update last coordinates
+            lastCoordinates = { x: gridX, y: gridY };
         }
     }
-}
 
     // Handle mouse out events
     export function handleMouseOut(event) {
