@@ -265,7 +265,9 @@
             this.y = 0;
             this.z = 0;
             this.scale = 1;
-            this.virtualHeight = 128;
+            this.height = 128;
+            this.width = 128;
+            
             get(game).updatePlanes(planeName, this); // Add room to game object
         }
 
@@ -278,6 +280,12 @@
 
         getObjects() {
             return this.objects;
+        }
+
+        convertToLocalCoords(screenX, screenY){
+            const localX = (screenX - this.x) / this.scale;
+            const localY = (screenY - this.y) / this.scale;
+            return { x: localX, y: localY };
         }
 
         enter() {

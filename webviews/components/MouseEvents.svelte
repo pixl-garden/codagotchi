@@ -1,7 +1,5 @@
 
 <script context="module">
-    // Import necessary components and set up global variables
-    import { DrawableCanvas } from './PostOffice.svelte';
     import { Logger } from './Logger.svelte';
 
     const logger = new Logger('MouseEvents');
@@ -11,9 +9,9 @@
     let lastHoveredObject = null;
     let lastParentObjects = [];
     let lastCoordinates = { x: undefined, y: undefined };
-    const GRIDWIDTH = 128;
+    const VIRTUALHEIGHT = 128;
+    let VIRTUALWIDTH;
 
-    // ttility function for repetitive calculations
     function getEventDetails(event, gridWidth) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
         const pixelSize = Math.min(boundingBox.width / gridWidth, boundingBox.height / gridWidth);
@@ -24,12 +22,11 @@
 
     //essentially helper function for getObjectAt and getObjectsAt, to avoid code duplication
     function handleMouseObjectIntersection(x, y, gameInstance, onIntersect) {
-        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.z - b.z);
 
-        const findObjectsRecursively = (obj, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
-            let objX = parentX + obj.x;
-            let objY = parentY + obj.y;
-            let objZ = parentZ + obj.z + 1;
+        const findObjectsRecursively = (obj, plane, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
+            let objX = parentX + (obj.x * plane.scale);
+            let objY = parentY + (obj.y * plane.scale);
+            let objZ = parentZ + obj.z + 1; // Add 1 to ensure children are always above their parents in z-order
             
             obj.hoveredChild = null;
 
@@ -45,16 +42,17 @@
             if (obj.getChildren().length > 0) {
                 let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
                 for (let child of children) {
-                    findObjectsRecursively(child, [...parentChain, obj], objX, objY, objZ);
+                    findObjectsRecursively(child, plane, [...parentChain, obj], objX, objY, objZ);
                 }
             }
         };
+        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.z - b.z);
 
         // multiply by 10000 per plane to ensure objects on dif planes don't interfere
         for (let plane of planesInOrder) {
             const planeZ = plane.z * 10000;
             for (let obj of plane.getObjects()) {
-                findObjectsRecursively(obj, [], 0, 0, planeZ); 
+                findObjectsRecursively(obj, plane, [], plane.x, plane.y, planeZ); 
             }
         }
     }
@@ -169,7 +167,7 @@
 
     // Handle mouse click events
     export function handleClick(event, gameInstance) {
-        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
         let hoveredObjects = getObjectAt(gridX, gridY, gameInstance);
         let clickedObject = hoveredObjects[0];  // Only primary object can be clicked
         
@@ -186,7 +184,7 @@
         
         event.preventDefault();
         isMouseDown = true;
-        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
         lastCoordinates = { x: gridX, y: gridY };
         handleClick(event, gameInstance); // Initial click handling
     }
@@ -194,7 +192,7 @@
     // Handle mouse up events
     export function handleMouseUp(event, gameInstance) {
         event.preventDefault();
-        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
         isMouseDown = false;
         lastCoordinates = { x: undefined, y: undefined };
         if(activeDragObject.onDragStop){
@@ -206,7 +204,7 @@
     // Handle mouse move events, including drawing functionality
     export function handleMouseMove(event, gameInstance) {
         event.preventDefault();
-        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
         if (isMouseDown && activeDragObject && activeDragObject.onDrag) {
@@ -231,7 +229,7 @@
     // Handle scroll events for scrollable objects
     export function handleScroll(event, gameInstance) {
         event.preventDefault();
-        let { gridX, gridY } = getEventDetails(event, GRIDWIDTH);
+        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
         getScrollableObjectAt(gridX, gridY, gameInstance, true).forEach(obj => {
             if (event.deltaY < 0) obj.onScrollUp?.();
             else if (event.deltaY > 0) obj.onScrollDown?.();
