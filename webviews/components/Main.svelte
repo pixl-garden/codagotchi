@@ -13,14 +13,14 @@
     let canvas;
     const screenWidth = 128; // Game logic resolution
     let startTime, endTime;
-    let webglContext;
+    let webGLContext;
 
     function pre() {
         // $game.clearGlobalState();
         $game.syncLocalToGlobalState({});
-        $game.constructInventory();
+        // $game.constructInventory();
         preloadObjects();
-        $game.setOnlyActivePlane('mainRoom');
+        $game.setOnlyActivePlane('mainPlane');
     }
 
     function main() {
@@ -51,7 +51,7 @@
         }
         
         // screen = generateScreen(sprites, screenWidth, screenWidth);
-        renderScreenWebGL(webglContext, screenWidth, sprites);
+        renderScreenWebGL(webGLContext, screenWidth, sprites);
     }
 
     function handleResize() {
@@ -62,26 +62,21 @@
 
     onMount(async () => {
         canvas = document.getElementsByClassName('pixel-grid')[0];
-        
-        webglContext = initWebGL(canvas);
-        if (!webglContext) {
-            console.error('WebGL initialization failed');
-            return;
-        }
         handleResize();
 
         window.addEventListener('message', async (event) => {
             const message = event.data;
             switch (message.type) {
+                case 'atlas-loaded':
+                    const imageUri = message.imageUri;
+                    console.log('Received atlas image URI:', imageUri, canvas);
+                    webGLContext = initWebGL(canvas, imageUri);
+                    pre();
+                    setInterval(main, Math.floor(1000 / FPS));
+                    break;
+
                 case 'sprite-data':
-                    startTime = performance.now();
-                    loadSpriteData(message.data).then(() => {
-                        console.log('Sprite data loaded and parsed');
-                        pre();
-                        endTime = performance.now();
-                        console.log(`Time taken: ${endTime - startTime} milliseconds`);
-                        setInterval(main, Math.floor(1000 / FPS));
-                    });
+                    loadSpriteData(message.data);
                     break;
 
                 case 'documentSaved':

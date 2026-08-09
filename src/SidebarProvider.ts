@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { last, merge, update } from 'lodash';
 import { getNonce } from './getNonce';
-import * as fs from 'fs';
 import * as path from 'path';
 import { initializeFirebase } from './firebaseInit';
 import { CacheManager } from './cacheManager';
@@ -33,10 +32,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private readSpriteData(): string {
-        const spriteDataPath = path.join(this._extensionUri.fsPath, 'media', 'spriteData.bin');
-        const spriteData = fs.readFileSync(spriteDataPath);
-        return spriteData.toString('base64');
+    private getAtlasUris(webview: vscode.Webview) {
+        const atlasImageUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'atlas.png')
+        );
+
+        return {
+            imageUri: atlasImageUri.toString(),
+        };
     }
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -54,10 +57,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
                 case 'webview-ready': {
-                    const spriteData = this.readSpriteData();
+                    const imageUri = webviewView.webview.asWebviewUri(
+                            vscode.Uri.joinPath(this._extensionUri, 'media', 'atlas.png')
+                        ).toString();
                     webviewView.webview.postMessage({
-                        type: 'sprite-data',
-                        data: spriteData,
+                        type: 'atlas-loaded',
+                        imageUri: imageUri
                     });
 
                     const refreshToken = (await this.context.secrets.get('refreshToken')) ?? '';
