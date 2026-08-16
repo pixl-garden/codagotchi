@@ -10,6 +10,7 @@
     let texCoordAttributeLocation;
     let resolutionLocation;
     let imageLocation;
+    let colorLocation;
 
     // GPU State and Buffer handles
     let vao;
@@ -61,6 +62,7 @@
         texCoordAttributeLocation = gl.getAttribLocation(program, "a_texCoord");
         resolutionLocation = gl.getUniformLocation(program, "u_resolution");
         imageLocation = gl.getUniformLocation(program, "u_image");
+        colorLocation = gl.getUniformLocation(program, "u_color");
 
         // 5. Create a Vertex Array Object (VAO) to store all attribute/buffer bindings
         vao = gl.createVertexArray();
@@ -119,7 +121,7 @@
         return 1;
     }
 
-    export function renderScreenWebGL(webglContext, screenWidth, sprites) {
+    export function renderScreenWebGL(planes, virtualHeight, virtualWidth) {
         // Exit early if WebGL is uninitialized or the texture atlas image has not loaded
         if (!gl || !atlasLoaded) {
             return;
@@ -139,26 +141,84 @@
         gl.useProgram(program);
         gl.bindVertexArray(vao);
 
+        gl.uniform2f(resolutionLocation, virtualWidth, virtualHeight);
+
+        // sortedPlanes = planes.slice().sort((a, b) => a.zIndex - b.zIndex);
+        // for (let plane of sortedPlanes) {
+        //     for (let obj of plane.getObjects()) {
+        //         const children = obj.getChildren();
+        //         if(children.length > 0 && obj.renderChildren) {
+        //             obj.getChildSprites().forEach((sprite) => {
+        //                 if (Array.isArray(sprite)) {
+        //                     sprites.push(...sprite);
+        //                 } else {
+        //                     sprites.push(sprite);
+        //                 }
+        //             });
+        //         }
+        //         const sprite = obj.getSprite();
+        //         if (Array.isArray(sprite)) {
+        //             sprites.push(...sprite);
+        //         } else if (sprite) {
+        //             sprites.push(sprite);
+        //         }
+        //     }
+        // }
+
         // Bind texture atlas to Texture Unit 0 and tell shader to sample from Unit 0
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.uniform1i(imageLocation, 0);
+        // gl.activeTexture(gl.TEXTURE0);
+        // gl.bindTexture(gl.TEXTURE_2D, texture);
+        // gl.uniform1i(imageLocation, 0);
 
         // Update resolution uniform so shader can convert pixels to clip-space
-        gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+        // gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 
-        // Bind position buffer and write updated rectangle vertex coordinates
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        setRectangle(gl, 0, 0, image.width, image.height);
+        // // Bind position buffer and write updated rectangle vertex coordinates
+        // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        // setRectangle(gl, 0, 0, virtualWidth, image.height);
 
-        // Issue draw call (6 vertices forming 2 triangles)
-        var primitiveType = gl.TRIANGLES;
-        let offset = 0;
-        var count = 6;
-        gl.drawArrays(primitiveType, offset, count);
+        // // Issue draw call (6 vertices forming 2 triangles)
+        // var primitiveType = gl.TRIANGLES;
+        // let offset = 0;
+        // var count = 6;
+        // gl.drawArrays(primitiveType, offset, count);
+
+        // const halfWidth = virtualWidth / 2;
+        // for (var ii = 0; ii < 50; ++ii) {
+        //     // Put a rectangle in the position buffer
+        //     setRectangle(gl, positionBuffer, randomInt(halfWidth), randomInt(5000), randomInt(halfWidth), randomInt(5000));
+
+        //     // Set a random color.
+        //     gl.uniform4f(colorLocation, Math.random(), Math.random(), Math.random(), 1);
+
+        //     // Draw the rectangle.
+        //     var primitiveType = gl.TRIANGLES;
+        //     var offset = 0;
+        //     var count = 6;
+        //     gl.drawArrays(primitiveType, offset, count);
+        // }
+
+        let sortedPlanes = planes.slice().sort((a, b) => a.z - b.z);
+        for (let plane of sortedPlanes) {
+            plane.viewportStrategy(virtualWidth, virtualHeight);
+            setRectangle(gl, positionBuffer, plane.x, plane.y, plane.width * plane.scale, plane.height * plane.scale);
+
+            // Set a random color.
+            gl.uniform4f(colorLocation, .5, .01 * plane.z, .5, 1);
+
+            // Draw the rectangle.
+            var primitiveType = gl.TRIANGLES;
+            var offset = 0;
+            var count = 6;
+            gl.drawArrays(primitiveType, offset, count);
+        }
 
         // Clean up state
-        gl.bindVertexArray(null);
+        // gl.bindVertexArray(null);
+    }
+
+    function randomInt(range) {
+        return Math.floor(Math.random() * range);
     }
 
     var vertexShaderSource = `#version 300 es
@@ -190,13 +250,15 @@
         precision highp float;
 
         uniform sampler2D u_image;
+        uniform vec4 u_color;
         in vec2 v_texCoord;
 
         out vec4 outColor;
 
         void main() {
             // Sample pixel color from texture at interpolated UV coordinate
-            outColor = texture(u_image, v_texCoord);
+            // outColor = texture(u_image, v_texCoord);
+            outColor = u_color;
         }
     `;
 
@@ -241,7 +303,8 @@
         return false;
     }
 
-    function setRectangle(gl, x, y, width, height) {
+    function setRectangle(gl, buffer, x, y, width, height) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         const x1 = x;
         const x2 = x + width;
         const y1 = y;

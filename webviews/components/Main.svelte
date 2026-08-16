@@ -8,56 +8,27 @@
     import { get } from 'svelte/store';
 
     const FPS = 20; //frames per second
-    let screen = [];
-    let currentRoom;
     let canvas;
-    const screenWidth = 128; // Game logic resolution
-    let startTime, endTime;
-    let webGLContext;
+
+    const virtualHeight = 10000;
+    let virtualWidth;
 
     function pre() {
         // $game.clearGlobalState();
         $game.syncLocalToGlobalState({});
         // $game.constructInventory();
         preloadObjects();
-        $game.setOnlyActivePlane('mainPlane');
     }
 
     function main() {
-        let sprites = []; // Clear previous sprites
         activePlanesMain();
-
-        const sortedPlanes = $game.activePlanes.slice().sort((a, b) => a.zIndex - b.zIndex);
-
-        for (let plane of sortedPlanes) {
-            for (let obj of plane.getObjects()) {
-                const children = obj.getChildren();
-                if(children.length > 0 && obj.renderChildren) {
-                    obj.getChildSprites().forEach((sprite) => {
-                        if (Array.isArray(sprite)) {
-                            sprites.push(...sprite);
-                        } else {
-                            sprites.push(sprite);
-                        }
-                    });
-                }
-                const sprite = obj.getSprite();
-                if (Array.isArray(sprite)) {
-                    sprites.push(...sprite);
-                } else if (sprite) {
-                    sprites.push(sprite);
-                }
-            }
-        }
-        
-        // screen = generateScreen(sprites, screenWidth, screenWidth);
-        renderScreenWebGL(webGLContext, screenWidth, sprites);
+        renderScreenWebGL($game.activePlanes, virtualHeight, virtualWidth);
     }
 
     function handleResize() {
-        const size = Math.min(window.innerWidth, window.innerHeight);
-        canvas.style.width = `${size}px`;
-        canvas.style.height = `${size}px`;
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+        virtualWidth = (window.innerWidth / window.innerHeight) * virtualHeight;
     }
 
     onMount(async () => {
@@ -70,7 +41,7 @@
                 case 'atlas-loaded':
                     const imageUri = message.imageUri;
                     console.log('Received atlas image URI:', imageUri, canvas);
-                    webGLContext = initWebGL(canvas, imageUri);
+                    initWebGL(canvas, imageUri);
                     pre();
                     setInterval(main, Math.floor(1000 / FPS));
                     break;

@@ -1,3 +1,4 @@
+
 //NOTE: KEEP ALL HEX LETTERS LOWERCASE
 
 export const transparentMenuColorParams = ["transparent", "transparent", "transparent", "transparent",

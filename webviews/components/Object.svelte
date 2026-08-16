@@ -5,7 +5,7 @@
     import petConfig from './petConfig.json';
     import hatConfig from './hatConfig.json'
     import { generateEmptyMatrix, generateTooltipSprite, generateMenuMatrix, trimSpriteMatrix } from './MatrixFunctions.svelte';
-    import * as Colors from './colors.js';    
+    import * as Colors from './constants.js';    
     import { random } from 'lodash';
 
     //TODO: create setRelativeCoordinate function to handle coordinates with based on parent and leave the setCoordinate function to handle absolute coordinates

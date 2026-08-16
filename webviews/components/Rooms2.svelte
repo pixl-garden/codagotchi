@@ -1,5 +1,6 @@
 <script context='module'>
-    import { game, Plane, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
+    import { game, shouldFocus, handleGitHubLogin, handleGitHubLogout, inputValue, textInput } from './Game.svelte';
+    import { Plane } from './Plane.svelte';
     import { Pet, Button, Background, ConfigObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList, Notification, GeneratedObject, Container } from './Object.svelte';
     import PostOffice, { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay, createItemSlot, createDraggableItemSlot } from './Inventory.svelte';
@@ -469,7 +470,6 @@
             blackFadeIn.nextFrame();
             // postcardRendering.setUserText(get(inputValue));
         });
-        paintRoom.clearTextOnExit = false; // Prevent text clearing so text can be exported in send postcard room
 
         // PAINT BUTTON INSTANTIATION
         let paintButtonSprites = spriteReaderFromStore(15, 11, 'paintIcons_B&W.png');
@@ -680,7 +680,6 @@
             () =>{},
             () => { sendFriendListInstance.nextFrame(); }
         );
-        sendPostcardRoom.clearTextOnExit = false;
         const friendsUI = new Background('friendsGUI', 0, 0, -20, () => {});
 
         const backToPaintRoom = new Button(2, 1, 20, 'friendBackButton', () => {

@@ -1,7 +1,7 @@
 <script context='module'>
     import { over } from "lodash";
     import { spriteReader } from "./SpriteReader.svelte";
-    import * as Colors from './colors.js';
+    import * as Colors from './constants.js';
 
 
     export function generateEmptyMatrix(width, height) {
