@@ -11,6 +11,7 @@
     let resolutionLocation;
     let imageLocation;
     let colorLocation;
+    let atlasSizeLocation;
 
     // GPU State and Buffer handles
     let vao;
@@ -63,6 +64,7 @@
         resolutionLocation = gl.getUniformLocation(program, "u_resolution");
         imageLocation = gl.getUniformLocation(program, "u_image");
         colorLocation = gl.getUniformLocation(program, "u_color");
+        atlasSizeLocation = gl.getUniformLocation(program, "u_atlasSize");
 
         // 5. Create a Vertex Array Object (VAO) to store all attribute/buffer bindings
         vao = gl.createVertexArray();
@@ -113,113 +115,107 @@
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
         // Disable mipmapping and repeat-wrapping for crisp pixel art rendering
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
         return 1;
     }
 
     export function renderScreenWebGL(planes, virtualHeight, virtualWidth) {
-        // Exit early if WebGL is uninitialized or the texture atlas image has not loaded
-        if (!gl || !atlasLoaded) {
-            return;
-        }
+        if (!gl || !atlasLoaded) return;
 
-        // Adjust canvas resolution to match display size
         resizeCanvasToDisplaySize(gl.canvas);
-
-        // Match WebGL viewport to physical canvas dimensions
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-        // Clear previous frame
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // Activate the shader program and bind the VAO state
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
         gl.useProgram(program);
         gl.bindVertexArray(vao);
 
         gl.uniform2f(resolutionLocation, virtualWidth, virtualHeight);
+        gl.uniform2f(atlasSizeLocation, image.width, image.height);
 
-        // sortedPlanes = planes.slice().sort((a, b) => a.zIndex - b.zIndex);
-        // for (let plane of sortedPlanes) {
-        //     for (let obj of plane.getObjects()) {
-        //         const children = obj.getChildren();
-        //         if(children.length > 0 && obj.renderChildren) {
-        //             obj.getChildSprites().forEach((sprite) => {
-        //                 if (Array.isArray(sprite)) {
-        //                     sprites.push(...sprite);
-        //                 } else {
-        //                     sprites.push(sprite);
-        //                 }
-        //             });
-        //         }
-        //         const sprite = obj.getSprite();
-        //         if (Array.isArray(sprite)) {
-        //             sprites.push(...sprite);
-        //         } else if (sprite) {
-        //             sprites.push(sprite);
-        //         }
-        //     }
-        // }
+        // Default color uniform to un-tinted white
+        gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0);
 
-        // Bind texture atlas to Texture Unit 0 and tell shader to sample from Unit 0
-        // gl.activeTexture(gl.TEXTURE0);
-        // gl.bindTexture(gl.TEXTURE_2D, texture);
-        // gl.uniform1i(imageLocation, 0);
-
-        // Update resolution uniform so shader can convert pixels to clip-space
-        // gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
-
-        // // Bind position buffer and write updated rectangle vertex coordinates
-        // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        // setRectangle(gl, 0, 0, virtualWidth, image.height);
-
-        // // Issue draw call (6 vertices forming 2 triangles)
-        // var primitiveType = gl.TRIANGLES;
-        // let offset = 0;
-        // var count = 6;
-        // gl.drawArrays(primitiveType, offset, count);
-
-        // const halfWidth = virtualWidth / 2;
-        // for (var ii = 0; ii < 50; ++ii) {
-        //     // Put a rectangle in the position buffer
-        //     setRectangle(gl, positionBuffer, randomInt(halfWidth), randomInt(5000), randomInt(halfWidth), randomInt(5000));
-
-        //     // Set a random color.
-        //     gl.uniform4f(colorLocation, Math.random(), Math.random(), Math.random(), 1);
-
-        //     // Draw the rectangle.
-        //     var primitiveType = gl.TRIANGLES;
-        //     var offset = 0;
-        //     var count = 6;
-        //     gl.drawArrays(primitiveType, offset, count);
-        // }
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(imageLocation, 0);
 
         let sortedPlanes = planes.slice().sort((a, b) => a.z - b.z);
+
         for (let plane of sortedPlanes) {
             plane.viewportStrategy(virtualWidth, virtualHeight);
-            setRectangle(gl, positionBuffer, plane.x, plane.y, plane.width * plane.scale, plane.height * plane.scale);
 
-            // Set a random color.
-            gl.uniform4f(colorLocation, .5, .01 * plane.z, .5, 1);
+            for (let obj of plane.getObjects()) {
+                if (!obj.textureSprite) continue;
 
-            // Draw the rectangle.
-            var primitiveType = gl.TRIANGLES;
-            var offset = 0;
-            var count = 6;
-            gl.drawArrays(primitiveType, offset, count);
+                const textureSprite = obj.textureSprite;
+                const atlasData = textureSprite.getAtlas();
+                if (!atlasData) continue;
+
+                let { minX, minY, maxX, maxY, atlasWidth, atlasHeight } = atlasData;
+
+                const w = obj.spriteWidth;
+                const h = obj.spriteHeight;
+                const scale = plane.scale;
+
+                const renderX = plane.x + (textureSprite.x * scale);
+                const renderY = plane.y + (textureSprite.y * scale);
+                const renderW = w * scale;
+                const renderH = h * scale;
+
+                const minU = minX / atlasWidth;
+                const minV = minY / atlasHeight;
+                const maxU = (minX + (obj.spriteWidth * (obj.currentSpriteIndex + 1))) / atlasWidth;
+                const maxV = maxY / atlasHeight;
+
+                // 3. Upload UVs
+                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                    minU, minV,
+                    maxU, minV,
+                    minU, maxV,
+                    minU, maxV,
+                    maxU, minV,
+                    maxU, maxV,
+                ]), gl.DYNAMIC_DRAW);
+
+                // 4. Upload Positions & Draw
+                setRectangle(gl, positionBuffer, renderX, renderY, renderW, renderH);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            }
         }
-
-        // Clean up state
-        // gl.bindVertexArray(null);
     }
 
-    function randomInt(range) {
-        return Math.floor(Math.random() * range);
-    }
+    // for (let plane of sortedPlanes) {
+    //     for (let obj of plane.getObjects()) {
+    //         const children = obj.getChildren();
+    //         if(children.length > 0 && obj.renderChildren) {
+    //             obj.getChildSprites().forEach((sprite) => {
+    //                 if (Array.isArray(sprite)) {
+    //                     sprites.push(...sprite);
+    //                 } else {
+    //                     sprites.push(sprite);
+    //                 }
+    //             });
+    //         }
+    //         const sprite = obj.getSprite();
+    //         if (Array.isArray(sprite)) {
+    //             sprites.push(...sprite);
+    //         } else if (sprite) {
+    //             sprites.push(sprite);
+    //         }
+    //     }
+    // }
 
     var vertexShaderSource = `#version 300 es
         in vec2 a_position;
@@ -251,14 +247,28 @@
 
         uniform sampler2D u_image;
         uniform vec4 u_color;
+        uniform vec2 u_atlasSize;
         in vec2 v_texCoord;
 
         out vec4 outColor;
 
+        vec2 getSubpixelUV(vec2 uv, vec2 textureSize) {
+            // 1. Shift to texel-center space
+            vec2 pixel = uv * textureSize - 0.5;
+            
+            // 2. Measure derivative (exactly 1 physical screen/canvas pixel wide)
+            vec2 fw = fwidth(pixel);
+            
+            // 3. Keep interior flat and ramp only across the 1-pixel border
+            vec2 subpixel = clamp((fract(pixel) - 0.5) / fw + 0.5, 0.0, 1.0);
+            
+            // 4. Shift back to normalized UV coordinates
+            return (floor(pixel) + 0.5 + subpixel) / textureSize;
+        }
+
         void main() {
-            // Sample pixel color from texture at interpolated UV coordinate
-            // outColor = texture(u_image, v_texCoord);
-            outColor = u_color;
+            vec2 smoothUV = getSubpixelUV(v_texCoord, u_atlasSize);
+            outColor = texture(u_image, smoothUV) * u_color;
         }
     `;
 

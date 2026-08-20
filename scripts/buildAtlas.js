@@ -143,12 +143,12 @@ async function buildAtlas() {
             y: y,
             w: block.width,
             h: block.height,
-            uv: {
-                minU: x / atlasWidth,
-                minV: y / atlasHeight,
-                maxU: (x + block.width) / atlasWidth,
-                maxV: (y + block.height) / atlasHeight
-            }
+            minX: x,
+            minY: y,
+            maxX: x + block.width,
+            maxY: y + block.height,
+            atlasWidth: atlasWidth,
+            atlasHeight: atlasHeight
         };
     }
 

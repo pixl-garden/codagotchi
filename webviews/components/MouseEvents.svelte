@@ -9,8 +9,7 @@
     let lastHoveredObject = null;
     let lastParentObjects = [];
     let lastCoordinates = { x: undefined, y: undefined };
-    const VIRTUALHEIGHT = 128;
-    let VIRTUALWIDTH;
+    const VIRTUALHEIGHT = 10000;
 
     function getEventDetails(event, gridWidth) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
@@ -66,8 +65,11 @@
         let highestFoundObjectZ = -Infinity;
         let hoveredParents = [];
 
+        console.log("Searching for object at coordinates:", x, y);
+
         handleMouseObjectIntersection(x, y, gameInstance, (obj, objZ, parentChain) => {
             if (objZ > highestFoundObjectZ) {
+                console.log("Found object:", obj, "at z:", objZ, "with parent chain:", parentChain);
                 highestFoundObject = obj;
                 highestFoundObjectZ = objZ;
                 hoveredParents = [];

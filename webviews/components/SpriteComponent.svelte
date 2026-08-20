@@ -1,4 +1,5 @@
 <script context="module">
+    import atlas from './config/atlas.json';
     export class Sprite {
         constructor(matrix, x, y, z = 0, opacity = 1, blur = 0) {
             this.matrix = matrix;
@@ -25,6 +26,19 @@
             this.x = newX;
             this.y = newY;
             this.z = newZ;
+        }
+    }
+
+    export class TextureSprite {
+        constructor(texture, x, y, z = 0){
+            this.texture = texture;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        getAtlas(){
+            return atlas[this.texture]; 
         }
     }
 </script>

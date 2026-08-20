@@ -1,5 +1,5 @@
 <script context="module">
-    import { Sprite } from './SpriteComponent.svelte'
+    import { Sprite, TextureSprite } from './SpriteComponent.svelte'
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
@@ -26,6 +26,8 @@
             this.sprites = sprites;
             this.spriteWidth = sprites[0][0].length;
             this.spriteHeight = sprites[0].length;
+            this.textureSprite = null;
+
             this.states = processStates(states);
             this.state = 'default';
             this.currentStateIndex = 0;
@@ -613,11 +615,12 @@
             for (const state in config.states) {
                 config.states[state] = processStateFrames(config.states[state]);
             }
-            const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
-            super(spriteMatrix, config.states, x, y, z, actionOnClick);
+            // const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
+            super([[[]]], config.states, x, y, z, actionOnClick);
             
             this.spriteWidth = config.trimWidth || config.spriteWidth;
             this.spriteHeight = config.trimHeight || config.spriteHeight;
+            this.textureSprite = new TextureSprite(config.spriteSheet, x, y, z);
             this.objectType = objectName;
             this.config = config;
             this.children = [];

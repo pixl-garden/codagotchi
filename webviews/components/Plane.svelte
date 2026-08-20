@@ -65,7 +65,7 @@
             }
         }
 
-        viewportStrategy(aspectRatio) {
+        viewportStrategy(virtualWidth, virtualHeight) {
             // Default viewport strategy logic
         }
     }
