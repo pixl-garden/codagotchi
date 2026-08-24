@@ -18,6 +18,7 @@
             this.scale = 1;
             this.height = 128;
             this.width = 128;
+            this.ratio = 1;
             
             get(game).updatePlanes(planeName, this); // Add room to game object
         }
@@ -65,8 +66,16 @@
             }
         }
 
+        // Position relative to the smallest dimension of the viewport
+        // ratio is the proportion of that dimension
         viewportStrategy(virtualWidth, virtualHeight) {
-            // Default viewport strategy logic
+            // Fit the plane to the tightest scale based on ratio (so plane never has a greater ratio than the specified ratio)
+            this.scale = Math.min(
+                (virtualWidth / this.width) * this.ratio, 
+                (virtualHeight / this.height) * this.ratio
+            );
+            this.x = (virtualWidth - (this.width * this.scale)) / 2;
+            this.y = (virtualHeight - (this.height * this.scale)) / 2;
         }
     }
 

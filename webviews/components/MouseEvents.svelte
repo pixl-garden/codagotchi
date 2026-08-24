@@ -11,27 +11,33 @@
     let lastCoordinates = { x: undefined, y: undefined };
     const VIRTUALHEIGHT = 10000;
 
-    function getEventDetails(event, gridWidth) {
+    function getEventDetails(event) {
         const boundingBox = event.currentTarget.getBoundingClientRect();
-        const pixelSize = Math.min(boundingBox.width / gridWidth, boundingBox.height / gridWidth);
-        const gridX = Math.ceil(event.clientX / pixelSize);
-        const gridY = Math.ceil(event.clientY / pixelSize);
-        return { gridX, gridY, pixelSize };
+        const VIRTUALWIDTH = boundingBox.width * (VIRTUALHEIGHT / boundingBox.height);
+        const gridX = Math.floor(((event.clientX - boundingBox.left) / boundingBox.width) * VIRTUALWIDTH);
+        const gridY = Math.floor(((event.clientY - boundingBox.top) / boundingBox.height) * VIRTUALHEIGHT);
+        return { gridX, gridY, VIRTUALWIDTH, VIRTUALHEIGHT };
+    }
+
+    function calculatePlaneLocalPosition(plane, x, y) {
+        const localX = (x - plane.x) / plane.scale;
+        const localY = (y - plane.y) / plane.scale;
+        return { localX, localY };
     }
 
     //essentially helper function for getObjectAt and getObjectsAt, to avoid code duplication
     function handleMouseObjectIntersection(x, y, gameInstance, onIntersect) {
 
-        const findObjectsRecursively = (obj, plane, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
-            let objX = parentX + (obj.x * plane.scale);
-            let objY = parentY + (obj.y * plane.scale);
+        const findObjectsRecursively = (obj, plane, localX, localY, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
+            let objX = parentX + obj.x;
+            let objY = parentY + obj.y;
             let objZ = parentZ + obj.z + 1; // Add 1 to ensure children are always above their parents in z-order
             
             obj.hoveredChild = null;
 
             // check bounds
-            if (x >= objX && x <= objX + obj.spriteWidth && 
-                y >= objY && y <= objY + obj.spriteHeight && obj.mouseInteractions) {
+            if (localX >= objX && localX <= objX + obj.spriteWidth && 
+                localY >= objY && localY <= objY + obj.spriteHeight && obj.mouseInteractions) {
                 
                 // parameter function to handle the intersection
                 onIntersect(obj, objZ, parentChain);
@@ -41,7 +47,7 @@
             if (obj.getChildren().length > 0) {
                 let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
                 for (let child of children) {
-                    findObjectsRecursively(child, plane, [...parentChain, obj], objX, objY, objZ);
+                    findObjectsRecursively(child, plane, localX, localY, [...parentChain, obj], objX, objY, objZ);
                 }
             }
         };
@@ -50,8 +56,10 @@
         // multiply by 10000 per plane to ensure objects on dif planes don't interfere
         for (let plane of planesInOrder) {
             const planeZ = plane.z * 10000;
+            const { localX, localY } = calculatePlaneLocalPosition(plane, x, y);
+            // console.log(`Checking plane: ${plane.name} at z: ${planeZ} with local coordinates: (${localX}, ${localY})`);
             for (let obj of plane.getObjects()) {
-                findObjectsRecursively(obj, plane, [], plane.x, plane.y, planeZ); 
+                findObjectsRecursively(obj, plane, localX, localY, [], 0, 0, planeZ); 
             }
         }
     }
@@ -64,8 +72,6 @@
         let highestFoundObject = null;
         let highestFoundObjectZ = -Infinity;
         let hoveredParents = [];
-
-        console.log("Searching for object at coordinates:", x, y);
 
         handleMouseObjectIntersection(x, y, gameInstance, (obj, objZ, parentChain) => {
             if (objZ > highestFoundObjectZ) {
@@ -169,7 +175,7 @@
 
     // Handle mouse click events
     export function handleClick(event, gameInstance) {
-        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
+        let { gridX, gridY } = getEventDetails(event);
         let hoveredObjects = getObjectAt(gridX, gridY, gameInstance);
         let clickedObject = hoveredObjects[0];  // Only primary object can be clicked
         
@@ -186,7 +192,7 @@
         
         event.preventDefault();
         isMouseDown = true;
-        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
+        let { gridX, gridY } = getEventDetails(event);
         lastCoordinates = { x: gridX, y: gridY };
         handleClick(event, gameInstance); // Initial click handling
     }
@@ -194,7 +200,7 @@
     // Handle mouse up events
     export function handleMouseUp(event, gameInstance) {
         event.preventDefault();
-        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
+        let { gridX, gridY } = getEventDetails(event);
         isMouseDown = false;
         lastCoordinates = { x: undefined, y: undefined };
         if(activeDragObject.onDragStop){
@@ -206,7 +212,7 @@
     // Handle mouse move events, including drawing functionality
     export function handleMouseMove(event, gameInstance) {
         event.preventDefault();
-        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
+        let { gridX, gridY } = getEventDetails(event);
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
 
         if (isMouseDown && activeDragObject && activeDragObject.onDrag) {
@@ -231,7 +237,7 @@
     // Handle scroll events for scrollable objects
     export function handleScroll(event, gameInstance) {
         event.preventDefault();
-        let { gridX, gridY } = getEventDetails(event, VIRTUALHEIGHT);
+        let { gridX, gridY } = getEventDetails(event);
         getScrollableObjectAt(gridX, gridY, gameInstance, true).forEach(obj => {
             if (event.deltaY < 0) obj.onScrollUp?.();
             else if (event.deltaY > 0) obj.onScrollDown?.();
