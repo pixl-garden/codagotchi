@@ -173,7 +173,7 @@
                 const renderW = w * scale;
                 const renderH = h * scale;
 
-                const minU = minX / atlasWidth;
+                const minU = (minX + (obj.spriteWidth * obj.currentSpriteIndex)) / atlasWidth;
                 const minV = minY / atlasHeight;
                 const maxU = (minX + (obj.spriteWidth * (obj.currentSpriteIndex + 1))) / atlasWidth;
                 const maxV = maxY / atlasHeight;

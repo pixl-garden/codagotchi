@@ -5,7 +5,9 @@
     import { get } from 'svelte/store';
 
     export function preloadObjects() {
-        let plane2 = new Plane("plane2");
+        let plane2 = new Plane("plane2", false, false, () => {
+            obj2.nextFrame();
+        });
         plane2.ratio = 1;
         plane2.z = 100;
         plane2.width = 128;
@@ -20,8 +22,8 @@
     }
 
     export function roomMain(){
-        // for(let plane of get(game).activePlanes) {
-        //     plane.update();
-        // }
+        for(let plane of get(game).activePlanes) {
+            plane.update();
+        }
     }
 </script>
