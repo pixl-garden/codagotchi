@@ -1,6 +1,6 @@
 <script context='module'>
     import { generateButtonMatrix, generateStatusBarSpriteSheet, generateTextInputMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
-    import { GeneratedObject, ConfigObject, Pet } from './Object.svelte';
+    import { GeneratedObject, ConfigObject, Pet } from './Object2.svelte';
     import { shouldFocus, inputValue } from './Game.svelte';
     import { get } from 'svelte/store';
     import { Sprite } from './SpriteComponent.svelte';

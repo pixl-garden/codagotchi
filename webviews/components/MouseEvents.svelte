@@ -36,8 +36,8 @@
             obj.hoveredChild = null;
 
             // check bounds
-            if (localX >= objX && localX <= objX + obj.spriteWidth && 
-                localY >= objY && localY <= objY + obj.spriteHeight && obj.mouseInteractions) {
+            if (localX >= objX && localX <= objX + obj.width && 
+                localY >= objY && localY <= objY + obj.height && obj.mouseInteractions) {
                 
                 // parameter function to handle the intersection
                 onIntersect(obj, objZ, parentChain);
@@ -75,7 +75,6 @@
 
         handleMouseObjectIntersection(x, y, gameInstance, (obj, objZ, parentChain) => {
             if (objZ > highestFoundObjectZ) {
-                console.log("Found object:", obj, "at z:", objZ, "with parent chain:", parentChain);
                 highestFoundObject = obj;
                 highestFoundObjectZ = objZ;
                 hoveredParents = [];
@@ -266,8 +265,8 @@
             let objY = (parent ? parent.y : 0) + obj.y;
 
             // Check if the coordinates are within the object's bounds
-            if (x >= objX && x <= objX + obj.spriteWidth && 
-                y >= objY && y <= objY + obj.spriteHeight) {
+            if (x >= objX && x <= objX + obj.width && 
+                y >= objY && y <= objY + obj.height) {
                 // Add the object if it's directly hovered or if it's a hovered child with hoverWithChildren parent
                 if (obj?.scrollable) {
                     foundObjects.push(obj);

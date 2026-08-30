@@ -1,6 +1,7 @@
 <script context="module">
     import { get } from 'svelte/store';
     import { game } from './Game.svelte';
+    import { PannablePlaneController } from './Object.svelte';
 
     export class Plane {
         constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, onActivity = () => {},   
@@ -31,13 +32,48 @@
         }
 
         getObjects() {
-            return this.objects;
+            let childObjects = [];
+
+            const accumulateChildren = (parent) => {
+                if (!parent.renderChildren || !parent.children) return;
+
+                for (let child of parent.children) {
+                    if (child.useAbsoluteCoords) {
+                        child.renderX = child.x;
+                        child.renderY = child.y;
+                        child.renderZ = child.z;
+                    } else {
+                        // Combine the child's local coordinates with the parent's computed render position
+                        child.renderX = parent.renderX + child.x;
+                        child.renderY = parent.renderY + child.y;
+                        child.renderZ = parent.renderZ + child.z;
+                    }
+
+                    childObjects.push(child);
+                    accumulateChildren(child);
+                }
+            };
+
+            // Initialize root objects and traverse their hierarchies
+            for (let obj of this.objects) {
+                obj.renderX = obj.x;
+                obj.renderY = obj.y;
+                obj.renderZ = obj.z;
+                accumulateChildren(obj);
+            }
+
+            return [...this.objects, ...childObjects];
         }
 
         convertToLocalCoords(screenX, screenY){
             const localX = (screenX - this.x) / this.scale;
             const localY = (screenY - this.y) / this.scale;
             return { x: localX, y: localY };
+        }
+
+        setDimensions(width, height){
+            this.width = width;
+            this.height = height;
         }
 
         enter() {
@@ -74,8 +110,8 @@
                 (virtualWidth / this.width) * this.ratio, 
                 (virtualHeight / this.height) * this.ratio
             );
-            this.x = (virtualWidth - (this.width * this.scale)) / 2;
-            this.y = (virtualHeight - (this.height * this.scale)) / 2;
+            // this.x = (virtualWidth - (this.width * this.scale)) / 2;
+            // this.y = (virtualHeight - (this.height * this.scale)) / 2;
         }
     }
 
@@ -83,7 +119,7 @@
         constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, onActivity = () => {},   
                     onInactivity = () => {}) {
             super(planeName, enterLogic, exitLogic, updateLogic, onActivity, onInactivity);
-            this.ratio = .8;
+            this.ratio = 1;
         }
 
         viewportStrategy(virtualWidth, virtualHeight) {
@@ -94,6 +130,27 @@
             );
             this.x = (virtualWidth - (this.width * this.scale)) / 2;
             this.y = (virtualHeight - (this.height * this.scale)) / 2;
+        }
+    }
+
+    export class PannablePlane extends Plane {
+        constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, 
+                onActivity = () => {}, onInactivity = () => {}) {
+            super(planeName, enterLogic, exitLogic, updateLogic, onActivity, onInactivity);
+
+            this.pannablePlaneControlObject = new PannablePlaneController(this.x, this.y, this.z, this.width, this.height, 
+            (x0, y0, x1, y1) => {
+                this.x += (x0 - x1)
+                this.y += (y0 - y1)
+            });
+            this.addObject(this.pannablePlaneControlObject);
+        }
+
+        setDimensions(width, height){
+            this.width = width;
+            this.height = height;
+            this.pannablePlaneControlObject.width = width
+            this.pannablePlaneControlObject.height = height
         }
     }
 </script>

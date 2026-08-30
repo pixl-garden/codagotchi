@@ -1,5 +1,5 @@
 <script context="module">
-    import { GeneratedObject, ObjectGrid, activeTextRenderer, ConfigObject } from "./Object.svelte";
+    import { GeneratedObject, ObjectGrid, activeTextRenderer, ConfigObject } from "./Object2.svelte";
     import itemConfig from './itemConfig.json';
     import bedroomConfig from './config/bedroomConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";

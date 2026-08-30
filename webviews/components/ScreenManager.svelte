@@ -114,11 +114,6 @@
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
-        // Disable mipmapping and repeat-wrapping for crisp pixel art rendering
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
@@ -155,7 +150,10 @@
         for (let plane of sortedPlanes) {
             plane.viewportStrategy(virtualWidth, virtualHeight);
 
-            for (let obj of plane.getObjects()) {
+            // Retrieve flattened objects and sort by renderZ for correct depth ordering
+            let objects = plane.getObjects().slice().sort((a, b) => (a.renderZ ?? a.z) - (b.renderZ ?? b.z));
+
+            for (let obj of objects) {
                 if (!obj.textureSprite) continue;
 
                 const textureSprite = obj.textureSprite;
@@ -164,18 +162,26 @@
 
                 let { minX, minY, maxX, maxY, atlasWidth, atlasHeight } = atlasData;
 
-                const w = obj.spriteWidth;
-                const h = obj.spriteHeight;
+                const w = obj.width;
+                const h = obj.height;
                 const scale = plane.scale;
 
-                const renderX = plane.x + (textureSprite.x * scale);
-                const renderY = plane.y + (textureSprite.y * scale);
+                // Use obj.renderX / obj.renderY (fallback to obj.x / obj.y if unassigned)
+                // Add textureSprite local offsets if textureSprite defines a sub-offset
+                const spriteOffsetX = textureSprite.x || 0;
+                const spriteOffsetY = textureSprite.y || 0;
+
+                const worldX = obj.renderX + spriteOffsetX;
+                const worldY = obj.renderY + spriteOffsetY;
+
+                const renderX = plane.x + (worldX * scale);
+                const renderY = plane.y + (worldY * scale);
                 const renderW = w * scale;
                 const renderH = h * scale;
 
-                const minU = (minX + (obj.spriteWidth * obj.currentSpriteIndex)) / atlasWidth;
+                const minU = (minX + (obj.width * obj.currentSpriteIndex)) / atlasWidth;
                 const minV = minY / atlasHeight;
-                const maxU = (minX + (obj.spriteWidth * (obj.currentSpriteIndex + 1))) / atlasWidth;
+                const maxU = (minX + (obj.width * (obj.currentSpriteIndex + 1))) / atlasWidth;
                 const maxV = maxY / atlasHeight;
 
                 // 3. Upload UVs
@@ -195,27 +201,6 @@
             }
         }
     }
-
-    // for (let plane of sortedPlanes) {
-    //     for (let obj of plane.getObjects()) {
-    //         const children = obj.getChildren();
-    //         if(children.length > 0 && obj.renderChildren) {
-    //             obj.getChildSprites().forEach((sprite) => {
-    //                 if (Array.isArray(sprite)) {
-    //                     sprites.push(...sprite);
-    //                 } else {
-    //                     sprites.push(sprite);
-    //                 }
-    //             });
-    //         }
-    //         const sprite = obj.getSprite();
-    //         if (Array.isArray(sprite)) {
-    //             sprites.push(...sprite);
-    //         } else if (sprite) {
-    //             sprites.push(sprite);
-    //         }
-    //     }
-    // }
 
     var vertexShaderSource = `#version 300 es
         in vec2 a_position;
