@@ -16,7 +16,7 @@
             this.x = 0;
             this.y = 0;
             this.z = 0;
-            this.scale = 1;
+            this.scale = 10;
             this.height = 128;
             this.width = 128;
             this.ratio = 1;
@@ -106,10 +106,10 @@
         // ratio is the proportion of that dimension
         viewportStrategy(virtualWidth, virtualHeight) {
             // Fit the plane to the tightest scale based on ratio (so plane never has a greater ratio than the specified ratio)
-            this.scale = Math.min(
-                (virtualWidth / this.width) * this.ratio, 
-                (virtualHeight / this.height) * this.ratio
-            );
+            // this.scale = Math.min(
+            //     (virtualWidth / this.width) * this.ratio, 
+            //     (virtualHeight / this.height) * this.ratio
+            // );
             // this.x = (virtualWidth - (this.width * this.scale)) / 2;
             // this.y = (virtualHeight - (this.height * this.scale)) / 2;
         }
@@ -142,7 +142,10 @@
             (x0, y0, x1, y1) => {
                 this.x += (x0 - x1)
                 this.y += (y0 - y1)
-            });
+            },
+            () => {this.scale /= 1.02},
+            () =>  {this.scale *= 1.02}
+        );
             this.addObject(this.pannablePlaneControlObject);
         }
 

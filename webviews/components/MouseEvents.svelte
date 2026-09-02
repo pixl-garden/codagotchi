@@ -1,8 +1,6 @@
 
 <script context="module">
-    import { Logger } from './Logger.svelte';
 
-    const logger = new Logger('MouseEvents');
     let isMouseDown = false;
     let activeDragObject = null;
     let currentHoveredObject = null;
@@ -255,32 +253,8 @@
     }
 
     function getScrollableObjectAt(x, y, gameInstance){
-        const planesInOrder = gameInstance.activePlanes.slice().sort((a, b) => a.z - b.z);
-        let objects = planesInOrder.flatMap(plane => plane.getObjects()).sort((a, b) => b.getZ() - a.getZ());
-        let foundObjects = [];
-
-        const findScrollableObjectsRecursively = (obj, parent = null) => {
-            let objX = (parent ? parent.x : 0) + obj.x;
-            let objY = (parent ? parent.y : 0) + obj.y;
-
-            // Check if the coordinates are within the object's bounds
-            if (x >= objX && x <= objX + obj.width && 
-                y >= objY && y <= objY + obj.height) {
-                // Add the object if it's directly hovered or if it's a hovered child with hoverWithChildren parent
-                if (obj?.scrollable) {
-                    foundObjects.push(obj);
-                }
-            }
-
-            // Recursively check children if they exist
-            if (obj.getChildren().length > 0) {
-                obj.getChildren().forEach(child => findScrollableObjectsRecursively(child, obj));
-            }
-        };
-
-        // Loop through all objects and initiate the recursive search
-        objects.forEach(obj => findScrollableObjectsRecursively(obj));
-        foundObjects = foundObjects.sort((a, b) => b.getZ() - a.getZ());
-        return foundObjects.slice(0, 1);
+        const foundObjs = getObjectsAt(x, y, gameInstance);
+        const scrollableFiltered = foundObjs.filter(o => o.scrollable)
+        return scrollableFiltered;
     }
 </script>

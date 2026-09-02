@@ -232,16 +232,26 @@
     }
 
     export class PannablePlaneController extends BaseObject {
-        constructor(x, y, z, width, height, callback) {
+        constructor(x, y, z, width, height, dragCallback, scrollDownCallback, scrollUpCallback) {
             super([], x, y, z, null)
-            this.width = width
-            this.height = height
-            this.callback = callback
+            this.width = width;
+            this.height = height;
+            this.dragCallback = dragCallback;
+            this.scrollDownCallback = scrollDownCallback;
+            this.scrollUpCallback = scrollUpCallback;
+            this.scrollable = true;
         }
 
         onDrag(x0, y0, x1, y1) {
-            console.log(x0, y0, x1, y1);
-            this.callback(x0, y0, x1, y1);
+            this.dragCallback(x0, y0, x1, y1);
+        }
+
+        onScrollDown(){
+            this.scrollDownCallback();
+        }
+
+        onScrollUp(){
+            this.scrollUpCallback();
         }
     }
 
