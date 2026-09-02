@@ -14,7 +14,7 @@
         plane2.width = 128;
         get(game).addActivePlane("plane2");
         const obj = new ConfigObject("paintBackground", 0, 0, -1);
-        const obj2 = new ConfigObject("sendPostcardButton", 10, 10, 100000);
+        const obj2 = new ConfigObject("sendPostcardButton", 50, 50, 100000);
         obj.addChild(obj2);
         plane2.addObject(obj);
 

@@ -166,13 +166,8 @@
                 const h = obj.height;
                 const scale = plane.scale;
 
-                // Use obj.renderX / obj.renderY (fallback to obj.x / obj.y if unassigned)
-                // Add textureSprite local offsets if textureSprite defines a sub-offset
-                const spriteOffsetX = textureSprite.x || 0;
-                const spriteOffsetY = textureSprite.y || 0;
-
-                const worldX = obj.renderX + spriteOffsetX;
-                const worldY = obj.renderY + spriteOffsetY;
+                const worldX = textureSprite.x || 0;
+                const worldY = textureSprite.y || 0;
 
                 const renderX = plane.x + (worldX * scale);
                 const renderY = plane.y + (worldY * scale);

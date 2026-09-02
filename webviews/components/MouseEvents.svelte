@@ -27,7 +27,6 @@
 
     //essentially helper function for getObjectAt and getObjectsAt, to avoid code duplication
     function handleMouseObjectIntersection(x, y, gameInstance, onIntersect) {
-
         const findObjectsRecursively = (obj, plane, localX, localY, parentChain = [], parentX = 0, parentY = 0, parentZ = 0) => {
             let objX = parentX + obj.x;
             let objY = parentY + obj.y;
