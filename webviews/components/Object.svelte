@@ -247,11 +247,11 @@
         }
 
         onScrollDown(){
-            this.scrollDownCallback();
+            this.scrollDownCallback(this.mouseX, this.mouseY);
         }
 
         onScrollUp(){
-            this.scrollUpCallback();
+            this.scrollUpCallback(this.mouseX, this.mouseY);
         }
     }
 

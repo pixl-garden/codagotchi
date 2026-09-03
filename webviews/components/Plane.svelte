@@ -16,7 +16,6 @@
             this.x = 0;
             this.y = 0;
             this.z = 0;
-            this.scale = 10;
             this.height = 128;
             this.width = 128;
             this.ratio = 1;
@@ -68,7 +67,7 @@
         convertToLocalCoords(screenX, screenY){
             const localX = (screenX - this.x) / this.scale;
             const localY = (screenY - this.y) / this.scale;
-            return { x: localX, y: localY };
+            return { localX, localY };
         }
 
         setDimensions(width, height){
@@ -106,12 +105,12 @@
         // ratio is the proportion of that dimension
         viewportStrategy(virtualWidth, virtualHeight) {
             // Fit the plane to the tightest scale based on ratio (so plane never has a greater ratio than the specified ratio)
-            // this.scale = Math.min(
-            //     (virtualWidth / this.width) * this.ratio, 
-            //     (virtualHeight / this.height) * this.ratio
-            // );
-            // this.x = (virtualWidth - (this.width * this.scale)) / 2;
-            // this.y = (virtualHeight - (this.height * this.scale)) / 2;
+            this.scale = Math.min(
+                (virtualWidth / this.width) * this.ratio, 
+                (virtualHeight / this.height) * this.ratio
+            );
+            this.x = (virtualWidth - (this.width * this.scale)) / 2;
+            this.y = (virtualHeight - (this.height * this.scale)) / 2;
         }
     }
 
@@ -137,15 +136,28 @@
         constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, 
                 onActivity = () => {}, onInactivity = () => {}) {
             super(planeName, enterLogic, exitLogic, updateLogic, onActivity, onInactivity);
-
+            this.zoomScale = 1.02;
             this.pannablePlaneControlObject = new PannablePlaneController(this.x, this.y, this.z, this.width, this.height, 
-            (x0, y0, x1, y1) => {
-                this.x += (x0 - x1)
-                this.y += (y0 - y1)
-            },
-            () => {this.scale /= 1.02},
-            () =>  {this.scale *= 1.02}
-        );
+                (x0, y0, x1, y1) => {
+                    this.x += (x0 - x1);
+                    this.y += (y0 - y1);
+                },
+                // zoom out
+                (mouseX, mouseY) => {
+                    const inverseZoom = 1 / this.zoomScale;
+                    this.scale *= inverseZoom;
+
+                    //scale x and y so the mouse is anchored in place
+                    this.x = mouseX - (mouseX - this.x) * inverseZoom;
+                    this.y = mouseY - (mouseY - this.y) * inverseZoom;
+                },
+                // zoom in
+                (mouseX, mouseY) => {
+                    this.scale *= this.zoomScale;
+                    this.x = mouseX - (mouseX - this.x) * this.zoomScale;
+                    this.y = mouseY - (mouseY - this.y) * this.zoomScale;
+                }
+            );
             this.addObject(this.pannablePlaneControlObject);
         }
 
@@ -154,6 +166,18 @@
             this.height = height;
             this.pannablePlaneControlObject.width = width
             this.pannablePlaneControlObject.height = height
+        }
+
+        viewportStrategy(virtualWidth, virtualHeight) {
+            // fit plane once at load
+            if(this.scale == undefined){
+                this.scale = Math.min(
+                    (virtualWidth / this.width) * this.ratio, 
+                    (virtualHeight / this.height) * this.ratio
+                );
+                this.x = (virtualWidth - (this.width * this.scale)) / 2;
+                this.y = (virtualHeight - (this.height * this.scale)) / 2;
+            }
         }
     }
 </script>
