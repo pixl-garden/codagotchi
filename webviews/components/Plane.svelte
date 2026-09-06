@@ -138,11 +138,12 @@
             super(planeName, enterLogic, exitLogic, updateLogic, onActivity, onInactivity);
             this.zoomScale = 1.02;
             this.pannablePlaneControlObject = new PannablePlaneController(this.x, this.y, this.z, this.width, this.height, 
+                // mouse drag (new coords, old coords)
                 (x0, y0, x1, y1) => {
                     this.x += (x0 - x1);
                     this.y += (y0 - y1);
                 },
-                // zoom out
+                // zoom out (scrollup)
                 (mouseX, mouseY) => {
                     const inverseZoom = 1 / this.zoomScale;
                     this.scale *= inverseZoom;
@@ -151,9 +152,10 @@
                     this.x = mouseX - (mouseX - this.x) * inverseZoom;
                     this.y = mouseY - (mouseY - this.y) * inverseZoom;
                 },
-                // zoom in
+                // zoom in (scrolldown)
                 (mouseX, mouseY) => {
                     this.scale *= this.zoomScale;
+                    
                     this.x = mouseX - (mouseX - this.x) * this.zoomScale;
                     this.y = mouseY - (mouseY - this.y) * this.zoomScale;
                 }

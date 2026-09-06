@@ -123,7 +123,14 @@
     export function renderScreenWebGL(planes, virtualHeight, virtualWidth) {
         if (!gl || !atlasLoaded) return;
 
-        resizeCanvasToDisplaySize(gl.canvas);
+        //map to physical pixels (for high res screens)
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2 to avoid GPU strain
+        
+        // only recreate canvas on resize (avoids reallocation of drawing buffer (output pixels))
+        if (resizeCanvasToDisplaySize(gl.canvas, dpr)) {
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        }
+
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         gl.clearColor(0, 0, 0, 0);
