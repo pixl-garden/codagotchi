@@ -135,25 +135,54 @@
     export class PannablePlane extends Plane {
         constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, 
                 onActivity = () => {}, onInactivity = () => {}) {
-            super(planeName, enterLogic, exitLogic, updateLogic, onActivity, onInactivity);
+        
+            const combinedUpdate = () => {
+                this.applyInertia();
+                updateLogic();
+            };
+
+            super(planeName, enterLogic, exitLogic, combinedUpdate, onActivity, onInactivity);
+            
             this.zoomScale = 1.02;
+
+            // Inertia state variables
+            this.vx = 0;
+            this.vy = 0;
+            this.glide = 0.85;         // closer to 1 glides longer lower stops faster
+            this.minVelocity = 0.05;   // cutoff to prevent weird movements
+            this.smoothing = 0.6;      // balance between responsiveness and momentum
+                                          // closer to 1 velocity matches mouse movements before last frame of drag
+                                          // closer to 0 velocity is based on collective frames before release (momentum)
+            this.velocityDegrade = .83;
+
             this.pannablePlaneControlObject = new PannablePlaneController(this.x, this.y, this.z, this.width, this.height, 
                 // mouse drag (new coords, old coords)
                 (x0, y0, x1, y1) => {
-                    this.x += (x0 - x1);
-                    this.y += (y0 - y1);
+                    const deltaX = x0 - x1;
+                    const deltaY = y0 - y1;
+
+                    this.moveWithBounds(deltaX, deltaY);
+
+                    // Exponential Moving Average
+                    this.vx = this.vx * (1 - this.smoothing) + deltaX * this.smoothing;
+                    this.vy = this.vy * (1 - this.smoothing) + deltaY * this.smoothing;
+
+                    this.isDragging = true;
                 },
                 // zoom out (scrollup)
                 (mouseX, mouseY) => {
+                    this.vx = 0;
+                    this.vy = 0;
                     const inverseZoom = 1 / this.zoomScale;
                     this.scale *= inverseZoom;
 
-                    //scale x and y so the mouse is anchored in place
                     this.x = mouseX - (mouseX - this.x) * inverseZoom;
                     this.y = mouseY - (mouseY - this.y) * inverseZoom;
                 },
                 // zoom in (scrolldown)
                 (mouseX, mouseY) => {
+                    this.vx = 0;
+                    this.vy = 0;
                     this.scale *= this.zoomScale;
                     
                     this.x = mouseX - (mouseX - this.x) * this.zoomScale;
@@ -163,16 +192,52 @@
             this.addObject(this.pannablePlaneControlObject);
         }
 
-        setDimensions(width, height){
+        // Extracted boundary-checked translation
+        moveWithBounds(deltaX, deltaY) {
+            if (this.x + deltaX <= 0 && this.x + this.pixelWidth + deltaX >= this.lastVirtualWidth) {
+                this.x += deltaX;
+            } else {
+                this.vx = 0; // Kill velocity if hitting horizontal boundary
+            }
+
+            if (this.y + deltaY <= 0 && this.y + this.pixelHeight + deltaY >= this.lastVirtualHeight) {
+                this.y += deltaY;
+            } else {
+                this.vy = 0; // Kill velocity if hitting vertical boundary
+            }
+        }
+
+        // Called every frame via combinedUpdate
+        applyInertia() {
+            if (this.pannablePlaneControlObject.isDragging) {
+                // If the pointer is held down but stops moving, bleed off momentum fast
+                this.vx *= this.velocityDegrade;
+                this.vy *= this.velocityDegrade;
+                return;
+            }
+
+            if (Math.abs(this.vx) < this.minVelocity && Math.abs(this.vy) < this.minVelocity) {
+                this.vx = 0;
+                this.vy = 0;
+                return;
+            }
+
+            this.moveWithBounds(this.vx, this.vy);
+
+            // Apply friction
+            this.vx *= this.glide;
+            this.vy *= this.glide;
+        }
+
+        setDimensions(width, height) {
             this.width = width;
             this.height = height;
-            this.pannablePlaneControlObject.width = width
-            this.pannablePlaneControlObject.height = height
+            this.pannablePlaneControlObject.width = width;
+            this.pannablePlaneControlObject.height = height;
         }
 
         viewportStrategy(virtualWidth, virtualHeight) {
-            // fit plane once at load
-            if(this.scale == undefined){
+            if (this.scale === undefined) {
                 this.scale = Math.min(
                     (virtualWidth / this.width) * this.ratio, 
                     (virtualHeight / this.height) * this.ratio
@@ -180,6 +245,22 @@
                 this.x = (virtualWidth - (this.width * this.scale)) / 2;
                 this.y = (virtualHeight - (this.height * this.scale)) / 2;
             }
+
+            if (this.lastVirtualWidth && virtualWidth !== this.lastVirtualWidth) {
+                const resizeFactor = virtualWidth / this.lastVirtualWidth;
+                this.scale *= resizeFactor;
+
+                const oldCenterX = this.lastVirtualWidth / 2;
+                const newCenterX = virtualWidth / 2;
+                this.x = newCenterX - (oldCenterX - this.x) * resizeFactor;
+
+                const centerY = virtualHeight / 2;
+                this.y = centerY - (centerY - this.y) * resizeFactor;
+            }
+            this.lastVirtualWidth = virtualWidth;
+            this.lastVirtualHeight = virtualHeight;
+            this.pixelWidth = Math.floor(this.width * this.scale);
+            this.pixelHeight = Math.floor(this.height * this.scale);
         }
     }
 </script>

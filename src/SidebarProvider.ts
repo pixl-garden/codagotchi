@@ -181,7 +181,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 case 'resize': {
                     const width = data.width;
                     const height = data.height;
-                    console.log(`WebView dimensions: ${width}x${height}`);
+                    // console.log(`WebView dimensions: ${width}x${height}`);
                     break;
                 }
                 case 'sendFriendRequest': {

@@ -37,6 +37,7 @@
             this.mouseInteractions = true;
             this.showPointer = false;
             this.useAbsoluteCoords = false;
+            this.isDragging = false;
         }
 
         nextFrame() {
@@ -70,7 +71,7 @@
         whileHover() {}
 
         clickAction(gridX, gridY) {
-            this.actionOnClick(gridX, gridY);
+            this.actionOnClick?.(gridX, gridY);
         }
 
         getWidth() {

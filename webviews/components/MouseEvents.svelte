@@ -201,6 +201,7 @@
         lastCoordinates = { x: undefined, y: undefined };
         if(activeDragObject.onDragStop){
             activeDragObject.onDragStop(gridX, gridY);
+            activeDragObject.isDragging = false;
         }
         activeDragObject = null; // Reset drag object
     }
@@ -216,6 +217,7 @@
             activeDragObject.onDrag(gridX, gridY, lastCoordinates.x || null, lastCoordinates.y || null);
             // Update last coordinates
             lastCoordinates = { x: gridX, y: gridY };
+            activeDragObject.isDragging = true;
         }
     }
 
