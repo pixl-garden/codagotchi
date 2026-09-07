@@ -144,6 +144,7 @@
             super(planeName, enterLogic, exitLogic, combinedUpdate, onActivity, onInactivity);
             
             this.zoomScale = 1.02;
+            this.maxScale = 500;
 
             // Inertia state variables
             this.vx = 0;
@@ -171,26 +172,14 @@
                     // velocity smoothed with momentum
                     this.vx = this.vx * (1 - this.smoothing) + deltaX * this.smoothing;
                     this.vy = this.vy * (1 - this.smoothing) + deltaY * this.smoothing;
-                    this.isDragging = true;
                 },
                 // zoom out (scrollup)
                 (mouseX, mouseY) => {
-                    this.vx = 0;
-                    this.vy = 0;
-                    const inverseZoom = 1 / this.zoomScale;
-                    this.scale *= inverseZoom;
-
-                    this.x = mouseX - (mouseX - this.x) * inverseZoom;
-                    this.y = mouseY - (mouseY - this.y) * inverseZoom;
+                    this.zoomWithBounds(mouseX, mouseY, 1 / this.zoomScale);
                 },
                 // zoom in (scrolldown)
                 (mouseX, mouseY) => {
-                    this.vx = 0;
-                    this.vy = 0;
-                    this.scale *= this.zoomScale;
-                    
-                    this.x = mouseX - (mouseX - this.x) * this.zoomScale;
-                    this.y = mouseY - (mouseY - this.y) * this.zoomScale;
+                    this.zoomWithBounds(mouseX, mouseY, this.zoomScale);
                 }
             );
             this.addObject(this.pannablePlaneControlObject);
@@ -223,6 +212,38 @@
 
             this.vx *= this.glide;
             this.vy *= this.glide;
+        }
+
+        zoomWithBounds(mouseX, mouseY, zoomFactor) {
+            this.vx = 0;
+            this.vy = 0;
+
+            // ensure not smaller than viewport
+            const minScale = Math.max(
+                this.lastVirtualWidth / this.width,
+                this.lastVirtualHeight / this.height
+            );
+
+            const targetScale = clamp(minScale, this.scale * zoomFactor, this.maxScale);
+            if (targetScale === this.scale) return;
+
+            const scaleFactor = targetScale / this.scale;
+            this.scale = targetScale;
+            this.pixelWidth = Math.floor(this.width * this.scale);
+            this.pixelHeight = Math.floor(this.height * this.scale);
+
+            // adjust coords around mouse
+            let newX = mouseX - (mouseX - this.x) * scaleFactor;
+            let newY = mouseY - (mouseY - this.y) * scaleFactor;
+
+            const minX = this.lastVirtualWidth - this.pixelWidth;
+            newX = clamp(minX, newX, 0);
+
+            const minY = this.lastVirtualHeight - this.pixelHeight;
+            newY = clamp(minY, newY, 0);
+
+            this.x = newX;
+            this.y = newY;
         }
 
         setDimensions(width, height) {
@@ -259,4 +280,6 @@
             this.pixelHeight = Math.floor(this.height * this.scale);
         }
     }
+
+    const clamp = (min, val, max) => Math.min(Math.max(val, min), max);
 </script>
