@@ -148,12 +148,12 @@
             // Inertia state variables
             this.vx = 0;
             this.vy = 0;
-            this.glide = 0.85;         // closer to 1 glides longer lower stops faster
-            this.minVelocity = 0.05;   // cutoff to prevent weird movements
-            this.smoothing = 0.6;      // balance between responsiveness and momentum
+            this.glide = 0.85;          // closer to 1 glides longer lower stops faster
+            this.minVelocity = 0.05;    // cutoff to prevent weird movements
+            this.smoothing = 0.6;       // balance between responsiveness and momentum
                                           // closer to 1 velocity matches mouse movements before last frame of drag
                                           // closer to 0 velocity is based on collective frames before release (momentum)
-            this.velocityDegrade = .83;
+            this.velocityDegrade = .83; //degrade when not moving
 
             this.pannablePlaneControlObject = new PannablePlaneController(this.x, this.y, this.z, this.width, this.height, 
                 // mouse drag (new coords, old coords)
@@ -163,10 +163,14 @@
 
                     this.moveWithBounds(deltaX, deltaY);
 
-                    // Exponential Moving Average
+                    if(deltaX == 0 && deltaY == 0){
+                        this.vx *= this.velocityDegrade;
+                        this.vy *= this.velocityDegrade;
+                    }
+
+                    // velocity smoothed with momentum
                     this.vx = this.vx * (1 - this.smoothing) + deltaX * this.smoothing;
                     this.vy = this.vy * (1 - this.smoothing) + deltaY * this.smoothing;
-
                     this.isDragging = true;
                 },
                 // zoom out (scrollup)
@@ -192,30 +196,23 @@
             this.addObject(this.pannablePlaneControlObject);
         }
 
-        // Extracted boundary-checked translation
         moveWithBounds(deltaX, deltaY) {
             if (this.x + deltaX <= 0 && this.x + this.pixelWidth + deltaX >= this.lastVirtualWidth) {
                 this.x += deltaX;
             } else {
-                this.vx = 0; // Kill velocity if hitting horizontal boundary
+                //kill velocity when bound is hit
+                this.vx = 0;
             }
 
             if (this.y + deltaY <= 0 && this.y + this.pixelHeight + deltaY >= this.lastVirtualHeight) {
                 this.y += deltaY;
             } else {
-                this.vy = 0; // Kill velocity if hitting vertical boundary
+                this.vy = 0;
             }
         }
 
-        // Called every frame via combinedUpdate
+        //called every frame
         applyInertia() {
-            if (this.pannablePlaneControlObject.isDragging) {
-                // If the pointer is held down but stops moving, bleed off momentum fast
-                this.vx *= this.velocityDegrade;
-                this.vy *= this.velocityDegrade;
-                return;
-            }
-
             if (Math.abs(this.vx) < this.minVelocity && Math.abs(this.vy) < this.minVelocity) {
                 this.vx = 0;
                 this.vy = 0;
@@ -224,7 +221,6 @@
 
             this.moveWithBounds(this.vx, this.vy);
 
-            // Apply friction
             this.vx *= this.glide;
             this.vy *= this.glide;
         }
