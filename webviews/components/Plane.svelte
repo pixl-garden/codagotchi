@@ -30,40 +30,6 @@
             }
         }
 
-        getObjects() {
-            let childObjects = [];
-
-            const accumulateChildren = (parent) => {
-                if (!parent.renderChildren || !parent.children) return;
-
-                for (let child of parent.children) {
-                    if (child.useAbsoluteCoords) {
-                        child.renderX = child.x;
-                        child.renderY = child.y;
-                        child.renderZ = child.z;
-                    } else {
-                        // Combine the child's local coordinates with the parent's computed render position
-                        child.renderX = parent.renderX + child.x;
-                        child.renderY = parent.renderY + child.y;
-                        child.renderZ = parent.renderZ + child.z;
-                    }
-
-                    childObjects.push(child);
-                    accumulateChildren(child);
-                }
-            };
-
-            // Initialize root objects and traverse their hierarchies
-            for (let obj of this.objects) {
-                obj.renderX = obj.x;
-                obj.renderY = obj.y;
-                obj.renderZ = obj.z;
-                accumulateChildren(obj);
-            }
-
-            return [...this.objects, ...childObjects];
-        }
-
         convertToLocalCoords(screenX, screenY){
             const localX = (screenX - this.x) / this.scale;
             const localY = (screenY - this.y) / this.scale;
@@ -255,7 +221,7 @@
 
         viewportStrategy(virtualWidth, virtualHeight) {
             if (this.scale === undefined) {
-                this.scale = Math.min(
+                this.scale = Math.max(
                     (virtualWidth / this.width) * this.ratio, 
                     (virtualHeight / this.height) * this.ratio
                 );
@@ -263,6 +229,7 @@
                 this.y = (virtualHeight - (this.height * this.scale)) / 2;
             }
 
+            // modify scale when virtualwidth changes (screen resizes)
             if (this.lastVirtualWidth && virtualWidth !== this.lastVirtualWidth) {
                 const resizeFactor = virtualWidth / this.lastVirtualWidth;
                 this.scale *= resizeFactor;

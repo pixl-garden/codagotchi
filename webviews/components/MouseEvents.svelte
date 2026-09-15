@@ -29,8 +29,6 @@
             let objX = parentX + obj.x;
             let objY = parentY + obj.y;
             let objZ = parentZ + obj.z + 1; // Add 1 to ensure children are always above their parents in z-order
-            
-            obj.hoveredChild = null;
 
             // check bounds
             if (localX >= objX && localX <= objX + obj.width && 
@@ -55,7 +53,7 @@
             const planeZ = plane.z * 10000;
             const { localX, localY } = calculatePlaneLocalPosition(plane, x, y);
             // console.log(`Checking plane: ${plane.name} at z: ${planeZ} with local coordinates: (${localX}, ${localY})`);
-            for (let obj of plane.getObjects()) {
+            for (let obj of plane.objects) {
                 findObjectsRecursively(obj, plane, localX, localY, [], 0, 0, planeZ); 
             }
         }
@@ -71,7 +69,7 @@
         let hoveredParents = [];
 
         handleMouseObjectIntersection(x, y, gameInstance, (obj, objZ, parentChain) => {
-            if (objZ > highestFoundObjectZ) {
+            if (objZ >= highestFoundObjectZ) {
                 highestFoundObject = obj;
                 highestFoundObjectZ = objZ;
                 hoveredParents = [];
@@ -110,6 +108,8 @@
         const hoveredObjects = getObjectAt(xPixelCoord, yPixelCoord, gameInstance);
         const primaryHoveredObject = hoveredObjects[0] || null;
         const parentObjects = hoveredObjects.slice(1);
+
+        console.log("primary ", primaryHoveredObject, "parent ", parentObjects);
 
         // Update global state for drag handlers
         currentHoveredObject = primaryHoveredObject;
@@ -161,7 +161,6 @@
         }
     }
 
-    // Utility function to compare arrays for equality
     function arrayEquals(a, b) {
         return Array.isArray(a) &&
             Array.isArray(b) &&
@@ -169,7 +168,6 @@
             a.every((val, index) => val === b[index]);
     }
 
-    // Handle mouse click events
     export function handleClick(event, gameInstance) {
         let { gridX, gridY } = getEventDetails(event);
         let hoveredObjects = getObjectAt(gridX, gridY, gameInstance);
@@ -182,7 +180,6 @@
         updateHoverState({ xPixelCoord: gridX, yPixelCoord: gridY, event, gameInstance });
     }
 
-    // Handle mouse down events
     export function handleMouseDown(event, gameInstance) {
         currentHoveredObject?.onMouseDown?.();
         
@@ -193,8 +190,7 @@
         handleClick(event, gameInstance); // Initial click handling
     }
 
-    // Handle mouse up events
-    export function handleMouseUp(event, gameInstance) {
+    export function handleMouseUp(event) {
         event.preventDefault();
         let { gridX, gridY } = getEventDetails(event);
         isMouseDown = false;
@@ -203,10 +199,9 @@
             activeDragObject.onDragStop(gridX, gridY);
             activeDragObject.isDragging = false;
         }
-        activeDragObject = null; // Reset drag object
+        activeDragObject = null;
     }
 
-    // Handle mouse move events, including drawing functionality
     export function handleMouseMove(event, gameInstance) {
         event.preventDefault();
         let { gridX, gridY } = getEventDetails(event);
@@ -221,7 +216,6 @@
         }
     }
 
-    // Handle mouse out events
     export function handleMouseOut(event) {
         if (lastHoveredObject) {
             lastHoveredObject.onStopHover?.();
@@ -229,7 +223,13 @@
             lastHoveredObject = null;
             event.currentTarget.style.cursor = 'default';
         }
-        mouseExited = true;
+    }
+
+    export function handleMouseIn(event){
+        const isMouseStillDown = (event.buttons & 1) === 1;
+        if(isMouseDown && !isMouseStillDown){
+            handleMouseUp(event);
+        }
     }
 
     // Handle scroll events for scrollable objects

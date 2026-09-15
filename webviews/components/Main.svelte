@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { renderScreenWebGL, initWebGL } from './ScreenManager.svelte';
     import { game, shouldFocus, inputValue, textInput } from './Game.svelte';
-    import { handleMouseMove, handleClick, handleMouseOut, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
+    import { handleMouseMove, handleClick, handleMouseOut, handleMouseIn, handleMouseDown, handleMouseUp, focus, handleScroll } from './MouseEvents.svelte';
     import { loadSpriteData } from './SpriteReader.svelte';
     import { preloadObjects, roomMain as activePlanesMain } from './Rooms.svelte';
     import { get } from 'svelte/store';
@@ -112,5 +112,6 @@
      on:mousedown={(e) => handleMouseDown(e, get(game))}
      on:mouseup={(e) => handleMouseUp(e, get(game))}
      on:mouseleave={(e) => handleMouseOut(e)}
+     on:mouseenter={(e) => handleMouseIn(e)}
      on:wheel={(e) => handleScroll(e, get(game))}>
 </canvas>

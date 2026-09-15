@@ -7,6 +7,7 @@
     export function preloadObjects() {
         let plane2 = new PannablePlane("plane2", false, false, () => {
             obj2.nextFrame();
+            obj3.nextFrame();
         });
         plane2.setDimensions(128, 128)
         plane2.ratio = 1;
@@ -14,8 +15,12 @@
         plane2.width = 128;
         get(game).addActivePlane("plane2");
         const obj = new ConfigObject("paintBackground", 0, 0, -1);
-        const obj2 = new ConfigObject("sendPostcardButton", 50, 50, 100000);
+        const obj2 = new ConfigObject("sendPostcardButton", 20, 20, 100000);
+        const obj3 = new ConfigObject("sendPostcardButton", 50, 50, 100010);
         obj.addChild(obj2);
+        obj2.addChild(obj3);
+        obj.hoverWithChildren = true;
+        obj2.hoverWithChildren = true;
         plane2.addObject(obj);
 
         // const petObject = new Pet('pearguin', 40, 45, 31, get(game));

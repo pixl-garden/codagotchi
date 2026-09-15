@@ -120,19 +120,30 @@
         return 1;
     }
 
+    function flattenRenderTree(obj, parentX = 0, parentY = 0, parentZ = 0, list = []) {
+        const adjustedX = parentX + obj.x;
+        const adjustedY = parentY + obj.y;
+        const adjustedZ = parentZ + (obj.renderZ ?? obj.z) + 1;
+
+        list.push({ obj, adjustedX, adjustedY, adjustedZ });
+
+        if (obj.getChildren && obj.getChildren().length > 0) {
+            for (const child of obj.getChildren()) {
+                flattenRenderTree(child, adjustedX, adjustedY, adjustedZ, list);
+            }
+        }
+        return list;
+    }
+
     export function renderScreenWebGL(planes, virtualHeight, virtualWidth) {
         if (!gl || !atlasLoaded) return;
 
-        //map to physical pixels (for high res screens)
-        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2 to avoid GPU strain
-        
-        // only recreate canvas on resize (avoids reallocation of drawing buffer (output pixels))
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         if (resizeCanvasToDisplaySize(gl.canvas, dpr)) {
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         }
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -144,49 +155,52 @@
 
         gl.uniform2f(resolutionLocation, virtualWidth, virtualHeight);
         gl.uniform2f(atlasSizeLocation, image.width, image.height);
-
-        // Default color uniform to un-tinted white
         gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.uniform1i(imageLocation, 0);
 
-        let sortedPlanes = planes.slice().sort((a, b) => a.z - b.z);
+        const sortedPlanes = planes.slice().sort((a, b) => a.z - b.z);
 
         for (let plane of sortedPlanes) {
             plane.viewportStrategy(virtualWidth, virtualHeight);
 
-            // Retrieve flattened objects and sort by renderZ for correct depth ordering
-            let objects = plane.getObjects().slice().sort((a, b) => (a.renderZ ?? a.z) - (b.renderZ ?? b.z));
+            //flatten objects of plane
+            const planeZ = plane.z * 10000;
+            let adjustedObjects = [];
+            for (let rootObj of plane.objects) {
+                flattenRenderTree(rootObj, 0, 0, planeZ, adjustedObjects);
+            }
 
-            for (let obj of objects) {
+            adjustedObjects.sort((a, b) => a.worldZ - b.worldZ);
+
+            const scale = plane.scale;
+
+            //render adjusted objects
+            for (let { obj, adjustedX, adjustedY } of adjustedObjects) {
                 if (!obj.textureSprite) continue;
 
                 const textureSprite = obj.textureSprite;
                 const atlasData = textureSprite.getAtlas();
                 if (!atlasData) continue;
 
-                let { minX, minY, maxX, maxY, atlasWidth, atlasHeight } = atlasData;
-
+                const { minX, minY, maxX, maxY, atlasWidth, atlasHeight } = atlasData;
                 const w = obj.width;
                 const h = obj.height;
-                const scale = plane.scale;
 
-                const worldX = textureSprite.x || 0;
-                const worldY = textureSprite.y || 0;
+                // Apply plane offset and scale to computed world coordinates
+                const canvasX = plane.x + (adjustedX * scale);
+                const canvasY = plane.y + (adjustedY * scale);
+                const canvasW = w * scale;
+                const canvasH = h * scale;
 
-                const renderX = plane.x + (worldX * scale);
-                const renderY = plane.y + (worldY * scale);
-                const renderW = w * scale;
-                const renderH = h * scale;
-
-                const minU = (minX + (obj.width * obj.currentSpriteIndex)) / atlasWidth;
+                const currentSpriteIndex = obj.currentSpriteIndex || 0;
+                const minU = (minX + (w * currentSpriteIndex)) / atlasWidth;
                 const minV = minY / atlasHeight;
-                const maxU = (minX + (obj.width * (obj.currentSpriteIndex + 1))) / atlasWidth;
+                const maxU = (minX + (w * (currentSpriteIndex + 1))) / atlasWidth;
                 const maxV = maxY / atlasHeight;
 
-                // 3. Upload UVs
                 gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
                     minU, minV,
@@ -197,8 +211,7 @@
                     maxU, maxV,
                 ]), gl.DYNAMIC_DRAW);
 
-                // 4. Upload Positions & Draw
-                setRectangle(gl, positionBuffer, renderX, renderY, renderW, renderH);
+                setRectangle(gl, positionBuffer, canvasX, canvasY, canvasW, canvasH);
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             }
         }
