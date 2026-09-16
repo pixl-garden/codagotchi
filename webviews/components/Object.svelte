@@ -41,18 +41,16 @@
         }
 
         nextFrame() {
-            // Avoid unnecessary frame update if current state only has one frame and there are no queued states
-            if(this.states[this.state].length <= 1 && this.stateQueue.length == 0){
-                return;
-            }
-
-            // Define sprites for current state
             const stateSprites = this.states[this.state];
             
-            // First increment the index
+            // Avoid unnecessary frame update if current state only has one frame and there are no queued states
+            if (!stateSprites || (stateSprites.length <= 1 && this.stateQueue.length === 0)) {
+                return; 
+            }
+
             this.currentStateIndex++;
-            
-            // Then check if we need to reset
+                
+            // check to restart/end state
             if (this.currentStateIndex >= stateSprites.length) {
                 this.currentStateIndex = 0;
                 this.isStateCompleted = true;
@@ -60,8 +58,11 @@
                 this.nextState();
             }
             
-            // Set the current sprite based on the (potentially reset) index
-            this.currentSpriteIndex = stateSprites[this.currentStateIndex];
+            // refetch the state sprites in case this.nextState() changed this.state
+            const currentStateSprites = this.states[this.state];
+            if (currentStateSprites) {
+                this.currentSpriteIndex = currentStateSprites[this.currentStateIndex];
+            }
         }
         
         onHover() {}
@@ -80,9 +81,6 @@
         getHeight() {
             return this.height;
         }
-        getZ() {
-            return this.z;
-        }
 
         setCoordinate(newX, newY, newZ = null) {
             this.x = newX;
@@ -91,50 +89,7 @@
                 this.z = newZ;
             }
         }
-        
-        // getSprite() {
-        //     return new Sprite(trimSpriteMatrix(this.sprites[this.currentSpriteIndex], 0, this.spriteWidth, 0, this.spriteHeight), 
-        //         this.x, this.y, this.z, this.opacity, this.blur);
-        // }
-
-        // getChildSprites() {
-        //     let childSprites = [];
-        //     const accumulateChildSprites = (parent, offsetX = 0, offsetY = 0, offsetZ = 0) => {
-        //         for (let child of parent.children) {
-        //             let childSprite = child.getSprite();
-        //             if(child.useAbsoluteCoords){
-        //                 if(childSprite != null){
-        //                     // Apply both the current parent's offset and any accumulated offset from ancestors
-        //                     childSprites.push(childSprite);
-        //                 }
-
-        //                 // If the child has its own children, recursively accumulate their sprites too
-        //                 if (child.children.length > 0 && child.renderChildren) {
-        //                     accumulateChildSprites(child, child.x, child.y, child.z);
-        //                 }
-        //             }
-        //             else{
-        //                 if(childSprite != null){
-        //                     // Apply both the current parent's offset and any accumulated offset from ancestors
-        //                     childSprite.x += offsetX + parent.x;
-        //                     childSprite.y += offsetY + parent.y;
-        //                     childSprite.z += offsetZ + parent.z;
-        //                     childSprites.push(childSprite);
-        //                 }
-
-        //                 // If the child has its own children, recursively accumulate their sprites too
-        //                 if (child.children.length > 0 && child.renderChildren) {
-        //                     accumulateChildSprites(child, offsetX + parent.x, offsetY + parent.y, offsetZ + parent.z);
-        //                 }
-        //             }
-        //         }
-        //     };
-
-        //     // Start the recursive accumulation with the current object as the root
-        //     accumulateChildSprites(this);
-        //     return childSprites;
-        // }
-
+    
         // Method to update the object's state
         // callback is an optional function to be called when the state is completed
         updateState(newState, callback = null) {

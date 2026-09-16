@@ -40,7 +40,7 @@
 
             // check children
             if (obj.getChildren().length > 0) {
-                let children = obj.getChildren().sort((a, b) => b.getZ() - a.getZ());
+                let children = obj.getChildren().sort((a, b) => b.z() - a.z());
                 for (let child of children) {
                     findObjectsRecursively(child, plane, localX, localY, [...parentChain, obj], objX, objY, objZ);
                 }

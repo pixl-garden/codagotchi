@@ -5,10 +5,7 @@
     import { get } from 'svelte/store';
 
     export function preloadObjects() {
-        let plane2 = new PannablePlane("plane2", false, false, () => {
-            obj2.nextFrame();
-            obj3.nextFrame();
-        });
+        let plane2 = new PannablePlane("plane2");
         plane2.setDimensions(128, 128)
         plane2.ratio = 1;
         plane2.z = 100;
@@ -31,6 +28,9 @@
     export function roomMain(){
         for(let plane of get(game).activePlanes) {
             plane.update();
+            for(let obj of plane.getAllObjects()){
+                obj.nextFrame();
+            }
         }
     }
 </script>
