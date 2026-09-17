@@ -9,7 +9,9 @@
     let positionAttributeLocation;
     let texCoordAttributeLocation;
     let resolutionLocation;
-    let imageLocation;
+    let imageStaticLocation;
+    let imageRuntimeLocation;
+    let atlasTypeLocation;
     let colorLocation;
     let atlasSizeLocation;
 
@@ -17,7 +19,14 @@
     let vao;
     let positionBuffer;
     let texCoordBuffer;
-    let texture;
+    let staticTexture;
+    let runtimeTexture;
+
+    // runtime (for sprites generated at runtime, pack tracks available space on atlas)
+    const RUNTIME_ATLAS_SIZE = 2048;
+    let runtimePackX = 0;
+    let runtimePackY = 0;
+    let runtimePackRowHeight = 0;
 
     export function initWebGL(canvas, atlasUri) {
         // 1. Initialize the WebGL 2.0 context
@@ -27,6 +36,8 @@
             return null;
         }
 
+        staticTexture = gl.createTexture();
+
         // 2. Set up asynchronous image loading for the texture atlas
         image.crossOrigin = 'anonymous';
         image.onload = () => {
@@ -35,7 +46,7 @@
 
             // Make Texture Unit 0 active and bind our texture handle before uploading pixels
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.bindTexture(gl.TEXTURE_2D, staticTexture);
 
             // Upload the loaded image pixels into GPU texture memory
             let mipLevel = 0;
@@ -50,6 +61,9 @@
                 srcType,
                 image
             );
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         };
         image.src = atlasUri;
 
@@ -62,7 +76,9 @@
         positionAttributeLocation = gl.getAttribLocation(program, "a_position");
         texCoordAttributeLocation = gl.getAttribLocation(program, "a_texCoord");
         resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-        imageLocation = gl.getUniformLocation(program, "u_image");
+        imageStaticLocation = gl.getUniformLocation(program, "u_imageStatic");
+        imageRuntimeLocation = gl.getUniformLocation(program, "u_imageRuntime");
+        atlasTypeLocation = gl.getUniformLocation(program, "u_atlasType");
         colorLocation = gl.getUniformLocation(program, "u_color");
         atlasSizeLocation = gl.getUniformLocation(program, "u_atlasSize");
 
@@ -109,13 +125,17 @@
         // Done recording attribute setup into VAO
         gl.bindVertexArray(null);
 
-        // 8. Create and configure GPU Texture parameters ONCE
-        texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        //initialize runtime atlas
+        // runtimeTexture = gl.createTexture();
+        // gl.activeTexture(gl.TEXTURE1); 
+        // gl.bindTexture(gl.TEXTURE_2D, runtimeTexture);
+        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, RUNTIME_ATLAS_SIZE, RUNTIME_ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        // gl.uniform2f(atlasSizeLocation, RUNTIME_ATLAS_SIZE, RUNTIME_ATLAS_SIZE);
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
         return 1;
     }
@@ -158,8 +178,8 @@
         gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.uniform1i(imageLocation, 0);
+        gl.bindTexture(gl.TEXTURE_2D, staticTexture);
+        gl.uniform1i(imageStaticLocation, 0);
 
         const sortedPlanes = planes.slice().sort((a, b) => a.z - b.z);
 
@@ -245,7 +265,9 @@
     var fragmentShaderSource = `#version 300 es
         precision highp float;
 
-        uniform sampler2D u_image;
+        uniform sampler2D u_imageStatic;
+        uniform sampler2D u_imageRuntime;
+        uniform int u_atlasType; //0 static, 1 runtime
         uniform vec4 u_color;
         uniform vec2 u_atlasSize;
         in vec2 v_texCoord;
@@ -268,7 +290,11 @@
 
         void main() {
             vec2 smoothUV = getSubpixelUV(v_texCoord, u_atlasSize);
-            outColor = texture(u_image, smoothUV) * u_color;
+            if (u_atlasType == 0) {
+                outColor = texture(u_imageStatic, smoothUV) * u_color;
+            } else if (u_atlasType == 1){
+                outColor = texture(u_imageRuntime, smoothUV) * u_color;
+            }
         }
     `;
 
