@@ -3,6 +3,8 @@
     import { Plane, MinRelativePlane, PannablePlane } from './Plane.svelte';
     import { ConfigObject } from './Object.svelte';
     import { get } from 'svelte/store';
+    import { generateStatusBarClass } from './ObjectGenerators.svelte';
+    import * as constants from './constants.js';
 
     export function preloadObjects() {
         let plane2 = new PannablePlane("plane2");
@@ -20,9 +22,22 @@
         obj2.hoverWithChildren = true;
         plane2.addObject(obj);
 
-        // const petObject = new Pet('pearguin', 40, 45, 31, get(game));
-        // petObject.setPhysics(25.0, 0, 16.0)
-        // mainPlane.addObject(petObject);
+        const StatusBar = generateStatusBarClass(
+            50,             // width
+            7,              // height
+            constants.offBlack,       // borderColor
+            constants.grey,           // bgColor
+            [
+                { base: constants.red, highlight: constants.lightRed, shadow: constants.darkRed },
+                { base: constants.orange, highlight: constants.lightOrange, shadow: constants.darkOrange },
+                { base: constants.green, highlight: constants.lightGreen, shadow: constants.darkGreen }
+            ],
+            1  // roundness
+        );
+
+        const hungerBar = new StatusBar(12, 1, 200000);
+        hungerBar.setPercentage(.2);
+        plane2.addObject(hungerBar)
     }
 
     export function roomMain(){

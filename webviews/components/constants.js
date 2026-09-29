@@ -1,8 +1,8 @@
 
 //NOTE: KEEP ALL HEX LETTERS LOWERCASE
 
-export const transparentMenuColorParams = ["transparent", "transparent", "transparent", "transparent",
-    "transparent", "transparent", "transparent", "transparent"]
+export const transparentMenuColorParams = ["#00000000", "#00000000", "#00000000", "#00000000",
+    "#00000000", "#00000000", "#00000000", "#00000000"]
 
 export const white = '#ffffff';
 export const black = '#000000';
@@ -56,7 +56,7 @@ export const green = "#008000";
 export const orange = "#ffa500";
 export const red = "#ff0000";
 export const purple = "#800080";
-export const transparent = "transparent";
+export const transparent = "#00000000";
 
 export const lightRed = '#ff4d4d';
 export const darkRed = '#b30000';

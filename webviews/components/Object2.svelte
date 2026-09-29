@@ -1,5 +1,5 @@
 <script context="module">
-    import { Sprite, TextureSprite } from './SpriteComponent.svelte'
+    import { Sprite, StaticSprite } from './SpriteComponent.svelte'
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import objectConfig from './objectConfig.json';
     import petConfig from './petConfig.json';
@@ -634,7 +634,7 @@
             
             this.spriteWidth = config.trimWidth || config.spriteWidth;
             this.spriteHeight = config.trimHeight || config.spriteHeight;
-            this.textureSprite = new TextureSprite(config.spriteSheet, x, y, z);
+            this.textureSprite = new StaticSprite(config.spriteSheet, x, y, z);
             this.objectType = objectName;
             this.config = config;
             this.children = [];

@@ -1,5 +1,5 @@
 <script context="module">
-    import { Sprite, TextureSprite } from './SpriteComponent.svelte'
+    import { RuntimeSprite, Sprite, StaticSprite } from './SpriteComponent.svelte'
     import objectConfig from './objectConfig.json';
     export class BaseObject {
         constructor(states, x, y, z, actionOnClick = null) {
@@ -65,9 +65,16 @@
             }
         }
         
-        onHover() {}
-
-        onStopHover() {}
+        onHover(){
+            if(this.states["hovered"]){
+                this.updateState("hovered");
+            }
+        }
+        onStopHover(){
+            if(this.states["hovered"]){
+                this.updateState("default");
+            }
+        }
 
         whileHover() {}
 
@@ -164,26 +171,21 @@
             
             this.width = config.trimWidth || config.spriteWidth;
             this.height = config.trimHeight || config.spriteHeight;
-            this.textureSprite = new TextureSprite(config.spriteSheet, x, y, z);
-            this.objectType = objectName;
+            this.textureSprite = new StaticSprite(config.spriteSheet, x, y, z);
             this.config = config;
             this.children = [];
         }
-        getChildren() {
-            return this.children;
-        }
-        addChild(child) {
-            this.children.push(child);
-        }
-        onHover(){
-            if(this.states["hovered"]){
-                this.updateState("hovered");
-            }
-        }
-        onStopHover(){
-            if(this.states["hovered"]){
-                this.updateState("default");
-            }
+    }
+
+    export class RuntimeObject extends BaseObject {
+        constructor(spriteMatrices, states, x, y, z = 0, actionOnClick = null, objConfig = null) {
+            // const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
+            super(states, x, y, z, actionOnClick);
+            
+            this.width = spriteMatrices[0][0].length;
+            this.height = spriteMatrices[0].length;
+            this.textureSprite = new RuntimeSprite(spriteMatrices, x, y, z);
+            this.children = [];
         }
     }
 

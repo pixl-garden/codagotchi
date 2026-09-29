@@ -5,7 +5,7 @@
     import { TextRenderer } from './TextRenderer.svelte';
     import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
-    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
+    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators2.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import bedroomConfig from './config/bedroomConfig.json';
     import { InventoryGrid, BedroomItem } from './Inventory.svelte';

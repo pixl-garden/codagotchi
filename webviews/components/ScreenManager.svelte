@@ -14,6 +14,7 @@
     let atlasTypeLocation;
     let colorLocation;
     let atlasSizeLocation;
+    let uvBoundsLocation;
 
     // GPU State and Buffer handles
     let vao;
@@ -23,7 +24,7 @@
     let runtimeTexture;
 
     // runtime (for sprites generated at runtime, pack tracks available space on atlas)
-    const RUNTIME_ATLAS_SIZE = 2048;
+    const RUNTIME_ATLAS_SIZE = 10000;
     let runtimePackX = 0;
     let runtimePackY = 0;
     let runtimePackRowHeight = 0;
@@ -81,6 +82,7 @@
         atlasTypeLocation = gl.getUniformLocation(program, "u_atlasType");
         colorLocation = gl.getUniformLocation(program, "u_color");
         atlasSizeLocation = gl.getUniformLocation(program, "u_atlasSize");
+        uvBoundsLocation = gl.getUniformLocation(program, "u_uvBounds");
 
         // 5. Create a Vertex Array Object (VAO) to store all attribute/buffer bindings
         vao = gl.createVertexArray();
@@ -126,16 +128,16 @@
         gl.bindVertexArray(null);
 
         //initialize runtime atlas
-        // runtimeTexture = gl.createTexture();
-        // gl.activeTexture(gl.TEXTURE1); 
-        // gl.bindTexture(gl.TEXTURE_2D, runtimeTexture);
-        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, RUNTIME_ATLAS_SIZE, RUNTIME_ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        // gl.uniform2f(atlasSizeLocation, RUNTIME_ATLAS_SIZE, RUNTIME_ATLAS_SIZE);
+        runtimeTexture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE1); 
+        gl.bindTexture(gl.TEXTURE_2D, runtimeTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, RUNTIME_ATLAS_SIZE, RUNTIME_ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.uniform2f(atlasSizeLocation, RUNTIME_ATLAS_SIZE, RUNTIME_ATLAS_SIZE);
 
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
         return 1;
     }
@@ -177,9 +179,15 @@
         gl.uniform2f(atlasSizeLocation, image.width, image.height);
         gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0);
 
+        // static atlas setup
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, staticTexture);
         gl.uniform1i(imageStaticLocation, 0);
+
+        // runtime atlas setup
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, runtimeTexture);
+        gl.uniform1i(imageRuntimeLocation, 1);
 
         const sortedPlanes = planes.slice().sort((a, b) => a.z - b.z);
 
@@ -205,21 +213,30 @@
                 const atlasData = textureSprite.getAtlas();
                 if (!atlasData) continue;
 
+                //atlas type, 0 static, 1 runtime
+                const atlasType = textureSprite.atlasType;
+                gl.uniform1i(atlasTypeLocation, atlasType);
+
                 const { minX, minY, maxX, maxY, atlasWidth, atlasHeight } = atlasData;
                 const w = obj.width;
                 const h = obj.height;
 
-                // Apply plane offset and scale to computed world coordinates
+                // update atlas size per sprite
+                gl.uniform2f(atlasSizeLocation, atlasWidth, atlasHeight);
+
+                // apply plane offset and scale to computed world coordinates
                 const canvasX = plane.x + (adjustedX * scale);
                 const canvasY = plane.y + (adjustedY * scale);
                 const canvasW = w * scale;
                 const canvasH = h * scale;
 
-                const currentSpriteIndex = obj.currentSpriteIndex || 0;
+                const currentSpriteIndex = obj.currentSpriteIndex || 0; 
                 const minU = (minX + (w * currentSpriteIndex)) / atlasWidth;
                 const minV = minY / atlasHeight;
                 const maxU = (minX + (w * (currentSpriteIndex + 1))) / atlasWidth;
                 const maxV = maxY / atlasHeight;
+
+                gl.uniform4f(uvBoundsLocation, minU, minV, maxU, maxV);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -267,33 +284,34 @@
 
         uniform sampler2D u_imageStatic;
         uniform sampler2D u_imageRuntime;
-        uniform int u_atlasType; //0 static, 1 runtime
+        uniform int u_atlasType; 
         uniform vec4 u_color;
         uniform vec2 u_atlasSize;
-        in vec2 v_texCoord;
+        uniform vec4 u_uvBounds; // NEW: minU, minV, maxU, maxV
 
+        in vec2 v_texCoord;
         out vec4 outColor;
 
         vec2 getSubpixelUV(vec2 uv, vec2 textureSize) {
-            // 1. Shift to texel-center space
             vec2 pixel = uv * textureSize - 0.5;
-            
-            // 2. Measure derivative (exactly 1 physical screen/canvas pixel wide)
             vec2 fw = fwidth(pixel);
-            
-            // 3. Keep interior flat and ramp only across the 1-pixel border
             vec2 subpixel = clamp((fract(pixel) - 0.5) / fw + 0.5, 0.0, 1.0);
-            
-            // 4. Shift back to normalized UV coordinates
             return (floor(pixel) + 0.5 + subpixel) / textureSize;
         }
 
         void main() {
             vec2 smoothUV = getSubpixelUV(v_texCoord, u_atlasSize);
+            
+            // NEW: Calculate half a texel in UV space
+            vec2 halfTexel = 0.5 / u_atlasSize;
+            
+            // NEW: Clamp the coordinate to strictly stay inside the sprite bounds
+            vec2 clampedUV = clamp(smoothUV, u_uvBounds.xy + halfTexel, u_uvBounds.zw - halfTexel);
+
             if (u_atlasType == 0) {
-                outColor = texture(u_imageStatic, smoothUV) * u_color;
+                outColor = texture(u_imageStatic, clampedUV) * u_color;
             } else if (u_atlasType == 1){
-                outColor = texture(u_imageRuntime, smoothUV) * u_color;
+                outColor = texture(u_imageRuntime, clampedUV) * u_color;
             }
         }
     `;
@@ -355,6 +373,104 @@
             x2, y1,
             x2, y2,
         ]), gl.DYNAMIC_DRAW);
+    }
+
+    export const runtimeAtlas = {};
+
+    // helper function to parse hex colors with optional transparency
+    function parseHexColor(hex) {
+        if (!hex) return { r: 0, g: 0, b: 0, a: 0 }; 
+        if (hex.startsWith('#')) hex = hex.slice(1);
+        
+        let r = 255, g = 0, b = 255, a = 255; 
+        if (hex.length === 6 || hex.length === 8) {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+            if (hex.length === 8) {
+                a = parseInt(hex.substring(6, 8), 16);
+            }
+        }
+        return { r, g, b, a };
+    }
+
+    export function registerMatricesToAtlas(spriteId, matrices) {
+        if (!Array.isArray(matrices[0][0])) matrices = [matrices];
+
+        const frames = matrices.length;
+        const h = matrices[0].length;
+        const w = matrices[0][0].length;
+        
+        const totalWidth = frames * w
+
+        // check if the entire animation strip fits on the current row
+        if (runtimePackX + totalWidth > RUNTIME_ATLAS_SIZE) {
+            runtimePackX = 0; // reset to left edge
+            if (runtimePackRowHeight > 0) {
+                runtimePackY += runtimePackRowHeight
+            }
+            runtimePackRowHeight = 0; 
+        }
+
+        if (runtimePackY + h > RUNTIME_ATLAS_SIZE) {
+            console.error("Dynamic Atlas is full! Cannot fit new matrices.");
+            return false;
+        }
+
+        const startX = runtimePackX;
+        const startY = runtimePackY;
+
+        //process each frame
+        for (let m = 0; m < frames; m++) {
+            const matrix = matrices[m];
+
+            // flatten matrix into a 1D Uint8Array
+            const pixelData = new Uint8Array(w * h * 4);
+            let i = 0;
+            for (let row = 0; row < h; row++) {
+                for (let col = 0; col < w; col++) {
+                    const color = parseHexColor(matrix[row][col]); 
+                    pixelData[i++] = color.r;
+                    pixelData[i++] = color.g;
+                    pixelData[i++] = color.b;
+                    pixelData[i++] = color.a; 
+                }
+            }
+
+            // upload frame to its specific offset
+            gl.bindTexture(gl.TEXTURE_2D, runtimeTexture);
+            gl.texSubImage2D(
+                gl.TEXTURE_2D, 
+                0, 
+                startX + (m * w), 
+                startY, 
+                w, 
+                h, 
+                gl.RGBA, 
+                gl.UNSIGNED_BYTE, 
+                pixelData
+            );
+        }
+
+        // save to runtime atlas
+        runtimeAtlas[spriteId] = {
+            minX: startX, 
+            minY: startY, 
+            maxX: startX + totalWidth,
+            maxY: startY + h,
+            atlasWidth: RUNTIME_ATLAS_SIZE, 
+            atlasHeight: RUNTIME_ATLAS_SIZE,
+        };
+
+        runtimePackX += totalWidth;
+        
+        if (h > runtimePackRowHeight) {
+            runtimePackRowHeight = h;
+        }
+
+        console.log("RUNTIME ATLAS: ", runtimeAtlas);
+
+        return true;
     }
 
 </script>

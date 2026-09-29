@@ -1,13 +1,13 @@
 <script context='module'>
     import { over } from "lodash";
     import { spriteReader } from "./SpriteReader.svelte";
-    import * as Colors from './constants.js';
+    import * as constants from './constants.js';
 
 
     export function generateEmptyMatrix(width, height) {
         const sprite = [];
         for (let i = 0; i < height; i++) {
-            const row = Array(width).fill('transparent');
+            const row = Array(width).fill(constants.transparent);
             sprite.push(row);
         }
         return sprite;
@@ -57,7 +57,7 @@
         // Iterate over each pixel to apply roundness
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                matrix[x][y] = shouldColorPixel(x, y) ? matrix[x][y] : 'transparent';
+                matrix[x][y] = shouldColorPixel(x, y) ? matrix[x][y] : constants.transparent;
             }
         }
 
@@ -73,7 +73,7 @@
         const initialMatrix = generateRectangleMatrix(width, height, baseColor, rounding, topHighlight, bottomShadow);
         const subtractMatrix = generateRectangleMatrix(subtractLength, height, '#123456', rounding, '#123456', '#123456');
         const overlayed =  overlayMatrix(initialMatrix, subtractMatrix, 0, 0, 0, 0);
-        const replaced = replaceMatrixColor(overlayed, '#123456', 'transparent');
+        const replaced = replaceMatrixColor(overlayed, '#123456', constants.transparent);
         return replaced;
     }
 
@@ -99,7 +99,7 @@
 
         function getColor(x, y) {
             // First check if this pixel should be visible
-            if (!shouldColorPixel(x, y)) return 'transparent';
+            if (!shouldColorPixel(x, y)) return constants.transparent;
 
             // Straight edges
             if (y === 0) return topHighlight;
@@ -138,7 +138,7 @@
 
                 // Check if we are within the bounds of the overlay sprite
                 if (overlayX >= 0 && overlayX < overlaySprite[0].length && overlayY >= 0 && overlayY < overlaySprite.length && 
-                    overlaySprite[overlayY][overlayX] !== 'transparent') {
+                    overlaySprite[overlayY][overlayX] !== constants.transparent) {
                     outSprite[y][x] = overlaySprite[overlayY][overlayX];
                 }
                 // Check if we are within the bounds of the base sprite
@@ -147,7 +147,7 @@
                 }
                 // Otherwise, set to transparent
                 else {
-                    outSprite[y][x] = 'transparent';
+                    outSprite[y][x] = constants.transparent;
                 }
             }
         }
@@ -179,7 +179,7 @@
                 }
                 // Otherwise, set to transparent
                 else {
-                    outSprite[y][x] = 'transparent';
+                    outSprite[y][x] = constants.transparent;
                 }
             }
         }
@@ -271,7 +271,7 @@
         let statusBarSprite = overlayMatrix(backgroundSprite, innerBackground, 0, 0, 1, 1);
 
         // Create the border overlay sprite by replacing the background color with transparent
-        let borderSprite = replaceMatrixColor(statusBarSprite, bgColor, 'transparent');
+        let borderSprite = replaceMatrixColor(statusBarSprite, bgColor, constants.transparent);
 
         if (filledWidth > 0) {
             // Adjust the filledWidth to account for the border

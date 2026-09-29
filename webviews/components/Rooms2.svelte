@@ -5,7 +5,7 @@
     import PostOffice, { postcardRenderer, ColorMenu, postcardInboxManager } from './PostOffice.svelte';
     import { Item, InventoryGrid, inventoryDisplayManager, itemScaler, itemInfoDisplay, InventoryItem, recentItemDisplay, createItemSlot, createDraggableItemSlot } from './Inventory.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
-    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators.svelte';
+    import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators2.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import { get } from 'svelte/store';
     import * as Colors from './colors.js';
