@@ -4,6 +4,7 @@
     import { ConfigObject } from './Object.svelte';
     import { get } from 'svelte/store';
     import { generateStatusBarClass } from './ObjectGenerators.svelte';
+    import { BedroomManager } from './Bedroom.svelte';
     import * as constants from './constants.js';
 
     export function preloadObjects() {
@@ -37,7 +38,9 @@
 
         const hungerBar = new StatusBar(12, 1, 200000);
         hungerBar.setPercentage(.2);
-        plane2.addObject(hungerBar)
+        const bedroomManagerInstance = new BedroomManager();
+        bedroomManagerInstance.z = 300000
+        plane2.addObject(hungerBar, bedroomManagerInstance);
     }
 
     export function roomMain(){

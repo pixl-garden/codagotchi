@@ -3,18 +3,15 @@
     import { game, shouldFocus, inputValue, textInput } from './Game.svelte';
     import { Plane } from './Plane.svelte';
     import { TextRenderer } from './TextRenderer.svelte';
-    import * as Colors from './colors.js';
     import { spriteReaderFromStore } from './SpriteReader.svelte';
     import { generateTextButtonClass, generateIconButtonClass, generateStatusBarClass, generateTextInputBar, generateInvisibleButtonClass, generateFontTextButtonClass } from './ObjectGenerators2.svelte';
     import { generateColorButtonMatrix, generateEmptyMatrix } from './MatrixFunctions.svelte';
     import bedroomConfig from './config/bedroomConfig.json';
     import { InventoryGrid, BedroomItem } from './Inventory.svelte';
-    import { Pet, Button, Background, ConfigObject, GeneratedObject, toolTip, textButtonList, activeTextRenderer, ItemSlot, ObjectGrid, Menu, ButtonList} from './Object.svelte';
+    import { ConfigObject, RuntimeObject } from './Object.svelte';
+    import { Background, Button, ButtonList } from './ObjectClasses.svelte'; 
     import * as pako from 'pako';
-    import { Logger } from './Logger.svelte';
-
-    const logger = new Logger("BedroomManager");
-    export class BedroomManager extends GeneratedObject{
+    export class BedroomManager extends RuntimeObject{
         constructor() {
             super([generateEmptyMatrix(128, 128)], {default: [0]}, 0, 0, 0);
             this.bedroomConfig = bedroomConfig;
@@ -126,7 +123,7 @@
             
             if (item.furnitureType === "stackableItems") {
                 const stackedOn = this.findStackableFurniture(item);
-                logger.log('stackedOn', stackedOn);
+                console.log('stackedOn', stackedOn);
                 if (stackedOn) {
                     stackedOn.addChild(item);
                     item.parent = stackedOn;
@@ -184,6 +181,8 @@
             // get array of items to check collision with
             let itemArray = this[furnitureType];
             const objectConfig = this.bedroomConfig[newItem.furnitureType][newItem.typeIndex];
+            
+            //.some returns if any true instance exists if u were wondering
             return !itemArray.some(item => {
                 const configItem = this.bedroomConfig[furnitureType][item.typeIndex];
                 const rightBoundCollision = newItem.x < item.x + configItem.xTrim;
@@ -285,7 +284,7 @@
 
 
     
-    export class BedroomEditor extends GeneratedObject {
+    export class BedroomEditor extends RuntimeObject {
         constructor(gameRef, bedroomManager, hotbarRef, onHotbarChange = null) {
             const emptySpriteMatrix = generateEmptyMatrix(128, 128);
             super([emptySpriteMatrix], { default: [0] }, 0, 0, 15);
@@ -311,7 +310,7 @@
         }
 
         updateSave() {
-            logger.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
+            console.log("serializing bedroom", this.bedroomManager.serializeBedroom(), decodeFurnitureData(this.bedroomManager.serializeBedroom()));
             this.gameRef.updateGlobalState({"bedroomData": this.bedroomManager.serializeBedroom()})
             this.gameRef.updateDatabase({bedroomUpdates: this.bedroomManager.serializeBedroom()})
         }
@@ -524,7 +523,7 @@
 
         placementModeLoop() {
             if (this.placementMode && this.clickedItem) {
-                logger.log("clickedItem", this.clickedItem)
+                console.log("clickedItem", this.clickedItem)
                 this.setFurnitureCoordinates();
                 if (!this.bedroomManager.checkCollision(this.clickedItem)) {
                     this.clickedItem.opacity = 0.65;

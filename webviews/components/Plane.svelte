@@ -1,7 +1,7 @@
 <script context="module">
     import { get } from 'svelte/store';
     import { game } from './Game.svelte';
-    import { PannablePlaneController } from './Object.svelte';
+    import { PannablePlaneController } from './ObjectClasses.svelte';
 
     export class Plane {
         constructor(planeName, enterLogic = () => {}, exitLogic = () => {}, updateLogic = () => {}, onActivity = () => {},   

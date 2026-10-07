@@ -1,5 +1,6 @@
 <script context="module">
-    import { GeneratedObject, ObjectGrid, activeTextRenderer, ConfigObject } from "./Object2.svelte";
+    import { RuntimeObject, ObjectGrid, ConfigObject } from "./Object.svelte";
+    import { activeTextRenderer } from "./ObjectClasses.svelte"
     import itemConfig from './itemConfig.json';
     import bedroomConfig from './config/bedroomConfig.json';
     import { spriteReaderFromStore } from "./SpriteReader.svelte";
@@ -12,10 +13,10 @@
     
 
     /**
-     * Represents an item in the game inventory, extending functionalities from GeneratedObject.
-     * @extends GeneratedObject
+     * Represents an item in the game inventory, extending functionalities from RuntimeObject.
+     * @extends RuntimeObject
      */
-    export class Item extends GeneratedObject {
+    export class Item extends RuntimeObject {
         /**
          * Creates an instance of an Item.
          * @param {string} itemName - The name of the item, used to fetch its configuration.
@@ -428,7 +429,7 @@
             
             if(item) {
                 // if item has thumbnail set it as displayItem, otherwise use item sprite
-                let displayItem = item.hasThumbnail ? new GeneratedObject([item.getThumbnail()], {default: [0]}, 0, 0, slotInstance.z + 1) : item;
+                let displayItem = item.hasThumbnail ? new RuntimeObject([item.getThumbnail()], {default: [0]}, 0, 0, slotInstance.z + 1) : item;
                 // find x and y coordinates that will center item
                 let newItemX = Math.floor((slotInstance.spriteWidth - displayItem.spriteWidth) / 2) + itemX;
                 let newItemY = Math.floor((slotInstance.spriteHeight - displayItem.spriteHeight) / 2) + itemY;
@@ -462,7 +463,7 @@
         return inventoryGrid;
     }
 
-    export class recentItemDisplay extends GeneratedObject {
+    export class recentItemDisplay extends RuntimeObject {
         constructor(x, y, z, gameRef, inventoryGrid) {
             const emptyMatrix = generateEmptyMatrix(1, 1);
             super([emptyMatrix], { default: [0] }, x, y, z);
@@ -501,7 +502,7 @@
     }
 
     // Used for main inventory display, managing tabs and scaled item display
-    export class inventoryDisplayManager extends GeneratedObject{
+    export class inventoryDisplayManager extends RuntimeObject{
         constructor(x, y, z, gameRef, inventoryGrid, tabs, scaledItem, itemInfoDisplay, prevPageButton, nextPageButton) {
             let emptyMatrix = generateEmptyMatrix(128, 128);
             super([emptyMatrix], {default: [0]}, x, y, z);
@@ -538,7 +539,7 @@
         }
     }
 
-    export class itemScaler extends GeneratedObject{
+    export class itemScaler extends RuntimeObject{
         constructor(x, y, z, scale){
             super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
             this.item = null;
@@ -559,7 +560,7 @@
         }
     }
 
-    export class itemInfoDisplay extends GeneratedObject{
+    export class itemInfoDisplay extends RuntimeObject{
         constructor(x, y, z, nameTextRenderer, rarityTextRenderer, descriptionTextRenderer){
             super(generateEmptyMatrix(1, 1), { default: [0] }, x, y, z);
             this.itemName = "";

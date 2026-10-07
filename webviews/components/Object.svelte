@@ -179,37 +179,12 @@
 
     export class RuntimeObject extends BaseObject {
         constructor(spriteMatrices, states, x, y, z = 0, actionOnClick = null, objConfig = null) {
-            // const spriteMatrix = spriteReaderFromStore(config.spriteWidth, config.spriteHeight, config.spriteSheet);
             super(states, x, y, z, actionOnClick);
             
             this.width = spriteMatrices[0][0].length;
             this.height = spriteMatrices[0].length;
             this.textureSprite = new RuntimeSprite(spriteMatrices, x, y, z);
             this.children = [];
-        }
-    }
-
-    export class PannablePlaneController extends BaseObject {
-        constructor(x, y, z, width, height, dragCallback, scrollDownCallback, scrollUpCallback) {
-            super([], x, y, z, null)
-            this.width = width;
-            this.height = height;
-            this.dragCallback = dragCallback;
-            this.scrollDownCallback = scrollDownCallback;
-            this.scrollUpCallback = scrollUpCallback;
-            this.scrollable = true;
-        }
-
-        onDrag(x0, y0, x1, y1) {
-            this.dragCallback(x0, y0, x1, y1);
-        }
-
-        onScrollDown(){
-            this.scrollDownCallback(this.mouseX, this.mouseY);
-        }
-
-        onScrollUp(){
-            this.scrollUpCallback(this.mouseX, this.mouseY);
         }
     }
 
